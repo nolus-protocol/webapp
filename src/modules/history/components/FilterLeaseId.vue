@@ -66,13 +66,14 @@
 <script lang="ts" setup>
 import { useWalletStore } from "@/common/stores/wallet";
 import type { IObjectKeys } from "@/common/types";
-import { EtlApi } from "@/common/utils";
+import { BackendApi } from "@/common/api";
 import { inject, ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { Checkbox, SvgIcon, Button, Input, Size } from "web-components";
 
 const onClose = inject("close", (filters?: IObjectKeys) => {});
 
 const search = ref("");
+
 interface PositionItem {
   contract: string;
   label: string;
@@ -90,25 +91,25 @@ const selectedPositions = computed(() => positions.value.filter((p) => p.checked
 
 const listContainer = ref<HTMLElement | null>(null);
 const loadMoreRef = ref<HTMLElement | null>(null);
-const throtthle = 400;
+const throttle = 400;
 
 let observer: IntersectionObserver | null = null;
 
 async function fetchPositions(): Promise<PositionItem[]> {
-  return EtlApi.fetch_search_leases(wallet.wallet?.address, skip, limit, search.value).then((data) => {
-    const items: PositionItem[] = data.map((item) => {
-      return {
-        contract: item,
-        label: `#${item.slice(-8)}`,
-        checked: false
-      };
-    });
+  if (!wallet.wallet?.address) {
+    return [];
+  }
 
-    return items;
-  });
+  const data = await BackendApi.searchLeases(wallet.wallet.address, skip, limit, search.value);
+  
+  return data.map((item) => ({
+    contract: item,
+    label: `#${item.slice(-8)}`,
+    checked: false
+  }));
 }
 
-async function loadMore() {
+async function loadMore(): Promise<void> {
   if (loading.value || loaded.value) return;
 
   loading.value = true;
@@ -120,12 +121,14 @@ async function loadMore() {
     if (isLoaded) {
       loaded.value = true;
     }
+  } catch (e) {
+    console.error("[FilterLeaseId] Failed to fetch positions:", e);
   } finally {
     loading.value = false;
   }
 }
 
-function setupObserver() {
+function setupObserver(): void {
   if (!loadMoreRef.value || observer) return;
 
   observer = new IntersectionObserver(
@@ -145,7 +148,7 @@ function setupObserver() {
   observer.observe(loadMoreRef.value);
 }
 
-function cleanupObserver() {
+function cleanupObserver(): void {
   if (observer && loadMoreRef.value) {
     observer.unobserve(loadMoreRef.value);
     observer.disconnect();
@@ -171,11 +174,11 @@ watch(
       positions.value = [];
       loaded.value = false;
       await loadMore();
-    }, throtthle);
+    }, throttle);
   }
 );
 
-function onApply() {
+function onApply(): void {
   if (selectedPositions.value.length > 0) {
     return onClose({
       positions_ids: selectedPositions.value.map((item) => item)

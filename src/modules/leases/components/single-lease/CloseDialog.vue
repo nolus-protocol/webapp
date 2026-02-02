@@ -262,6 +262,7 @@ import { RouteNames } from "@/router";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
+import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -286,6 +287,7 @@ const router = useRouter();
 const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
 const configStore = useConfigStore();
+const historyStore = useHistoryStore();
 const leasesStore = useLeasesStore();
 const i18n = useI18n();
 
@@ -804,7 +806,7 @@ async function marketCloseLease() {
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       reload();
       dialog?.value?.close();
-      walletStore.loadActivities();
+      historyStore.loadActivities();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.toast-closed")

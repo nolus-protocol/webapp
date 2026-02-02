@@ -378,14 +378,29 @@ pub async fn get_lease_history(
     let lease_opening = state.etl_client.fetch_lease_opening(&address).await;
 
     // Extract history from ETL response if available
-    // The ETL returns history as part of the lease opening data
     let history = match lease_opening {
-        Ok(_) => {
-            // ETL history is embedded in the response
-            // For now return empty - would need to parse from ETL response
+        Ok(opening) => {
+            // Check both top-level and nested history fields
+            let etl_history = opening.history
+                .or(opening.lease.history)
+                .unwrap_or_default();
+            
+            // Convert ETL history entries to our format
+            etl_history
+                .into_iter()
+                .map(|entry| LeaseHistoryEntry {
+                    tx_hash: entry.tx_hash,
+                    action: entry.action.unwrap_or_else(|| "unknown".to_string()),
+                    amount: entry.amount,
+                    symbol: entry.symbol,
+                    timestamp: entry.timestamp,
+                })
+                .collect()
+        }
+        Err(e) => {
+            debug!("Failed to fetch lease history from ETL: {}", e);
             vec![]
         }
-        Err(_) => vec![],
     };
 
     Ok(Json(history))

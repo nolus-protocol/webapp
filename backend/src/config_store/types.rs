@@ -349,12 +349,12 @@ pub struct FullWebappConfig {
     pub history_protocols: HistoryProtocolsConfig,
 }
 
-/// All endpoint configurations
+/// All endpoint configurations - dynamically loaded from config/endpoints/*.json
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct EndpointsCollection {
-    pub pirin: NetworkEndpointsConfig,
-    pub rila: NetworkEndpointsConfig,
-    pub evm: NetworkEndpointsConfig,
+    /// Map of network name to endpoint config (e.g., "pirin" -> NetworkEndpointsConfig)
+    pub networks: HashMap<String, NetworkEndpointsConfig>,
 }
 
 /// All lease-related configuration

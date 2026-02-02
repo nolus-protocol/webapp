@@ -192,6 +192,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
+import { useHistoryStore } from "@/common/stores/history";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
@@ -224,6 +225,7 @@ const walletStore = useWalletStore();
 const balancesStore = useBalancesStore();
 const configStore = useConfigStore();
 const pricesStore = usePricesStore();
+const historyStore = useHistoryStore();
 const i18n = useI18n();
 const router = useRouter();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -612,7 +614,7 @@ async function openLease() {
       });
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
-      walletStore.loadActivities();
+      historyStore.loadActivities();
       reload();
       onShowToast({
         type: ToastType.success,

@@ -69,6 +69,7 @@ pub struct BalanceInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnbondingPosition {
     pub validator_address: String,
+    pub validator_moniker: Option<String>,
     pub entries: Vec<UnbondingEntry>,
 }
 
@@ -245,19 +246,22 @@ pub async fn get_positions(
 ) -> Result<Json<StakingPositionsResponse>, AppError> {
     debug!("Getting staking positions for: {}", query.address);
 
-    // Fetch delegations, rewards, and validators in parallel
-    debug!("Fetching delegations, rewards, and validators...");
-    let (delegations_result, rewards_result, validators_result) = tokio::join!(
+    // Fetch delegations, rewards, unbonding, and validators in parallel
+    debug!("Fetching delegations, rewards, unbonding, and validators...");
+    let (delegations_result, rewards_result, unbonding_result, validators_result) = tokio::join!(
         state.chain_client.get_delegations(&query.address),
         state.chain_client.get_rewards(&query.address),
+        state.chain_client.get_unbonding_delegations(&query.address),
         state.chain_client.get_validators(),
     );
     debug!("Delegations result: {:?}", delegations_result.is_ok());
     debug!("Rewards result: {:?}", rewards_result.is_ok());
+    debug!("Unbonding result: {:?}", unbonding_result.is_ok());
     debug!("Validators result: {:?}", validators_result.is_ok());
 
     let delegations = delegations_result.unwrap_or_default();
     let rewards_response = rewards_result.ok();
+    let unbonding_delegations = unbonding_result.unwrap_or_default();
     let validators = validators_result.ok();
 
     // Build delegations list
@@ -320,9 +324,36 @@ pub async fn get_positions(
         })
         .unwrap_or(0.0);
 
+    // Build unbonding positions
+    let unbonding_positions: Vec<UnbondingPosition> = unbonding_delegations
+        .iter()
+        .map(|u| {
+            let moniker = validators.as_ref().and_then(|vs| {
+                vs.iter()
+                    .find(|v| v.operator_address == u.validator_address)
+                    .map(|v| v.description.moniker.clone())
+            });
+
+            UnbondingPosition {
+                validator_address: u.validator_address.clone(),
+                validator_moniker: moniker,
+                entries: u
+                    .entries
+                    .iter()
+                    .map(|e| self::UnbondingEntry {
+                        creation_height: e.creation_height.clone(),
+                        completion_time: e.completion_time.clone(),
+                        initial_balance: e.initial_balance.clone(),
+                        balance: e.balance.clone(),
+                    })
+                    .collect(),
+            }
+        })
+        .collect();
+
     Ok(Json(StakingPositionsResponse {
         delegations: delegation_positions,
-        unbonding: vec![], // Would need separate query for unbonding
+        unbonding: unbonding_positions,
         rewards,
         total_staked: total_staked.to_string(),
         total_rewards: format!("{:.0}", total_rewards),

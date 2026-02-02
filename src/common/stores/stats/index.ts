@@ -7,7 +7,7 @@
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { EtlApi } from "@/common/utils";
+import { BackendApi } from "@/common/api";
 import type { IObjectKeys } from "@/common/types";
 
 // Cache configuration
@@ -141,7 +141,7 @@ export const useStatsStore = defineStore("stats", () => {
     error.value = null;
 
     try {
-      const data = await EtlApi.fetchStatsOverviewBatch();
+      const data = await BackendApi.getStatsOverview();
 
       overview.value = {
         tvl: data.tvl?.total_value_locked ?? "0",
@@ -156,6 +156,7 @@ export const useStatsStore = defineStore("stats", () => {
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch overview stats";
       console.error("[StatsStore] Failed to fetch overview:", e);
+      throw e;
     } finally {
       overviewLoading.value = false;
     }
@@ -169,7 +170,7 @@ export const useStatsStore = defineStore("stats", () => {
     error.value = null;
 
     try {
-      const data = await EtlApi.fetchLoansStatsBatch();
+      const data = await BackendApi.getLoansStats();
 
       loansStats.value = {
         openPositionValue: data.open_position_value,
@@ -181,6 +182,7 @@ export const useStatsStore = defineStore("stats", () => {
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch loans stats";
       console.error("[StatsStore] Failed to fetch loans stats:", e);
+      throw e;
     } finally {
       loansStatsLoading.value = false;
     }
@@ -194,12 +196,13 @@ export const useStatsStore = defineStore("stats", () => {
     error.value = null;
 
     try {
-      leasedAssets.value = await EtlApi.fetchLeasedAssets();
+      leasedAssets.value = await BackendApi.getLeasedAssets();
       lastUpdated.value = new Date();
       saveToCache();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch leased assets";
       console.error("[StatsStore] Failed to fetch leased assets:", e);
+      throw e;
     } finally {
       leasedAssetsLoading.value = false;
     }
@@ -213,12 +216,13 @@ export const useStatsStore = defineStore("stats", () => {
     error.value = null;
 
     try {
-      monthlyLeases.value = await EtlApi.fetchLeaseMonthly();
+      monthlyLeases.value = await BackendApi.getMonthlyLeases();
       lastUpdated.value = new Date();
       saveToCache();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch monthly leases";
       console.error("[StatsStore] Failed to fetch monthly leases:", e);
+      throw e;
     } finally {
       monthlyLeasesLoading.value = false;
     }
@@ -232,12 +236,12 @@ export const useStatsStore = defineStore("stats", () => {
     error.value = null;
 
     try {
-      supplyBorrowHistory.value = await EtlApi.fetchTimeSeries(period);
+      supplyBorrowHistory.value = await BackendApi.getSupplyBorrowHistory(period || undefined);
       lastUpdated.value = new Date();
-      // Note: Don't cache time series as it depends on period parameter
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch supply/borrow history";
       console.error("[StatsStore] Failed to fetch supply/borrow history:", e);
+      throw e;
     } finally {
       supplyBorrowLoading.value = false;
     }
@@ -287,11 +291,26 @@ export const useStatsStore = defineStore("stats", () => {
   }
 
   /**
-   * Cleanup - clear cache if needed
+   * Cleanup - reset state
    */
   function cleanup(): void {
-    // Stats are global, so we don't clear on disconnect
-    // Cache will expire naturally after 5 minutes
+    initialized.value = false;
+    overview.value = {
+      tvl: "0",
+      txVolume: "0",
+      buybackTotal: "0",
+      realizedPnlStats: "0",
+      revenue: "0"
+    };
+    loansStats.value = {
+      openPositionValue: null,
+      openInterest: null
+    };
+    leasedAssets.value = null;
+    monthlyLeases.value = [];
+    supplyBorrowHistory.value = [];
+    error.value = null;
+    lastUpdated.value = null;
   }
 
   // ==========================================================================

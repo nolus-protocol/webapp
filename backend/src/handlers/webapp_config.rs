@@ -112,22 +112,14 @@ pub async fn get_all_endpoints(
 }
 
 /// GET /api/config/endpoints/{network}
-/// Returns endpoint configuration for a specific network (pirin, rila, or evm)
+/// Returns endpoint configuration for a specific network
 pub async fn get_endpoints(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     debug!("Getting endpoints configuration for network: {}", network);
 
-    // Validate network name
-    if !["pirin", "rila", "evm"].contains(&network.as_str()) {
-        return Err(AppError::Validation {
-            message: format!("Invalid network: {}. Must be pirin, rila, or evm", network),
-            field: Some("network".to_string()),
-            details: None,
-        });
-    }
-
+    // Try to load the endpoints - will return NotFound if file doesn't exist
     let endpoints = state.config_store.load_endpoints(&network).await?;
 
     Ok((

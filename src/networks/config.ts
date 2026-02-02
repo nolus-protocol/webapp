@@ -1,4 +1,6 @@
-import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK, NATIVE_NETWORK } from "@/config/global";
+import { NATIVE_NETWORK } from "@/config/global";
+// Import directly from networks.ts to avoid circular dependency through barrel file
+import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK } from "@/config/global/networks";
 
 import { NETWORK as NOLUS_NETWORK } from "./list/nolus/network";
 import { embedChainInfo as nolusChainInfo } from "./list/nolus/contants";

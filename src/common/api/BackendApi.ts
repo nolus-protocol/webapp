@@ -13,14 +13,8 @@ export * from "./types";
 
 // Import types for internal use
 import type {
-  ApiError,
-  CoinAmount,
-  TransactionHistoryEntry,
-  IntercomHashResponse,
   // Config
   AppConfigResponse,
-  ProtocolInfo,
-  NetworkInfo,
   // Prices
   PricesResponse,
   PriceData,
@@ -39,13 +33,7 @@ import type {
   ValidatorInfo,
   StakingPositionsResponse,
   StakingParams,
-  // Swap
-  SwapQuoteRequest,
-  SwapQuoteResponse,
-  SwapExecuteRequest,
-  SwapExecuteResponse,
-  SwapStatusResponse,
-  SwapMessage,
+  // Skip Route
   SkipChain,
   SkipRouteRequest,
   SkipRouteResponse,
@@ -63,10 +51,7 @@ import type {
   ReferralStatusType,
   RewardStatusType,
   PayoutStatusType,
-  // Zero Interest
-  ZeroInterestConfig,
-  ZeroInterestEligibility,
-  ZeroInterestPayment,
+  // Campaigns
   ActiveCampaignsResponse,
   CampaignEligibilityResponse,
   // Governance
@@ -80,26 +65,42 @@ import type {
   NodeInfoResponse,
   NetworkStatusResponse,
   // Webapp
-  WebappFullConfig,
   WebappCurrenciesConfig,
   WebappChainIdsConfig,
   WebappHistoryCurrenciesConfig,
   WebappHistoryProtocolsConfig,
-  WebappEndpointsCollection,
   WebappNetworkEndpointsConfig,
-  WebappDownpaymentRangesConfig,
   WebappDownpaymentRange,
   WebappDueProjectionConfig,
   WebappZeroInterestAddresses,
   WebappSkipRouteConfig,
   WebappProposalsConfig,
-  WebappLocalesListResponse,
+  // ETL
+  StatsOverviewBatchResponse,
+  LoansStatsBatchResponse,
+  UserDashboardBatchResponse,
+  UserHistoryBatchResponse,
+  PriceSeriesResponse,
+  PnlOverTimeResponse,
+  LeasesMonthlyResponse,
+  LeasedAssetsResponse,
+  TimeSeriesResponse,
+  TxsResponse,
+  TransactionFilters,
+  LeaseOpeningResponse,
+  LeaseClosingResponse,
+  LeasesSearchResponse,
+  LpWithdrawResponse,
+  RealizedPnlDataResponse,
 } from "./types";
 
 import { ApiError as ApiErrorClass } from "./types";
 
-// Backend URL - configurable via environment
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+// Backend URL - must be configured via environment variable
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+if (!BACKEND_URL) {
+  throw new Error("VITE_BACKEND_URL environment variable is required");
+}
 
 /**
  * Main Backend API Client
@@ -224,14 +225,6 @@ export class BackendApiClient {
     return this.request<AppConfigResponse>("GET", "/api/config");
   }
 
-  async getProtocols(): Promise<{ [key: string]: ProtocolInfo }> {
-    return this.request<{ [key: string]: ProtocolInfo }>("GET", "/api/config/protocols");
-  }
-
-  async getNetworks(): Promise<NetworkInfo[]> {
-    return this.request<NetworkInfo[]>("GET", "/api/config/networks");
-  }
-
   // =========================================================================
   // Currencies & Prices
   // =========================================================================
@@ -250,10 +243,6 @@ export class BackendApiClient {
       };
     }
     return priceData;
-  }
-
-  async getPricesRaw(): Promise<PricesResponse> {
-    return this.request<PricesResponse>("GET", "/api/prices");
   }
 
   async getBalances(address: string): Promise<BalancesResponse> {
@@ -287,48 +276,12 @@ export class BackendApiClient {
     return this.request<LeaseQuoteResponse>("POST", "/api/leases/quote", { body: request });
   }
 
-  async openLease(request: {
-    protocol: string;
-    downpayment: CoinAmount;
-    lease_currency: string;
-    max_ltd?: string;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/leases/open", { body: request });
-  }
-
-  async repayLease(request: {
-    lease_address: string;
-    amount: CoinAmount;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/leases/repay", { body: request });
-  }
-
-  async closeLease(request: {
-    lease_address: string;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/leases/close", { body: request });
-  }
-
-  async marketCloseLease(request: {
-    lease_address: string;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/leases/market-close", { body: request });
-  }
-
   // =========================================================================
   // Earn
   // =========================================================================
 
   async getEarnPools(): Promise<EarnPool[]> {
     return this.request<EarnPool[]>("GET", "/api/earn/pools");
-  }
-
-  async getEarnPool(poolId: string): Promise<EarnPool> {
-    return this.request<EarnPool>("GET", `/api/earn/pools/${poolId}`);
   }
 
   async getEarnPositions(address: string): Promise<EarnPositionsResponse> {
@@ -339,22 +292,6 @@ export class BackendApiClient {
 
   async getEarnStats(): Promise<EarnStats> {
     return this.request<EarnStats>("GET", "/api/earn/stats");
-  }
-
-  async earnDeposit(request: {
-    protocol: string;
-    amount: CoinAmount;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/earn/deposit", { body: request });
-  }
-
-  async earnWithdraw(request: {
-    protocol: string;
-    amount: CoinAmount;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/earn/withdraw", { body: request });
   }
 
   // =========================================================================
@@ -381,74 +318,8 @@ export class BackendApiClient {
     return this.request<StakingParams>("GET", "/api/staking/params");
   }
 
-  async delegate(request: {
-    validator_address: string;
-    amount: CoinAmount;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/staking/delegate", { body: request });
-  }
-
-  async undelegate(request: {
-    validator_address: string;
-    amount: CoinAmount;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/staking/undelegate", { body: request });
-  }
-
-  async redelegate(request: {
-    src_validator_address: string;
-    dst_validator_address: string;
-    amount: CoinAmount;
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/staking/redelegate", { body: request });
-  }
-
-  async claimStakingRewards(request: {
-    validator_addresses: string[];
-    sender_address: string;
-  }): Promise<SwapMessage[]> {
-    return this.request<SwapMessage[]>("POST", "/api/staking/claim-rewards", { body: request });
-  }
-
   // =========================================================================
-  // Swap
-  // =========================================================================
-
-  async getSwapQuote(request: SwapQuoteRequest): Promise<SwapQuoteResponse> {
-    return this.request<SwapQuoteResponse>("GET", "/api/swap/quote", {
-      params: {
-        source_asset: request.source_asset,
-        source_chain: request.source_chain,
-        dest_asset: request.dest_asset,
-        dest_chain: request.dest_chain,
-        amount: request.amount,
-      },
-    });
-  }
-
-  async executeSwap(request: SwapExecuteRequest): Promise<SwapExecuteResponse> {
-    return this.request<SwapExecuteResponse>("POST", "/api/swap/execute", { body: request });
-  }
-
-  async getSwapStatus(txHash: string): Promise<SwapStatusResponse> {
-    return this.request("GET", `/api/swap/status/${txHash}`);
-  }
-
-  async getSwapHistory(address: string, skip?: number, limit?: number): Promise<TransactionHistoryEntry[]> {
-    return this.request<TransactionHistoryEntry[]>("GET", "/api/swap/history", {
-      params: { address, skip, limit },
-    });
-  }
-
-  async getSupportedSwapPairs(): Promise<{ source: string; dest: string; chains: string[] }[]> {
-    return this.request("GET", "/api/swap/supported-pairs");
-  }
-
-  // =========================================================================
-  // Skip Route
+  // Skip Route (Swap)
   // =========================================================================
 
   async getSkipChains(includeEvm = true, includeSvm = true): Promise<SkipChain[]> {
@@ -529,45 +400,6 @@ export class BackendApiClient {
   }
 
   // =========================================================================
-  // Zero Interest
-  // =========================================================================
-
-  async getZeroInterestConfig(): Promise<ZeroInterestConfig> {
-    return this.request<ZeroInterestConfig>("GET", "/api/zero-interest/config");
-  }
-
-  async checkZeroInterestEligibility(lease: string, owner: string): Promise<ZeroInterestEligibility> {
-    return this.request<ZeroInterestEligibility>("GET", "/api/zero-interest/eligibility", {
-      params: { lease, owner },
-    });
-  }
-
-  async getZeroInterestPayments(owner: string): Promise<ZeroInterestPayment[]> {
-    return this.request<ZeroInterestPayment[]>("GET", `/api/zero-interest/payments/${owner}`);
-  }
-
-  async getLeaseZeroInterestPayments(leaseAddress: string): Promise<ZeroInterestPayment[]> {
-    return this.request<ZeroInterestPayment[]>("GET", `/api/zero-interest/lease/${leaseAddress}/payments`);
-  }
-
-  async createZeroInterestPayment(request: {
-    lease_address: string;
-    amount: string;
-    denom: string;
-    owner_address: string;
-    signature: string;
-  }): Promise<{ payment: ZeroInterestPayment; tx_hash?: string }> {
-    return this.request("POST", "/api/zero-interest/payments", { body: request });
-  }
-
-  async cancelZeroInterestPayment(
-    paymentId: string,
-    request: { owner_address: string; signature: string }
-  ): Promise<void> {
-    return this.request("DELETE", `/api/zero-interest/payments/${paymentId}`, { body: request });
-  }
-
-  // =========================================================================
   // Campaigns
   // =========================================================================
 
@@ -582,16 +414,6 @@ export class BackendApiClient {
   ): Promise<CampaignEligibilityResponse> {
     return this.request<CampaignEligibilityResponse>("GET", "/api/campaigns/eligibility", {
       params: { wallet, protocol, currency },
-    });
-  }
-
-  // =========================================================================
-  // Intercom
-  // =========================================================================
-
-  async getIntercomHash(userId: string): Promise<IntercomHashResponse> {
-    return this.request<IntercomHashResponse>("POST", "/api/intercom/hash", {
-      body: { user_id: userId },
     });
   }
 
@@ -649,20 +471,8 @@ export class BackendApiClient {
   }
 
   // =========================================================================
-  // Health
-  // =========================================================================
-
-  async healthCheck(): Promise<{ status: string; version: string; uptime_seconds: number }> {
-    return this.request("GET", "/api/health");
-  }
-
-  // =========================================================================
   // Webapp Configuration
   // =========================================================================
-
-  async getWebappConfig(): Promise<WebappFullConfig> {
-    return this.request<WebappFullConfig>("GET", "/api/webapp/config");
-  }
 
   async getWebappCurrencies(): Promise<WebappCurrenciesConfig> {
     return this.request<WebappCurrenciesConfig>("GET", "/api/webapp/config/currencies");
@@ -680,16 +490,8 @@ export class BackendApiClient {
     return this.request<WebappHistoryProtocolsConfig>("GET", "/api/webapp/config/history-protocols");
   }
 
-  async getWebappEndpoints(): Promise<WebappEndpointsCollection> {
-    return this.request<WebappEndpointsCollection>("GET", "/api/webapp/config/endpoints");
-  }
-
   async getWebappNetworkEndpoints(network: string): Promise<WebappNetworkEndpointsConfig> {
     return this.request<WebappNetworkEndpointsConfig>("GET", `/api/webapp/config/endpoints/${network}`);
-  }
-
-  async getWebappDownpaymentRanges(): Promise<WebappDownpaymentRangesConfig> {
-    return this.request<WebappDownpaymentRangesConfig>("GET", "/api/webapp/config/lease/downpayment-ranges");
   }
 
   async getWebappDownpaymentRangeForProtocol(protocol: string): Promise<WebappDownpaymentRange> {
@@ -728,12 +530,197 @@ export class BackendApiClient {
     return this.request<WebappProposalsConfig>("GET", "/api/webapp/config/governance/hidden-proposals");
   }
 
-  async getWebappLocales(): Promise<WebappLocalesListResponse> {
-    return this.request<WebappLocalesListResponse>("GET", "/api/webapp/locales");
-  }
-
   async getWebappLocale(lang: string): Promise<Record<string, unknown>> {
     return this.request<Record<string, unknown>>("GET", `/api/webapp/locales/${lang}`);
+  }
+
+  // =========================================================================
+  // ETL - Analytics & Statistics
+  // =========================================================================
+
+  /**
+   * Fetch stats overview batch (TVL, tx volume, buyback, realized PnL stats, revenue)
+   */
+  async getStatsOverview(): Promise<StatsOverviewBatchResponse> {
+    return this.request<StatsOverviewBatchResponse>("GET", "/api/etl/batch/stats-overview");
+  }
+
+  /**
+   * Fetch loans stats batch (open position value, open interest)
+   */
+  async getLoansStats(): Promise<LoansStatsBatchResponse> {
+    return this.request<LoansStatsBatchResponse>("GET", "/api/etl/batch/loans-stats");
+  }
+
+  /**
+   * Fetch user dashboard batch (earnings, realized PnL, position/debt value)
+   */
+  async getUserDashboard(address: string): Promise<UserDashboardBatchResponse> {
+    return this.request<UserDashboardBatchResponse>("GET", "/api/etl/batch/user-dashboard", {
+      params: { address },
+    });
+  }
+
+  /**
+   * Fetch user history batch (history stats, realized PnL data)
+   */
+  async getUserHistory(address: string): Promise<UserHistoryBatchResponse> {
+    return this.request<UserHistoryBatchResponse>("GET", "/api/etl/batch/user-history", {
+      params: { address },
+    });
+  }
+
+  /**
+   * Fetch transaction history
+   */
+  async getTransactions(
+    address: string,
+    skip: number = 0,
+    limit: number = 50,
+    filters?: TransactionFilters
+  ): Promise<TxsResponse> {
+    const params: Record<string, string | number> = { address, skip, limit };
+
+    if (filters) {
+      // If all main filters are true, don't send any filter
+      if (!(filters.positions && filters.transfers && filters.earn && filters.staking)) {
+        const activeFilters = Object.keys(filters).filter(
+          (k) => k !== "positions_ids" && filters[k as keyof TransactionFilters]
+        );
+        if (activeFilters.length > 0) {
+          params.filter = activeFilters.join(",");
+        }
+      }
+
+      if (filters.positions_ids && filters.positions_ids.length > 0) {
+        params.to = filters.positions_ids.join(",");
+      }
+    }
+
+    return this.request<TxsResponse>("GET", "/api/etl/txs", { params });
+  }
+
+  /**
+   * Search leases by address
+   */
+  async searchLeases(
+    address: string,
+    skip: number = 0,
+    limit: number = 50,
+    search?: string
+  ): Promise<LeasesSearchResponse> {
+    const params: Record<string, string | number> = { address, skip, limit };
+    if (search && search.length > 0) {
+      params.search = search;
+    }
+    return this.request<LeasesSearchResponse>("GET", "/api/etl/leases-search", { params });
+  }
+
+  /**
+   * Fetch price series for charting
+   */
+  async getPriceSeries(
+    key: string,
+    protocol: string,
+    interval: string
+  ): Promise<PriceSeriesResponse> {
+    return this.request<PriceSeriesResponse>("GET", "/api/etl/prices", {
+      params: { key, protocol, interval },
+    });
+  }
+
+  /**
+   * Fetch PnL over time for charting
+   */
+  async getPnlOverTime(address: string, interval: string): Promise<PnlOverTimeResponse> {
+    return this.request<PnlOverTimeResponse>("GET", "/api/etl/pnl-over-time", {
+      params: { address, interval },
+    });
+  }
+
+  /**
+   * Fetch leased assets breakdown
+   */
+  async getLeasedAssets(): Promise<LeasedAssetsResponse> {
+    return this.request<LeasedAssetsResponse>("GET", "/api/etl/leased-assets");
+  }
+
+  /**
+   * Fetch monthly leases statistics
+   */
+  async getMonthlyLeases(): Promise<LeasesMonthlyResponse> {
+    return this.request<LeasesMonthlyResponse>("GET", "/api/etl/leases-monthly");
+  }
+
+  /**
+   * Fetch supply/borrow history time series
+   */
+  async getSupplyBorrowHistory(period?: string): Promise<TimeSeriesResponse> {
+    return this.request<TimeSeriesResponse>("GET", "/api/etl/supplied-borrowed-history", {
+      params: period ? { period } : undefined,
+    });
+  }
+
+  /**
+   * Fetch lease opening data
+   */
+  async getLeaseOpening(leaseAddress: string): Promise<LeaseOpeningResponse> {
+    return this.request<LeaseOpeningResponse>("GET", "/api/etl/ls-opening", {
+      params: { lease: leaseAddress },
+    });
+  }
+
+  /**
+   * Fetch user earnings
+   */
+  async getEarnings(address: string): Promise<import("./types").EarningsResponse> {
+    return this.request("GET", "/api/etl/earnings", { params: { address } });
+  }
+
+  /**
+   * Fetch position/debt value
+   */
+  async getPositionDebtValue(address: string): Promise<import("./types").PositionDebtValueResponse> {
+    return this.request("GET", "/api/etl/position-debt-value", { params: { address } });
+  }
+
+  /**
+   * Fetch realized PnL for user
+   */
+  async getRealizedPnl(address: string): Promise<import("./types").UserRealizedPnlResponse> {
+    return this.request("GET", "/api/etl/realized-pnl", { params: { address } });
+  }
+
+  /**
+   * Fetch realized PnL data details
+   */
+  async getRealizedPnlData(address: string): Promise<RealizedPnlDataResponse> {
+    return this.request<RealizedPnlDataResponse>("GET", "/api/etl/realized-pnl-data", { params: { address } });
+  }
+
+  /**
+   * Fetch history stats
+   */
+  async getHistoryStats(address: string): Promise<import("./types").HistoryStatsResponse> {
+    return this.request("GET", "/api/etl/history-stats", { params: { address } });
+  }
+
+  /**
+   * Fetch PnL log (closed positions, paginated)
+   */
+  async getPnlLog(address: string, skip: number = 0, limit: number = 10): Promise<LeaseClosingResponse> {
+    return this.request<LeaseClosingResponse>("GET", "/api/etl/ls-loan-closing", {
+      params: { address, skip, limit },
+    });
+  }
+
+  /**
+   * Fetch LP withdraw data by transaction hash
+   */
+  async getLpWithdraw(txHash: string): Promise<LpWithdrawResponse> {
+    return this.request<LpWithdrawResponse>("GET", "/api/etl/lp-withdraw", {
+      params: { tx_hash: txHash },
+    });
   }
 }
 

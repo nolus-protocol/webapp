@@ -89,7 +89,8 @@ import {
 } from "web-components";
 import { computed, inject, ref, watch } from "vue";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { useWalletStore, WalletActions } from "@/common/stores/wallet";
+import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -99,6 +100,7 @@ import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { h } from "vue";
 import { Contracts } from "@/config/global";
+import { useHistoryStore } from "@/common/stores/history";
 import { useI18n } from "vue-i18n";
 
 const configStore = useConfigStore();
@@ -144,7 +146,9 @@ const assets = computed(() => {
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
+const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
+const historyStore = useHistoryStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -286,8 +290,8 @@ async function transferAmount() {
       );
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadLPNCurrency(), walletStore[WalletActions.UPDATE_BALANCES]()]);
-      walletStore.loadActivities();
+      await Promise.all([loadLPNCurrency(), balancesStore.fetchBalances()]);
+      historyStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

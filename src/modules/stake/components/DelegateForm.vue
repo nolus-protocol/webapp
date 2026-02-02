@@ -74,6 +74,7 @@ import { computed, inject, ref } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
+import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -86,6 +87,7 @@ const onShowToast = inject("onShowToast", (data: { type: ToastType; message: str
 
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
+const historyStore = useHistoryStore();
 const pricesStore = usePricesStore();
 const input = ref("0");
 const error = ref("");
@@ -193,8 +195,8 @@ async function delegate() {
       const { txHash, txBytes, usedFee } = await wallet.wallet.simulateDelegateTx(delegations);
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES()]);
-      wallet.loadActivities();
+      await Promise.all([loadDelegated(), balancesStore.fetchBalances()]);
+      historyStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

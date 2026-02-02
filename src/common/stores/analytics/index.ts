@@ -11,8 +11,9 @@
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { EtlApi } from "@/common/utils";
+import { BackendApi } from "@/common/api";
 import type { IObjectKeys } from "@/common/types";
+import type { PriceDataPoint, PnlDataPoint, LeaseClosingEntry } from "@/common/api/types";
 
 // Types
 export interface UserDashboardData {
@@ -24,11 +25,6 @@ export interface UserDashboardData {
 export interface UserHistoryData {
   historyStats: IObjectKeys | null;
   realizedPnlData: IObjectKeys[] | null;
-}
-
-export interface PnlDataPoint {
-  amount: number;
-  date: Date;
 }
 
 export const useAnalyticsStore = defineStore("analytics", () => {
@@ -56,10 +52,10 @@ export const useAnalyticsStore = defineStore("analytics", () => {
   const pnlOverTimeInterval = ref<string>("");
 
   // Price series cache (keyed by "key:protocol:interval")
-  const priceSeriesCache = ref<Map<string, [number, number][]>>(new Map());
+  const priceSeriesCache = ref<Map<string, PriceDataPoint[]>>(new Map());
 
   // Realized PnL list (paginated)
-  const realizedPnlList = ref<IObjectKeys[]>([]);
+  const realizedPnlList = ref<LeaseClosingEntry[]>([]);
   const realizedPnlTotal = ref<number>(0);
 
   // Loading states
@@ -72,6 +68,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
   // Error state
   const error = ref<string | null>(null);
   const lastUpdated = ref<Date | null>(null);
+  const initialized = ref(false);
 
   // ==========================================================================
   // Computed
@@ -107,7 +104,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     error.value = null;
 
     try {
-      const data = await EtlApi.fetchUserDashboardBatch(address.value);
+      const data = await BackendApi.getUserDashboard(address.value);
 
       dashboardData.value = {
         earnings: data.earnings,
@@ -119,6 +116,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch dashboard data";
       console.error("[AnalyticsStore] Failed to fetch dashboard data:", e);
+      throw e;
     } finally {
       dashboardLoading.value = false;
     }
@@ -131,10 +129,11 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     if (!address.value) return;
 
     try {
-      const earnings = await EtlApi.fetchEarnings(address.value);
+      const earnings = await BackendApi.getEarnings(address.value);
       dashboardData.value.earnings = earnings;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch earnings:", e);
+      throw e;
     }
   }
 
@@ -145,10 +144,11 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     if (!address.value) return;
 
     try {
-      const data = await EtlApi.fetchPositionDebtValue(address.value);
+      const data = await BackendApi.getPositionDebtValue(address.value);
       dashboardData.value.positionDebtValue = data;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch position/debt value:", e);
+      throw e;
     }
   }
 
@@ -166,7 +166,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     error.value = null;
 
     try {
-      const data = await EtlApi.fetchUserHistoryBatch(address.value);
+      const data = await BackendApi.getUserHistory(address.value);
 
       historyData.value = {
         historyStats: data.history_stats,
@@ -177,6 +177,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch history data";
       console.error("[AnalyticsStore] Failed to fetch history data:", e);
+      throw e;
     } finally {
       historyLoading.value = false;
     }
@@ -189,10 +190,11 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     if (!address.value) return;
 
     try {
-      const stats = await EtlApi.fetchHistoryStats(address.value);
+      const stats = await BackendApi.getHistoryStats(address.value);
       historyData.value.historyStats = stats;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch history stats:", e);
+      throw e;
     }
   }
 
@@ -203,10 +205,11 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     if (!address.value) return;
 
     try {
-      const data = await EtlApi.fetchRealizedPNL(address.value);
+      const data = await BackendApi.getRealizedPnl(address.value);
       dashboardData.value.realizedPnl = data;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch realized PnL:", e);
+      throw e;
     }
   }
 
@@ -217,34 +220,36 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     if (!address.value) return;
 
     try {
-      const data = await EtlApi.fetchRealizedPNLData(address.value);
+      const data = await BackendApi.getRealizedPnlData(address.value);
       historyData.value.realizedPnlData = data;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch realized PnL data:", e);
+      throw e;
     }
   }
 
   /**
    * Fetch paginated PnL list (for PnlLog component)
    */
-  async function fetchPnlList(skip: number = 0, limit: number = 10): Promise<IObjectKeys[]> {
+  async function fetchPnlList(skip: number = 0, limit: number = 10): Promise<LeaseClosingEntry[]> {
     if (!address.value) return [];
 
     realizedPnlListLoading.value = true;
 
     try {
-      const data = await EtlApi.fetchPNL(address.value, skip, limit);
+      const response = await BackendApi.getPnlLog(address.value, skip, limit);
       
       if (skip === 0) {
-        realizedPnlList.value = data;
+        realizedPnlList.value = response.data;
       } else {
-        realizedPnlList.value = [...realizedPnlList.value, ...data];
+        realizedPnlList.value = [...realizedPnlList.value, ...response.data];
       }
       
-      return data;
+      realizedPnlTotal.value = response.total;
+      return response.data;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch PnL list:", e);
-      return [];
+      throw e;
     } finally {
       realizedPnlListLoading.value = false;
     }
@@ -264,13 +269,14 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     error.value = null;
 
     try {
-      const data = await EtlApi.fetchPnlOverTime(address.value, interval);
-      pnlOverTime.value = data;
-      pnlOverTimeInterval.value = interval;
+      const response = await BackendApi.getPnlOverTime(address.value, interval);
+      pnlOverTime.value = response.data;
+      pnlOverTimeInterval.value = response.interval;
       lastUpdated.value = new Date();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch PnL over time";
       console.error("[AnalyticsStore] Failed to fetch PnL over time:", e);
+      throw e;
     } finally {
       pnlOverTimeLoading.value = false;
     }
@@ -284,7 +290,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     key: string,
     protocol: string,
     interval: string
-  ): Promise<[number, number][]> {
+  ): Promise<PriceDataPoint[]> {
     const cacheKey = `${key}:${protocol}:${interval}`;
 
     // Check cache first
@@ -296,12 +302,12 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     priceSeriesLoading.value = true;
 
     try {
-      const data = await EtlApi.fetchPriceSeries(key, protocol, interval);
-      priceSeriesCache.value.set(cacheKey, data);
-      return data;
+      const response = await BackendApi.getPriceSeries(key, protocol, interval);
+      priceSeriesCache.value.set(cacheKey, response.data);
+      return response.data;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch price series:", e);
-      return [];
+      throw e;
     } finally {
       priceSeriesLoading.value = false;
     }
@@ -312,27 +318,40 @@ export const useAnalyticsStore = defineStore("analytics", () => {
   // ==========================================================================
 
   /**
+   * Initialize the store with an address
+   */
+  async function initialize(newAddress: string): Promise<void> {
+    if (initialized.value && address.value === newAddress) {
+      return;
+    }
+
+    address.value = newAddress;
+    initialized.value = true;
+
+    // Fetch dashboard and history data in parallel
+    await Promise.all([
+      fetchDashboardData(),
+      fetchHistoryData()
+    ]);
+  }
+
+  /**
    * Set address and fetch user-specific data
    */
   async function setAddress(newAddress: string | null): Promise<void> {
-    address.value = newAddress;
-
     if (newAddress) {
-      // Fetch dashboard and history data in parallel
-      await Promise.all([
-        fetchDashboardData(),
-        fetchHistoryData()
-      ]);
+      await initialize(newAddress);
     } else {
-      clear();
+      cleanup();
     }
   }
 
   /**
-   * Clear all user-specific data
+   * Cleanup all user-specific data
    */
-  function clear(): void {
+  function cleanup(): void {
     address.value = null;
+    initialized.value = false;
 
     dashboardData.value = {
       earnings: null,
@@ -354,6 +373,9 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     error.value = null;
     lastUpdated.value = null;
   }
+
+  // Alias for backwards compatibility
+  const clear = cleanup;
 
   /**
    * Refresh all user data
@@ -388,6 +410,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     realizedPnlListLoading,
     error,
     lastUpdated,
+    initialized,
 
     // Computed
     isConnected,
@@ -416,8 +439,10 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     fetchPriceSeries,
 
     // Actions - Lifecycle
+    initialize,
     setAddress,
-    clear,
+    cleanup,
+    clear, // Alias for backwards compatibility
     refresh
   };
 });

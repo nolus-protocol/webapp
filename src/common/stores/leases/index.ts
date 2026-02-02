@@ -288,9 +288,9 @@ export const useLeasesStore = defineStore("leases", () => {
   }
 
   /**
-   * Clear leases (on disconnect)
+   * Cleanup store state (on disconnect)
    */
-  function clear(): void {
+  function cleanup(): void {
     unsubscribeFromUpdates();
     owner.value = null;
     leases.value = [];
@@ -299,6 +299,9 @@ export const useLeasesStore = defineStore("leases", () => {
     lastUpdated.value = null;
     error.value = null;
   }
+
+  // Alias for backwards compatibility
+  const clear = cleanup;
 
   /**
    * Refresh leases data
@@ -338,7 +341,8 @@ export const useLeasesStore = defineStore("leases", () => {
     subscribeToUpdates,
     unsubscribeFromUpdates,
     setOwner,
-    clear,
+    cleanup,
+    clear, // Alias for backwards compatibility
     refresh,
   };
 });

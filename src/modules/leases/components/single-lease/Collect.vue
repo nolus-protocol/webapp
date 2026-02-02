@@ -14,6 +14,7 @@
 import type { LeaseInfo } from "@/common/api";
 import { Button, ToastType, type ButtonSize, type ButtonType } from "web-components";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useHistoryStore } from "@/common/stores/history";
 import { useI18n } from "vue-i18n";
 import { computed, inject, ref } from "vue";
 import { Logger, walletOperation } from "@/common/utils";
@@ -28,6 +29,7 @@ export interface ICollect {
 
 const props = defineProps<ICollect>();
 const walletStore = useWalletStore();
+const historyStore = useHistoryStore();
 const i18n = useI18n();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 const reload = inject("reload", () => {});
@@ -47,7 +49,7 @@ async function onClaim(lease: LeaseInfo) {
       const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet);
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      walletStore.loadActivities();
+      historyStore.loadActivities();
       reload();
       onShowToast({
         type: ToastType.success,

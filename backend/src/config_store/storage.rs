@@ -326,13 +326,42 @@ impl ConfigStore {
         self.load_json_file("networks.json").await
     }
 
-    /// Load all endpoint configurations
+    /// Load all endpoint configurations dynamically from config/endpoints/*.json
     pub async fn load_all_endpoints(&self) -> Result<EndpointsCollection, AppError> {
-        let pirin = self.load_endpoints("pirin").await?;
-        let rila = self.load_endpoints("rila").await?;
-        let evm = self.load_endpoints("evm").await?;
+        let endpoints_dir = self.config_dir.join("endpoints");
+        let mut networks = std::collections::HashMap::new();
 
-        Ok(EndpointsCollection { pirin, rila, evm })
+        // Read all .json files from the endpoints directory
+        if endpoints_dir.exists() {
+            let mut entries = fs::read_dir(&endpoints_dir).await.map_err(|e| {
+                AppError::Internal(format!("Failed to read endpoints directory: {}", e))
+            })?;
+
+            while let Some(entry) = entries.next_entry().await.map_err(|e| {
+                AppError::Internal(format!("Failed to read directory entry: {}", e))
+            })? {
+                let path = entry.path();
+                if path.extension().and_then(|s| s.to_str()) == Some("json") {
+                    if let Some(network_name) = path.file_stem().and_then(|s| s.to_str()) {
+                        match self.load_endpoints(network_name).await {
+                            Ok(config) => {
+                                debug!("Loaded endpoints for network: {}", network_name);
+                                networks.insert(network_name.to_string(), config);
+                            }
+                            Err(e) => {
+                                warn!("Failed to load endpoints for {}: {}", network_name, e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if networks.is_empty() {
+            warn!("No endpoint configurations found in {:?}", endpoints_dir);
+        }
+
+        Ok(EndpointsCollection { networks })
     }
 
     /// Load endpoints for a specific network

@@ -52,7 +52,7 @@ import { usePricesStore } from "@/common/stores/prices";
 
 import { setLang } from "@/i18n";
 import { APPEARANCE, languages } from "@/config/global";
-import { ThemeManager, setTheme as setThemeUtil, getTheme } from "@/common/utils/ThemeManager";
+import { setTheme, getTheme, type Theme } from "@/common/utils/ThemeManager";
 import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
 import { useConfigStore } from "@/common/stores/config";
 import { useRouter } from "vue-router";
@@ -64,7 +64,7 @@ import SyncIcon from "@/assets/icons/theme/sync.svg";
 
 const i18n = useI18n();
 const lang = getLanguage();
-const themeData = ThemeManager.getThemeData();
+const themeData = getTheme();
 const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 const router = useRouter();
@@ -115,7 +115,9 @@ const appearance = ref(
 );
 
 function onUpdateTheme(theme: string) {
-  ThemeManager.saveThemeData(theme);
+  if (theme === "light" || theme === "dark" || theme === "sync") {
+    setTheme(theme as Theme);
+  }
   selectedAppearance.value = {
     label: i18n.t(`message.${theme}`),
     value: theme

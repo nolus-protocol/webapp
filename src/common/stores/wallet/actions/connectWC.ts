@@ -14,6 +14,8 @@ import { toBase64, fromBase64 } from "@cosmjs/encoding";
 import { getDeviceInfo } from "@/common/utils/Device";
 import { WalletConnectName } from "@/config/global";
 import nolusIcon from "@/assets/icons/networks/nolus.svg";
+import { useBalancesStore } from "../../balances";
+import { useHistoryStore } from "../../history";
 
 let client: Promise<SignClient> | undefined;
 let accounts: {
@@ -64,8 +66,14 @@ export async function connectWithWalletConnect(this: Store, callback?: Function)
 
   this.wallet = nolusWalletOfflineSigner;
   this.walletName = WalletConnectName;
-  await this.UPDATE_BALANCES();
-  this.loadActivities();
+
+  const balancesStore = useBalancesStore();
+  await balancesStore.setAddress(this.wallet?.address ?? "");
+
+  const historyStore = useHistoryStore();
+  historyStore.setAddress(this.wallet?.address ?? "");
+  historyStore.loadActivities();
+
   IntercomService.load(this.wallet.address, "walletconnect");
 }
 

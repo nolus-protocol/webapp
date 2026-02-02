@@ -274,6 +274,7 @@ import {
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
+import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
@@ -298,6 +299,7 @@ const props = defineProps<{
 
 const configStore = useConfigStore();
 const pricesStore = usePricesStore();
+const historyStore = useHistoryStore();
 const router = useRouter();
 const walletStore = useWalletStore();
 const loadingStopLoss = ref(false);
@@ -534,7 +536,7 @@ async function onSetStopLoss() {
       const takeProfitValue = props.lease.close_policy?.take_profit;
       const { txBytes } = await leaseClient.simulateChangeClosePolicyTx(wallet, null, takeProfitValue);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      walletStore.loadActivities();
+      historyStore.loadActivities();
       reload();
       onShowToast({
         type: ToastType.success,
@@ -566,7 +568,7 @@ async function onSetTakeProfit() {
       const stopLossValue = props.lease.close_policy?.stop_loss;
       const { txBytes } = await leaseClient.simulateChangeClosePolicyTx(wallet, stopLossValue, null);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      walletStore.loadActivities();
+      historyStore.loadActivities();
       reload();
       onShowToast({
         type: ToastType.success,

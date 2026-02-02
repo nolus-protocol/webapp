@@ -211,9 +211,9 @@ export const useBalancesStore = defineStore("balances", () => {
   }
 
   /**
-   * Clear balances (on disconnect)
+   * Cleanup store state (on disconnect)
    */
-  function clear(): void {
+  function cleanup(): void {
     unsubscribeFromUpdates();
     address.value = null;
     balances.value = [];
@@ -221,6 +221,9 @@ export const useBalancesStore = defineStore("balances", () => {
     lastUpdated.value = null;
     error.value = null;
   }
+
+  // Alias for backwards compatibility
+  const clear = cleanup;
 
   /**
    * Add a currency to the ignore list
@@ -307,7 +310,8 @@ export const useBalancesStore = defineStore("balances", () => {
     subscribeToUpdates,
     unsubscribeFromUpdates,
     setAddress,
-    clear,
+    cleanup,
+    clear, // Alias for backwards compatibility
     ignoreCurrency,
     unignoreCurrency,
     setIgnoredCurrencies,

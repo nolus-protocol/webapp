@@ -144,6 +144,7 @@ import { IGNORED_NETWORKS } from "../../../config/global";
 import { type BaseWallet, Wallet } from "@/networks";
 import { CONFIRM_STEP, type IObjectKeys, type Network, type SkipRouteConfigType } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
@@ -158,6 +159,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { StepperVariant, Stepper } from "web-components";
 import { useConfigStore } from "@/common/stores/config";
+import { useHistoryStore } from "@/common/stores/history";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import type { RouteResponse, Chain } from "@/common/types/skipRoute";
 import { WalletTypes } from "@/networks/types";
@@ -206,8 +208,10 @@ let timeOut!: NodeJS.Timeout;
 let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
+const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const configStore = useConfigStore();
+const historyStore = useHistoryStore();
 const networks = ref<(Network | EvmNetwork | any)[]>(NETWORK_DATA.list);
 
 const selectedNetwork = ref(0);
@@ -402,7 +406,7 @@ function setHistory() {
     receiverAddress: walletStore.wallet.address,
     type: HYSTORY_ACTIONS.RECEIVE
   };
-  walletStore.updateHistory(data, i18n);
+  historyStore.addPendingTransfer(data, i18n);
 }
 
 watch(
@@ -687,9 +691,9 @@ async function onSubmit() {
 
         setHistory();
         await submit(wallets);
-        await walletStore.UPDATE_BALANCES();
+        await balancesStore.fetchBalances();
 
-        walletStore.loadActivities();
+        historyStore.loadActivities();
         step.value = CONFIRM_STEP.SUCCESS;
         walletStore.history[id].historyData.route.activeStep = walletStore.history[id].historyData.route.steps.length;
         walletStore.history[id].historyData.routeDetails.activeStep =

@@ -6,6 +6,8 @@ import { WalletConnectMechanism } from "@/common/types";
 import { KeplrEmbedChainInfo } from "@/config/global/keplr";
 import { Buffer } from "buffer";
 import { IntercomService } from "@/common/utils/IntercomService";
+import { useBalancesStore } from "../../balances";
+import { useHistoryStore } from "../../history";
 
 export async function connectLeap(this: Store) {
   await WalletUtils.getLeap();
@@ -49,10 +51,14 @@ export async function connectLeap(this: Store) {
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await leapWindow.leap.getKey(chainId)).name;
-      await this.UPDATE_BALANCES();
+      
+      const balancesStore = useBalancesStore();
+      await balancesStore.setAddress(this.wallet?.address ?? "");
     }
   }
 
-  this.loadActivities();
+  const historyStore = useHistoryStore();
+  historyStore.setAddress(this.wallet?.address ?? "");
+  historyStore.loadActivities();
   IntercomService.load(this.wallet?.address as string, "leap");
 }

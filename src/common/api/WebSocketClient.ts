@@ -7,8 +7,11 @@
 
 import type { PriceData, LeaseInfo, BalanceInfo, StakingPositionsResponse } from "./BackendApi";
 
-// WebSocket URL - configurable via environment
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:3000/ws";
+// WebSocket URL - must be configured via environment variable
+const WS_URL = import.meta.env.VITE_WS_URL;
+if (!WS_URL) {
+  console.warn("VITE_WS_URL environment variable is required for WebSocket functionality");
+}
 
 /**
  * Subscription topics supported by the backend
@@ -19,7 +22,8 @@ export type SubscriptionTopic =
   | "leases"
   | "tx_status"
   | "staking"
-  | "skip_tx";
+  | "skip_tx"
+  | "earn";
 
 /**
  * Client -> Server messages
@@ -102,6 +106,21 @@ interface SkipTxUpdateMessage {
   error?: string;
 }
 
+interface EarnPositionInfo {
+  protocol: string;
+  lpp_address: string;
+  deposited_lpn: string;
+  deposited_asset: string;
+  rewards: string;
+}
+
+interface EarnUpdateMessage {
+  type: "earn_update";
+  address: string;
+  positions: EarnPositionInfo[];
+  total_deposited_usd: string;
+}
+
 type ServerMessage =
   | SubscribedMessage
   | UnsubscribedMessage
@@ -112,7 +131,8 @@ type ServerMessage =
   | LeaseUpdateMessage
   | TxStatusMessage
   | StakingUpdateMessage
-  | SkipTxUpdateMessage;
+  | SkipTxUpdateMessage
+  | EarnUpdateMessage;
 
 /**
  * Callback types for each subscription
@@ -129,6 +149,7 @@ export type SkipTxCallback = (update: {
   total_steps: number;
   error?: string;
 }) => void;
+export type EarnCallback = (address: string, positions: EarnPositionInfo[], totalDepositedUsd: string) => void;
 
 /**
  * Unsubscribe function returned by subscribe methods
@@ -184,7 +205,11 @@ class WebSocketClientImpl {
   private pongTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(config: WebSocketClientConfig = {}) {
-    this.url = config.url || WS_URL;
+    const url = config.url || WS_URL;
+    if (!url) {
+      throw new Error("VITE_WS_URL environment variable is required for WebSocket functionality");
+    }
+    this.url = url;
     this.config = {
       reconnectInterval: config.reconnectInterval || 1000,
       maxReconnectInterval: config.maxReconnectInterval || 30000,
@@ -405,6 +430,10 @@ class WebSocketClientImpl {
             error: message.error,
           });
           break;
+
+        case "earn_update":
+          this.notifySubscribers(`earn:${message.address}`, message.address, message.positions, message.total_deposited_usd);
+          break;
       }
     } catch (error) {
       console.error("[WebSocket] Failed to parse message", error);
@@ -523,6 +552,13 @@ class WebSocketClientImpl {
    */
   subscribeSkipTx(txHash: string, sourceChain: string, callback: SkipTxCallback): Unsubscribe {
     return this.subscribe(`skip_tx:${txHash}`, "skip_tx", callback, { tx_hash: txHash, source_chain: sourceChain });
+  }
+
+  /**
+   * Subscribe to earn position updates for an address
+   */
+  subscribeEarn(address: string, callback: EarnCallback): Unsubscribe {
+    return this.subscribe(`earn:${address}`, "earn", callback, { address });
   }
 }
 

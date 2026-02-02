@@ -2,7 +2,7 @@ import type { IObjectKeys } from "@/common/types";
 import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 
 import { Messages } from "./types";
-import { EtlApi, Logger, StringUtils } from "@/common/utils";
+import { Logger, StringUtils } from "@/common/utils";
 import { getCurrencyByDenom, getCurrencyByTicker, getCurrencyBySymbol, getProtocolByContract, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { getIbc } from "@/common/utils/IbcUtils";
 import { Contracts, NATIVE_NETWORK, PositionTypes, ProtocolsConfig } from "@/config/global";
@@ -289,9 +289,9 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           if (!lpn) {
             return msg.type;
           }
-          const widthraw = await EtlApi.fetchLpWithdraw(msg.tx_hash);
+          const withdraw = await BackendApi.getLpWithdraw(msg.tx_hash);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
-            widthraw.LP_amnt_asset ?? 0,
+            withdraw.LP_amnt_asset ?? 0,
             lpn.ibcData!,
             lpn.shortName!,
             Number(lpn.decimal_digits)

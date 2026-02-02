@@ -156,6 +156,7 @@ import {
 } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
+import { useHistoryStore } from "@/common/stores/history";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import {
@@ -234,6 +235,7 @@ let route: RouteResponse | null;
 const walletStore = useWalletStore();
 const balancesStore = useBalancesStore();
 const configStore = useConfigStore();
+const historyStore = useHistoryStore();
 const networks = ref<(Network | EvmNetwork | any)[]>(NETWORK_DATA.list);
 const pricesStore = usePricesStore();
 
@@ -438,7 +440,7 @@ function setHistory() {
     receiverAddress: wallet.value,
     type: HYSTORY_ACTIONS.SEND
   };
-  walletStore.updateHistory(data, i18n);
+  historyStore.addPendingTransfer(data, i18n);
 }
 
 watch(
@@ -752,7 +754,7 @@ async function transferAmount() {
         step.value = isSuccessful ? CONFIRM_STEP.SUCCESS : CONFIRM_STEP.ERROR;
         txHashes.value[index].status = SwapStatus.success;
 
-        await walletStore.UPDATE_BALANCES();
+        await balancesStore.fetchBalances();
       } catch (error: Error | any) {
         if (walletStore.history[id]) {
           walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
@@ -780,7 +782,7 @@ async function transferAmount() {
       }
     }
 
-    walletStore.loadActivities();
+    historyStore.loadActivities();
     onClose();
   } catch (e: Error | any) {
     amountErrorMsg.value = e.toString();
@@ -810,9 +812,9 @@ async function onSwapCosmos() {
 
         setHistory();
         await submit(wallets);
-        await walletStore.UPDATE_BALANCES();
+        await balancesStore.fetchBalances();
 
-        walletStore.loadActivities();
+        historyStore.loadActivities();
 
         step.value = CONFIRM_STEP.SUCCESS;
         walletStore.history[id].historyData.route.activeStep = walletStore.history[id].historyData.route.steps.length;

@@ -70,7 +70,9 @@ import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components"
 import { computed, inject, ref, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { useStakingStore } from "@/common/stores/staking";
+import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -82,7 +84,9 @@ import { useI18n } from "vue-i18n";
 import { UNDELEGATE_DAYS } from "@/config/global";
 
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
 const stakingStore = useStakingStore();
+const historyStore = useHistoryStore();
 const pricesStore = usePricesStore();
 const i18n = useI18n();
 
@@ -209,8 +213,8 @@ async function undelegate() {
       const { txHash, txBytes, usedFee } = await wallet.wallet.simulateUndelegateTx(transactions);
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES(), stakingStore.fetchPositions()]);
-      wallet.loadActivities();
+      await Promise.all([loadDelegated(), balancesStore.fetchBalances(), stakingStore.fetchPositions()]);
+      historyStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

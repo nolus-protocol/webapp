@@ -337,7 +337,7 @@ pub async fn approve_pending(
 ) -> Result<impl IntoResponse, AppError> {
     let storage = get_translation_storage(&state)?;
 
-    // TODO: Get admin user from auth context
+    // Admin auth uses API key only - no user identity available
     let admin_user = None;
 
     storage.approve_pending(&id, admin_user).await?;
@@ -354,7 +354,7 @@ pub async fn reject_pending(
 ) -> Result<impl IntoResponse, AppError> {
     let storage = get_translation_storage(&state)?;
 
-    // TODO: Get admin user from auth context
+    // Admin auth uses API key only - no user identity available
     let admin_user = None;
 
     storage
@@ -373,7 +373,7 @@ pub async fn edit_pending(
 ) -> Result<impl IntoResponse, AppError> {
     let storage = get_translation_storage(&state)?;
 
-    // TODO: Get admin user from auth context
+    // Admin auth uses API key only - no user identity available
     let admin_user = None;
 
     storage
@@ -391,7 +391,7 @@ pub async fn approve_batch(
 ) -> Result<impl IntoResponse, AppError> {
     let storage = get_translation_storage(&state)?;
 
-    // TODO: Get admin user from auth context
+    // Admin auth uses API key only - no user identity available
     let admin_user = None;
 
     let approved_count = storage
@@ -432,7 +432,7 @@ pub async fn update_active(
 ) -> Result<impl IntoResponse, AppError> {
     let storage = get_translation_storage(&state)?;
 
-    // TODO: Get admin user from auth context
+    // Admin auth uses API key only - no user identity available
     let admin_user = None;
 
     // Decode the key (it may be URL encoded with dots as %2E)
@@ -477,7 +477,7 @@ pub async fn add_language(
 ) -> Result<impl IntoResponse, AppError> {
     let storage = get_translation_storage(&state)?;
 
-    // TODO: Get admin user from auth context
+    // Admin auth uses API key only - no user identity available
     let admin_user = None;
 
     storage
@@ -489,7 +489,7 @@ pub async fn add_language(
         )
         .await?;
 
-    // TODO: If auto_generate is true, trigger translation generation
+    // Auto-generation can be triggered separately via POST /admin/translations/generate
 
     Ok(Json(serde_json::json!({
         "status": "created",

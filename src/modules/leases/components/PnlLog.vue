@@ -96,7 +96,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
 import type { ILoan } from "./types";
-import { EtlApi, getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
+import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
 import { useWalletStore } from "@/common/stores/wallet";

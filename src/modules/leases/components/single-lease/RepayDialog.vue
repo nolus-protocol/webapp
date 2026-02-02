@@ -151,6 +151,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
+import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -177,6 +178,7 @@ const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
 const balancesStore = useBalancesStore();
 const configStore = useConfigStore();
+const historyStore = useHistoryStore();
 const leasesStore = useLeasesStore();
 const i18n = useI18n();
 
@@ -600,7 +602,7 @@ async function repayLease() {
 
       const { txBytes } = await leaseClient.simulateRepayLeaseTx(wallet, funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      walletStore.loadActivities();
+      historyStore.loadActivities();
       reload();
       dialog?.value?.close();
       onShowToast({

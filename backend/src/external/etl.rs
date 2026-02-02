@@ -19,6 +19,12 @@ const API_NAME: &str = "ETL";
 
 impl EtlClient {
     pub fn new(base_url: String, client: Client) -> Self {
+        // Ensure base_url includes /api prefix for ETL endpoints
+        let base_url = if base_url.ends_with("/api") {
+            base_url
+        } else {
+            format!("{}/api", base_url.trim_end_matches('/'))
+        };
         Self { base_url, client }
     }
 
@@ -83,7 +89,7 @@ impl EtlClient {
         let url = self.url().endpoint("pools");
         debug!("Fetching pools from {}", url);
 
-        self.client
+        let response: EtlPoolsResponse = self.client
             .get(&url)
             .send()
             .await
@@ -92,7 +98,9 @@ impl EtlClient {
             .check_status(API_NAME, "pools")
             .await?
             .parse_json(API_NAME, "pools")
-            .await
+            .await?;
+        
+        Ok(response.protocols)
     }
 
     /// Fetch lease opening data
@@ -293,11 +301,22 @@ pub struct EtlPrice {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EtlPool {
     pub protocol: String,
+    #[serde(alias = "earn_apr")]
     pub apr: Option<String>,
     pub utilization: Option<String>,
+    #[serde(alias = "supplied")]
     pub total_supplied: Option<String>,
+    #[serde(alias = "borrowed")]
     pub total_borrowed: Option<String>,
-    // Add more fields as needed
+    pub borrow_apr: Option<String>,
+    pub deposit_suspension: Option<String>,
+}
+
+/// Wrapper for ETL pools response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EtlPoolsResponse {
+    pub protocols: Vec<EtlPool>,
+    pub optimal: Option<String>,
 }
 
 /// Lease opening data from ETL API

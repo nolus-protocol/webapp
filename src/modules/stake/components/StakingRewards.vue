@@ -57,6 +57,8 @@ import { NATIVE_CURRENCY } from "@/config/global";
 import { isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -79,6 +81,8 @@ const i18n = useI18n();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 const loadRewards = inject("loadRewards", async () => {});
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
+const historyStore = useHistoryStore();
 const loading = ref(false);
 const disabled = ref(false);
 
@@ -127,8 +131,8 @@ async function requestClaim() {
 
       loadRewards();
     }
-    await wallet.UPDATE_BALANCES();
-    wallet.loadActivities();
+    await balancesStore.fetchBalances();
+    historyStore.loadActivities();
     onShowToast({
       type: ToastType.success,
       message: i18n.t("message.rewards-claimed-successful")

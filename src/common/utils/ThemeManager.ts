@@ -5,7 +5,6 @@
  * No reactive state needed - just localStorage and DOM manipulation.
  */
 
-import { APPEARANCE } from "@/config/global";
 import { setCookie } from "./cookieUtils";
 
 export type Theme = "light" | "dark" | "sync";
@@ -89,21 +88,4 @@ function isValidTheme(value: string): value is Theme {
   return value === "light" || value === "dark" || value === "sync";
 }
 
-/**
- * Legacy class interface for backwards compatibility
- * @deprecated Use the standalone functions instead
- */
-export class ThemeManager {
-  public static THEME_DATA = THEME_STORAGE_KEY;
 
-  public static saveThemeData(theme: string): void {
-    if (isValidTheme(theme)) {
-      setTheme(theme);
-    }
-  }
-
-  public static getThemeData(): string {
-    const theme = getTheme();
-    return APPEARANCE[theme] || APPEARANCE.sync;
-  }
-}

@@ -3,7 +3,7 @@ import type { LeaseAttributes } from "../types/LeaseAttributes";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { EtlApi } from ".";
+import { BackendApi } from "@/common/api";
 import { getCurrencyByTicker, getProtocolByContract, getLpnByProtocol } from "./CurrencyLookup";
 import { useConfigStore } from "../stores/config";
 
@@ -60,7 +60,7 @@ export class LeaseUtils {
 
   public static async getLeaseData(leaseAddress: string): Promise<LeaseAttributes> {
     try {
-      const result = await EtlApi.fetchLeaseOpening(leaseAddress);
+      const result = await BackendApi.getLeaseOpening(leaseAddress);
 
       if (!result) {
         const item = {

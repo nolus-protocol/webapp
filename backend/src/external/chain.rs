@@ -364,6 +364,47 @@ impl ChainClient {
         })
     }
 
+    /// Get unbonding delegations for a delegator
+    pub async fn get_unbonding_delegations(
+        &self,
+        delegator: &str,
+    ) -> Result<Vec<UnbondingDelegation>, AppError> {
+        let url = format!(
+            "{}/cosmos/staking/v1beta1/delegators/{}/unbonding_delegations",
+            self.rest_url, delegator
+        );
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| AppError::ChainRpc {
+                chain: "nolus".to_string(),
+                message: format!("Unbonding delegations query failed: {}", e),
+            })?;
+
+        if !response.status().is_success() {
+            return Err(AppError::ChainRpc {
+                chain: "nolus".to_string(),
+                message: format!("HTTP {}", response.status()),
+            });
+        }
+
+        #[derive(Deserialize)]
+        struct UnbondingResponse {
+            unbonding_responses: Vec<UnbondingDelegation>,
+        }
+
+        let result: UnbondingResponse =
+            response.json().await.map_err(|e| AppError::ChainRpc {
+                chain: "nolus".to_string(),
+                message: format!("Failed to parse unbonding delegations: {}", e),
+            })?;
+
+        Ok(result.unbonding_responses)
+    }
+
     /// Get all protocol names from Admin contract
     pub async fn get_admin_protocols(&self, admin_address: &str) -> Result<Vec<String>, AppError> {
         let query = json!({ "protocols": {} });
@@ -962,6 +1003,23 @@ pub struct RewardsResponse {
 pub struct ValidatorReward {
     pub validator_address: String,
     pub reward: Vec<BankBalance>,
+}
+
+/// Unbonding delegation response from chain
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnbondingDelegation {
+    pub delegator_address: String,
+    pub validator_address: String,
+    pub entries: Vec<UnbondingEntry>,
+}
+
+/// Single unbonding entry
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UnbondingEntry {
+    pub creation_height: String,
+    pub completion_time: String,
+    pub initial_balance: String,
+    pub balance: String,
 }
 
 /// Admin contract protocol response

@@ -66,7 +66,7 @@ import { isMobile, Logger, walletOperation } from "@/common/utils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
-import { useWalletStore, useStakingStore, usePricesStore, useAnalyticsStore } from "@/common/stores";
+import { useWalletStore, useBalancesStore, useStakingStore, usePricesStore, useAnalyticsStore, useHistoryStore } from "@/common/stores";
 import { computed, ref, watch } from "vue";
 
 const props = defineProps<{
@@ -74,9 +74,11 @@ const props = defineProps<{
 }>();
 
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
 const stakingStore = useStakingStore();
 const pricesStore = usePricesStore();
 const analyticsStore = useAnalyticsStore();
+const historyStore = useHistoryStore();
 
 const loadingStaking = ref(false);
 const disabled = ref(false);
@@ -151,8 +153,8 @@ async function requestClaim() {
       }
     }
 
-    wallet.loadActivities();
-    await wallet.UPDATE_BALANCES();
+    historyStore.loadActivities();
+    await balancesStore.fetchBalances();
   } catch (error: Error | any) {
     Logger.error(error);
   } finally {

@@ -549,3 +549,113 @@ async fn fetch_position_info(
     }))
 }
 
+// ============================================================================
+// WebSocket Monitoring Support
+// ============================================================================
+
+use super::websocket::EarnPositionInfo;
+
+/// Fetch earn positions for WebSocket monitoring
+/// Returns positions in the format needed by WebSocket updates
+pub async fn fetch_earn_positions_for_monitoring(
+    state: &AppState,
+    address: &str,
+) -> Result<(Vec<EarnPositionInfo>, String), AppError> {
+    let admin_address = &state.config.protocols.admin_contract;
+
+    // Get all protocols
+    let protocols = state
+        .chain_client
+        .get_admin_protocols(admin_address)
+        .await?;
+
+    // Fetch all positions in parallel
+    let position_futures: Vec<_> = protocols
+        .iter()
+        .map(|protocol| {
+            let state_ref = state;
+            let protocol = protocol.clone();
+            let address = address.to_string();
+            async move {
+                fetch_position_for_monitoring(state_ref, &protocol, &address).await
+            }
+        })
+        .collect();
+
+    let position_results = futures::future::join_all(position_futures).await;
+
+    let mut positions = Vec::new();
+
+    for result in position_results {
+        match result {
+            Ok(Some(position)) => {
+                positions.push(position);
+            }
+            Ok(None) => {
+                // No position in this pool
+            }
+            Err(e) => {
+                debug!("Failed to fetch position for monitoring: {}", e);
+            }
+        }
+    }
+
+    // USD calculation would need price data - returning "0.00" for now
+    Ok((positions, "0.00".to_string()))
+}
+
+/// Fetch a single position for monitoring
+async fn fetch_position_for_monitoring(
+    state: &AppState,
+    protocol: &str,
+    owner: &str,
+) -> Result<Option<EarnPositionInfo>, AppError> {
+    let admin_address = &state.config.protocols.admin_contract;
+
+    let protocol_contracts = state
+        .chain_client
+        .get_admin_protocol(admin_address, protocol)
+        .await?;
+
+    let lpp_address = &protocol_contracts.contracts.lpp;
+
+    // Get lender deposit
+    let deposit = state
+        .chain_client
+        .get_lender_deposit(lpp_address, owner)
+        .await?;
+
+    let deposit_amount: u128 = deposit.amount.parse().unwrap_or(0);
+
+    // Skip if no deposit
+    if deposit_amount == 0 {
+        return Ok(None);
+    }
+
+    // Get LPP price
+    let lpp_price = state.chain_client.get_lpp_price(lpp_address).await?;
+
+    // Calculate LPN value from nLPN
+    let price_quote: u128 = lpp_price.amount_quote.amount.parse().unwrap_or(1);
+    let price_amount: u128 = lpp_price.amount.amount.parse().unwrap_or(1);
+    let lpp_price_ratio = if price_amount > 0 {
+        price_quote as f64 / price_amount as f64
+    } else {
+        1.0
+    };
+
+    let deposited_lpn = (deposit_amount as f64 * lpp_price_ratio) as u128;
+
+    // Calculate rewards (difference between current value and deposited value)
+    // For now, rewards tracking would require historical data
+    let rewards = "0".to_string();
+
+    Ok(Some(EarnPositionInfo {
+        protocol: protocol.to_string(),
+        lpp_address: lpp_address.clone(),
+        deposited_lpn: deposited_lpn.to_string(),
+        deposited_asset: deposit.amount.clone(),
+        rewards,
+    }))
+}
+

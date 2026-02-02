@@ -5,7 +5,10 @@ import { templateParser } from "./helpers";
 const supportedLanguages = ["en", "ru", "cn", "fr", "es", "gr", "tr", "id", "jp", "kr"];
 
 // Backend URL for locale fetching (same as main app)
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+if (!BACKEND_URL) {
+  throw new Error("VITE_BACKEND_URL environment variable is required");
+}
 
 const loaded: { [key: string]: Promise<{ [key: string]: string }> } = {};
 

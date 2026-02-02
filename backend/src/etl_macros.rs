@@ -21,7 +21,7 @@ macro_rules! etl_proxy_typed {
         pub async fn $fn_name(
             axum::extract::State(state): axum::extract::State<std::sync::Arc<$crate::AppState>>,
         ) -> Result<axum::Json<$response_type>, $crate::error::AppError> {
-            let url = format!("{}/{}", state.config.external.etl_api_url, $endpoint);
+            let url = format!("{}/api/{}", state.config.external.etl_api_url, $endpoint);
             let client = state.etl_client.client.clone();
 
             // Use get_or_fetch for caching + request coalescing
@@ -77,9 +77,9 @@ macro_rules! etl_proxy_typed_with_params {
             )*
 
             let url = if params.is_empty() {
-                format!("{}/{}", base_url, $endpoint)
+                format!("{}/api/{}", base_url, $endpoint)
             } else {
-                format!("{}/{}?{}", base_url, $endpoint, params.join("&"))
+                format!("{}/api/{}?{}", base_url, $endpoint, params.join("&"))
             };
 
             let response = state.etl_client.client
@@ -161,7 +161,7 @@ macro_rules! etl_proxy_typed_paginated {
                 }
             )*
 
-            let url = format!("{}/{}?{}", base_url, $endpoint, params.join("&"));
+            let url = format!("{}/api/{}?{}", base_url, $endpoint, params.join("&"));
 
             let response = state.etl_client.client
                 .get(&url)
@@ -226,7 +226,7 @@ macro_rules! etl_batch_handler_typed {
                 .get_or_fetch($cache_key, || async move {
                     paste::paste! {
                         $(
-                            let [<url_ $field>] = format!("{}/{}", base_url, $endpoint);
+                            let [<url_ $field>] = format!("{}/api/{}", base_url, $endpoint);
                         )*
 
                         // Fetch all in parallel
@@ -256,6 +256,97 @@ macro_rules! etl_batch_handler_typed {
                 ))?;
 
             Ok(axum::Json(typed))
+        }
+    };
+}
+
+/// Generate a raw JSON passthrough ETL proxy handler (no deserialization)
+///
+/// This version passes through the JSON response directly without
+/// attempting to deserialize into a specific type.
+///
+/// Usage:
+/// ```ignore
+/// etl_proxy_raw!(proxy_leases_monthly, "leases-monthly", cache_keys::etl::LEASES_MONTHLY);
+/// ```
+#[macro_export]
+macro_rules! etl_proxy_raw {
+    ($fn_name:ident, $endpoint:expr, $cache_key:expr) => {
+        pub async fn $fn_name(
+            axum::extract::State(state): axum::extract::State<std::sync::Arc<$crate::AppState>>,
+        ) -> Result<axum::Json<serde_json::Value>, $crate::error::AppError> {
+            let url = format!("{}/api/{}", state.config.external.etl_api_url, $endpoint);
+            let client = state.etl_client.client.clone();
+
+            // Use get_or_fetch for caching + request coalescing
+            let result = state
+                .cache
+                .data
+                .get_or_fetch($cache_key, || async move {
+                    match client.get(&url).send().await {
+                        Ok(response) => {
+                            match response.json::<serde_json::Value>().await {
+                                Ok(json) => Ok(json),
+                                Err(e) => Err(format!("Failed to parse response: {}", e)),
+                            }
+                        }
+                        Err(e) => Err(format!("ETL API request failed: {}", e)),
+                    }
+                })
+                .await
+                .map_err(|e| $crate::error::AppError::Internal(e))?;
+
+            Ok(axum::Json(result))
+        }
+    };
+}
+
+/// Generate a raw JSON passthrough ETL proxy handler with query parameters
+///
+/// Usage:
+/// ```ignore
+/// etl_proxy_raw_with_params!(proxy_txs, "txs", ["address", "skip", "limit"]);
+/// ```
+#[macro_export]
+macro_rules! etl_proxy_raw_with_params {
+    ($fn_name:ident, $endpoint:expr, [$($param:expr),* $(,)?]) => {
+        pub async fn $fn_name(
+            axum::extract::State(state): axum::extract::State<std::sync::Arc<$crate::AppState>>,
+            axum::extract::Query(query): axum::extract::Query<$crate::handlers::etl_proxy::ProxyQuery>,
+        ) -> Result<axum::Json<serde_json::Value>, $crate::error::AppError> {
+            let base_url = &state.config.external.etl_api_url;
+
+            // Build query string from parameters
+            let mut params: Vec<String> = Vec::new();
+            $(
+                if let Some(value) = query.params.get($param) {
+                    params.push(format!("{}={}", $param, urlencoding::encode(value)));
+                }
+            )*
+
+            let url = if params.is_empty() {
+                format!("{}/api/{}", base_url, $endpoint)
+            } else {
+                format!("{}/api/{}?{}", base_url, $endpoint, params.join("&"))
+            };
+
+            let response = state.etl_client.client
+                .get(&url)
+                .send()
+                .await
+                .map_err(|e| $crate::error::AppError::ExternalApi {
+                    api: "ETL".to_string(),
+                    message: format!("Request failed: {}", e),
+                })?;
+
+            let json: serde_json::Value = response
+                .json()
+                .await
+                .map_err(|e| $crate::error::AppError::Internal(
+                    format!("Failed to parse ETL response: {}", e)
+                ))?;
+
+            Ok(axum::Json(json))
         }
     };
 }

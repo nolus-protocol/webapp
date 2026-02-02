@@ -129,10 +129,16 @@ pub async fn update_endpoints(
         network
     );
 
-    // Validate network name
-    if !["pirin", "rila", "evm"].contains(&network.as_str()) {
+    // Validate network name format (alphanumeric and hyphens only)
+    if !network
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+    {
         return Err(AppError::Validation {
-            message: format!("Invalid network: {}. Must be pirin, rila, or evm", network),
+            message: format!(
+                "Invalid network name: {}. Must contain only alphanumeric characters, hyphens, or underscores",
+                network
+            ),
             field: Some("network".to_string()),
             details: None,
         });

@@ -144,6 +144,7 @@ import { SwapStatus } from "../enums";
 import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useConfigStore } from "@/common/stores/config";
+import { useHistoryStore } from "@/common/stores/history";
 import { StepperVariant, Stepper } from "web-components";
 import type { RouteResponse } from "@/common/types/skipRoute";
 import { WalletTypes } from "@/networks/types";
@@ -157,6 +158,7 @@ const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const configStore = useConfigStore();
+const historyStore = useHistoryStore();
 const i18n = useI18n();
 
 const blacklist = ref<string[]>([]);
@@ -452,8 +454,8 @@ async function onSwap() {
       await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainid);
 
       element.status = SwapStatus.success;
-      await wallet.UPDATE_BALANCES();
-      wallet.loadActivities();
+      await balancesStore.fetchBalances();
+      historyStore.loadActivities();
       onClose();
     });
 

@@ -144,8 +144,24 @@ export const useEarnStore = defineStore("earn", () => {
       return;
     }
 
-    // Subscribe to earn position updates (if available via WebSocket)
-    // For now, rely on polling or manual refresh
+    // Subscribe to earn position updates via WebSocket
+    unsubscribe = WebSocketClient.subscribeEarn(address.value, (addr, wsPositions, totalUsd) => {
+      if (addr !== address.value) return;
+
+      // Update positions from WebSocket data
+      positions.value = wsPositions.map((p) => ({
+        protocol: p.protocol,
+        lpp_address: p.lpp_address,
+        currency: "", // Not provided by WS, will be filled on next full fetch
+        deposited_nlpn: p.deposited_asset,
+        deposited_lpn: p.deposited_lpn,
+        deposited_usd: null,
+        lpp_price: "1.0",
+        current_apy: 0,
+      }));
+      totalDepositedUsd.value = totalUsd;
+      lastUpdated.value = new Date();
+    });
   }
 
   /**
@@ -197,9 +213,9 @@ export const useEarnStore = defineStore("earn", () => {
   }
 
   /**
-   * Clear positions (on disconnect)
+   * Cleanup store state (on disconnect)
    */
-  function clear(): void {
+  function cleanup(): void {
     unsubscribeFromUpdates();
     address.value = null;
     positions.value = [];
@@ -207,6 +223,9 @@ export const useEarnStore = defineStore("earn", () => {
     lastUpdated.value = null;
     error.value = null;
   }
+
+  // Alias for backwards compatibility
+  const clear = cleanup;
 
   return {
     // State
@@ -242,6 +261,7 @@ export const useEarnStore = defineStore("earn", () => {
     setAddress,
     initialize,
     refresh,
-    clear,
+    cleanup,
+    clear, // Alias for backwards compatibility
   };
 });

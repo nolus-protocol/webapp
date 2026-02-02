@@ -7,6 +7,7 @@
 //! - tx_status: Transaction confirmation status
 //! - staking: Staking position updates
 //! - skip_tx: Cross-chain transaction tracking
+//! - earn: Earn position updates for a user
 
 use axum::{
     extract::{
@@ -84,45 +85,52 @@ pub enum ServerMessage {
         data: serde_json::Value,
         timestamp: String,
     },
-    /// Transaction confirmed
-    TxConfirmed {
-        chain_id: String,
-        hash: String,
-        success: bool,
-        height: u64,
-        timestamp: String,
+    /// Transaction status update (pending, success, or failed)
+    TxStatus {
+        tx_hash: String,
+        status: TxStatusValue,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        error: Option<String>,
     },
-    /// Transaction failed
-    TxFailed {
-        chain_id: String,
-        hash: String,
-        error: String,
-        timestamp: String,
-    },
-    /// Staking rewards updated
-    RewardsUpdated {
+    /// Staking update
+    StakingUpdate {
         address: String,
-        total_rewards: BalanceInfo,
-        timestamp: String,
+        data: serde_json::Value,
     },
-    /// Skip transaction hop complete
-    SkipHopComplete {
+    /// Skip cross-chain transaction update
+    SkipTxUpdate {
         tx_hash: String,
-        hop_index: u32,
-        total_hops: u32,
-        from_chain: String,
-        to_chain: String,
-        status: String,
-        timestamp: String,
+        status: TxStatusValue,
+        steps_completed: u32,
+        total_steps: u32,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        error: Option<String>,
     },
-    /// Skip transaction complete
-    SkipComplete {
-        tx_hash: String,
-        status: String,
-        source_chain: String,
-        dest_chain: String,
-        timestamp: String,
+    /// Earn position update
+    EarnUpdate {
+        address: String,
+        positions: Vec<EarnPositionInfo>,
+        total_deposited_usd: String,
     },
+}
+
+/// Earn position info for WebSocket updates
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EarnPositionInfo {
+    pub protocol: String,
+    pub lpp_address: String,
+    pub deposited_lpn: String,
+    pub deposited_asset: String,
+    pub rewards: String,
+}
+
+/// Transaction status values matching frontend expectations
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TxStatusValue {
+    Pending,
+    Success,
+    Failed,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -152,6 +160,8 @@ pub enum Subscription {
         tx_hash: String,
         source_chain: String,
     },
+    /// Subscribe to earn position updates
+    Earn { address: String },
 }
 
 impl Subscription {
@@ -221,6 +231,14 @@ impl Subscription {
                     source_chain,
                 })
             }
+            "earn" => {
+                let address = params
+                    .get("address")
+                    .and_then(|v| v.as_str())
+                    .ok_or("Missing 'address' parameter")?
+                    .to_string();
+                Ok(Subscription::Earn { address })
+            }
             _ => Err(format!("Unknown topic: {}", topic)),
         }
     }
@@ -233,6 +251,7 @@ impl Subscription {
             Subscription::TxStatus { .. } => "tx_status",
             Subscription::Staking { .. } => "staking",
             Subscription::SkipTx { .. } => "skip_tx",
+            Subscription::Earn { .. } => "earn",
         }
     }
 }
@@ -267,6 +286,21 @@ pub struct CachedSkipTxState {
     pub total_hops: u32,
 }
 
+/// Cached earn position state for change detection
+#[derive(Debug, Clone, PartialEq)]
+pub struct CachedEarnState {
+    pub positions: Vec<CachedEarnPosition>,
+    pub total_deposited_usd: String,
+}
+
+/// Individual earn position in cache
+#[derive(Debug, Clone, PartialEq)]
+pub struct CachedEarnPosition {
+    pub protocol: String,
+    pub deposited_lpn: String,
+    pub rewards: String,
+}
+
 /// Global WebSocket manager using DashMap for lock-free concurrent access
 pub struct WebSocketManager {
     /// Active connections - DashMap provides fine-grained locking
@@ -277,6 +311,8 @@ pub struct WebSocketManager {
     lease_states: DashMap<String, HashMap<String, CachedLeaseState>>,
     /// Cached Skip transaction states (tx_hash -> state)
     skip_tx_states: DashMap<String, CachedSkipTxState>,
+    /// Cached earn states for change detection (address -> state)
+    earn_states: DashMap<String, CachedEarnState>,
 }
 
 impl WebSocketManager {
@@ -286,6 +322,7 @@ impl WebSocketManager {
             connection_count: AtomicUsize::new(0),
             lease_states: DashMap::new(),
             skip_tx_states: DashMap::new(),
+            earn_states: DashMap::new(),
         }
     }
 
@@ -374,14 +411,12 @@ impl WebSocketManager {
         }
     }
 
-    /// Send transaction status to relevant subscribers
-    pub fn send_tx_confirmed(&self, chain_id: &str, hash: &str, success: bool, height: u64) {
-        let msg = ServerMessage::TxConfirmed {
-            chain_id: chain_id.to_string(),
-            hash: hash.to_string(),
-            success,
-            height,
-            timestamp: chrono::Utc::now().to_rfc3339(),
+    /// Send transaction status update to relevant subscribers
+    pub fn send_tx_status(&self, tx_hash: &str, chain_id: &str, status: TxStatusValue, error: Option<String>) {
+        let msg = ServerMessage::TxStatus {
+            tx_hash: tx_hash.to_string(),
+            status,
+            error,
         };
 
         for entry in self.connections.iter() {
@@ -392,7 +427,7 @@ impl WebSocketManager {
                     chain_id: sub_chain,
                 } = sub
                 {
-                    if sub_hash == hash && sub_chain == chain_id {
+                    if sub_hash == tx_hash && sub_chain == chain_id {
                         let _ = conn.message_tx.try_send(msg.clone());
                         break;
                     }
@@ -570,24 +605,21 @@ impl WebSocketManager {
         self.skip_tx_states.remove(tx_hash);
     }
 
-    /// Send Skip hop complete update to subscribers
-    pub fn send_skip_hop_complete(
+    /// Send Skip transaction update to subscribers
+    pub fn send_skip_tx_update(
         &self,
         tx_hash: &str,
-        hop_index: u32,
-        total_hops: u32,
-        from_chain: &str,
-        to_chain: &str,
-        status: &str,
+        status: TxStatusValue,
+        steps_completed: u32,
+        total_steps: u32,
+        error: Option<String>,
     ) {
-        let msg = ServerMessage::SkipHopComplete {
+        let msg = ServerMessage::SkipTxUpdate {
             tx_hash: tx_hash.to_string(),
-            hop_index,
-            total_hops,
-            from_chain: from_chain.to_string(),
-            to_chain: to_chain.to_string(),
-            status: status.to_string(),
-            timestamp: chrono::Utc::now().to_rfc3339(),
+            status,
+            steps_completed,
+            total_steps,
+            error,
         };
 
         for entry in self.connections.iter() {
@@ -606,30 +638,62 @@ impl WebSocketManager {
         }
     }
 
-    /// Send Skip transaction complete update to subscribers
-    pub fn send_skip_complete(
+    // =========================================================================
+    // Earn Position Tracking
+    // =========================================================================
+
+    /// Get all unique addresses that have earn subscriptions
+    pub fn get_subscribed_earn_addresses(&self) -> Vec<String> {
+        let mut addresses = HashSet::new();
+        for entry in self.connections.iter() {
+            for sub in &entry.value().subscriptions {
+                if let Subscription::Earn { address } = sub {
+                    addresses.insert(address.clone());
+                }
+            }
+        }
+        addresses.into_iter().collect()
+    }
+
+    /// Update cached earn state and return true if it changed
+    pub fn update_earn_state(&self, address: &str, new_state: CachedEarnState) -> bool {
+        let old_state = self.earn_states.get(address).map(|s| s.clone());
+
+        let changed = match &old_state {
+            Some(old) => old != &new_state,
+            None => true,
+        };
+
+        if changed {
+            self.earn_states.insert(address.to_string(), new_state);
+        }
+
+        changed
+    }
+
+    /// Clear earn cache for an address (when they unsubscribe)
+    pub fn clear_earn_cache(&self, address: &str) {
+        self.earn_states.remove(address);
+    }
+
+    /// Send earn update to subscribers
+    pub fn send_earn_update(
         &self,
-        tx_hash: &str,
-        status: &str,
-        source_chain: &str,
-        dest_chain: &str,
+        address: &str,
+        positions: Vec<EarnPositionInfo>,
+        total_deposited_usd: String,
     ) {
-        let msg = ServerMessage::SkipComplete {
-            tx_hash: tx_hash.to_string(),
-            status: status.to_string(),
-            source_chain: source_chain.to_string(),
-            dest_chain: dest_chain.to_string(),
-            timestamp: chrono::Utc::now().to_rfc3339(),
+        let msg = ServerMessage::EarnUpdate {
+            address: address.to_string(),
+            positions,
+            total_deposited_usd,
         };
 
         for entry in self.connections.iter() {
             let conn = entry.value();
             for sub in &conn.subscriptions {
-                if let Subscription::SkipTx {
-                    tx_hash: sub_hash, ..
-                } = sub
-                {
-                    if sub_hash == tx_hash {
+                if let Subscription::Earn { address: sub_addr } = sub {
+                    if sub_addr == address {
                         let _ = conn.message_tx.try_send(msg.clone());
                         break;
                     }
@@ -1095,41 +1159,12 @@ async fn check_skip_tx_status(
     };
 
     // Check if state changed
-    let (changed, old_state) = state
+    let (changed, _old_state) = state
         .ws_manager
         .update_skip_tx_state(tx_hash, current_state.clone());
 
     if changed {
-        // Determine what changed
-        let old_completed = old_state.as_ref().map(|s| s.completed_hops).unwrap_or(0);
-
-        // Send hop updates for newly completed hops
-        if let Some(seq) = transfer_sequence {
-            for (i, transfer) in seq.iter().enumerate() {
-                let hop_index = i as u32;
-                if hop_index >= old_completed && hop_index < completed_hops {
-                    state.ws_manager.send_skip_hop_complete(
-                        tx_hash,
-                        hop_index,
-                        total_hops,
-                        &transfer.src_chain_id,
-                        &transfer.dst_chain_id,
-                        &transfer.state,
-                    );
-
-                    info!(
-                        "Skip tx {} hop {}/{} complete: {} -> {}",
-                        tx_hash,
-                        hop_index + 1,
-                        total_hops,
-                        transfer.src_chain_id,
-                        transfer.dst_chain_id
-                    );
-                }
-            }
-        }
-
-        // Check if transaction is complete or failed
+        // Determine status value for frontend
         let is_complete = matches!(
             status_response.status.as_str(),
             "STATE_COMPLETED" | "STATE_COMPLETED_SUCCESS"
@@ -1139,28 +1174,117 @@ async fn check_skip_tx_status(
             "STATE_FAILED" | "STATE_ABANDONED"
         );
 
+        let status = if is_complete {
+            TxStatusValue::Success
+        } else if is_failed {
+            TxStatusValue::Failed
+        } else {
+            TxStatusValue::Pending
+        };
+
+        // Extract error message if failed (status itself describes the failure)
+        let error = if is_failed {
+            Some(format!("Transaction failed with status: {}", status_response.status))
+        } else {
+            None
+        };
+
+        // Send update to subscribers
+        state.ws_manager.send_skip_tx_update(
+            tx_hash,
+            status.clone(),
+            completed_hops,
+            total_hops,
+            error,
+        );
+
+        info!(
+            "Skip tx {} update: {:?} ({}/{} steps)",
+            tx_hash, status, completed_hops, total_hops
+        );
+
+        // Clean up tracking state if complete or failed
         if is_complete || is_failed {
-            // Get destination chain from last transfer
-            let dest_chain = transfer_sequence
-                .and_then(|seq| seq.last())
-                .map(|t| t.dst_chain_id.as_str())
-                .unwrap_or("unknown");
-
-            state.ws_manager.send_skip_complete(
-                tx_hash,
-                &status_response.status,
-                source_chain,
-                dest_chain,
-            );
-
-            info!(
-                "Skip tx {} complete: {} ({} -> {})",
-                tx_hash, status_response.status, source_chain, dest_chain
-            );
-
-            // Clean up tracking state
             state.ws_manager.remove_skip_tx(tx_hash);
         }
+    }
+
+    Ok(())
+}
+
+// ============================================================================
+// Earn Position Monitoring Task
+// ============================================================================
+
+/// Start background task for earn position monitoring
+/// Polls earn positions for subscribed addresses and sends updates when state changes
+pub async fn start_earn_monitor_task(state: Arc<AppState>) {
+    tokio::spawn(async move {
+        // Poll every 15 seconds for earn position changes
+        let mut interval = tokio::time::interval(Duration::from_secs(15));
+
+        loop {
+            interval.tick().await;
+
+            // Get all addresses with earn subscriptions
+            let addresses = state.ws_manager.get_subscribed_earn_addresses();
+            if addresses.is_empty() {
+                continue;
+            }
+
+            // Check each address's positions in parallel
+            let futures: Vec<_> = addresses
+                .iter()
+                .map(|address| {
+                    let state = state.clone();
+                    let address = address.clone();
+                    async move {
+                        if let Err(e) = check_earn_positions(&state, &address).await {
+                            debug!("Failed to check earn positions for {}: {}", address, e);
+                        }
+                    }
+                })
+                .collect();
+
+            futures::future::join_all(futures).await;
+        }
+    });
+}
+
+/// Check earn positions for a specific address and send updates if changed
+async fn check_earn_positions(state: &AppState, address: &str) -> Result<(), String> {
+    use super::earn::fetch_earn_positions_for_monitoring;
+
+    // Fetch current positions using the earn handler's function
+    let (positions, total_deposited_usd) = fetch_earn_positions_for_monitoring(state, address)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Create cached state for comparison
+    let cached_positions: Vec<CachedEarnPosition> = positions
+        .iter()
+        .map(|p| CachedEarnPosition {
+            protocol: p.protocol.clone(),
+            deposited_lpn: p.deposited_lpn.clone(),
+            rewards: p.rewards.clone(),
+        })
+        .collect();
+
+    let current_state = CachedEarnState {
+        positions: cached_positions,
+        total_deposited_usd: total_deposited_usd.clone(),
+    };
+
+    // Check if state changed
+    let changed = state.ws_manager.update_earn_state(address, current_state);
+
+    if changed {
+        // Send update to subscribers
+        state
+            .ws_manager
+            .send_earn_update(address, positions, total_deposited_usd);
+
+        info!("Earn positions updated for {}", address);
     }
 
     Ok(())

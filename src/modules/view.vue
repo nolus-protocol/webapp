@@ -23,6 +23,7 @@
 <script lang="ts" setup>
 import { onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
@@ -38,6 +39,7 @@ let pricesInterval: NodeJS.Timeout | undefined;
 let sessionTimeOut: NodeJS.Timeout | undefined;
 
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const configStore = useConfigStore();
 const earnStore = useEarnStore();
@@ -69,7 +71,7 @@ async function updateKeplr() {
     IntercomService.getInstance().disconnect();
     await wallet.CONNECT_KEPLR();
     await loadNetwork();
-    await wallet.UPDATE_BALANCES();
+    await balancesStore.fetchBalances();
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error?.message;
@@ -81,7 +83,7 @@ async function updateLeap() {
     IntercomService.getInstance().disconnect();
     await wallet.CONNECT_LEAP();
     await loadNetwork();
-    await wallet.UPDATE_BALANCES();
+    await balancesStore.fetchBalances();
   } catch (error: Error | any) {
     Logger.error(error);
     showErrorDialog.value = true;
@@ -103,7 +105,7 @@ async function checkBalances() {
   balanceInterval = setInterval(async () => {
     try {
       if (WalletManager.getWalletAddress() !== "") {
-        await wallet.UPDATE_BALANCES();
+        await balancesStore.fetchBalances();
       }
     } catch (error: Error | any) {
       showErrorDialog.value = true;

@@ -199,9 +199,9 @@ export const useStakingStore = defineStore("staking", () => {
   }
 
   /**
-   * Clear positions (on disconnect)
+   * Cleanup store state (on disconnect)
    */
-  function clear(): void {
+  function cleanup(): void {
     unsubscribeFromUpdates();
     address.value = null;
     delegations.value = [];
@@ -212,6 +212,9 @@ export const useStakingStore = defineStore("staking", () => {
     lastUpdated.value = null;
     error.value = null;
   }
+
+  // Alias for backwards compatibility
+  const clear = cleanup;
 
   return {
     // State
@@ -249,6 +252,7 @@ export const useStakingStore = defineStore("staking", () => {
     unsubscribeFromUpdates,
     setAddress,
     initialize,
-    clear,
+    cleanup,
+    clear, // Alias for backwards compatibility
   };
 });

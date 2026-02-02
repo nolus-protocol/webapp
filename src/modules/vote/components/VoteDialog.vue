@@ -104,6 +104,7 @@ import { NATIVE_NETWORK } from "../../../config/global/network";
 import { formatDateTime, Logger, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useStakingStore } from "@/common/stores/staking";
+import { useHistoryStore } from "@/common/stores/history";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { useI18n } from "vue-i18n";
 import { useConfigStore } from "@/common/stores/config";
@@ -117,6 +118,7 @@ const isDisabled = ref(false);
 const isLoading = ref(-1);
 const wallet = useWalletStore();
 const stakingStore = useStakingStore();
+const historyStore = useHistoryStore();
 const i18n = useI18n();
 const configStore = useConfigStore();
 
@@ -235,7 +237,7 @@ async function onVoteEmit(vote: VoteOption) {
 
       await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
       hide();
-      wallet.loadActivities();
+      historyStore.loadActivities();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.vote-successful", {

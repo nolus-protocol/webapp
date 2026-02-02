@@ -187,13 +187,6 @@ impl SkipClient {
         })
     }
 
-    /// Check if Skip supports a specific operation
-    pub async fn supports_operation(&self, chain: &str, _operation: &str) -> bool {
-        // TODO: Implement actual check against Skip's supported chains/operations
-        // For now, assume Skip supports Cosmos chains
-        !chain.contains("solana")
-    }
-
     /// Get supported chains from Skip API
     pub async fn get_chains(
         &self,

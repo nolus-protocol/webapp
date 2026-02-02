@@ -221,6 +221,18 @@ export const useCampaignsStore = defineStore("campaigns", () => {
     }
   }
 
+  /**
+   * Cleanup store state
+   */
+  function cleanup(): void {
+    campaigns.value = [];
+    allEligibleCurrencies.value = [];
+    allEligibleProtocols.value = [];
+    hasUniversalCampaign.value = false;
+    error.value = null;
+    lastUpdated.value = null;
+  }
+
   return {
     // State
     campaigns,
@@ -247,5 +259,6 @@ export const useCampaignsStore = defineStore("campaigns", () => {
 
     // Lifecycle
     initialize,
+    cleanup,
   };
 });

@@ -44,7 +44,8 @@ import { Toast, ToastType } from "web-components";
 import { initWorker } from "./push/lib";
 import { useWalletStore } from "./common/stores/wallet";
 import { getCookie, setCookie } from "./common/utils/cookieUtils";
-import { LANGUAGE_KEY, ThemeManager } from "./common/utils";
+import { LANGUAGE_KEY } from "./common/utils";
+import { getTheme, setTheme } from "./common/utils/ThemeManager";
 import { useI18n } from "vue-i18n";
 
 let interval: NodeJS.Timeout;
@@ -61,9 +62,9 @@ onMounted(() => {
     setCookie(LANGUAGE_KEY, locale);
   }
 
-  const theme_data = getCookie(ThemeManager.THEME_DATA);
+  const theme_data = getCookie("theme_data");
   if (!theme_data) {
-    setCookie(ThemeManager.THEME_DATA, ThemeManager.getThemeData());
+    setCookie("theme_data", getTheme());
   }
 });
 

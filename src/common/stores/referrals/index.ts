@@ -375,9 +375,9 @@ export const useReferralsStore = defineStore("referrals", () => {
   }
 
   /**
-   * Reset state when wallet disconnects
+   * Cleanup state when wallet disconnects
    */
-  function reset(): void {
+  function cleanup(): void {
     referrer.value = null;
     stats.value = null;
     referrals.value = [];
@@ -442,7 +442,7 @@ export const useReferralsStore = defineStore("referrals", () => {
     register,
     assignReferral,
     initialize,
-    reset,
+    cleanup,
     refresh,
     clearCache,
   };
