@@ -268,6 +268,31 @@ pub struct SkipRouteConfig {
     /// Swap venues
     #[serde(default)]
     pub swap_venues: Vec<SwapVenue>,
+    /// Transfer routes by network - dynamically generated from ETL data
+    /// Maps network key (e.g., "OSMOSIS") to supported transfer currencies
+    #[serde(default)]
+    pub transfers: HashMap<String, NetworkTransfers>,
+}
+
+/// Transfer currencies for a specific network
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkTransfers {
+    /// List of currencies that can be transferred to this network
+    pub currencies: Vec<TransferCurrency>,
+}
+
+/// A currency that can be transferred between Nolus and another network
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TransferCurrency {
+    /// IBC denom on Nolus (bank_symbol)
+    pub from: String,
+    /// IBC denom on target network (dex_symbol)
+    pub to: String,
+    /// Whether this is a native currency
+    pub native: bool,
+    /// Protocol filter - only show for this protocol (optional)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub visible: Option<String>,
 }
 
 fn default_slippage() -> u32 {
@@ -308,67 +333,6 @@ pub struct ProposalsConfig {
 }
 
 // ============================================================================
-// History Configuration
-// ============================================================================
-
-/// History currencies with extended metadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryCurrenciesConfig {
-    #[serde(flatten)]
-    pub currencies: HashMap<String, HistoryCurrency>,
-}
-
-/// Extended currency info for history display
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryCurrency {
-    /// Full name
-    pub name: String,
-    /// On-chain symbol
-    pub symbol: String,
-    /// Ticker code
-    pub ticker: String,
-    /// Decimal places
-    pub decimal_digits: u32,
-    /// Icon URL
-    pub icon: String,
-    /// Short display name
-    #[serde(rename = "shortName")]
-    pub short_name: String,
-    /// Whether this is a native token
-    pub native: bool,
-    /// CoinGecko ID
-    #[serde(rename = "coingeckoId", default)]
-    pub coingecko_id: Option<String>,
-    /// Protocol-specific IBC data
-    #[serde(default)]
-    pub protocols: HashMap<String, ProtocolIbcData>,
-}
-
-/// Protocol-specific IBC data
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProtocolIbcData {
-    /// IBC denom or hash
-    #[serde(rename = "ibcData")]
-    pub ibc_data: String,
-}
-
-/// History protocols configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryProtocolsConfig {
-    #[serde(flatten)]
-    pub protocols: HashMap<String, HistoryProtocol>,
-}
-
-/// Protocol info for history
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HistoryProtocol {
-    /// Contract address
-    pub contract: String,
-    /// LPN currency
-    pub lpn: String,
-}
-
-// ============================================================================
 // Full Webapp Configuration (combined)
 // ============================================================================
 
@@ -383,8 +347,6 @@ pub struct FullWebappConfig {
     pub zero_interest: ZeroInterestConfig,
     pub skip_route: SkipRouteConfig,
     pub governance: ProposalsConfig,
-    pub history_currencies: HistoryCurrenciesConfig,
-    pub history_protocols: HistoryProtocolsConfig,
 }
 
 /// All endpoint configurations - dynamically loaded from config/endpoints/*.json

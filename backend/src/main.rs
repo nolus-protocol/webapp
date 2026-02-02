@@ -341,6 +341,9 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/config", get(handlers::config::get_config))
         .route("/config/protocols", get(handlers::config::get_protocols))
         .route("/config/networks", get(handlers::config::get_networks))
+        // Protocols (ETL-based, includes active and deprecated)
+        .route("/protocols", get(handlers::protocols::get_protocols))
+        .route("/protocols/active", get(handlers::protocols::get_active_protocols))
         // Currencies & Prices
         .route("/currencies", get(handlers::currencies::get_currencies))
         .route("/currencies/{key}", get(handlers::currencies::get_currency))
@@ -480,14 +483,7 @@ fn create_router(state: Arc<AppState>) -> Router {
             "/webapp/config/networks",
             get(handlers::webapp_config::get_networks),
         )
-        .route(
-            "/webapp/config/history-currencies",
-            get(handlers::webapp_config::get_history_currencies),
-        )
-        .route(
-            "/webapp/config/history-protocols",
-            get(handlers::webapp_config::get_history_protocols),
-        )
+
         .route(
             "/webapp/config/endpoints",
             get(handlers::webapp_config::get_all_endpoints),
@@ -651,14 +647,6 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route(
             "/webapp/config/governance/hidden-proposals",
             axum::routing::put(handlers::admin_config::update_hidden_proposals),
-        )
-        .route(
-            "/webapp/config/history/currencies",
-            axum::routing::put(handlers::admin_config::update_history_currencies),
-        )
-        .route(
-            "/webapp/config/history/protocols",
-            axum::routing::put(handlers::admin_config::update_history_protocols),
         )
         .route(
             "/webapp/locales/{lang}",

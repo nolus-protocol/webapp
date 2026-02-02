@@ -33,8 +33,8 @@ impl EtlClient {
         UrlBuilder::new(&self.base_url)
     }
 
-    /// Fetch all protocols
-    pub async fn fetch_protocols(&self) -> Result<Vec<EtlProtocol>, AppError> {
+    /// Fetch all protocols (active and deprecated)
+    pub async fn fetch_protocols(&self) -> Result<EtlProtocolsResponse, AppError> {
         let url = self.url().endpoint("protocols");
         debug!("Fetching protocols from {}", url);
 
@@ -50,8 +50,8 @@ impl EtlClient {
             .await
     }
 
-    /// Fetch all currencies
-    pub async fn fetch_currencies(&self) -> Result<Vec<EtlCurrency>, AppError> {
+    /// Fetch all currencies (active and deprecated)
+    pub async fn fetch_currencies(&self) -> Result<EtlCurrenciesResponse, AppError> {
         let url = self.url().endpoint("currencies");
         debug!("Fetching currencies from {}", url);
 
@@ -266,27 +266,66 @@ impl EtlClient {
 // ETL Response Types
 // ============================================================================
 
+// ---- Protocols ----
+
+/// Protocol contracts from ETL API
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EtlProtocolContracts {
+    pub leaser: Option<String>,
+    pub lpp: Option<String>,
+    pub oracle: Option<String>,
+    pub profit: Option<String>,
+    pub reserve: Option<String>,
+}
+
 /// Protocol from ETL API
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EtlProtocol {
-    pub key: String,
-    pub network: String,
-    pub dex: String,
-    pub lpn: String,
-    #[serde(default)]
-    pub active: bool,
-    // Add more fields as needed based on actual ETL response
+    pub name: String,
+    pub network: Option<String>,
+    pub dex: Option<String>,
+    pub position_type: String,
+    pub lpn_symbol: String,
+    pub is_active: bool,
+    pub contracts: EtlProtocolContracts,
+}
+
+/// Wrapper for ETL protocols response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EtlProtocolsResponse {
+    pub protocols: Vec<EtlProtocol>,
+    pub count: u32,
+    pub active_count: u32,
+    pub deprecated_count: u32,
+}
+
+// ---- Currencies ----
+
+/// Currency-protocol mapping from ETL API
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EtlCurrencyProtocol {
+    pub protocol: String,
+    pub group: String,
+    pub bank_symbol: String,
+    pub dex_symbol: String,
 }
 
 /// Currency from ETL API
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EtlCurrency {
     pub ticker: String,
-    pub name: Option<String>,
     pub decimal_digits: u8,
-    pub symbol: Option<String>,
-    pub ibc_route: Option<String>,
-    // Add more fields as needed
+    pub is_active: bool,
+    pub protocols: Vec<EtlCurrencyProtocol>,
+}
+
+/// Wrapper for ETL currencies response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EtlCurrenciesResponse {
+    pub currencies: Vec<EtlCurrency>,
+    pub count: u32,
+    pub active_count: u32,
+    pub deprecated_count: u32,
 }
 
 /// Price from ETL API
@@ -412,6 +451,5 @@ pub struct EtlTransaction {
 /// TVL response from ETL API
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EtlTvlResponse {
-    pub total: Option<String>,
-    pub by_protocol: Option<serde_json::Value>,
+    pub total_value_locked: String,
 }

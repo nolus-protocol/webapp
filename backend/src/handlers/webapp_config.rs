@@ -286,18 +286,88 @@ pub async fn get_zero_interest_addresses(
 // ============================================================================
 
 /// GET /api/config/swap/skip-route
-/// Returns Skip routing configuration
+/// Returns Skip routing configuration with dynamically generated transfers
+/// 
+/// The transfers field is built from currency data fetched from Oracle contracts,
+/// mapping network keys (e.g., "OSMOSIS", "NEUTRON") to their supported currencies
+/// with bank_symbol (Nolus IBC denom) and dex_symbol (target network IBC denom).
 pub async fn get_skip_route_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, AppError> {
-    debug!("Getting Skip route configuration");
+    debug!("Getting Skip route configuration with dynamic transfers");
 
-    let config = state.config_store.load_skip_route().await?;
+    // Load base config from file
+    let mut config = state.config_store.load_skip_route().await?;
+
+    // Build transfers dynamically from currency data
+    config.transfers = build_transfers_from_currencies(&state).await;
 
     Ok((
         [(header::CACHE_CONTROL, "public, max-age=300")],
         Json(config),
     ))
+}
+
+/// Build the transfers structure from ETL currency data
+/// 
+/// Fetches currencies from ETL API which provides both bank_symbol and dex_symbol,
+/// then groups by network (extracted from protocol name) and maps:
+/// - `from`: bank_symbol (IBC denom on Nolus)
+/// - `to`: dex_symbol (IBC denom on target network)
+async fn build_transfers_from_currencies(
+    state: &Arc<AppState>,
+) -> std::collections::HashMap<String, crate::config_store::types::NetworkTransfers> {
+    use crate::config_store::types::{NetworkTransfers, TransferCurrency};
+    use std::collections::HashMap;
+
+    let mut transfers: HashMap<String, NetworkTransfers> = HashMap::new();
+
+    // Fetch currencies from ETL API - this provides both bank_symbol and dex_symbol
+    let etl_response = match state.etl_client.fetch_currencies().await {
+        Ok(response) => response,
+        Err(e) => {
+            tracing::error!("Failed to fetch currencies from ETL for transfers: {}", e);
+            panic!("ETL currencies fetch failed - cannot build transfers");
+        }
+    };
+
+    for currency in etl_response.currencies {
+        // Each currency has multiple protocol mappings
+        for protocol_mapping in currency.protocols {
+            // Extract network from protocol name (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE" -> "OSMOSIS")
+            let network = protocol_mapping
+                .protocol
+                .split('-')
+                .next()
+                .unwrap_or("")
+                .to_string();
+
+            // Skip if no network or if it's the native Nolus network
+            if network.is_empty() || network == "NOLUS" {
+                continue;
+            }
+
+            // Determine if native (only "unls" is native on Nolus side)
+            let is_native = protocol_mapping.bank_symbol == "unls";
+
+            let transfer = TransferCurrency {
+                from: protocol_mapping.bank_symbol,
+                to: protocol_mapping.dex_symbol,
+                native: is_native,
+                visible: Some(protocol_mapping.protocol),
+            };
+
+            transfers
+                .entry(network)
+                .or_insert_with(|| NetworkTransfers {
+                    currencies: Vec::new(),
+                })
+                .currencies
+                .push(transfer);
+        }
+    }
+
+    transfers
 }
 
 // ============================================================================
@@ -312,40 +382,6 @@ pub async fn get_hidden_proposals(
     debug!("Getting hidden proposals configuration");
 
     let config = state.config_store.load_governance().await?;
-
-    Ok((
-        [(header::CACHE_CONTROL, "public, max-age=300")],
-        Json(config),
-    ))
-}
-
-// ============================================================================
-// History Configuration
-// ============================================================================
-
-/// GET /api/config/history/currencies
-/// Returns history currencies configuration
-pub async fn get_history_currencies(
-    State(state): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, AppError> {
-    debug!("Getting history currencies configuration");
-
-    let config = state.config_store.load_history_currencies().await?;
-
-    Ok((
-        [(header::CACHE_CONTROL, "public, max-age=300")],
-        Json(config),
-    ))
-}
-
-/// GET /api/config/history/protocols
-/// Returns history protocols configuration
-pub async fn get_history_protocols(
-    State(state): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, AppError> {
-    debug!("Getting history protocols configuration");
-
-    let config = state.config_store.load_history_protocols().await?;
 
     Ok((
         [(header::CACHE_CONTROL, "public, max-age=300")],

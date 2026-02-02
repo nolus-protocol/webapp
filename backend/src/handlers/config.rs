@@ -1,13 +1,12 @@
 use axum::{extract::State, Json};
-use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{debug, error};
+use tracing::debug;
 
 use crate::cache_keys;
 use crate::error::AppError;
-use crate::external::chain::ProtocolContractsInfo;
+use crate::external::etl::EtlProtocol;
 use crate::AppState;
 
 /// Full application config response
@@ -23,31 +22,42 @@ pub struct AppConfigResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProtocolInfo {
     pub name: String,
-    pub network: String,
-    pub dex: String,
+    pub network: Option<String>,
+    pub dex: Option<String>,
     pub lpn: String,
+    pub position_type: String,
     pub contracts: ProtocolContracts,
-    pub active: bool,
+    pub is_active: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProtocolContracts {
-    pub oracle: String,
-    pub lpp: String,
-    pub leaser: String,
-    pub profit: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    pub oracle: Option<String>,
+    pub lpp: Option<String>,
+    pub leaser: Option<String>,
+    pub profit: Option<String>,
     pub reserve: Option<String>,
 }
 
-impl From<ProtocolContractsInfo> for ProtocolContracts {
-    fn from(info: ProtocolContractsInfo) -> Self {
+impl From<EtlProtocol> for ProtocolInfo {
+    fn from(etl: EtlProtocol) -> Self {
+        // Clean up dex field - ETL returns it with quotes like "\"Osmosis\""
+        let dex = etl.dex.map(|d| d.trim_matches('"').to_string());
+
         Self {
-            oracle: info.oracle,
-            lpp: info.lpp,
-            leaser: info.leaser,
-            profit: info.profit,
-            reserve: info.reserve,
+            name: etl.name,
+            network: etl.network,
+            dex,
+            lpn: etl.lpn_symbol,
+            position_type: etl.position_type.to_lowercase(),
+            contracts: ProtocolContracts {
+                oracle: etl.contracts.oracle,
+                lpp: etl.contracts.lpp,
+                leaser: etl.contracts.leaser,
+                profit: etl.contracts.profit,
+                reserve: etl.contracts.reserve,
+            },
+            is_active: etl.is_active,
         }
     }
 }
@@ -125,79 +135,25 @@ pub async fn get_config(
     Ok(Json(response))
 }
 
-/// Internal function to fetch config from chain and config store
+/// Internal function to fetch config from ETL and config store
 /// Separated from handler to enable request coalescing
 async fn fetch_config_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching protocols from Admin contract");
+    debug!("Fetching protocols from ETL");
 
-    // Fetch all protocols from the Admin contract
-    let protocol_names = state
-        .chain_client
-        .get_admin_protocols(&state.config.protocols.admin_contract)
+    // Fetch all protocols from ETL (includes active and deprecated)
+    let etl_response = state
+        .etl_client
+        .fetch_protocols()
         .await
-        .map_err(|e| format!("Failed to fetch protocols: {}", e))?;
+        .map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
 
-    debug!("Found {} protocols", protocol_names.len());
+    debug!("Found {} protocols ({} active)", etl_response.count, etl_response.active_count);
 
-    // Filter to active protocols only
-    let active_protocol_names: Vec<_> = protocol_names
-        .iter()
-        .filter(|name| state.config.protocols.active_protocols.contains(*name))
-        .collect();
-
-    // Fetch all protocol details in parallel
-    let protocol_futures: Vec<_> = active_protocol_names
-        .iter()
-        .map(|name| {
-            let chain_client = state.chain_client.clone();
-            let admin_contract = state.config.protocols.admin_contract.clone();
-            let name = (*name).clone();
-            async move {
-                let result = chain_client
-                    .get_admin_protocol(&admin_contract, &name)
-                    .await;
-                (name, result)
-            }
-        })
-        .collect();
-
-    let protocol_results = join_all(protocol_futures).await;
-
-    // Process results into protocols map
+    // Convert ETL protocols to ProtocolInfo map
     let mut protocols = HashMap::new();
-    for (name, result) in protocol_results {
-        match result {
-            Ok(protocol_data) => {
-                // Parse protocol name to extract network and dex info
-                // Format: NETWORK-DEX-LPN (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE")
-                let parts: Vec<&str> = name.split('-').collect();
-                let (network, dex, lpn) = if parts.len() >= 3 {
-                    (
-                        parts[0].to_string(),
-                        parts[1].to_string(),
-                        parts[2..].join("-"),
-                    )
-                } else {
-                    (name.clone(), String::new(), String::new())
-                };
-
-                protocols.insert(
-                    name.clone(),
-                    ProtocolInfo {
-                        name: name.clone(),
-                        network,
-                        dex,
-                        lpn,
-                        contracts: protocol_data.contracts.into(),
-                        active: true,
-                    },
-                );
-            }
-            Err(e) => {
-                error!("Failed to fetch protocol {}: {}", name, e);
-                // Continue with other protocols
-            }
-        }
+    for etl_protocol in etl_response.protocols {
+        let name = etl_protocol.name.clone();
+        protocols.insert(name, ProtocolInfo::from(etl_protocol));
     }
 
     // Load networks configuration from config store

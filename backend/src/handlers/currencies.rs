@@ -15,26 +15,27 @@ use crate::query_types::AddressQuery;
 use crate::AppState;
 
 /// Currency information with all details needed by frontend
-/// Matches the frontend ExternalCurrency interface
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CurrencyInfo {
     pub key: String,
     pub ticker: String,
     pub symbol: String,
     pub name: String,
-    #[serde(rename = "shortName")]
     pub short_name: String,
     pub decimal_digits: u8,
-    #[serde(rename = "ibcData")]
-    pub ibc_data: String,
+    /// IBC denom on Nolus chain
+    pub bank_symbol: String,
+    /// IBC denom on DEX network
+    pub dex_symbol: String,
     pub icon: String,
     pub native: bool,
-    #[serde(rename = "coingeckoId")]
     pub coingecko_id: Option<String>,
     /// Protocol this currency belongs to
     pub protocol: String,
-    /// Currency group from Oracle (lease, lpn, native, etc.)
+    /// Currency group (lease, lpn, native, payment_only)
     pub group: String,
+    /// Whether currency is currently active
+    pub is_active: bool,
 }
 
 /// Full currencies response for frontend
@@ -104,15 +105,17 @@ pub async fn get_currencies(
     Ok(Json(response))
 }
 
-/// Internal function to fetch currencies from all protocols
-/// Merges Oracle contract data with static metadata from currencies.json
+/// Internal function to fetch currencies from ETL
+/// Merges ETL data with static metadata from currencies.json
 async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching currencies from Oracle contracts");
+    debug!("Fetching currencies from ETL");
 
-    // Get protocol config first (this is also cached)
-    let config = get_config(State(state.clone()))
+    // Fetch currencies from ETL (includes active and deprecated)
+    let etl_response = state
+        .etl_client
+        .fetch_currencies()
         .await
-        .map_err(|e| format!("Failed to get config: {}", e))?;
+        .map_err(|e| format!("Failed to fetch currencies from ETL: {}", e))?;
 
     // Load currency metadata from config store
     let currencies_config = state
@@ -125,122 +128,64 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
     let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
     let mut lease_currencies_set: std::collections::HashSet<String> = std::collections::HashSet::new();
 
-    // Fetch currencies from all protocols in parallel
-    let protocols: Vec<_> = config.0.protocols.iter().collect();
-    let currency_futures: Vec<_> = protocols
-        .iter()
-        .map(|(protocol_name, protocol_info)| {
-            let chain_client = state.chain_client.clone();
-            let oracle = protocol_info.contracts.oracle.clone();
-            let protocol_name = (*protocol_name).clone();
-            let lpn_ticker = protocol_info.lpn.clone();
-            async move {
-                let result = chain_client.get_oracle_currencies(&oracle).await;
-                (protocol_name, lpn_ticker, result)
+    // Process ETL currencies
+    for etl_currency in etl_response.currencies {
+        // Get metadata from currencies.json config
+        let metadata = currencies_config.currencies.get(&etl_currency.ticker);
+
+        // Each currency can belong to multiple protocols
+        for protocol_mapping in etl_currency.protocols {
+            let key = format!("{}@{}", etl_currency.ticker, protocol_mapping.protocol);
+            let is_native = protocol_mapping.bank_symbol == "unls";
+            let is_lpn = protocol_mapping.group == "lpn";
+
+            // Build icon URL: /assets/icons/currencies/{network}-{ticker}.svg
+            let network_prefix = protocol_mapping
+                .protocol
+                .split('-')
+                .next()
+                .unwrap_or("osmosis")
+                .to_lowercase();
+            let ticker_lower = etl_currency.ticker.replace('_', "").to_lowercase();
+            let icon = format!(
+                "{}/{}-{}.svg",
+                currencies_config.icons, network_prefix, ticker_lower
+            );
+
+            let currency_info = CurrencyInfo {
+                key: key.clone(),
+                ticker: etl_currency.ticker.clone(),
+                symbol: metadata
+                    .map(|m| m.symbol.clone())
+                    .unwrap_or_else(|| protocol_mapping.bank_symbol.clone()),
+                name: metadata
+                    .map(|m| m.name.clone())
+                    .unwrap_or_else(|| etl_currency.ticker.clone()),
+                short_name: metadata
+                    .map(|m| m.short_name.clone())
+                    .unwrap_or_else(|| etl_currency.ticker.clone()),
+                decimal_digits: etl_currency.decimal_digits,
+                bank_symbol: protocol_mapping.bank_symbol,
+                dex_symbol: protocol_mapping.dex_symbol,
+                icon,
+                native: is_native,
+                coingecko_id: metadata.map(|m| m.coin_gecko_id.clone()),
+                protocol: protocol_mapping.protocol.clone(),
+                group: protocol_mapping.group.clone(),
+                is_active: etl_currency.is_active,
+            };
+
+            // Track LPN currencies (only active ones)
+            if is_lpn && etl_currency.is_active {
+                lpn_currencies.push(currency_info.clone());
             }
-        })
-        .collect();
 
-    let currency_results = join_all(currency_futures).await;
-
-    // Process results
-    for (protocol_name, lpn_ticker, result) in currency_results {
-        match result {
-            Ok(oracle_currencies) => {
-                for currency in oracle_currencies {
-                    let key = format!("{}@{}", currency.ticker, protocol_name);
-                    let is_native = currency.bank_symbol == "unls";
-                    let is_lpn = currency.ticker == lpn_ticker;
-
-                    // Get metadata from currencies.json config
-                    let metadata = currencies_config.currencies.get(&currency.ticker);
-
-                    // Build icon URL: /assets/icons/currencies/{network}-{ticker}.svg
-                    let network_prefix = protocol_name.split('-').next().unwrap_or("osmosis").to_lowercase();
-                    let ticker_lower = currency.ticker.replace('_', "").to_lowercase();
-                    let icon = format!(
-                        "{}/{}-{}.svg",
-                        currencies_config.icons, network_prefix, ticker_lower
-                    );
-
-                    let currency_info = CurrencyInfo {
-                        key: key.clone(),
-                        ticker: currency.ticker.clone(),
-                        symbol: metadata.map(|m| m.symbol.clone()).unwrap_or_else(|| currency.bank_symbol.clone()),
-                        name: metadata.map(|m| m.name.clone()).unwrap_or_else(|| currency.ticker.clone()),
-                        short_name: metadata.map(|m| m.short_name.clone()).unwrap_or_else(|| currency.ticker.clone()),
-                        decimal_digits: currency.decimal_digits,
-                        ibc_data: currency.bank_symbol.clone(),
-                        icon,
-                        native: is_native,
-                        coingecko_id: metadata.map(|m| m.coin_gecko_id.clone()),
-                        protocol: protocol_name.clone(),
-                        group: currency.group.clone(),
-                    };
-
-                    // Track LPN currencies
-                    if is_lpn {
-                        lpn_currencies.push(currency_info.clone());
-                    }
-
-                    // Track lease currencies
-                    if currency.group == "lease" {
-                        lease_currencies_set.insert(currency.ticker.clone());
-                    }
-
-                    currencies_map.insert(key.clone(), currency_info);
-
-                    // Handle mapped keys (aliases) from currencies.json
-                    if let Some(mapped_key) = currencies_config.map.get(&key) {
-                        if let Some(currency_info) = currencies_map.get(&key).cloned() {
-                            let mut aliased = currency_info;
-                            aliased.key = mapped_key.clone();
-                            currencies_map.insert(mapped_key.clone(), aliased);
-                        }
-                    }
-                }
+            // Track lease currencies (only active ones)
+            if protocol_mapping.group == "lease" && etl_currency.is_active {
+                lease_currencies_set.insert(etl_currency.ticker.clone());
             }
-            Err(e) => {
-                error!(
-                    "Failed to fetch currencies from protocol {}: {}",
-                    protocol_name, e
-                );
-                // Continue with other protocols
-            }
-        }
-    }
 
-    // Load history currencies for backwards compatibility
-    if let Ok(history_config) = state.config_store.load_history_currencies().await {
-        for (ticker, history_currency) in history_config.currencies {
-            for (protocol, protocol_data) in history_currency.protocols {
-                let key = format!("{}@{}", ticker, protocol);
-                
-                // Only add if not already present (Oracle data takes precedence)
-                if !currencies_map.contains_key(&key) {
-                    let network_prefix = protocol.split('-').next().unwrap_or("osmosis").to_lowercase();
-                    let ticker_lower = ticker.replace('_', "").to_lowercase();
-                    
-                    currencies_map.insert(key.clone(), CurrencyInfo {
-                        key: key.clone(),
-                        ticker: ticker.clone(),
-                        symbol: history_currency.symbol.clone(),
-                        name: history_currency.name.clone(),
-                        short_name: history_currency.short_name.clone(),
-                        decimal_digits: history_currency.decimal_digits as u8,
-                        ibc_data: protocol_data.ibc_data,
-                        icon: if history_currency.icon.is_empty() {
-                            format!("{}/{}-{}.svg", currencies_config.icons, network_prefix, ticker_lower)
-                        } else {
-                            history_currency.icon.clone()
-                        },
-                        native: history_currency.native,
-                        coingecko_id: history_currency.coingecko_id.clone(),
-                        protocol,
-                        group: "history".to_string(),
-                    });
-                }
-            }
+            currencies_map.insert(key, currency_info);
         }
     }
 
@@ -303,7 +248,7 @@ pub async fn get_prices(
     Ok(Json(response))
 }
 
-/// Internal function to fetch prices from all protocols
+/// Internal function to fetch prices from all active protocols with oracle contracts
 /// Separated from handler to enable request coalescing
 async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
     debug!("Fetching prices from Oracle contracts");
@@ -315,13 +260,21 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
 
     let mut prices = HashMap::new();
 
+    // Filter to active protocols with oracle contracts
+    let active_protocols: Vec<_> = config
+        .0
+        .protocols
+        .iter()
+        .filter(|(_, info)| info.is_active && info.contracts.oracle.is_some())
+        .collect();
+
     // Fetch prices from all protocols in parallel
-    let protocols: Vec<_> = config.0.protocols.iter().collect();
-    let price_futures: Vec<_> = protocols
+    let price_futures: Vec<_> = active_protocols
         .iter()
         .map(|(protocol_name, protocol_info)| {
             let chain_client = state.chain_client.clone();
-            let oracle = protocol_info.contracts.oracle.clone();
+            // Safe to unwrap - we filtered for Some above
+            let oracle = protocol_info.contracts.oracle.clone().unwrap();
             let protocol_name = (*protocol_name).clone();
             async move {
                 let mut protocol_prices = Vec::new();
@@ -451,12 +404,12 @@ pub async fn get_balances(
     let mut total_usd = 0.0_f64;
 
     for bank_balance in bank_balances {
-        // Find currency info for this denom (ibcData matches bank_symbol)
+        // Find currency info for this denom
         let currency = currencies_response
             .0
             .currencies
             .values()
-            .find(|c| c.ibc_data == bank_balance.denom);
+            .find(|c| c.bank_symbol == bank_balance.denom);
 
         if let Some(currency) = currency {
             // Calculate USD value (using human-readable amount for USD calculation)

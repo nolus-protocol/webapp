@@ -7,6 +7,7 @@ pub mod etl_proxy;
 pub mod etl_types;
 pub mod governance;
 pub mod leases;
+pub mod protocols;
 pub mod referral;
 pub mod spa;
 pub mod staking;

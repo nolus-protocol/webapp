@@ -290,8 +290,6 @@ impl ConfigStore {
         let zero_interest = self.load_zero_interest().await?;
         let skip_route = self.load_skip_route().await?;
         let governance = self.load_governance().await?;
-        let history_currencies = self.load_history_currencies().await?;
-        let history_protocols = self.load_history_protocols().await?;
 
         Ok(FullWebappConfig {
             currencies,
@@ -302,8 +300,6 @@ impl ConfigStore {
             zero_interest,
             skip_route,
             governance,
-            history_currencies,
-            history_protocols,
         })
     }
 
@@ -436,16 +432,6 @@ impl ConfigStore {
     pub async fn load_governance(&self) -> Result<ProposalsConfig, AppError> {
         self.load_json_file("governance/hidden-proposals.json")
             .await
-    }
-
-    /// Load history currencies configuration
-    pub async fn load_history_currencies(&self) -> Result<HistoryCurrenciesConfig, AppError> {
-        self.load_json_file("history-currencies.json").await
-    }
-
-    /// Load history protocols configuration
-    pub async fn load_history_protocols(&self) -> Result<HistoryProtocolsConfig, AppError> {
-        self.load_json_file("history-protocols.json").await
     }
 
     /// Load a locale by language code
@@ -663,31 +649,6 @@ impl ConfigStore {
             cache.remove(lang);
         }
 
-        Ok(())
-    }
-
-    /// Save history currencies configuration
-    pub async fn save_history_currencies(
-        &self,
-        config: &HistoryCurrenciesConfig,
-    ) -> Result<(), AppError> {
-        self.save_json_file("history-currencies.json", config)
-            .await?;
-        self.record_audit("update", "history-currencies", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save history protocols configuration
-    pub async fn save_history_protocols(
-        &self,
-        config: &HistoryProtocolsConfig,
-    ) -> Result<(), AppError> {
-        self.save_json_file("history-protocols.json", config)
-            .await?;
-        self.record_audit("update", "history-protocols", None).await;
-        self.invalidate_cache().await;
         Ok(())
     }
 

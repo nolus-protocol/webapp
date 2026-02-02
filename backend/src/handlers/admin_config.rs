@@ -386,56 +386,6 @@ pub async fn update_hidden_proposals(
 }
 
 // ============================================================================
-// History Configuration Admin
-// ============================================================================
-
-/// PUT /api/admin/webapp/config/history/currencies
-/// Update history currencies configuration
-pub async fn update_history_currencies(
-    State(state): State<Arc<AppState>>,
-    Json(payload): Json<UpdateConfigRequest>,
-) -> Result<impl IntoResponse, AppError> {
-    info!("Admin updating history currencies configuration");
-
-    let config: HistoryCurrenciesConfig =
-        serde_json::from_value(payload.data).map_err(|e| AppError::Validation {
-            message: format!("Invalid history currencies config: {}", e),
-            field: None,
-            details: None,
-        })?;
-
-    state.config_store.save_history_currencies(&config).await?;
-
-    Ok(Json(AdminResponse {
-        status: "ok",
-        message: "History currencies configuration updated".to_string(),
-    }))
-}
-
-/// PUT /api/admin/webapp/config/history/protocols
-/// Update history protocols configuration
-pub async fn update_history_protocols(
-    State(state): State<Arc<AppState>>,
-    Json(payload): Json<UpdateConfigRequest>,
-) -> Result<impl IntoResponse, AppError> {
-    info!("Admin updating history protocols configuration");
-
-    let config: HistoryProtocolsConfig =
-        serde_json::from_value(payload.data).map_err(|e| AppError::Validation {
-            message: format!("Invalid history protocols config: {}", e),
-            field: None,
-            details: None,
-        })?;
-
-    state.config_store.save_history_protocols(&config).await?;
-
-    Ok(Json(AdminResponse {
-        status: "ok",
-        message: "History protocols configuration updated".to_string(),
-    }))
-}
-
-// ============================================================================
 // Locales Admin
 // ============================================================================
 

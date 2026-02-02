@@ -346,58 +346,40 @@ pub async fn withdraw(
 
 /// GET /api/earn/stats
 /// Returns overall earn statistics
+/// Uses ETL for TVL and pool data, only dispatcher rewards from on-chain
 pub async fn get_earn_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<EarnStats>, AppError> {
     debug!("Getting earn stats");
 
-    let admin_address = &state.config.protocols.admin_contract;
-
-    // Get all protocols
-    let protocols = state
-        .chain_client
-        .get_admin_protocols(admin_address)
-        .await?;
-
-    // Fetch ETL pool data and dispatcher rewards in parallel
-    let (etl_pools, dispatcher_rewards_result) = tokio::join!(
+    // Fetch TVL, pools, and dispatcher rewards in parallel
+    let (tvl_result, etl_pools_result, dispatcher_rewards_result) = tokio::join!(
+        state.etl_client.fetch_tvl(),
         state.etl_client.fetch_pools(),
         state
             .chain_client
             .get_dispatcher_rewards(&state.config.protocols.dispatcher_contract)
     );
 
-    let etl_pools = etl_pools.ok();
+    // TVL from ETL - fail fast if unavailable
+    let tvl = tvl_result
+        .map_err(|e| AppError::Internal(format!("Failed to fetch TVL from ETL: {}", e)))?;
+
+    // Pool data from ETL - fail fast if unavailable
+    let etl_pools = etl_pools_result
+        .map_err(|e| AppError::Internal(format!("Failed to fetch pools from ETL: {}", e)))?;
+
+    // Dispatcher rewards from on-chain (optional - doesn't fail if unavailable)
     let dispatcher_rewards = dispatcher_rewards_result
         .ok()
         .map(|r| r as f64 / 10f64.powi(INTEREST_DECIMALS as i32));
 
-    // Fetch all pools in parallel
-    let pool_futures: Vec<_> = protocols
+    // Calculate pool count and average APY from ETL data
+    let pool_count = etl_pools.len() as u32;
+    let total_apy: f64 = etl_pools
         .iter()
-        .map(|protocol| {
-            let state = state.clone();
-            let etl_pools = etl_pools.clone();
-            let protocol = protocol.clone();
-            async move { fetch_pool_info(&state, &protocol, &etl_pools).await }
-        })
-        .collect();
-
-    let pool_results = futures::future::join_all(pool_futures).await;
-
-    let mut total_tvl = 0.0f64;
-    let mut total_apy = 0.0f64;
-    let mut pool_count = 0u32;
-
-    for pool in pool_results.into_iter().flatten() {
-        pool_count += 1;
-        total_apy += pool.apy;
-        if let Some(usd) = &pool.total_deposited_usd {
-            if let Ok(val) = usd.parse::<f64>() {
-                total_tvl += val;
-            }
-        }
-    }
+        .filter_map(|p| p.apr.as_ref()?.parse::<f64>().ok())
+        .sum();
 
     let average_apy = if pool_count > 0 {
         total_apy / pool_count as f64
@@ -406,7 +388,7 @@ pub async fn get_earn_stats(
     };
 
     Ok(Json(EarnStats {
-        total_value_locked: format!("{:.2}", total_tvl),
+        total_value_locked: tvl.total_value_locked,
         pools_count: pool_count,
         average_apy,
         dispatcher_rewards,
