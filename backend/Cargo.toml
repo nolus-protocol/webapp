@@ -82,14 +82,9 @@ paste = "1.0"
 [dev-dependencies]
 tokio-test = "0.4"
 wiremock = "0.6"
-criterion = { version = "0.5", features = ["async_tokio"] }
 tokio-tungstenite = "0.21"
 futures = "0.3"
 tempfile = "3.10"
-
-[[bench]]
-name = "benchmarks"
-harness = false
 
 [profile.release]
 lto = true
