@@ -90,9 +90,7 @@ async function setVersion() {
   &:hover {
     @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
 
-    svg {
-      @apply fill-icon-link;
-    }
+   
   }
 }
 </style>
