@@ -10,7 +10,6 @@ use axum::{
 use tower_http::{
     compression::CompressionLayer,
     cors::{Any, CorsLayer},
-    services::{ServeDir, ServeFile},
     trace::TraceLayer,
 };
 use tracing::{info, warn};
@@ -744,11 +743,12 @@ fn create_router(state: Arc<AppState>) -> Router {
 
     // Static file serving for the frontend SPA
     // Serves files from ../dist (relative to backend directory)
-    // Falls back to index.html for SPA routing
+    // Falls back to index.html for SPA routing with 200 OK status
     let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "../dist".to_string());
     let index_path = format!("{}/index.html", static_dir);
 
-    let serve_dir = ServeDir::new(&static_dir).not_found_service(ServeFile::new(&index_path));
+    // Create SPA fallback that serves index.html with 200 OK for client-side routes
+    let spa_fallback = handlers::spa::create_spa_fallback(static_dir.clone(), index_path);
 
     // Combine all routes
     // API routes take precedence, then static files
@@ -757,7 +757,7 @@ fn create_router(state: Arc<AppState>) -> Router {
         .nest("/api/etl", etl_routes)
         .nest("/api/admin", admin_routes)
         .nest("/ws", ws_routes)
-        .fallback_service(serve_dir)
+        .fallback_service(spa_fallback)
         .layer(axum_middleware::from_fn(cache_control_middleware))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())

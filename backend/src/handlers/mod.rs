@@ -8,6 +8,7 @@ pub mod etl_types;
 pub mod governance;
 pub mod leases;
 pub mod referral;
+pub mod spa;
 pub mod staking;
 pub mod swap;
 pub mod translations;
