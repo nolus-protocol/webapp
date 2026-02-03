@@ -200,7 +200,6 @@ import { getFreeInterest, getIgnoreLeaseShortAssets, getDownpaymentRange } from 
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
-  Contracts,
   INTEREST_DECIMALS,
   MAX_POSITION,
   MIN_POSITION,
@@ -634,13 +633,16 @@ async function openLease() {
 function getIconByProtocol() {
   try {
     const selectedDownPaymentCurrency = currency.value;
-    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
 
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
-        return Contracts.protocolsFilter[key].image;
-      }
+    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
+    const networkName = configStore.getNetworkNameByProtocol(protocol);
+    if (networkName) {
+      // Use the network value to find the network and get its icon
+      const network = configStore.getNetworkByValue(networkName);
+      return network?.icon;
     }
+    return null;
   } catch (error) {
     console.error("Invalid address format:", error);
     return null;
@@ -650,13 +652,10 @@ function getIconByProtocol() {
 const protocolName = computed(() => {
   try {
     const selectedDownPaymentCurrency = currency.value;
-    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
 
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
-        return Contracts.protocolsFilter[key].name;
-      }
-    }
+    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
+    return configStore.getNetworkNameByProtocol(protocol) ?? null;
   } catch (error) {
     console.error("Invalid address format:", error);
     return null;

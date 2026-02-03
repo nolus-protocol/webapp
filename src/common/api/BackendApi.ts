@@ -232,7 +232,10 @@ export class BackendApiClient {
   // =========================================================================
 
   async getCurrencies(): Promise<import("./types").CurrenciesResponse> {
-    return this.request<import("./types").CurrenciesResponse>("GET", "/api/currencies");
+    const raw = await this.request<import("./types").RawCurrenciesResponse>("GET", "/api/currencies");
+    // Transform snake_case from backend to camelCase for frontend
+    const { transformCurrenciesResponse } = await import("./types");
+    return transformCurrenciesResponse(raw);
   }
 
   async getPrices(): Promise<PriceData> {
@@ -478,6 +481,18 @@ export class BackendApiClient {
 
   async getGatedNetworks(): Promise<GatedNetworksResponse> {
     return this.request<GatedNetworksResponse>("GET", "/api/networks/gated");
+  }
+
+  // =========================================================================
+  // Assets
+  // =========================================================================
+
+  async getAssets(): Promise<import("./types").AssetsResponse> {
+    return this.request<import("./types").AssetsResponse>("GET", "/api/assets");
+  }
+
+  async getNetworkAssets(network: string): Promise<import("./types").AssetsResponse> {
+    return this.request<import("./types").AssetsResponse>("GET", `/api/networks/${network}/assets`);
   }
 
   // =========================================================================

@@ -85,17 +85,63 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const filteredAssets = computed(() => {
-  const balances = showSmallBalances.value ? balancesStore.filteredBalances : filterSmallBalances(balancesStore.filteredBalances);
-  return balances.sort((a, b) => {
+  // Use assets from /api/networks/{network}/assets - show all available assets for the network
+  const networkAssets = configStore.assets;
+
+  // Deduplicate by ticker (in case of any caching issues)
+  const seenTickers = new Set<string>();
+  const uniqueAssets = networkAssets.filter((asset) => {
+    if (seenTickers.has(asset.ticker)) {
+      return false;
+    }
+    seenTickers.add(asset.ticker);
+    return true;
+  });
+
+  // Map assets to ExternalCurrency format, adding balance if user has one
+  const assetsWithBalances = uniqueAssets.map((asset) => {
+    // Find user's balance for this asset if they have one
+    const balanceInfo = balancesStore.balances.find((b) => {
+      const currency = configStore.getCurrencyByDenom(b.denom);
+      return currency?.ticker === asset.ticker;
+    });
+
+    // Find currency info to get ibcData (denom)
+    const currencyInfo = configStore.getCurrencyByTicker(asset.ticker);
+    const ibcData = currencyInfo?.ibcData || "";
+    const key = currencyInfo?.key || `${asset.ticker}@unknown`;
+
+    return {
+      key,
+      ticker: asset.ticker,
+      name: asset.displayName,
+      shortName: asset.shortName,
+      icon: asset.icon,
+      decimal_digits: asset.decimals,
+      ibcData,
+      balance: {
+        denom: ibcData,
+        amount: balanceInfo ? new Int(balanceInfo.amount) : new Int(0)
+      }
+    } as ExternalCurrency;
+  });
+
+  // Filter small balances if setting is off
+  const filtered = showSmallBalances.value
+    ? assetsWithBalances
+    : assetsWithBalances.filter((asset) => asset.balance.amount.gt(new Int("1")));
+
+  // Sort by balance value (descending)
+  return filtered.sort((a, b) => {
     const aAssetBalance = CurrencyUtils.calculateBalance(
-      pricesStore.prices[a.key]?.price,
-      new Coin(a.balance.denom, a.balance.amount.toString()),
+      pricesStore.prices[a.key]?.price || "0",
+      new Coin(a.balance.denom || a.ticker, a.balance.amount.toString()),
       a.decimal_digits as number
     ).toDec();
 
     const bAssetBalance = CurrencyUtils.calculateBalance(
-      pricesStore.prices[b.key]?.price,
-      new Coin(b.balance.denom, b.balance.amount.toString()),
+      pricesStore.prices[b.key]?.price || "0",
+      new Coin(b.balance.denom || b.ticker, b.balance.amount.toString()),
       b.decimal_digits as number
     ).toDec();
 
@@ -132,14 +178,16 @@ function onSearch(data: string) {
 
 function setAvailableAssets() {
   let totalAssets = new Dec(0);
-  balancesStore.filteredBalances.forEach((asset) => {
-    const currency = getCurrencyByDenom(asset.balance.denom);
-    const assetBalance = CurrencyUtils.calculateBalance(
-      pricesStore.prices[asset.key]?.price ?? "0",
-      new Coin(currency.ibcData, asset.balance.amount.toString()),
-      Number(currency.decimal_digits)
-    );
-    totalAssets = totalAssets.add(assetBalance.toDec());
+  // Calculate total from all assets in filteredAssets
+  filteredAssets.value.forEach((asset) => {
+    if (asset.balance.amount.gt(new Int(0))) {
+      const assetBalance = CurrencyUtils.calculateBalance(
+        pricesStore.prices[asset.key]?.price ?? "0",
+        new Coin(asset.ibcData || asset.ticker, asset.balance.amount.toString()),
+        Number(asset.decimal_digits)
+      );
+      totalAssets = totalAssets.add(assetBalance.toDec());
+    }
   });
   total.value = totalAssets;
 }

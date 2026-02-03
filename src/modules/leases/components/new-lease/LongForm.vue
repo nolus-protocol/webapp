@@ -201,7 +201,6 @@ import { getFreeInterest, getIgnoreLeaseLongAssets, getDownpaymentRange } from "
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
-  Contracts,
   INTEREST_DECIMALS,
   MAX_POSITION,
   MIN_POSITION,
@@ -293,13 +292,13 @@ const totalBalances = computed(() => {
 });
 
 const isShortEnabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
-  return protocols.short;
+  // Use dynamic check from config store instead of hardcoded protocolsFilter
+  return configStore.hasShortProtocols(configStore.protocolFilter);
 });
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
-  return protocols.disabled;
+  // Use dynamic check from config store instead of hardcoded protocolsFilter
+  return configStore.isNetworkDisabled(configStore.protocolFilter);
 });
 
 const currency = computed(() => {
@@ -308,11 +307,12 @@ const currency = computed(() => {
 
 const assets = computed(() => {
   const data = [];
-  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
+  // Use dynamic protocols from config store instead of hardcoded protocolsFilter.hold
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
   const b = ((balances.value as ExternalCurrency[]) ?? []).filter((item) => {
     const [_, p] = item.key.split("@");
 
-    if (protocols.hold.includes(p)) {
+    if (activeProtocols.includes(p)) {
       return true;
     }
     return false;
@@ -662,13 +662,16 @@ async function openLease() {
 function getIconByProtocol() {
   try {
     const selectedDownPaymentCurrency = currency.value;
-    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
 
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
-        return Contracts.protocolsFilter[key].image;
-      }
+    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
+    const networkName = configStore.getNetworkNameByProtocol(protocol);
+    if (networkName) {
+      // Use the network value to find the network and get its icon
+      const network = configStore.getNetworkByValue(networkName);
+      return network?.icon;
     }
+    return null;
   } catch (error) {
     console.error("Invalid address format:", error);
     return null;
@@ -678,13 +681,10 @@ function getIconByProtocol() {
 const protocolName = computed(() => {
   try {
     const selectedDownPaymentCurrency = currency.value;
-    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
 
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
-        return Contracts.protocolsFilter[key].name;
-      }
-    }
+    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
+    return configStore.getNetworkNameByProtocol(protocol) ?? null;
   } catch (error) {
     console.error("Invalid address format:", error);
     return null;

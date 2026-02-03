@@ -22,10 +22,13 @@ import {
   type ProtocolContracts,
   type CurrenciesResponse,
   type CurrencyInfo,
+  type AssetsResponse,
+  type AssetInfo
 } from "@/common/api";
 
 const CONFIG_STORAGE_KEY = "nolus_config_cache";
 const CURRENCIES_STORAGE_KEY = "nolus_currencies_cache";
+const ASSETS_STORAGE_KEY = "nolus_assets_cache";
 const PROTOCOL_FILTER_KEY = "protocol_filter";
 const SELECTED_NETWORK_KEY = "selected_network";
 const CACHE_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
@@ -34,19 +37,23 @@ export const useConfigStore = defineStore("config", () => {
   // ==========================================================================
   // State
   // ==========================================================================
-  
+
   // Core config from /api/config
   const config = ref<AppConfigResponse | null>(null);
-  
+
   // Currencies from /api/currencies
   const currenciesResponse = ref<CurrenciesResponse | null>(null);
-  
+
+  // Assets from /api/assets (deduplicated with network mappings)
+  const assetsResponse = ref<AssetsResponse | null>(null);
+
   // Loading states
   const loading = ref(false);
   const currenciesLoading = ref(false);
+  const assetsLoading = ref(false);
   const error = ref<string | null>(null);
   const initialized = ref(false);
-  
+
   // User preferences
   const protocolFilter = ref<string>(localStorage.getItem(PROTOCOL_FILTER_KEY) || "");
   const selectedNetwork = ref<string>(localStorage.getItem(SELECTED_NETWORK_KEY) || "mainnet");
@@ -109,14 +116,57 @@ export const useConfigStore = defineStore("config", () => {
     }
   }
 
-  // Auto-save to cache when data changes
-  watch(config, () => {
-    if (config.value) saveConfigToCache();
-  }, { deep: true });
+  function loadAssetsFromCache(): boolean {
+    try {
+      const cached = localStorage.getItem(ASSETS_STORAGE_KEY);
+      if (!cached) return false;
 
-  watch(currenciesResponse, () => {
-    if (currenciesResponse.value) saveCurrenciesToCache();
-  }, { deep: true });
+      const { data, timestamp } = JSON.parse(cached);
+      const age = Date.now() - timestamp;
+
+      if (age < CACHE_MAX_AGE_MS && data) {
+        assetsResponse.value = data;
+        return true;
+      }
+    } catch (e) {
+      console.warn("[ConfigStore] Failed to load assets from cache:", e);
+    }
+    return false;
+  }
+
+  function saveAssetsToCache(): void {
+    try {
+      const cacheData = { data: assetsResponse.value, timestamp: Date.now() };
+      localStorage.setItem(ASSETS_STORAGE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+      console.warn("[ConfigStore] Failed to save assets to cache:", e);
+    }
+  }
+
+  // Auto-save to cache when data changes
+  watch(
+    config,
+    () => {
+      if (config.value) saveConfigToCache();
+    },
+    { deep: true }
+  );
+
+  watch(
+    currenciesResponse,
+    () => {
+      if (currenciesResponse.value) saveCurrenciesToCache();
+    },
+    { deep: true }
+  );
+
+  watch(
+    assetsResponse,
+    () => {
+      if (assetsResponse.value) saveAssetsToCache();
+    },
+    { deep: true }
+  );
 
   // Persist user preferences
   watch(protocolFilter, (val) => {
@@ -173,32 +223,79 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Get the native network (Nolus) */
   const nativeNetwork = computed<NetworkInfo | undefined>(() => {
-    return networks.value.find(n => n.native);
+    return networks.value.find((n) => n.native);
   });
+
+  /**
+   * Get active protocol keys grouped by network name (e.g., "Osmosis", "Neutron")
+   * This is used to dynamically determine which protocols' currencies to show
+   */
+  const protocolsByNetwork = computed<{ [network: string]: string[] }>(() => {
+    const result: { [network: string]: string[] } = {};
+    for (const [key, protocol] of Object.entries(protocols.value)) {
+      if (protocol.is_active && protocol.network) {
+        const networkName = protocol.network.toUpperCase();
+        if (!result[networkName]) {
+          result[networkName] = [];
+        }
+        result[networkName].push(key);
+      }
+    }
+    return result;
+  });
+
+  /**
+   * Get all active protocol keys for a given network filter (e.g., "OSMOSIS", "NEUTRON")
+   */
+  function getActiveProtocolsForNetwork(networkFilter: string): string[] {
+    return protocolsByNetwork.value[networkFilter] ?? [];
+  }
+
+  /**
+   * Check if a network has any short-position protocols
+   */
+  function hasShortProtocols(networkFilter: string): boolean {
+    const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
+    return networkProtocols.some((key) => {
+      const protocol = protocols.value[key];
+      return protocol?.position_type === "short";
+    });
+  }
+
+  /**
+   * Check if a network has any long-position protocols
+   */
+  function hasLongProtocols(networkFilter: string): boolean {
+    const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
+    return networkProtocols.some((key) => {
+      const protocol = protocols.value[key];
+      return protocol?.position_type === "long";
+    });
+  }
+
+  /**
+   * Check if a network is disabled (no active protocols)
+   */
+  function isNetworkDisabled(networkFilter: string): boolean {
+    const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
+    return networkProtocols.length === 0;
+  }
 
   // ==========================================================================
   // Computed - Currencies
   // ==========================================================================
 
   /** All currencies indexed by key */
-  const currenciesData = computed<{ [key: string]: CurrencyInfo }>(() => 
-    currenciesResponse.value?.currencies ?? {}
-  );
+  const currenciesData = computed<{ [key: string]: CurrencyInfo }>(() => currenciesResponse.value?.currencies ?? {});
 
   /** LPN currencies (one per protocol) */
-  const lpn = computed<CurrencyInfo[]>(() => 
-    currenciesResponse.value?.lpn ?? []
-  );
+  const lpn = computed<CurrencyInfo[]>(() => currenciesResponse.value?.lpn ?? []);
 
   /** Lease-able currency tickers */
-  const leaseCurrencies = computed<string[]>(() => 
-    currenciesResponse.value?.lease_currencies ?? []
-  );
+  const leaseCurrencies = computed<string[]>(() => currenciesResponse.value?.lease_currencies ?? []);
 
   /** Currency key mappings (aliases) */
-  const currencyMap = computed<{ [key: string]: string }>(() => 
-    currenciesResponse.value?.map ?? {}
-  );
+  const currencyMap = computed<{ [key: string]: string }>(() => currenciesResponse.value?.map ?? {});
 
   /** Native currency (NLS) */
   const native = computed<CurrencyInfo | undefined>(() => {
@@ -210,6 +307,64 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Check if currencies are loaded */
   const hasCurrencies = computed(() => Object.keys(currenciesData.value).length > 0);
+
+  // ==========================================================================
+  // Computed - Assets
+  // ==========================================================================
+
+  /** All assets from /api/assets */
+  const assets = computed<AssetInfo[]>(() => assetsResponse.value?.assets ?? []);
+
+  /** Assets indexed by ticker */
+  const assetsByTicker = computed<{ [ticker: string]: AssetInfo }>(() => {
+    const result: { [ticker: string]: AssetInfo } = {};
+    for (const asset of assets.value) {
+      result[asset.ticker] = asset;
+    }
+    return result;
+  });
+
+  /**
+   * Get asset tickers available for a network (e.g., "Osmosis", "Neutron")
+   * This is the source of truth for which assets to show in the UI
+   */
+  const assetTickersByNetwork = computed<{ [network: string]: string[] }>(() => {
+    const result: { [network: string]: string[] } = {};
+    for (const asset of assets.value) {
+      for (const network of asset.networks) {
+        if (!result[network]) {
+          result[network] = [];
+        }
+        result[network].push(asset.ticker);
+      }
+    }
+    return result;
+  });
+
+  /** Check if assets are loaded */
+  const hasAssets = computed(() => assets.value.length > 0);
+
+  // ==========================================================================
+  // Getters - Assets
+  // ==========================================================================
+
+  /** Get asset info by ticker */
+  function getAsset(ticker: string): AssetInfo | undefined {
+    return assetsByTicker.value[ticker];
+  }
+
+  /** Get all asset tickers for the current network (from fetched assets) */
+  function getAssetTickersForNetwork(networkFilter: string): string[] {
+    // Assets are fetched per-network via /api/networks/{network}/assets
+    // So all assets in the response belong to the current network
+    return assets.value.map((a) => a.ticker);
+  }
+
+  /** Check if a ticker is available for a network */
+  function isAssetAvailableForNetwork(ticker: string, networkFilter: string): boolean {
+    const tickers = getAssetTickersForNetwork(networkFilter);
+    return tickers.includes(ticker);
+  }
 
   // ==========================================================================
   // Getters - Protocols & Networks
@@ -233,12 +388,24 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Get network by prefix (e.g., "nolus", "osmo") */
   function getNetworkByPrefix(prefix: string): NetworkInfo | undefined {
-    return networks.value.find(n => n.prefix === prefix);
+    return networks.value.find((n) => n.prefix === prefix);
   }
 
   /** Get network by value (e.g., "nolus", "osmosis") */
   function getNetworkByValue(value: string): NetworkInfo | undefined {
-    return networks.value.find(n => n.value === value.toLowerCase());
+    return networks.value.find((n) => n.value === value.toLowerCase());
+  }
+
+  /** Get the network name for a protocol key (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE" -> "Osmosis") */
+  function getNetworkNameByProtocol(protocolKey: string): string | undefined {
+    const protocol = protocols.value[protocolKey];
+    return protocol?.network ?? undefined;
+  }
+
+  /** Get the network filter (uppercase) for a protocol key (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE" -> "OSMOSIS") */
+  function getNetworkFilterByProtocol(protocolKey: string): string | undefined {
+    const networkName = getNetworkNameByProtocol(protocolKey);
+    return networkName?.toUpperCase();
   }
 
   // ==========================================================================
@@ -309,7 +476,7 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Get all currencies for a protocol */
   function getCurrenciesByProtocol(protocol: string): CurrencyInfo[] {
-    return Object.values(currenciesData.value).filter(c => c.protocol === protocol);
+    return Object.values(currenciesData.value).filter((c) => c.protocol === protocol);
   }
 
   /** Get all currencies as array */
@@ -395,6 +562,35 @@ export const useConfigStore = defineStore("config", () => {
     }
   }
 
+  async function fetchAssets(): Promise<void> {
+    assetsLoading.value = true;
+
+    try {
+      assetsResponse.value = await BackendApi.getAssets();
+    } catch (e) {
+      console.error("[ConfigStore] Failed to fetch assets:", e);
+      throw e;
+    } finally {
+      assetsLoading.value = false;
+    }
+  }
+
+  /**
+   * Fetch assets for a specific network using /api/networks/{network}/assets
+   */
+  async function fetchNetworkAssets(network: string): Promise<void> {
+    assetsLoading.value = true;
+
+    try {
+      assetsResponse.value = await BackendApi.getNetworkAssets(network);
+    } catch (e) {
+      console.error("[ConfigStore] Failed to fetch network assets:", e);
+      throw e;
+    } finally {
+      assetsLoading.value = false;
+    }
+  }
+
   /**
    * Initialize the store - load cache immediately, then refresh in background
    */
@@ -404,19 +600,30 @@ export const useConfigStore = defineStore("config", () => {
     // Load cached data immediately for fast UI
     const hadConfigCache = loadConfigFromCache();
     const hadCurrenciesCache = loadCurrenciesFromCache();
+    const hadAssetsCache = loadAssetsFromCache();
 
-    if (hadConfigCache && hadCurrenciesCache) {
+    // Determine which network to fetch assets for
+    const networkToFetch = protocolFilter.value || "OSMOSIS";
+
+    if (hadConfigCache && hadCurrenciesCache && hadAssetsCache) {
       initialized.value = true;
       // Background refresh - don't block
-      Promise.all([fetchConfig(), fetchCurrencies()]).catch((e) => {
+      Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch)]).catch((e) => {
         console.error("[ConfigStore] Background refresh failed:", e);
       });
     } else {
       // No cache - must wait for fresh data
-      await Promise.all([fetchConfig(), fetchCurrencies()]);
+      await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch)]);
       initialized.value = true;
     }
   }
+
+  // Watch for protocol filter changes and refetch assets for the new network
+  watch(protocolFilter, async (newFilter) => {
+    if (initialized.value && newFilter) {
+      await fetchNetworkAssets(newFilter);
+    }
+  });
 
   /**
    * Refresh all configuration
@@ -433,8 +640,10 @@ export const useConfigStore = defineStore("config", () => {
     // State
     config,
     currenciesResponse,
+    assetsResponse,
     loading,
     currenciesLoading,
+    assetsLoading,
     error,
     initialized,
     protocolFilter,
@@ -449,6 +658,13 @@ export const useConfigStore = defineStore("config", () => {
     contracts,
     supportedNetworksData,
     nativeNetwork,
+    protocolsByNetwork,
+
+    // Getters - Protocols
+    getActiveProtocolsForNetwork,
+    hasShortProtocols,
+    hasLongProtocols,
+    isNetworkDisabled,
 
     // Computed - Currencies
     currenciesData,
@@ -458,12 +674,25 @@ export const useConfigStore = defineStore("config", () => {
     native,
     hasCurrencies,
 
+    // Computed - Assets
+    assets,
+    assetsByTicker,
+    assetTickersByNetwork,
+    hasAssets,
+
+    // Getters - Assets
+    getAsset,
+    getAssetTickersForNetwork,
+    isAssetAvailableForNetwork,
+
     // Getters - Protocols & Networks
     getProtocol,
     getNetwork,
     getNetworkByChainId,
     getNetworkByPrefix,
     getNetworkByValue,
+    getNetworkNameByProtocol,
+    getNetworkFilterByProtocol,
     getContracts,
 
     // Getters - Currencies
@@ -491,7 +720,9 @@ export const useConfigStore = defineStore("config", () => {
     // Actions - Fetch
     fetchConfig,
     fetchCurrencies,
+    fetchAssets,
+    fetchNetworkAssets,
     initialize,
-    refresh,
+    refresh
   };
 });

@@ -20,7 +20,7 @@ export const useBalancesStore = defineStore("balances", () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
   const lastUpdated = ref<Date | null>(null);
-  
+
   // Ignored currencies (user preference)
   const ignoredCurrencies = ref<string[]>([]);
 
@@ -47,49 +47,59 @@ export const useBalancesStore = defineStore("balances", () => {
 
   /**
    * Get balances filtered by current protocol filter
-   * Replaces the old wallet store's `currencies` getter
+   * Uses /api/assets to determine which assets belong to which network
    */
   const filteredBalances = computed((): ExternalCurrency[] => {
     const configStore = useConfigStore();
     const protocolConfig = Contracts.protocolsFilter[configStore.protocolFilter];
-    
+
     if (!protocolConfig) {
       return [];
     }
 
+    // Get asset tickers available for this network from /api/assets
+    const availableTickers = configStore.getAssetTickersForNetwork(configStore.protocolFilter);
+
+    if (availableTickers.length === 0) {
+      return [];
+    }
+
     const result: ExternalCurrency[] = [];
+    const seenTickers = new Set<string>(); // Deduplicate by ticker
 
     for (const balance of balances.value) {
       // Get currency info from config store
-      let currency = configStore.getCurrencyByDenom(balance.denom);
-      
+      const currency = configStore.getCurrencyByDenom(balance.denom);
+
       if (!currency) {
         continue;
       }
 
-      // Handle native asset - use protocol-specific native key
-      const [ticker] = currency.key.split("@");
-      if (ticker === NATIVE_ASSET.ticker && protocolConfig.native) {
-        const nativeCurrency = configStore.currenciesData[protocolConfig.native];
-        if (nativeCurrency) {
-          currency = nativeCurrency;
-        }
-      }
+      const ticker = currency.ticker;
 
-      const [, protocol] = currency.key.split("@");
-
-      // Skip ignored currencies and currencies not in the current protocol's hold list
-      if (ignoredCurrencies.value.includes(currency.ticker) || !protocolConfig.hold.includes(protocol)) {
+      // Skip ignored currencies
+      if (ignoredCurrencies.value.includes(ticker)) {
         continue;
       }
+
+      // Skip assets not available for this network (based on /api/assets)
+      if (!availableTickers.includes(ticker)) {
+        continue;
+      }
+
+      // Deduplicate - only show each ticker once (same asset may exist in multiple protocols)
+      if (seenTickers.has(ticker)) {
+        continue;
+      }
+      seenTickers.add(ticker);
 
       // Convert to ExternalCurrency format with balance
       result.push({
         ...currency,
         balance: {
           denom: balance.denom,
-          amount: balance.amount,
-        },
+          amount: balance.amount
+        }
       } as ExternalCurrency);
     }
 
@@ -199,7 +209,7 @@ export const useBalancesStore = defineStore("balances", () => {
   async function setAddress(newAddress: string | null): Promise<void> {
     // Cleanup previous subscription
     unsubscribeFromUpdates();
-    
+
     address.value = newAddress;
     balances.value = [];
     totalValueUsd.value = "0";
@@ -314,6 +324,6 @@ export const useBalancesStore = defineStore("balances", () => {
     clear, // Alias for backwards compatibility
     ignoreCurrency,
     unignoreCurrency,
-    setIgnoredCurrencies,
+    setIgnoredCurrencies
   };
 });

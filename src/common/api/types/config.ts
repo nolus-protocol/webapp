@@ -10,8 +10,38 @@ export interface AppConfigResponse {
 }
 
 /**
+ * Raw currency info from backend (snake_case)
+ */
+export interface RawCurrencyInfo {
+  key: string;
+  ticker: string;
+  symbol: string;
+  name: string;
+  short_name: string;
+  decimal_digits: number;
+  bank_symbol: string;
+  dex_symbol: string;
+  icon: string;
+  native: boolean;
+  coingecko_id: string | null;
+  protocol: string;
+  group: string;
+  is_active: boolean;
+}
+
+/**
+ * Raw currencies response from backend (snake_case)
+ */
+export interface RawCurrenciesResponse {
+  currencies: { [key: string]: RawCurrencyInfo };
+  lpn: RawCurrencyInfo[];
+  lease_currencies: string[];
+  map: { [key: string]: string };
+}
+
+/**
  * Full currencies response from /api/currencies
- * Matches backend CurrenciesResponse
+ * Transformed to camelCase for frontend use
  */
 export interface CurrenciesResponse {
   /** All currencies indexed by key (TICKER@PROTOCOL) */
@@ -26,6 +56,7 @@ export interface CurrenciesResponse {
 
 /**
  * Currency information matching frontend ExternalCurrency interface
+ * Transformed from backend snake_case to camelCase
  */
 export interface CurrencyInfo {
   key: string;
@@ -35,28 +66,70 @@ export interface CurrencyInfo {
   shortName: string;
   decimal_digits: number;
   ibcData: string;
+  dexSymbol: string;
   icon: string;
   native: boolean;
   coingeckoId: string | null;
   protocol: string;
   group: string;
+  isActive: boolean;
+}
+
+/**
+ * Transform raw currency info from backend to frontend format
+ */
+export function transformCurrencyInfo(raw: RawCurrencyInfo): CurrencyInfo {
+  return {
+    key: raw.key,
+    ticker: raw.ticker,
+    symbol: raw.symbol,
+    name: raw.name,
+    shortName: raw.short_name,
+    decimal_digits: raw.decimal_digits,
+    ibcData: raw.bank_symbol,
+    dexSymbol: raw.dex_symbol,
+    icon: raw.icon,
+    native: raw.native,
+    coingeckoId: raw.coingecko_id,
+    protocol: raw.protocol,
+    group: raw.group,
+    isActive: raw.is_active
+  };
+}
+
+/**
+ * Transform raw currencies response to frontend format
+ */
+export function transformCurrenciesResponse(raw: RawCurrenciesResponse): CurrenciesResponse {
+  const currencies: { [key: string]: CurrencyInfo } = {};
+  for (const [key, value] of Object.entries(raw.currencies)) {
+    currencies[key] = transformCurrencyInfo(value);
+  }
+
+  return {
+    currencies,
+    lpn: raw.lpn.map(transformCurrencyInfo),
+    lease_currencies: raw.lease_currencies,
+    map: raw.map
+  };
 }
 
 export interface ProtocolInfo {
   name: string;
-  network: string;
-  dex: string;
+  network: string | null;
+  dex: string | null;
   lpn: string;
+  position_type: string;
   contracts: ProtocolContracts;
-  active: boolean;
+  is_active: boolean;
 }
 
 export interface ProtocolContracts {
-  oracle: string;
+  oracle: string | null;
   lpp: string;
-  leaser: string;
-  profit: string;
-  reserve?: string;
+  leaser: string | null;
+  profit: string | null;
+  reserve?: string | null;
 }
 
 export interface NetworkInfo {
@@ -119,5 +192,27 @@ export interface GatedNetworkInfo {
 
 export interface GatedNetworksResponse {
   networks: GatedNetworkInfo[];
+  count: number;
+}
+
+/**
+ * Asset info from /api/assets
+ * Provides deduplicated assets with network/protocol mappings
+ */
+export interface AssetInfo {
+  ticker: string;
+  decimals: number;
+  icon: string;
+  displayName: string;
+  shortName: string;
+  color: string;
+  coingeckoId: string | null;
+  price: string;
+  networks: string[];
+  protocols: string[];
+}
+
+export interface AssetsResponse {
+  assets: AssetInfo[];
   count: number;
 }
