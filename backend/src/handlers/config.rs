@@ -224,3 +224,26 @@ pub async fn get_locale(
 
     Ok(Json(locale))
 }
+
+/// Response for hidden proposals endpoint
+#[derive(Debug, Serialize)]
+pub struct HiddenProposalsResponse {
+    pub hidden_ids: Vec<String>,
+}
+
+/// GET /api/webapp/config/governance/hidden-proposals
+/// Returns list of proposal IDs that should be hidden in the UI
+pub async fn get_hidden_proposals(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<HiddenProposalsResponse>, AppError> {
+    debug!("Fetching hidden proposals config");
+
+    let ui_settings = state
+        .config_store
+        .load_ui_settings()
+        .await?;
+
+    Ok(Json(HiddenProposalsResponse {
+        hidden_ids: ui_settings.hidden_proposals,
+    }))
+}

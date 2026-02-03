@@ -162,8 +162,8 @@ async function fetchSkipRouteConfig(): Promise<SkipRouteConfigType> {
 async function fetchProposalsConfig(): Promise<ProposalsConfigType> {
   const response = await BackendApi.getWebappHiddenProposals();
   return {
-    hidden_ids: response.hidden_ids,
-  } as ProposalsConfigType;
+    hide: response.hidden_ids,
+  };
 }
 
 async function fetchHistoryCurrencies(): Promise<Record<string, HistoryCurrency>> {

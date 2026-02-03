@@ -344,6 +344,10 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/config/networks", get(handlers::config::get_networks))
         // Webapp public endpoints
         .route("/webapp/locales/{lang}", get(handlers::config::get_locale))
+        .route(
+            "/webapp/config/governance/hidden-proposals",
+            get(handlers::config::get_hidden_proposals),
+        )
         // Protocols (ETL-based, includes active and deprecated)
         .route("/protocols", get(handlers::protocols::get_protocols))
         .route("/protocols/active", get(handlers::protocols::get_active_protocols))
