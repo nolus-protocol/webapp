@@ -9,10 +9,23 @@ use std::sync::Arc;
 use tracing::{debug, error};
 
 use crate::cache_keys;
+use crate::db::CurrencyDisplayRepo;
 use crate::error::AppError;
 use crate::handlers::config::get_config;
+use crate::propagation::{DataMerger, PropagationFilter};
 use crate::query_types::AddressQuery;
 use crate::AppState;
+
+/// Query parameters for currencies endpoint
+#[derive(Debug, Clone, Deserialize, Default)]
+pub struct CurrenciesQuery {
+    /// Include all currencies (including unconfigured) - for admin use
+    #[serde(default)]
+    pub include_all: bool,
+    /// Include inactive currencies from ETL
+    #[serde(default)]
+    pub include_inactive: bool,
+}
 
 /// Currency information with all details needed by frontend
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,8 +47,15 @@ pub struct CurrencyInfo {
     pub protocol: String,
     /// Currency group (lease, lpn, native, payment_only)
     pub group: String,
-    /// Whether currency is currently active
+    /// Whether currency is currently active (from ETL)
     pub is_active: bool,
+    /// Whether currency has admin display config (from DB)
+    #[serde(default = "default_true")]
+    pub is_configured: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 /// Full currencies response for frontend
@@ -85,17 +105,34 @@ pub struct BalanceInfo {
 /// GET /api/currencies
 /// Returns full currencies data for frontend including metadata from config
 /// Uses request coalescing to deduplicate concurrent requests
+/// 
+/// Query params:
+/// - include_all: Include unconfigured currencies (admin use)
+/// - include_inactive: Include inactive currencies from ETL
 pub async fn get_currencies(
     State(state): State<Arc<AppState>>,
+    Query(query): Query<CurrenciesQuery>,
 ) -> Result<Json<CurrenciesResponse>, AppError> {
-    // Use get_or_fetch to coalesce concurrent requests
-    let result = state
-        .cache
-        .config
-        .get_or_fetch(cache_keys::config::CURRENCIES, || {
-            let state = state.clone();
-            async move { fetch_currencies_internal(state).await }
-        })
+    // For standard requests (no special flags), use cached response
+    if !query.include_all && !query.include_inactive {
+        let result = state
+            .cache
+            .config
+            .get_or_fetch(cache_keys::config::CURRENCIES, || {
+                let state = state.clone();
+                async move { fetch_currencies_internal(state, false, false).await }
+            })
+            .await
+            .map_err(AppError::Internal)?;
+
+        let response: CurrenciesResponse = serde_json::from_value(result)
+            .map_err(|e| AppError::Internal(format!("Failed to deserialize currencies: {}", e)))?;
+
+        return Ok(Json(response));
+    }
+
+    // For admin requests with special flags, fetch directly (no caching)
+    let result = fetch_currencies_internal(state, query.include_all, query.include_inactive)
         .await
         .map_err(AppError::Internal)?;
 
@@ -106,9 +143,16 @@ pub async fn get_currencies(
 }
 
 /// Internal function to fetch currencies from ETL
-/// Merges ETL data with static metadata from currencies.json
-async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching currencies from ETL");
+/// Merges ETL data with DB display config and file-based config store
+/// 
+/// - include_all: Include currencies without DB display config
+/// - include_inactive: Include inactive currencies from ETL
+async fn fetch_currencies_internal(
+    state: Arc<AppState>,
+    include_all: bool,
+    include_inactive: bool,
+) -> Result<serde_json::Value, String> {
+    debug!("Fetching currencies from ETL (include_all={}, include_inactive={})", include_all, include_inactive);
 
     // Fetch currencies from ETL (includes active and deprecated)
     let etl_response = state
@@ -117,12 +161,22 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
         .await
         .map_err(|e| format!("Failed to fetch currencies from ETL: {}", e))?;
 
-    // Load currency metadata from config store
+    // Load currency metadata from config store (legacy - for icons base path and mappings)
     let currencies_config = state
         .config_store
         .load_currencies()
         .await
         .map_err(|e| format!("Failed to load currencies config: {}", e))?;
+
+    // Fetch all DB display configs at once for efficiency
+    let all_tickers: Vec<String> = etl_response.currencies.iter().map(|c| c.ticker.clone()).collect();
+    let db_displays = CurrencyDisplayRepo::get_by_tickers(&state.db, &all_tickers)
+        .await
+        .map_err(|e| format!("Failed to fetch currency displays from DB: {}", e))?;
+    let db_display_map: HashMap<String, _> = db_displays
+        .into_iter()
+        .map(|d| (d.ticker.clone(), d))
+        .collect();
 
     let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
     let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
@@ -130,58 +184,106 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
 
     // Process ETL currencies
     for etl_currency in etl_response.currencies {
-        // Get metadata from currencies.json config
-        let metadata = currencies_config.currencies.get(&etl_currency.ticker);
+        // Skip inactive currencies unless include_inactive is true
+        if !include_inactive && !etl_currency.is_active {
+            continue;
+        }
+
+        // Check if currency has DB display config
+        let db_display = db_display_map.get(&etl_currency.ticker);
+        let is_configured = db_display.is_some();
+
+        // Skip unconfigured currencies unless include_all is true
+        if !include_all && !is_configured {
+            continue;
+        }
+
+        // Get metadata from currencies.json config (legacy fallback)
+        let file_metadata = currencies_config.currencies.get(&etl_currency.ticker);
 
         // Each currency can belong to multiple protocols
-        for protocol_mapping in etl_currency.protocols {
+        for protocol_mapping in &etl_currency.protocols {
             let key = format!("{}@{}", etl_currency.ticker, protocol_mapping.protocol);
             let is_native = protocol_mapping.bank_symbol == "unls";
             let is_lpn = protocol_mapping.group == "lpn";
 
-            // Build icon URL: /assets/icons/currencies/{network}-{ticker}.svg
-            let network_prefix = protocol_mapping
-                .protocol
-                .split('-')
-                .next()
-                .unwrap_or("osmosis")
-                .to_lowercase();
-            let ticker_lower = etl_currency.ticker.replace('_', "").to_lowercase();
-            let icon = format!(
-                "{}/{}-{}.svg",
-                currencies_config.icons, network_prefix, ticker_lower
-            );
+            // Build icon URL - prefer DB, fallback to file config, then default
+            let (icon, name, short_name, coingecko_id) = if let Some(display) = db_display {
+                (
+                    display.icon_url.clone(),
+                    display.display_name.clone(),
+                    display.display_name.clone(), // Use display_name for short_name too
+                    display.coingecko_id.clone(),
+                )
+            } else if let Some(metadata) = file_metadata {
+                // Fallback to file config
+                let network_prefix = protocol_mapping
+                    .protocol
+                    .split('-')
+                    .next()
+                    .unwrap_or("osmosis")
+                    .to_lowercase();
+                let ticker_lower = etl_currency.ticker.replace('_', "").to_lowercase();
+                let icon = format!(
+                    "{}/{}-{}.svg",
+                    currencies_config.icons, network_prefix, ticker_lower
+                );
+                (
+                    icon,
+                    metadata.name.clone(),
+                    metadata.short_name.clone(),
+                    Some(metadata.coin_gecko_id.clone()),
+                )
+            } else {
+                // No config - use defaults
+                let network_prefix = protocol_mapping
+                    .protocol
+                    .split('-')
+                    .next()
+                    .unwrap_or("osmosis")
+                    .to_lowercase();
+                let ticker_lower = etl_currency.ticker.replace('_', "").to_lowercase();
+                let icon = format!(
+                    "{}/{}-{}.svg",
+                    currencies_config.icons, network_prefix, ticker_lower
+                );
+                (
+                    icon,
+                    etl_currency.ticker.clone(),
+                    etl_currency.ticker.clone(),
+                    None,
+                )
+            };
+
+            let symbol = file_metadata
+                .map(|m| m.symbol.clone())
+                .unwrap_or_else(|| protocol_mapping.bank_symbol.clone());
 
             let currency_info = CurrencyInfo {
                 key: key.clone(),
                 ticker: etl_currency.ticker.clone(),
-                symbol: metadata
-                    .map(|m| m.symbol.clone())
-                    .unwrap_or_else(|| protocol_mapping.bank_symbol.clone()),
-                name: metadata
-                    .map(|m| m.name.clone())
-                    .unwrap_or_else(|| etl_currency.ticker.clone()),
-                short_name: metadata
-                    .map(|m| m.short_name.clone())
-                    .unwrap_or_else(|| etl_currency.ticker.clone()),
+                symbol,
+                name,
+                short_name,
                 decimal_digits: etl_currency.decimal_digits,
-                bank_symbol: protocol_mapping.bank_symbol,
-                dex_symbol: protocol_mapping.dex_symbol,
+                bank_symbol: protocol_mapping.bank_symbol.clone(),
+                dex_symbol: protocol_mapping.dex_symbol.clone(),
                 icon,
                 native: is_native,
-                coingecko_id: metadata.map(|m| m.coin_gecko_id.clone()),
+                coingecko_id,
                 protocol: protocol_mapping.protocol.clone(),
                 group: protocol_mapping.group.clone(),
                 is_active: etl_currency.is_active,
+                is_configured,
             };
 
-            // Track LPN currencies (only active ones)
-            if is_lpn && etl_currency.is_active {
+            // Track LPN currencies (only active and configured ones for standard response)
+            if is_lpn && etl_currency.is_active && (include_all || is_configured) {
                 lpn_currencies.push(currency_info.clone());
             }
 
-            // Track lease currencies (only active ones)
-            if protocol_mapping.group == "lease" && etl_currency.is_active {
+            // Track lease currencies (only active and configured ones)
+            if protocol_mapping.group == "lease" && etl_currency.is_active && (include_all || is_configured) {
                 lease_currencies_set.insert(etl_currency.ticker.clone());
             }
 
@@ -205,7 +307,7 @@ pub async fn get_currency(
     State(state): State<Arc<AppState>>,
     Path(key): Path<String>,
 ) -> Result<Json<CurrencyInfo>, AppError> {
-    let response = get_currencies(State(state)).await?;
+    let response = get_currencies(State(state), Query(CurrenciesQuery::default())).await?;
 
     // Try exact key match first
     if let Some(currency) = response.0.currencies.get(&key) {
@@ -391,7 +493,7 @@ pub async fn get_balances(
     // Fetch balances, currencies, and prices in parallel
     let (bank_balances_result, currencies_result, prices_result) = tokio::join!(
         state.chain_client.get_all_balances(&query.address),
-        get_currencies(State(state.clone())),
+        get_currencies(State(state.clone()), Query(CurrenciesQuery::default())),
         get_prices(State(state.clone()))
     );
 

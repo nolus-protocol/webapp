@@ -79,12 +79,23 @@ lazy_static = "1"
 # Macro utilities for identifier concatenation
 paste = "1.0"
 
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono", "uuid", "rust_decimal"] }
+
 [dev-dependencies]
 tokio-test = "0.4"
 wiremock = "0.6"
 tokio-tungstenite = "0.21"
 futures = "0.3"
 tempfile = "3.10"
+
+[[bin]]
+name = "nolus-backend"
+path = "src/main.rs"
+
+[[bin]]
+name = "migrate_config"
+path = "src/bin/migrate_config.rs"
 
 [profile.release]
 lto = true
