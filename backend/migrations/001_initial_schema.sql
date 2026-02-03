@@ -35,9 +35,10 @@ CREATE TABLE network_endpoints (
 );
 
 -- Asset restrictions (blacklists, disabled assets)
+-- ticker uses TEXT because IBC denoms can be very long
 CREATE TABLE asset_restrictions (
     id SERIAL PRIMARY KEY,
-    ticker VARCHAR(50) NOT NULL,
+    ticker TEXT NOT NULL,
     restriction_type VARCHAR(30) NOT NULL,
     reason TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
