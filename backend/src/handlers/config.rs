@@ -2,7 +2,10 @@
 //!
 //! Provides protocol and network configuration from ETL and gated config.
 
-use axum::{extract::State, Json};
+use axum::{
+    extract::{Path, State},
+    Json,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -193,4 +196,31 @@ pub async fn get_protocols(
 pub async fn get_networks(State(state): State<Arc<AppState>>) -> Result<Json<Vec<NetworkInfo>>, AppError> {
     let config = get_config(State(state)).await?;
     Ok(Json(config.0.networks))
+}
+
+/// GET /api/webapp/locales/:lang
+/// Returns locale translations for the specified language
+/// This is a public endpoint used by the frontend and push worker
+pub async fn get_locale(
+    State(state): State<Arc<AppState>>,
+    Path(lang): Path<String>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    debug!("Fetching locale: {}", lang);
+
+    // Validate language code (basic sanity check)
+    if lang.len() > 5 || !lang.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        return Err(AppError::Validation {
+            message: "Invalid language code".to_string(),
+            field: Some("lang".to_string()),
+            details: None,
+        });
+    }
+
+    // Load locale from translation storage
+    let locale = state
+        .translation_storage
+        .load_active(&lang)
+        .await?;
+
+    Ok(Json(locale))
 }
