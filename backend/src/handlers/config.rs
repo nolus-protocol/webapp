@@ -1,3 +1,7 @@
+//! Application Configuration Handler
+//!
+//! Provides protocol and network configuration from ETL and gated config.
+
 use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -70,32 +74,15 @@ pub struct NetworkInfo {
     pub prefix: String,
     pub rpc_url: String,
     pub rest_url: String,
-    pub native_denom: String,
     pub gas_price: String,
-    pub explorer: String,
-    pub symbol: String,
-    pub value: String,
-    pub native: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub explorer: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub estimation: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub estimation_duration: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub estimation_type: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub forward: Option<bool>,
-    pub chain_type: String,
-    pub icon: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub gas_multiplier: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub fees_transfer: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub native_currency_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub native_currency_symbol: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub native_currency_decimals: Option<u8>,
+    pub primary_protocol: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -135,8 +122,7 @@ pub async fn get_config(
     Ok(Json(response))
 }
 
-/// Internal function to fetch config from ETL and config store
-/// Separated from handler to enable request coalescing
+/// Internal function to fetch config from ETL and gated config
 async fn fetch_config_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
     debug!("Fetching protocols from ETL");
 
@@ -147,7 +133,10 @@ async fn fetch_config_internal(state: Arc<AppState>) -> Result<serde_json::Value
         .await
         .map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
 
-    debug!("Found {} protocols ({} active)", etl_response.count, etl_response.active_count);
+    debug!(
+        "Found {} protocols ({} active)",
+        etl_response.count, etl_response.active_count
+    );
 
     // Convert ETL protocols to ProtocolInfo map
     let mut protocols = HashMap::new();
@@ -156,70 +145,39 @@ async fn fetch_config_internal(state: Arc<AppState>) -> Result<serde_json::Value
         protocols.insert(name, ProtocolInfo::from(etl_protocol));
     }
 
-    // Load networks configuration from config store
-    let networks_config = state
+    // Load gated network configuration
+    let network_config = state
         .config_store
-        .load_networks()
+        .load_gated_network_config()
         .await
-        .map_err(|e| format!("Networks configuration not found: {}", e))?;
+        .map_err(|e| format!("Network configuration not found: {}", e))?;
 
-    // Load endpoints configuration to get RPC/REST URLs
-    let endpoints_config = state.config_store.load_endpoints("pirin").await.ok();
-
-    // Build networks info from config store
-    let networks: Vec<NetworkInfo> = networks_config
+    // Build networks info from gated config
+    let networks: Vec<NetworkInfo> = network_config
         .networks
-        .into_iter()
-        .map(|(key, config)| {
-            // Try to get RPC/REST URLs from endpoints config
-            let (rpc_url, rest_url) = if let Some(ref endpoints) = endpoints_config {
-                let network_key = key.to_uppercase();
-                if let Some(node) = endpoints.networks.get(&network_key) {
-                    (
-                        node.primary.rpc.clone(),
-                        node.primary.api.clone().unwrap_or_default(),
-                    )
-                } else {
-                    (String::new(), String::new())
-                }
-            } else {
-                (String::new(), String::new())
-            };
-
-            NetworkInfo {
-                key,
-                name: config.name,
-                chain_id: config.chain_id,
-                prefix: config.prefix,
-                rpc_url,
-                rest_url,
-                native_denom: config.native_denom,
-                gas_price: config.gas_price,
-                explorer: config.explorer,
-                symbol: config.symbol,
-                value: config.value,
-                native: config.native,
-                estimation: config.estimation,
-                estimation_duration: config.estimation_duration,
-                estimation_type: config.estimation_type,
-                forward: config.forward,
-                chain_type: config.chain_type,
-                icon: config.icon,
-                gas_multiplier: config.gas_multiplier,
-                fees_transfer: config.fees_transfer,
-                native_currency_name: config.native_currency_name,
-                native_currency_symbol: config.native_currency_symbol,
-                native_currency_decimals: config.native_currency_decimals,
-            }
+        .iter()
+        .filter(|(_, settings)| settings.is_configured())
+        .map(|(key, settings)| NetworkInfo {
+            key: key.clone(),
+            name: settings.name.clone(),
+            chain_id: settings.chain_id.clone(),
+            prefix: settings.prefix.clone(),
+            rpc_url: settings.rpc.clone(),
+            rest_url: settings.lcd.clone(),
+            gas_price: settings.gas_price.clone(),
+            explorer: settings.explorer.clone(),
+            icon: settings.icon.clone(),
+            estimation: settings.estimation,
+            primary_protocol: settings.primary_protocol.clone(),
         })
         .collect();
 
-    // Build native asset info from config store
+    // Native asset info for Nolus
     let native_asset = NativeAssetInfo {
-        ticker: networks_config.native_asset.ticker,
-        symbol: networks_config.native_asset.symbol,
-        denom: networks_config.native_asset.denom,
-        decimal_digits: networks_config.native_asset.decimal_digits,
+        ticker: "NLS".to_string(),
+        symbol: "NLS".to_string(),
+        denom: "unls".to_string(),
+        decimal_digits: 6,
     };
 
     let response = AppConfigResponse {
@@ -246,9 +204,7 @@ pub async fn get_protocols(
 
 /// GET /api/config/networks
 /// Returns network configuration
-pub async fn get_networks(
-    State(state): State<Arc<AppState>>,
-) -> Result<Json<Vec<NetworkInfo>>, AppError> {
+pub async fn get_networks(State(state): State<Arc<AppState>>) -> Result<Json<Vec<NetworkInfo>>, AppError> {
     let config = get_config(State(state)).await?;
     Ok(Json(config.0.networks))
 }

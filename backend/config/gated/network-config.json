@@ -1,0 +1,54 @@
+{
+  "NOLUS": {
+    "name": "Nolus",
+    "chain_id": "pirin-1",
+    "prefix": "nolus",
+    "rpc": "https://pirin-cl.nolus.network:26657",
+    "lcd": "https://pirin-cl.nolus.network:1317",
+    "fallback_rpc": [],
+    "fallback_lcd": [],
+    "gas_price": "0.0025unls",
+    "explorer": "https://explorer.nolus.io",
+    "icon": "/icons/networks/nolus.svg",
+    "estimation": 6
+  },
+  "OSMOSIS": {
+    "name": "Osmosis",
+    "chain_id": "osmosis-1",
+    "prefix": "osmo",
+    "rpc": "https://rpc.osmosis.zone",
+    "lcd": "https://lcd.osmosis.zone",
+    "fallback_rpc": [
+      "https://rpc-osmosis.blockapsis.com",
+      "https://osmosis-rpc.polkachu.com"
+    ],
+    "fallback_lcd": [
+      "https://lcd-osmosis.blockapsis.com",
+      "https://osmosis-api.polkachu.com"
+    ],
+    "gas_price": "0.025uosmo",
+    "explorer": "https://www.mintscan.io/osmosis",
+    "icon": "/icons/networks/osmosis.svg",
+    "primaryProtocol": "OSMOSIS-OSMOSIS-USDC_NOBLE",
+    "estimation": 20
+  },
+  "NEUTRON": {
+    "name": "Neutron",
+    "chain_id": "neutron-1",
+    "prefix": "neutron",
+    "rpc": "https://rpc-lb.neutron.org",
+    "lcd": "https://rest-lb.neutron.org",
+    "fallback_rpc": [
+      "https://neutron-rpc.polkachu.com"
+    ],
+    "fallback_lcd": [
+      "https://neutron-api.polkachu.com"
+    ],
+    "gas_price": "0.025untrn",
+    "explorer": "https://www.mintscan.io/neutron",
+    "icon": "/icons/networks/neutron.svg",
+    "primaryProtocol": "NEUTRON-ASTROPORT-USDC_NOBLE",
+    "estimation": 20,
+    "forward": false
+  }
+}

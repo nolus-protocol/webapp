@@ -1,5 +1,5 @@
 {
-  "hide": [
+  "hidden_proposals": [
     "109",
     "108",
     "106",
@@ -15,5 +15,7 @@
     "220",
     "231",
     "295"
-  ]
+  ],
+  "feature_flags": {},
+  "maintenance": null
 }

@@ -135,3 +135,13 @@ pub mod etl {
     /// User history batch
     pub const USER_HISTORY: &str = "etl:batch:user-history";
 }
+
+/// Cache keys for gated propagation data
+pub mod gated {
+    /// Gated assets (deduplicated view)
+    pub const ASSETS: &str = "gated:assets";
+    /// Gated protocols (filtered)
+    pub const PROTOCOLS: &str = "gated:protocols";
+    /// Gated networks (configured only)
+    pub const NETWORKS: &str = "gated:networks";
+}

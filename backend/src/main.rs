@@ -30,6 +30,7 @@ mod handlers;
 mod http_utils;
 mod middleware;
 mod models;
+mod propagation;
 mod query_types;
 mod response_types;
 mod translations;
@@ -466,79 +467,29 @@ fn create_router(state: Arc<AppState>) -> Router {
             "/node/status",
             get(handlers::governance::get_network_status),
         )
-        // Webapp Config (read)
+        // Gated Propagation API - Assets (deduplicated view)
+        .route("/assets", get(handlers::gated_assets::get_assets))
+        .route("/assets/{ticker}", get(handlers::gated_assets::get_asset))
+        // Gated Propagation API - Protocols
+        .route("/protocols/gated", get(handlers::gated_protocols::get_protocols))
         .route(
-            "/webapp/config",
-            get(handlers::webapp_config::get_full_config),
+            "/protocols/{protocol}/currencies",
+            get(handlers::gated_protocols::get_protocol_currencies),
+        )
+        // Gated Propagation API - Networks
+        .route("/networks/gated", get(handlers::gated_networks::get_networks))
+        .route("/networks/{network}/info", get(handlers::gated_networks::get_network))
+        .route(
+            "/networks/{network}/assets",
+            get(handlers::gated_assets::get_network_assets),
         )
         .route(
-            "/webapp/config/currencies",
-            get(handlers::webapp_config::get_currencies),
+            "/networks/{network}/protocols",
+            get(handlers::gated_protocols::get_network_protocols),
         )
         .route(
-            "/webapp/config/chain-ids",
-            get(handlers::webapp_config::get_chain_ids),
-        )
-        .route(
-            "/webapp/config/networks",
-            get(handlers::webapp_config::get_networks),
-        )
-
-        .route(
-            "/webapp/config/endpoints",
-            get(handlers::webapp_config::get_all_endpoints),
-        )
-        .route(
-            "/webapp/config/endpoints/{network}",
-            get(handlers::webapp_config::get_endpoints),
-        )
-        .route(
-            "/webapp/config/lease/downpayment-ranges",
-            get(handlers::webapp_config::get_downpayment_ranges),
-        )
-        .route(
-            "/webapp/config/lease/downpayment-ranges/{protocol}",
-            get(handlers::webapp_config::get_downpayment_range_for_protocol),
-        )
-        .route(
-            "/webapp/config/lease/ignore-assets",
-            get(handlers::webapp_config::get_ignore_assets),
-        )
-        .route(
-            "/webapp/config/lease/ignore-lease-long",
-            get(handlers::webapp_config::get_ignore_lease_long),
-        )
-        .route(
-            "/webapp/config/lease/ignore-lease-short",
-            get(handlers::webapp_config::get_ignore_lease_short),
-        )
-        .route(
-            "/webapp/config/lease/free-interest",
-            get(handlers::webapp_config::get_free_interest_assets),
-        )
-        .route(
-            "/webapp/config/lease/due-projection",
-            get(handlers::webapp_config::get_due_projection),
-        )
-        .route(
-            "/webapp/config/zero-interest/addresses",
-            get(handlers::webapp_config::get_zero_interest_addresses),
-        )
-        .route(
-            "/webapp/config/swap/skip-route",
-            get(handlers::webapp_config::get_skip_route_config),
-        )
-        .route(
-            "/webapp/config/governance/hidden-proposals",
-            get(handlers::webapp_config::get_hidden_proposals),
-        )
-        .route(
-            "/webapp/locales",
-            get(handlers::webapp_config::list_locales),
-        )
-        .route(
-            "/webapp/locales/{lang}",
-            get(handlers::webapp_config::get_locale),
+            "/networks/{network}/pools",
+            get(handlers::gated_networks::get_network_pools),
         )
         .layer(axum_middleware::from_fn(move |req, next| {
             let state = standard_rate_limit.clone();
@@ -595,71 +546,6 @@ fn create_router(state: Arc<AppState>) -> Router {
     let admin_routes = Router::new()
         .route("/cache/stats", get(handlers::admin::get_cache_stats))
         .route("/cache/invalidate", post(handlers::admin::invalidate_cache))
-        // Webapp Config Admin (write)
-        .route(
-            "/webapp/config/currencies",
-            axum::routing::put(handlers::admin_config::update_currencies),
-        )
-        .route(
-            "/webapp/config/chain-ids",
-            axum::routing::put(handlers::admin_config::update_chain_ids),
-        )
-        .route(
-            "/webapp/config/networks",
-            axum::routing::put(handlers::admin_config::update_networks),
-        )
-        .route(
-            "/webapp/config/endpoints/{network}",
-            axum::routing::put(handlers::admin_config::update_endpoints),
-        )
-        .route(
-            "/webapp/config/lease/downpayment-ranges",
-            axum::routing::put(handlers::admin_config::update_downpayment_ranges),
-        )
-        .route(
-            "/webapp/config/lease/ignore-assets",
-            axum::routing::put(handlers::admin_config::update_ignore_assets),
-        )
-        .route(
-            "/webapp/config/lease/ignore-lease-long",
-            axum::routing::put(handlers::admin_config::update_ignore_lease_long),
-        )
-        .route(
-            "/webapp/config/lease/ignore-lease-short",
-            axum::routing::put(handlers::admin_config::update_ignore_lease_short),
-        )
-        .route(
-            "/webapp/config/lease/free-interest",
-            axum::routing::put(handlers::admin_config::update_free_interest_assets),
-        )
-        .route(
-            "/webapp/config/lease/due-projection",
-            axum::routing::put(handlers::admin_config::update_due_projection),
-        )
-        .route(
-            "/webapp/config/zero-interest/addresses",
-            axum::routing::put(handlers::admin_config::update_zero_interest_addresses),
-        )
-        .route(
-            "/webapp/config/swap/skip-route",
-            axum::routing::put(handlers::admin_config::update_skip_route_config),
-        )
-        .route(
-            "/webapp/config/governance/hidden-proposals",
-            axum::routing::put(handlers::admin_config::update_hidden_proposals),
-        )
-        .route(
-            "/webapp/locales/{lang}",
-            axum::routing::put(handlers::admin_config::update_locale),
-        )
-        .route(
-            "/webapp/config/reload",
-            post(handlers::admin_config::reload_config),
-        )
-        .route(
-            "/webapp/config/audit",
-            get(handlers::admin_config::get_audit_log),
-        )
         // Translation Management
         .route(
             "/translations/sync",
@@ -720,6 +606,96 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route(
             "/translations/key-history/{lang}/{key}",
             get(handlers::translations::get_key_history),
+        )
+        // Gated Propagation Admin - Discovery
+        .route(
+            "/gated/currencies",
+            get(handlers::gated_admin::list_currencies),
+        )
+        .route(
+            "/gated/protocols",
+            get(handlers::gated_admin::list_protocols),
+        )
+        .route(
+            "/gated/networks",
+            get(handlers::gated_admin::list_networks),
+        )
+        .route(
+            "/gated/unconfigured",
+            get(handlers::gated_admin::get_unconfigured),
+        )
+        // Gated Propagation Admin - Currency Display CRUD
+        .route(
+            "/gated/currency-display",
+            get(handlers::gated_admin::get_currency_display),
+        )
+        .route(
+            "/gated/currency-display",
+            axum::routing::put(handlers::gated_admin::replace_currency_display),
+        )
+        .route(
+            "/gated/currency-display/{ticker}",
+            axum::routing::put(handlers::gated_admin::upsert_currency_display),
+        )
+        .route(
+            "/gated/currency-display/{ticker}",
+            delete(handlers::gated_admin::delete_currency_display),
+        )
+        // Gated Propagation Admin - Network Config CRUD
+        .route(
+            "/gated/network-config",
+            get(handlers::gated_admin::get_network_config),
+        )
+        .route(
+            "/gated/network-config",
+            axum::routing::put(handlers::gated_admin::replace_network_config),
+        )
+        .route(
+            "/gated/network-config/{network}",
+            axum::routing::put(handlers::gated_admin::upsert_network_config),
+        )
+        .route(
+            "/gated/network-config/{network}",
+            delete(handlers::gated_admin::delete_network_config),
+        )
+        // Gated Propagation Admin - Lease Rules CRUD
+        .route(
+            "/gated/lease-rules",
+            get(handlers::gated_admin::get_lease_rules),
+        )
+        .route(
+            "/gated/lease-rules",
+            axum::routing::put(handlers::gated_admin::replace_lease_rules),
+        )
+        .route(
+            "/gated/lease-rules/downpayment/{protocol}",
+            axum::routing::put(handlers::gated_admin::upsert_downpayment_ranges),
+        )
+        // Gated Propagation Admin - Swap Settings CRUD
+        .route(
+            "/gated/swap-settings",
+            get(handlers::gated_admin::get_swap_settings),
+        )
+        .route(
+            "/gated/swap-settings",
+            axum::routing::put(handlers::gated_admin::replace_swap_settings),
+        )
+        // Gated Propagation Admin - UI Settings CRUD
+        .route(
+            "/gated/ui-settings",
+            get(handlers::gated_admin::get_ui_settings),
+        )
+        .route(
+            "/gated/ui-settings",
+            axum::routing::put(handlers::gated_admin::replace_ui_settings),
+        )
+        .route(
+            "/gated/ui-settings/hidden-proposals/{id}",
+            post(handlers::gated_admin::add_hidden_proposal),
+        )
+        .route(
+            "/gated/ui-settings/hidden-proposals/{id}",
+            delete(handlers::gated_admin::remove_hidden_proposal),
         )
         .layer(axum_middleware::from_fn_with_state(
             state.clone(),

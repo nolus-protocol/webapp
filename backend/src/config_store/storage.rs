@@ -11,7 +11,7 @@ use tokio::fs;
 use tokio::sync::RwLock;
 use tracing::{debug, error, info, warn};
 
-use super::types::*;
+use super::gated_types::*;
 
 /// Audit log entry for configuration changes
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,13 +43,18 @@ pub struct AuditLogResponse {
     pub limit: usize,
 }
 
+/// Response for listing available locales
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct LocalesListResponse {
+    pub available: Vec<String>,
+    pub default: String,
+}
+
 /// Configuration store that manages all webapp configuration
 #[derive(Debug)]
 pub struct ConfigStore {
     /// Base directory for config files
     config_dir: PathBuf,
-    /// Cached full configuration
-    cached_config: Arc<RwLock<Option<FullWebappConfig>>>,
     /// Cached locales (lang -> content)
     cached_locales: Arc<RwLock<std::collections::HashMap<String, serde_json::Value>>>,
     /// Audit log entries (in-memory, persisted to file)
@@ -61,7 +66,6 @@ impl ConfigStore {
     pub fn new<P: AsRef<Path>>(config_dir: P) -> Self {
         Self {
             config_dir: config_dir.as_ref().to_path_buf(),
-            cached_config: Arc::new(RwLock::new(None)),
             cached_locales: Arc::new(RwLock::new(std::collections::HashMap::new())),
             audit_log: Arc::new(RwLock::new(Vec::new())),
         }
@@ -72,12 +76,8 @@ impl ConfigStore {
         // Create config directories if they don't exist
         let dirs = [
             self.config_dir.clone(),
-            self.config_dir.join("endpoints"),
-            self.config_dir.join("lease"),
-            self.config_dir.join("zero-interest"),
-            self.config_dir.join("swap"),
-            self.config_dir.join("governance"),
             self.config_dir.join("locales"),
+            self.config_dir.join("gated"),
         ];
 
         for dir in &dirs {
@@ -92,21 +92,6 @@ impl ConfigStore {
             }
         }
 
-        // Try to load and cache the full config
-        match self.load_full_config().await {
-            Ok(config) => {
-                let mut cache = self.cached_config.write().await;
-                *cache = Some(config);
-                info!("Loaded and cached webapp configuration");
-            }
-            Err(e) => {
-                warn!(
-                    "Could not load full config on init (will use defaults): {}",
-                    e
-                );
-            }
-        }
-
         // Load audit log
         if let Err(e) = self.load_audit_log().await {
             warn!("Could not load audit log (starting fresh): {}", e);
@@ -115,38 +100,10 @@ impl ConfigStore {
         Ok(())
     }
 
-    /// Get the full webapp configuration (cached)
-    pub async fn get_full_config(&self) -> Result<FullWebappConfig, AppError> {
-        // Check cache first
-        {
-            let cache = self.cached_config.read().await;
-            if let Some(config) = cache.as_ref() {
-                return Ok(config.clone());
-            }
-        }
-
-        // Load from files
-        let config = self.load_full_config().await?;
-
-        // Update cache
-        {
-            let mut cache = self.cached_config.write().await;
-            *cache = Some(config.clone());
-        }
-
-        Ok(config)
-    }
-
     /// Invalidate the configuration cache
     pub async fn invalidate_cache(&self) {
-        {
-            let mut cache = self.cached_config.write().await;
-            *cache = None;
-        }
-        {
-            let mut locales = self.cached_locales.write().await;
-            locales.clear();
-        }
+        let mut locales = self.cached_locales.write().await;
+        locales.clear();
         info!("Configuration cache invalidated");
     }
 
@@ -278,161 +235,9 @@ impl ConfigStore {
         Ok(())
     }
 
-    /// Load the full configuration from files
-    async fn load_full_config(&self) -> Result<FullWebappConfig, AppError> {
-        debug!("Loading full webapp configuration from files");
-
-        let currencies = self.load_currencies().await?;
-        let chain_ids = self.load_chain_ids().await?;
-        let networks = self.load_networks().await?;
-        let endpoints = self.load_all_endpoints().await?;
-        let lease = self.load_lease_config().await?;
-        let zero_interest = self.load_zero_interest().await?;
-        let skip_route = self.load_skip_route().await?;
-        let governance = self.load_governance().await?;
-
-        Ok(FullWebappConfig {
-            currencies,
-            chain_ids,
-            networks,
-            endpoints,
-            lease,
-            zero_interest,
-            skip_route,
-            governance,
-        })
-    }
-
     // =========================================================================
-    // Individual Config Loaders
+    // Locales
     // =========================================================================
-
-    /// Load currencies configuration
-    pub async fn load_currencies(&self) -> Result<CurrenciesConfig, AppError> {
-        self.load_json_file("currencies.json").await
-    }
-
-    /// Load chain IDs configuration
-    pub async fn load_chain_ids(&self) -> Result<ChainIdsConfig, AppError> {
-        self.load_json_file("chain-ids.json").await
-    }
-
-    /// Load networks configuration
-    pub async fn load_networks(&self) -> Result<NetworksConfig, AppError> {
-        self.load_json_file("networks.json").await
-    }
-
-    /// Load all endpoint configurations dynamically from config/endpoints/*.json
-    pub async fn load_all_endpoints(&self) -> Result<EndpointsCollection, AppError> {
-        let endpoints_dir = self.config_dir.join("endpoints");
-        let mut networks = std::collections::HashMap::new();
-
-        // Read all .json files from the endpoints directory
-        if endpoints_dir.exists() {
-            let mut entries = fs::read_dir(&endpoints_dir).await.map_err(|e| {
-                AppError::Internal(format!("Failed to read endpoints directory: {}", e))
-            })?;
-
-            while let Some(entry) = entries.next_entry().await.map_err(|e| {
-                AppError::Internal(format!("Failed to read directory entry: {}", e))
-            })? {
-                let path = entry.path();
-                if path.extension().and_then(|s| s.to_str()) == Some("json") {
-                    if let Some(network_name) = path.file_stem().and_then(|s| s.to_str()) {
-                        match self.load_endpoints(network_name).await {
-                            Ok(config) => {
-                                debug!("Loaded endpoints for network: {}", network_name);
-                                networks.insert(network_name.to_string(), config);
-                            }
-                            Err(e) => {
-                                warn!("Failed to load endpoints for {}: {}", network_name, e);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if networks.is_empty() {
-            warn!("No endpoint configurations found in {:?}", endpoints_dir);
-        }
-
-        Ok(EndpointsCollection { networks })
-    }
-
-    /// Load endpoints for a specific network
-    pub async fn load_endpoints(&self, network: &str) -> Result<NetworkEndpointsConfig, AppError> {
-        let path = format!("endpoints/{}.json", network);
-        self.load_json_file(&path).await
-    }
-
-    /// Load all lease configuration
-    pub async fn load_lease_config(&self) -> Result<LeaseConfig, AppError> {
-        let downpayment_ranges = self.load_downpayment_ranges().await?;
-        let ignore_assets = self.load_ignore_assets().await?;
-        let ignore_lease_long = self.load_ignore_lease_long().await?;
-        let ignore_lease_short = self.load_ignore_lease_short().await?;
-        let free_interest_assets = self.load_free_interest_assets().await?;
-        let due_projection = self.load_due_projection().await?;
-
-        Ok(LeaseConfig {
-            downpayment_ranges,
-            ignore_assets,
-            ignore_lease_long,
-            ignore_lease_short,
-            free_interest_assets,
-            due_projection,
-        })
-    }
-
-    /// Load downpayment ranges configuration
-    pub async fn load_downpayment_ranges(&self) -> Result<DownpaymentRangesConfig, AppError> {
-        self.load_json_file("lease/downpayment-ranges.json").await
-    }
-
-    /// Load ignore assets list
-    pub async fn load_ignore_assets(&self) -> Result<StringArrayConfig, AppError> {
-        self.load_json_file("lease/ignore-assets.json").await
-    }
-
-    /// Load ignore lease long assets list
-    pub async fn load_ignore_lease_long(&self) -> Result<StringArrayConfig, AppError> {
-        self.load_json_file("lease/ignore-lease-long-assets.json")
-            .await
-    }
-
-    /// Load ignore lease short assets list
-    pub async fn load_ignore_lease_short(&self) -> Result<StringArrayConfig, AppError> {
-        self.load_json_file("lease/ignore-lease-short-assets.json")
-            .await
-    }
-
-    /// Load free interest assets list
-    pub async fn load_free_interest_assets(&self) -> Result<StringArrayConfig, AppError> {
-        self.load_json_file("lease/free-interest-assets.json").await
-    }
-
-    /// Load due projection configuration
-    pub async fn load_due_projection(&self) -> Result<DueProjectionConfig, AppError> {
-        self.load_json_file("lease/due-projection-secs.json").await
-    }
-
-    /// Load zero interest configuration
-    pub async fn load_zero_interest(&self) -> Result<ZeroInterestConfig, AppError> {
-        self.load_json_file("zero-interest/payment-addresses.json")
-            .await
-    }
-
-    /// Load skip route configuration
-    pub async fn load_skip_route(&self) -> Result<SkipRouteConfig, AppError> {
-        self.load_json_file("swap/skip-route-config.json").await
-    }
-
-    /// Load governance configuration
-    pub async fn load_governance(&self) -> Result<ProposalsConfig, AppError> {
-        self.load_json_file("governance/hidden-proposals.json")
-            .await
-    }
 
     /// Load a locale by language code
     pub async fn load_locale(&self, lang: &str) -> Result<serde_json::Value, AppError> {
@@ -479,7 +284,11 @@ impl ConfigStore {
             let path = entry.path();
             if path.extension().is_some_and(|ext| ext == "json") {
                 if let Some(stem) = path.file_stem() {
-                    available.push(stem.to_string_lossy().to_string());
+                    let name = stem.to_string_lossy().to_string();
+                    // Skip non-locale files like audit.json, pending.json, languages.json
+                    if name.len() == 2 || name == "active" {
+                        available.push(name);
+                    }
                 }
             }
         }
@@ -490,146 +299,6 @@ impl ConfigStore {
             available,
             default: "en".to_string(),
         })
-    }
-
-    // =========================================================================
-    // Individual Config Writers (for admin API)
-    // =========================================================================
-
-    /// Save currencies configuration
-    pub async fn save_currencies(&self, config: &CurrenciesConfig) -> Result<(), AppError> {
-        self.save_json_file("currencies.json", config).await?;
-        self.record_audit("update", "currencies", None).await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save chain IDs configuration
-    pub async fn save_chain_ids(&self, config: &ChainIdsConfig) -> Result<(), AppError> {
-        self.save_json_file("chain-ids.json", config).await?;
-        self.record_audit("update", "chain-ids", None).await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save networks configuration
-    pub async fn save_networks(&self, config: &NetworksConfig) -> Result<(), AppError> {
-        self.save_json_file("networks.json", config).await?;
-        self.record_audit("update", "networks", None).await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save endpoints for a specific network
-    pub async fn save_endpoints(
-        &self,
-        network: &str,
-        config: &NetworkEndpointsConfig,
-    ) -> Result<(), AppError> {
-        let path = format!("endpoints/{}.json", network);
-        self.save_json_file(&path, config).await?;
-        self.record_audit("update", &format!("endpoints/{}", network), None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save downpayment ranges
-    pub async fn save_downpayment_ranges(
-        &self,
-        config: &DownpaymentRangesConfig,
-    ) -> Result<(), AppError> {
-        self.save_json_file("lease/downpayment-ranges.json", config)
-            .await?;
-        self.record_audit("update", "lease/downpayment-ranges", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save ignore assets list
-    pub async fn save_ignore_assets(&self, config: &StringArrayConfig) -> Result<(), AppError> {
-        self.save_json_file("lease/ignore-assets.json", config)
-            .await?;
-        self.record_audit("update", "lease/ignore-assets", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save ignore lease long assets list
-    pub async fn save_ignore_lease_long(&self, config: &StringArrayConfig) -> Result<(), AppError> {
-        self.save_json_file("lease/ignore-lease-long-assets.json", config)
-            .await?;
-        self.record_audit("update", "lease/ignore-lease-long", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save ignore lease short assets list
-    pub async fn save_ignore_lease_short(
-        &self,
-        config: &StringArrayConfig,
-    ) -> Result<(), AppError> {
-        self.save_json_file("lease/ignore-lease-short-assets.json", config)
-            .await?;
-        self.record_audit("update", "lease/ignore-lease-short", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save free interest assets list
-    pub async fn save_free_interest_assets(
-        &self,
-        config: &StringArrayConfig,
-    ) -> Result<(), AppError> {
-        self.save_json_file("lease/free-interest-assets.json", config)
-            .await?;
-        self.record_audit("update", "lease/free-interest-assets", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save due projection configuration
-    pub async fn save_due_projection(&self, config: &DueProjectionConfig) -> Result<(), AppError> {
-        self.save_json_file("lease/due-projection-secs.json", config)
-            .await?;
-        self.record_audit("update", "lease/due-projection", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save zero interest configuration
-    pub async fn save_zero_interest(&self, config: &ZeroInterestConfig) -> Result<(), AppError> {
-        self.save_json_file("zero-interest/payment-addresses.json", config)
-            .await?;
-        self.record_audit("update", "zero-interest/addresses", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save skip route configuration
-    pub async fn save_skip_route(&self, config: &SkipRouteConfig) -> Result<(), AppError> {
-        self.save_json_file("swap/skip-route-config.json", config)
-            .await?;
-        self.record_audit("update", "swap/skip-route", None).await;
-        self.invalidate_cache().await;
-        Ok(())
-    }
-
-    /// Save governance configuration
-    pub async fn save_governance(&self, config: &ProposalsConfig) -> Result<(), AppError> {
-        self.save_json_file("governance/hidden-proposals.json", config)
-            .await?;
-        self.record_audit("update", "governance/hidden-proposals", None)
-            .await;
-        self.invalidate_cache().await;
-        Ok(())
     }
 
     /// Save a locale
@@ -649,6 +318,79 @@ impl ConfigStore {
             cache.remove(lang);
         }
 
+        Ok(())
+    }
+
+    // =========================================================================
+    // Gated Propagation Config Loaders
+    // =========================================================================
+
+    /// Load currency display configuration
+    pub async fn load_currency_display(&self) -> Result<CurrencyDisplayConfig, AppError> {
+        self.load_json_file("gated/currency-display.json").await
+    }
+
+    /// Load gated network configuration
+    pub async fn load_gated_network_config(&self) -> Result<GatedNetworkConfig, AppError> {
+        self.load_json_file("gated/network-config.json").await
+    }
+
+    /// Load lease rules configuration
+    pub async fn load_lease_rules(&self) -> Result<LeaseRulesConfig, AppError> {
+        self.load_json_file("gated/lease-rules.json").await
+    }
+
+    /// Load swap settings configuration
+    pub async fn load_swap_settings(&self) -> Result<SwapSettingsConfig, AppError> {
+        self.load_json_file("gated/swap-settings.json").await
+    }
+
+    /// Load UI settings configuration
+    pub async fn load_ui_settings(&self) -> Result<UiSettingsConfig, AppError> {
+        self.load_json_file("gated/ui-settings.json").await
+    }
+
+    // =========================================================================
+    // Gated Propagation Config Writers
+    // =========================================================================
+
+    /// Save currency display configuration
+    pub async fn save_currency_display(&self, config: &CurrencyDisplayConfig) -> Result<(), AppError> {
+        self.save_json_file("gated/currency-display.json", config).await?;
+        self.record_audit("update", "gated/currency-display", None).await;
+        self.invalidate_cache().await;
+        Ok(())
+    }
+
+    /// Save gated network configuration
+    pub async fn save_gated_network_config(&self, config: &GatedNetworkConfig) -> Result<(), AppError> {
+        self.save_json_file("gated/network-config.json", config).await?;
+        self.record_audit("update", "gated/network-config", None).await;
+        self.invalidate_cache().await;
+        Ok(())
+    }
+
+    /// Save lease rules configuration
+    pub async fn save_lease_rules(&self, config: &LeaseRulesConfig) -> Result<(), AppError> {
+        self.save_json_file("gated/lease-rules.json", config).await?;
+        self.record_audit("update", "gated/lease-rules", None).await;
+        self.invalidate_cache().await;
+        Ok(())
+    }
+
+    /// Save swap settings configuration
+    pub async fn save_swap_settings(&self, config: &SwapSettingsConfig) -> Result<(), AppError> {
+        self.save_json_file("gated/swap-settings.json", config).await?;
+        self.record_audit("update", "gated/swap-settings", None).await;
+        self.invalidate_cache().await;
+        Ok(())
+    }
+
+    /// Save UI settings configuration
+    pub async fn save_ui_settings(&self, config: &UiSettingsConfig) -> Result<(), AppError> {
+        self.save_json_file("gated/ui-settings.json", config).await?;
+        self.record_audit("update", "gated/ui-settings", None).await;
+        self.invalidate_cache().await;
         Ok(())
     }
 
@@ -739,45 +481,23 @@ mod tests {
         store.init().await.unwrap();
 
         // Check that directories were created
-        assert!(temp_dir.path().join("endpoints").exists());
-        assert!(temp_dir.path().join("lease").exists());
         assert!(temp_dir.path().join("locales").exists());
+        assert!(temp_dir.path().join("gated").exists());
     }
 
     #[tokio::test]
-    async fn test_save_and_load_currencies() {
+    async fn test_audit_log() {
         let temp_dir = TempDir::new().unwrap();
         let store = ConfigStore::new(temp_dir.path());
         store.init().await.unwrap();
 
-        let config = CurrenciesConfig {
-            icons: "https://example.com/icons".to_string(),
-            currencies: std::collections::HashMap::from([(
-                "NLS".to_string(),
-                CurrencyInfo {
-                    name: "Nolus".to_string(),
-                    short_name: "NLS".to_string(),
-                    coin_gecko_id: "nolus".to_string(),
-                    symbol: "unls".to_string(),
-                },
-            )]),
-            map: std::collections::HashMap::new(),
-        };
+        store.record_audit("create", "test-resource", Some("test details".to_string())).await;
 
-        store.save_currencies(&config).await.unwrap();
-        let loaded = store.load_currencies().await.unwrap();
+        let query = AuditLogQuery::default();
+        let response = store.query_audit_log(query).await;
 
-        assert_eq!(loaded.icons, config.icons);
-        assert!(loaded.currencies.contains_key("NLS"));
-    }
-
-    #[tokio::test]
-    async fn test_load_missing_file_returns_error() {
-        let temp_dir = TempDir::new().unwrap();
-        let store = ConfigStore::new(temp_dir.path());
-        store.init().await.unwrap();
-
-        let result = store.load_currencies().await;
-        assert!(result.is_err());
+        assert_eq!(response.total, 1);
+        assert_eq!(response.entries[0].action, "create");
+        assert_eq!(response.entries[0].resource, "test-resource");
     }
 }

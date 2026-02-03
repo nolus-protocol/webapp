@@ -1,3 +1,7 @@
+//! Currency and Price Handlers
+//!
+//! Provides currency information, prices from Oracle contracts, and balance queries.
+
 use axum::{
     extract::{Path, Query, State},
     Json,
@@ -64,8 +68,6 @@ pub struct PriceInfo {
     pub price_usd: String,
 }
 
-
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BalancesResponse {
     pub balances: Vec<BalanceInfo>,
@@ -83,7 +85,7 @@ pub struct BalanceInfo {
 }
 
 /// GET /api/currencies
-/// Returns full currencies data for frontend including metadata from config
+/// Returns full currencies data for frontend including metadata from gated config
 /// Uses request coalescing to deduplicate concurrent requests
 pub async fn get_currencies(
     State(state): State<Arc<AppState>>,
@@ -106,7 +108,7 @@ pub async fn get_currencies(
 }
 
 /// Internal function to fetch currencies from ETL
-/// Merges ETL data with static metadata from currencies.json
+/// Merges ETL data with display metadata from gated config
 async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
     debug!("Fetching currencies from ETL");
 
@@ -117,21 +119,22 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
         .await
         .map_err(|e| format!("Failed to fetch currencies from ETL: {}", e))?;
 
-    // Load currency metadata from config store
-    let currencies_config = state
+    // Load currency display config from gated config
+    let currency_config = state
         .config_store
-        .load_currencies()
+        .load_currency_display()
         .await
-        .map_err(|e| format!("Failed to load currencies config: {}", e))?;
+        .map_err(|e| format!("Failed to load currency display config: {}", e))?;
 
     let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
     let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
-    let mut lease_currencies_set: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut lease_currencies_set: std::collections::HashSet<String> =
+        std::collections::HashSet::new();
 
     // Process ETL currencies
     for etl_currency in etl_response.currencies {
-        // Get metadata from currencies.json config
-        let metadata = currencies_config.currencies.get(&etl_currency.ticker);
+        // Get display metadata from gated config
+        let display = currency_config.currencies.get(&etl_currency.ticker);
 
         // Each currency can belong to multiple protocols
         for protocol_mapping in etl_currency.protocols {
@@ -139,37 +142,27 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
             let is_native = protocol_mapping.bank_symbol == "unls";
             let is_lpn = protocol_mapping.group == "lpn";
 
-            // Build icon URL: /assets/icons/currencies/{network}-{ticker}.svg
-            let network_prefix = protocol_mapping
-                .protocol
-                .split('-')
-                .next()
-                .unwrap_or("osmosis")
-                .to_lowercase();
-            let ticker_lower = etl_currency.ticker.replace('_', "").to_lowercase();
-            let icon = format!(
-                "{}/{}-{}.svg",
-                currencies_config.icons, network_prefix, ticker_lower
-            );
+            // Use icon from gated config or generate default
+            let icon = display
+                .map(|d| d.icon.clone())
+                .unwrap_or_else(|| format!("/assets/icons/currencies/{}.svg", etl_currency.ticker));
 
             let currency_info = CurrencyInfo {
                 key: key.clone(),
                 ticker: etl_currency.ticker.clone(),
-                symbol: metadata
-                    .map(|m| m.symbol.clone())
-                    .unwrap_or_else(|| protocol_mapping.bank_symbol.clone()),
-                name: metadata
-                    .map(|m| m.name.clone())
+                symbol: protocol_mapping.bank_symbol.clone(),
+                name: display
+                    .map(|d| d.display_name.clone())
                     .unwrap_or_else(|| etl_currency.ticker.clone()),
-                short_name: metadata
-                    .map(|m| m.short_name.clone())
+                short_name: display
+                    .and_then(|d| d.short_name.clone())
                     .unwrap_or_else(|| etl_currency.ticker.clone()),
                 decimal_digits: etl_currency.decimal_digits,
                 bank_symbol: protocol_mapping.bank_symbol,
                 dex_symbol: protocol_mapping.dex_symbol,
                 icon,
                 native: is_native,
-                coingecko_id: metadata.map(|m| m.coin_gecko_id.clone()),
+                coingecko_id: display.and_then(|d| d.coingecko_id.clone()),
                 protocol: protocol_mapping.protocol.clone(),
                 group: protocol_mapping.group.clone(),
                 is_active: etl_currency.is_active,
@@ -193,7 +186,7 @@ async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::V
         currencies: currencies_map,
         lpn: lpn_currencies,
         lease_currencies: lease_currencies_set.into_iter().collect(),
-        map: currencies_config.map,
+        map: HashMap::new(), // No longer using currency mapping
     };
 
     serde_json::to_value(&response).map_err(|e| format!("Failed to serialize currencies: {}", e))
@@ -225,13 +218,12 @@ pub async fn get_currency(
 }
 
 /// GET /api/prices
-/// Returns current prices for all currencies
+/// Returns current prices for all currencies from Oracle contracts
 /// Uses request coalescing to deduplicate concurrent requests
 pub async fn get_prices(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<PricesResponse>, AppError> {
     // Use get_or_fetch to coalesce concurrent requests
-    // If multiple requests come in simultaneously, only one will fetch
     let result = state
         .cache
         .prices
@@ -249,7 +241,6 @@ pub async fn get_prices(
 }
 
 /// Internal function to fetch prices from all active protocols with oracle contracts
-/// Separated from handler to enable request coalescing
 async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
     debug!("Fetching prices from Oracle contracts");
 
@@ -273,13 +264,12 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
         .iter()
         .map(|(protocol_name, protocol_info)| {
             let chain_client = state.chain_client.clone();
-            // Safe to unwrap - we filtered for Some above
             let oracle = protocol_info.contracts.oracle.clone().unwrap();
             let protocol_name = (*protocol_name).clone();
             async move {
                 let mut protocol_prices = Vec::new();
 
-                // Chain of calls within each protocol (must be sequential due to dependencies)
+                // Get base currency and stable price
                 let base_currency = match chain_client.get_base_currency(&oracle).await {
                     Ok(bc) => bc,
                     Err(e) => {
@@ -412,7 +402,7 @@ pub async fn get_balances(
             .find(|c| c.bank_symbol == bank_balance.denom);
 
         if let Some(currency) = currency {
-            // Calculate USD value (using human-readable amount for USD calculation)
+            // Calculate USD value
             let amount_f64: f64 = bank_balance.amount.parse().unwrap_or(0.0);
             let decimal_factor = 10_f64.powi(currency.decimal_digits as i32);
             let human_amount = amount_f64 / decimal_factor;
@@ -425,13 +415,11 @@ pub async fn get_balances(
             let amount_usd = human_amount * price_usd;
             total_usd += amount_usd;
 
-            // Return raw amount (not human-readable) for frontend compatibility
-            // Frontend uses coin() which expects integer amounts
             balances.push(BalanceInfo {
                 key: currency.key.clone(),
                 symbol: currency.symbol.clone(),
                 denom: bank_balance.denom,
-                amount: bank_balance.amount, // Raw amount, not divided
+                amount: bank_balance.amount,
                 amount_usd: amount_usd.to_string(),
                 decimal_digits: currency.decimal_digits,
             });
@@ -443,7 +431,7 @@ pub async fn get_balances(
                 denom: bank_balance.denom,
                 amount: bank_balance.amount,
                 amount_usd: "0".to_string(),
-                decimal_digits: 6, // Default
+                decimal_digits: 6,
             });
         }
     }
@@ -481,22 +469,29 @@ mod tests {
 
     #[test]
     fn test_calculate_price() {
-        // Basic division
         assert_eq!(calculate_price("100", "50").parse::<f64>().unwrap(), 2.0);
         assert_eq!(calculate_price("150", "100").parse::<f64>().unwrap(), 1.5);
-        // Division by zero
         assert_eq!(calculate_price("100", "0"), "0");
-        // Invalid input
-        assert_eq!(calculate_price("invalid", "100").parse::<f64>().unwrap(), 0.0);
+        assert_eq!(
+            calculate_price("invalid", "100").parse::<f64>().unwrap(),
+            0.0
+        );
     }
 
     #[test]
     fn test_calculate_price_with_lpn() {
-        // (100 / 50) * 1.0 = 2.0
-        assert_eq!(calculate_price_with_lpn("100", "50", "1.0").parse::<f64>().unwrap(), 2.0);
-        // (100 / 50) * 0.5 = 1.0
-        assert_eq!(calculate_price_with_lpn("100", "50", "0.5").parse::<f64>().unwrap(), 1.0);
-        // Division by zero
+        assert_eq!(
+            calculate_price_with_lpn("100", "50", "1.0")
+                .parse::<f64>()
+                .unwrap(),
+            2.0
+        );
+        assert_eq!(
+            calculate_price_with_lpn("100", "50", "0.5")
+                .parse::<f64>()
+                .unwrap(),
+            1.0
+        );
         assert_eq!(calculate_price_with_lpn("100", "0", "1.0"), "0");
     }
 }

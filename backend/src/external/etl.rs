@@ -67,16 +67,17 @@ impl EtlClient {
             .await
     }
 
-    /// Fetch current prices
-    pub async fn fetch_prices(&self) -> Result<Vec<EtlPrice>, AppError> {
-        let url = self.url().endpoint("prices");
-        debug!("Fetching prices from {}", url);
+    /// Fetch historical prices for charts
+    /// Note: Current prices should be fetched from Oracle contracts on-chain
+    pub async fn fetch_price_history(&self, interval: u32) -> Result<Vec<EtlPrice>, AppError> {
+        let url = format!("{}?interval={}", self.url().endpoint("prices"), interval);
+        debug!("Fetching price history from {}", url);
 
         self.client
             .get(&url)
             .send()
             .await
-            .with_context(API_NAME, "fetch prices")
+            .with_context(API_NAME, "fetch price history")
             .await?
             .check_status(API_NAME, "prices")
             .await?

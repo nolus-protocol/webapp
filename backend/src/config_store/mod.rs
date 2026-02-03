@@ -19,7 +19,15 @@
 //! - Skip Route Config (swap settings)
 //! - Governance (hidden proposals)
 //! - Locales (i18n translations)
+//!
+//! ## Gated Propagation Config Types
+//! - Currency Display (enrichment: icon, displayName, color)
+//! - Network Config (endpoints, gas, primaryProtocol)
+//! - Lease Rules (downpayment ranges, asset restrictions)
+//! - Swap Settings (Skip API config, blacklist, venues)
+//! - UI Settings (hidden proposals, feature flags, maintenance)
 
+pub mod gated_types;
 pub mod storage;
 pub mod types;
 

@@ -1,0 +1,219 @@
+{
+  "NLS": {
+    "icon": "/assets/icons/currencies/NLS.svg",
+    "displayName": "Nolus",
+    "shortName": "NLS",
+    "color": "#083344",
+    "coingeckoId": "nolus"
+  },
+  "OSMO": {
+    "icon": "/assets/icons/currencies/OSMO.svg",
+    "displayName": "Osmosis",
+    "shortName": "OSMO",
+    "color": "#5E12A0",
+    "coingeckoId": "osmosis"
+  },
+  "ATOM": {
+    "icon": "/assets/icons/currencies/ATOM.svg",
+    "displayName": "Cosmos Hub",
+    "shortName": "ATOM",
+    "color": "#6F7390",
+    "coingeckoId": "cosmos"
+  },
+  "ST_ATOM": {
+    "icon": "/assets/icons/currencies/ST_ATOM.svg",
+    "displayName": "Stride ATOM",
+    "shortName": "stATOM",
+    "color": "#E50571",
+    "coingeckoId": "stride-staked-atom"
+  },
+  "ST_OSMO": {
+    "icon": "/assets/icons/currencies/ST_OSMO.svg",
+    "displayName": "Stride OSMO",
+    "shortName": "stOSMO",
+    "color": "#E50571",
+    "coingeckoId": "stride-staked-osmo"
+  },
+  "ST_TIA": {
+    "icon": "/assets/icons/currencies/ST_TIA.svg",
+    "displayName": "Stride TIA",
+    "shortName": "stTIA",
+    "color": "#E50571",
+    "coingeckoId": "stride-staked-tia"
+  },
+  "USDC_AXELAR": {
+    "icon": "/assets/icons/currencies/USDC_AXELAR.svg",
+    "displayName": "Axelar USDC",
+    "shortName": "USDC.axl",
+    "color": "#2775CA",
+    "coingeckoId": "usd-coin"
+  },
+  "USDC_NOBLE": {
+    "icon": "/assets/icons/currencies/USDC_NOBLE.svg",
+    "displayName": "Noble USDC",
+    "shortName": "USDC",
+    "color": "#2775CA",
+    "coingeckoId": "usd-coin"
+  },
+  "WETH": {
+    "icon": "/assets/icons/currencies/WETH.svg",
+    "displayName": "Axelar ETH",
+    "shortName": "WETH",
+    "color": "#627EEA",
+    "coingeckoId": "weth"
+  },
+  "WBTC": {
+    "icon": "/assets/icons/currencies/WBTC.svg",
+    "displayName": "Axelar BTC",
+    "shortName": "WBTC",
+    "color": "#F7931A",
+    "coingeckoId": "wrapped-bitcoin"
+  },
+  "AXL": {
+    "icon": "/assets/icons/currencies/AXL.svg",
+    "displayName": "Axelar",
+    "shortName": "AXL",
+    "color": "#FFFFFF",
+    "coingeckoId": "axelar"
+  },
+  "AKT": {
+    "icon": "/assets/icons/currencies/AKT.svg",
+    "displayName": "Akash",
+    "shortName": "AKT",
+    "color": "#FF414C",
+    "coingeckoId": "akash-network"
+  },
+  "TIA": {
+    "icon": "/assets/icons/currencies/TIA.svg",
+    "displayName": "Celestia",
+    "shortName": "TIA",
+    "color": "#7B2BF9",
+    "coingeckoId": "celestia"
+  },
+  "NTRN": {
+    "icon": "/assets/icons/currencies/NTRN.svg",
+    "displayName": "Neutron",
+    "shortName": "NTRN",
+    "color": "#000000",
+    "coingeckoId": "neutron-3"
+  },
+  "DYDX": {
+    "icon": "/assets/icons/currencies/DYDX.svg",
+    "displayName": "dYdX Protocol",
+    "shortName": "DYDX",
+    "color": "#6966FF",
+    "coingeckoId": "dydx-chain"
+  },
+  "INJ": {
+    "icon": "/assets/icons/currencies/INJ.svg",
+    "displayName": "Injective",
+    "shortName": "INJ",
+    "color": "#00F2FE",
+    "coingeckoId": "injective-protocol"
+  },
+  "SCRT": {
+    "icon": "/assets/icons/currencies/SCRT.svg",
+    "displayName": "Secret Network",
+    "shortName": "SCRT",
+    "color": "#1B1B1B",
+    "coingeckoId": "secret"
+  },
+  "CRO": {
+    "icon": "/assets/icons/currencies/CRO.svg",
+    "displayName": "Cronos",
+    "shortName": "CRO",
+    "color": "#002D74",
+    "coingeckoId": "crypto-com-chain"
+  },
+  "STARS": {
+    "icon": "/assets/icons/currencies/STARS.svg",
+    "displayName": "Stargaze",
+    "shortName": "STARS",
+    "color": "#DB2777",
+    "coingeckoId": "stargaze"
+  },
+  "STRD": {
+    "icon": "/assets/icons/currencies/STRD.svg",
+    "displayName": "Stride",
+    "shortName": "STRD",
+    "color": "#E50571",
+    "coingeckoId": "stride"
+  },
+  "JKL": {
+    "icon": "/assets/icons/currencies/JKL.svg",
+    "displayName": "Jackal",
+    "shortName": "JKL",
+    "color": "#00B0FF",
+    "coingeckoId": "jackal-protocol"
+  },
+  "MILK_TIA": {
+    "icon": "/assets/icons/currencies/MILK_TIA.svg",
+    "displayName": "Milk TIA",
+    "shortName": "milkTIA",
+    "color": "#FFFFFF",
+    "coingeckoId": "milkyway-staked-tia"
+  },
+  "D_ATOM": {
+    "icon": "/assets/icons/currencies/D_ATOM.svg",
+    "displayName": "Drop ATOM",
+    "shortName": "dATOM",
+    "color": "#7C3AED",
+    "coingeckoId": "drop-staked-atom"
+  },
+  "D_NTRN": {
+    "icon": "/assets/icons/currencies/D_NTRN.svg",
+    "displayName": "Drop NTRN",
+    "shortName": "dNTRN",
+    "color": "#7C3AED",
+    "coingeckoId": "neutron-3"
+  },
+  "ALL_BTC": {
+    "icon": "/assets/icons/currencies/ALL_BTC.svg",
+    "displayName": "Alloyed BTC",
+    "shortName": "BTC",
+    "color": "#F7931A",
+    "coingeckoId": "osmosis-allbtc"
+  },
+  "ALL_SOL": {
+    "icon": "/assets/icons/currencies/ALL_SOL.svg",
+    "displayName": "Alloyed SOL",
+    "shortName": "SOL",
+    "color": "#9945FF",
+    "coingeckoId": "osmosis-allsol"
+  },
+  "ALL_ETH": {
+    "icon": "/assets/icons/currencies/ALL_ETH.svg",
+    "displayName": "Alloyed ETH",
+    "shortName": "ETH",
+    "color": "#627EEA",
+    "coingeckoId": "osmosis-alleth"
+  },
+  "OM": {
+    "icon": "/assets/icons/currencies/OM.svg",
+    "displayName": "Mantra",
+    "shortName": "OM",
+    "color": "#FF5722",
+    "coingeckoId": "mantra-dao"
+  },
+  "NIL": {
+    "icon": "/assets/icons/currencies/NIL.svg",
+    "displayName": "Nillion",
+    "shortName": "NIL",
+    "color": "#6366F1",
+    "coingeckoId": "nillion"
+  },
+  "XION": {
+    "icon": "/assets/icons/currencies/XION.svg",
+    "displayName": "Xion",
+    "shortName": "XION",
+    "color": "#000000",
+    "coingeckoId": "xion-2"
+  },
+  "BABY": {
+    "icon": "/assets/icons/currencies/BABY.svg",
+    "displayName": "Babylon",
+    "shortName": "BABY",
+    "color": "#FF6B00",
+    "coingeckoId": "babylon"
+  }
+}

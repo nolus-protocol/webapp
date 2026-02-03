@@ -66,7 +66,9 @@ pub struct EndpointsConfigFile {
 #[derive(Debug, Clone, Deserialize)]
 pub struct NetworkEndpoints {
     pub primary: EndpointPair,
+    /// Fallback endpoints from config file (reserved for future use)
     #[serde(default)]
+    #[allow(dead_code)]
     pub fallback: Vec<EndpointPair>,
 }
 
