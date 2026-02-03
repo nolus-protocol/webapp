@@ -23,7 +23,6 @@ mod cache;
 mod cache_keys;
 mod config;
 mod config_store;
-mod db;
 mod error;
 mod etl_macros;
 mod external;
@@ -31,7 +30,6 @@ mod handlers;
 mod http_utils;
 mod middleware;
 mod models;
-mod propagation;
 mod query_types;
 mod response_types;
 mod translations;
@@ -46,7 +44,6 @@ use crate::translations::{
     openai::{OpenAIClient, OpenAIConfig},
     TranslationStorage,
 };
-use sqlx::postgres::PgPool;
 
 /// Application state shared across all handlers
 pub struct AppState {
@@ -59,8 +56,6 @@ pub struct AppState {
     pub cache: cache::AppCache,
     pub ws_manager: WebSocketManager,
     pub config_store: ConfigStore,
-    /// PostgreSQL connection pool for gated propagation config
-    pub db: PgPool,
     /// Translation storage for locale management
     pub translation_storage: TranslationStorage,
     /// OpenAI client for AI-powered translations
@@ -128,15 +123,6 @@ async fn main() -> anyhow::Result<()> {
     let config_store = ConfigStore::new(&config_dir);
     config_store.init().await?;
 
-    // Initialize PostgreSQL database for gated propagation config
-    let database_url = std::env::var("DATABASE_URL")
-        .expect("DATABASE_URL environment variable must be set");
-    let db_pool = db::init_pool(&database_url).await?;
-    
-    // Run database migrations
-    db::run_migrations(&db_pool).await?;
-    info!("Database initialized and migrations applied");
-
     // Initialize translation storage
     let config_path = std::path::Path::new(&config_dir);
     let translation_storage = TranslationStorage::new(config_path);
@@ -162,7 +148,6 @@ async fn main() -> anyhow::Result<()> {
         cache,
         ws_manager,
         config_store,
-        db: db_pool,
         translation_storage,
         openai_client,
         startup_time: Instant::now(),
@@ -610,58 +595,6 @@ fn create_router(state: Arc<AppState>) -> Router {
     let admin_routes = Router::new()
         .route("/cache/stats", get(handlers::admin::get_cache_stats))
         .route("/cache/invalidate", post(handlers::admin::invalidate_cache))
-        // Gated Propagation Admin (PostgreSQL-backed)
-        .route(
-            "/propagation/currencies",
-            get(handlers::admin_propagation::list_currencies),
-        )
-        .route(
-            "/propagation/currencies/{ticker}",
-            get(handlers::admin_propagation::get_currency)
-                .put(handlers::admin_propagation::upsert_currency)
-                .delete(handlers::admin_propagation::delete_currency),
-        )
-        .route(
-            "/propagation/protocols",
-            get(handlers::admin_propagation::list_protocols),
-        )
-        .route(
-            "/propagation/protocols/{protocol}",
-            get(handlers::admin_propagation::get_protocol)
-                .put(handlers::admin_propagation::set_protocol_status)
-                .delete(handlers::admin_propagation::delete_protocol_status),
-        )
-        .route(
-            "/propagation/networks",
-            get(handlers::admin_propagation::list_networks),
-        )
-        .route(
-            "/propagation/networks/{network_key}",
-            get(handlers::admin_propagation::get_network)
-                .put(handlers::admin_propagation::upsert_network)
-                .delete(handlers::admin_propagation::delete_network),
-        )
-        .route(
-            "/propagation/networks/{network_key}/endpoints",
-            post(handlers::admin_propagation::add_endpoint),
-        )
-        .route(
-            "/propagation/networks/{network_key}/endpoints/{endpoint_id}",
-            delete(handlers::admin_propagation::delete_endpoint),
-        )
-        .route(
-            "/propagation/restrictions",
-            get(handlers::admin_propagation::list_restrictions)
-                .post(handlers::admin_propagation::add_restriction),
-        )
-        .route(
-            "/propagation/restrictions/{id}",
-            delete(handlers::admin_propagation::delete_restriction),
-        )
-        .route(
-            "/propagation/unconfigured",
-            get(handlers::admin_propagation::get_unconfigured),
-        )
         // Webapp Config Admin (write)
         .route(
             "/webapp/config/currencies",
