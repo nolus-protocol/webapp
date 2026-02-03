@@ -218,14 +218,16 @@ import { Logger } from "@/common/utils";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { Alert, AlertType, Stepper, StepperVariant } from "web-components";
 import { TEMPLATES } from "./common";
-import { Contracts, NATIVE_NETWORK, UPDATE_LEASES } from "@/config/global";
+import { NATIVE_NETWORK, UPDATE_LEASES } from "@/config/global";
 import { RouteNames } from "@/router";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
+import { useConfigStore } from "@/common/stores/config";
 import type { LeaseInfo } from "@/common/api";
 
 const route = useRoute();
 const router = useRouter();
 const leasesStore = useLeasesStore();
+const configStore = useConfigStore();
 
 let timeOut: NodeJS.Timeout;
 
@@ -362,16 +364,8 @@ const loadintSlippageProtection = computed(() => {
 });
 
 function getProtocolIcon() {
-  try {
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(lease.value?.protocol!)) {
-        return Contracts.protocolsFilter[key].image;
-      }
-    }
-  } catch (error) {
-    console.error("Invalid address format:", error);
-    return null;
-  }
+  if (!lease.value?.protocol) return null;
+  return configStore.getNetworkIconByProtocol(lease.value.protocol);
 }
 
 provide("reload", reload);

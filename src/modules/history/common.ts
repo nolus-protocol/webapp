@@ -5,7 +5,7 @@ import { Messages } from "./types";
 import { Logger, StringUtils } from "@/common/utils";
 import { getCurrencyByDenom, getCurrencyByTicker, getCurrencyBySymbol, getProtocolByContract, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { getIbc } from "@/common/utils/IbcUtils";
-import { Contracts, NATIVE_NETWORK, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { NATIVE_NETWORK } from "@/config/global";
 import { Buffer } from "buffer";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { bech32 } from "bech32";
@@ -196,10 +196,11 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         const data = JSON.parse(Buffer.from(msg.data.msg).toString());
 
         if (data.open_lease) {
+          const configStore = useConfigStore();
           const token = getCurrency(msg.data.funds[0]);
           const cr = getCurrencyByTicker(data.open_lease.currency);
-          const item = getProtocolByContract(msg.data.contract);
-          const protocol = ProtocolsConfig[item];
+          const protocolKey = getProtocolByContract(msg.data.contract);
+          const positionType = configStore.getPositionType(protocolKey);
           const steps = [
             {
               icon: NATIVE_NETWORK.icon
@@ -209,14 +210,14 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
             }
           ];
 
-          if (protocol.type == PositionTypes.short) {
-            const lpn = getLpnByProtocol(item);
+          if (positionType === "Short") {
+            const lpn = getLpnByProtocol(protocolKey);
 
             return [
               i18n.t("message.open-short-position-action", {
                 ticker: cr?.shortName,
                 LPN_ticker: lpn?.shortName ?? "",
-                position: i18n.t(`message.${protocol.type}`).toLowerCase(),
+                position: i18n.t(`message.${positionType.toLowerCase()}`).toLowerCase(),
                 amount: token.toString()
               }),
               token,
@@ -230,7 +231,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           return [
             i18n.t("message.open-position-action", {
               ticker: cr?.shortName,
-              position: i18n.t(`message.${protocol.type}`).toLowerCase(),
+              position: i18n.t(`message.${positionType.toLowerCase()}`).toLowerCase(),
               amount: token.toString()
             }),
             token,
@@ -645,12 +646,9 @@ function getChainLabel(prefix: string) {
 
 function getIconByContract(contract: string) {
   try {
+    const configStore = useConfigStore();
     const protocol = getProtocolByContract(contract);
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
-        return Contracts.protocolsFilter[key].image;
-      }
-    }
+    return configStore.getNetworkIconByProtocol(protocol);
   } catch (error) {
     console.error("Invalid address format:", error);
     return null;

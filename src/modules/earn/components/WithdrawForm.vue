@@ -99,22 +99,18 @@ import { useConfigStore } from "@/common/stores/config";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
 import { h } from "vue";
-import { Contracts } from "@/config/global";
+
 import { useHistoryStore } from "@/common/stores/history";
 import { useI18n } from "vue-i18n";
 
 const configStore = useConfigStore();
 
 const assets = computed(() => {
-  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
   const lpns = configStore.lpn?.filter((item) => {
     const c = configStore.currenciesData![item.key!];
     const [_currency, protocol] = c.key!.split("@");
-
-    if (protocols.hold.includes(protocol)) {
-      return true;
-    }
-    return false;
+    return activeProtocols.includes(protocol);
   });
 
   const data = [];

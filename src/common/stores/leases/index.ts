@@ -139,6 +139,7 @@ export const useLeasesStore = defineStore("leases", () => {
           const lpnCurrency = lpn?.key ? configStore.currenciesData[lpn.key] : null;
           return lpnCurrency ? { key: lpnCurrency.key, decimal_digits: lpnCurrency.decimal_digits } : undefined;
         },
+        getPositionType: (protocol: string) => configStore.getPositionType(protocol),
       }
     );
   }

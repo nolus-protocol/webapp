@@ -98,7 +98,7 @@ import { getBalance } from "@/common/utils/BalanceLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
-import { ProtocolsConfig, SORT_PROTOCOLS, Contracts } from "@/config/global";
+import { SORT_PROTOCOLS } from "@/config/global";
 import { useHistoryStore } from "@/common/stores/history";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
@@ -114,15 +114,11 @@ const earnStore = useEarnStore();
 
 const assets = computed(() => {
   try {
-    const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
+    const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
     const lpns = configStore.lpn?.filter((item) => {
       const c = configStore.currenciesData![item.key!];
       const [_currency, protocol] = c.key!.split("@");
-
-      if (protocols.hold.includes(protocol)) {
-        return true;
-      }
-      return false;
+      return activeProtocols.includes(protocol);
     });
 
     const data = [];
@@ -298,20 +294,20 @@ async function fetchDepositCapacity() {
     const [_currency, protocol] = lpn.key!.split("@");
 
     const fn = async () => {
-      if (!ProtocolsConfig[protocol].supply) {
+      const contract = configStore.contracts[protocol]?.lpp;
+      if (!contract) {
         value[protocol] = false;
         return;
       }
-      const contract = configStore.contracts[protocol].lpp;
       const lppClient = new Lpp(cosmWasmClient, contract);
-      const supply = await lppClient.getDepositCapacity();
+      const depositCapacity = await lppClient.getDepositCapacity();
 
-      if (Number(supply?.amount) == 0 || !ProtocolsConfig[protocol].supply) {
+      if (Number(depositCapacity?.amount) == 0) {
         value[protocol] = false;
         maxSupply.value[protocol] = new Int(0);
       } else {
         value[protocol] = true;
-        maxSupply.value[protocol] = new Int(supply?.amount ?? -1);
+        maxSupply.value[protocol] = new Int(depositCapacity?.amount ?? -1);
       }
     };
 

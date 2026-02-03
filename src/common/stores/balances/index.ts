@@ -9,7 +9,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { BackendApi, WebSocketClient, type BalanceInfo, type BalancesResponse, type Unsubscribe } from "@/common/api";
 import { useConfigStore } from "../config";
-import { Contracts, NATIVE_ASSET } from "@/config/global";
+import { NATIVE_ASSET } from "@/config/global";
 import type { ExternalCurrency } from "@/common/types";
 
 export const useBalancesStore = defineStore("balances", () => {
@@ -51,9 +51,9 @@ export const useBalancesStore = defineStore("balances", () => {
    */
   const filteredBalances = computed((): ExternalCurrency[] => {
     const configStore = useConfigStore();
-    const protocolConfig = Contracts.protocolsFilter[configStore.protocolFilter];
-
-    if (!protocolConfig) {
+    
+    // Validate that the protocol filter is valid
+    if (!configStore.isValidNetworkFilter(configStore.protocolFilter)) {
       return [];
     }
 

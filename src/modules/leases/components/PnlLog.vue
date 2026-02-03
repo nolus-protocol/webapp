@@ -94,7 +94,7 @@ import {
 import { computed, h, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
-import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import type { ILoan } from "./types";
 import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -195,11 +195,9 @@ const leasesHistory = computed(() => {
     const ticker = item.LS_asset_symbol;
     let currency = getCurrencyByTicker(ticker);
 
-    switch (ProtocolsConfig[protocol].type) {
-      case PositionTypes.short: {
-        currency = getLpnByProtocol(protocol);
-        break;
-      }
+    const positionType = configStore.getPositionType(protocol);
+    if (positionType === "Short") {
+      currency = getLpnByProtocol(protocol);
     }
 
     const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
@@ -245,16 +243,12 @@ const leasesHistory = computed(() => {
 
 function getType(item: ILoan) {
   const protocol = getProtocolByContract(item.LS_loan_pool_id);
+  const positionType = configStore.getPositionType(protocol);
 
-  switch (ProtocolsConfig[protocol].type) {
-    case PositionTypes.short: {
-      return () =>
-        h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "error" });
-    }
-    case PositionTypes.long: {
-      return () =>
-        h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "success" });
-    }
+  if (positionType === "Short") {
+    return () => h<LabelProps>(Label, { value: i18n.t("message.short"), variant: "error" });
+  } else {
+    return () => h<LabelProps>(Label, { value: i18n.t("message.long"), variant: "success" });
   }
 }
 

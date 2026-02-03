@@ -1,5 +1,6 @@
-import { INTERCOM_URL, INTERCOM_API } from "@/config/global";
+import { INTERCOM_API } from "@/config/global";
 import { boot, Intercom as messenger, shutdown, update } from "@intercom/messenger-js-sdk";
+import { BackendApi } from "@/common/api";
 
 /**
  * Intercom user data attributes
@@ -239,24 +240,7 @@ class IntercomServiceClass {
    * Fetch JWT token from backend
    */
   private async fetchToken(wallet: string, walletType?: string): Promise<{ token: string }> {
-    const body: { wallet: string; wallet_type?: string } = { wallet };
-    if (walletType) {
-      body.wallet_type = walletType;
-    }
-
-    const response = await fetch(INTERCOM_URL, {
-      method: "POST",
-      body: JSON.stringify(body),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch Intercom token: ${response.status}`);
-    }
-
-    return response.json();
+    return BackendApi.getIntercomToken(wallet, walletType);
   }
 
   /**

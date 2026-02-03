@@ -120,7 +120,7 @@ import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
-import { PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { PERMILLE } from "@/config/global";
 import type { LeaseInfo } from "@/common/api";
 
 const route = useRoute();
@@ -224,53 +224,44 @@ const payout = computed(() => {
   const debt = displayData.value.outstandingDebt ?? new Dec(0);
   const current_price = pricesStore.prices[currency.value.key];
 
-  switch (ProtocolsConfig[lease.value.protocol].type) {
-    case PositionTypes.long: {
-      return formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
-    }
-    case PositionTypes.short: {
-      const current_amount = totalAmount.value.mul(new Dec(current_price.price));
-      const amountVal = debt.mul(end_price);
-      const a = current_amount.sub(amountVal);
+  const positionType = configStore.getPositionType(lease.value.protocol);
 
-      return formatNumber(a.toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
-    }
+  if (positionType === "Long") {
+    return formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
+  } else {
+    const current_amount = totalAmount.value.mul(new Dec(current_price.price));
+    const amountVal = debt.mul(end_price);
+    const a = current_amount.sub(amountVal);
+    return formatNumber(a.toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
   }
-
-  return "0";
 });
 
 const totalAmount = computed(() => {
   if (!lease.value || lease.value.status !== "opened") return new Dec(0);
-  switch (ProtocolsConfig[lease.value.protocol]?.type) {
-    case PositionTypes.long: {
-      return new Dec(lease.value.amount.amount ?? "0", currency.value.decimal_digits);
-    }
-    case PositionTypes.short: {
-      const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-      const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`]!;
-      const price = pricesStore.prices[asset?.ibcData as string];
-      const c =
-        configStore.currenciesData?.[`${ProtocolsConfig[lease.value.protocol as string].stable}@${lease.value.protocol}`];
-      let k = new Dec(lease.value.amount.amount ?? 0, c?.decimal_digits ?? 0).quo(new Dec(price.price));
-      return k;
-    }
+  const positionType = configStore.getPositionType(lease.value.protocol);
+
+  if (positionType === "Long") {
+    return new Dec(lease.value.amount.amount ?? "0", currency.value.decimal_digits);
+  } else {
+    const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
+    const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`]!;
+    const price = pricesStore.prices[asset?.ibcData as string];
+    // Use LPN for decimal digits for short positions
+    const lpn = getLpnByProtocol(lease.value.protocol);
+    let k = new Dec(lease.value.amount.amount ?? 0, lpn?.decimal_digits ?? 0).quo(new Dec(price.price));
+    return k;
   }
-  return new Dec(0);
 });
 
 function getCurrency() {
   if (!lease.value || lease.value.status !== "opened") return undefined;
-  switch (ProtocolsConfig[lease.value.protocol].type) {
-    case PositionTypes.long: {
-      const ticker = lease.value.amount.ticker;
-      return configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
-    }
-    case PositionTypes.short: {
-      const lpn = getLpnByProtocol(lease.value.protocol);
+  const positionType = configStore.getPositionType(lease.value.protocol);
 
-      return lpn;
-    }
+  if (positionType === "Long") {
+    const ticker = lease.value.amount.ticker;
+    return configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+  } else {
+    return getLpnByProtocol(lease.value.protocol);
   }
 }
 
@@ -314,27 +305,22 @@ function isAmountValid() {
         isValid = false;
       }
 
-      switch (ProtocolsConfig[lease.value.protocol].type) {
-        case PositionTypes.long: {
-          if (a.lte(price)) {
-            amountErrorMsg.value = i18n.t("message.take-profit-min-amount-error", {
-              amount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currencyData.decimal_digits)))}`,
-              symbol: ""
-            });
-
-            isValid = false;
-          }
-          break;
+      const positionType = configStore.getPositionType(lease.value.protocol);
+      if (positionType === "Long") {
+        if (a.lte(price)) {
+          amountErrorMsg.value = i18n.t("message.take-profit-min-amount-error", {
+            amount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currencyData.decimal_digits)))}`,
+            symbol: ""
+          });
+          isValid = false;
         }
-        case PositionTypes.short: {
-          if (a.gt(price)) {
-            amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-              maxAmount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currencyData.decimal_digits)))}`,
-              symbol: ""
-            });
-            isValid = false;
-          }
-          break;
+      } else {
+        if (a.gt(price)) {
+          amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
+            maxAmount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currencyData.decimal_digits)))}`,
+            symbol: ""
+          });
+          isValid = false;
         }
       }
     } else {
@@ -401,15 +387,13 @@ async function operation() {
 function getPercent() {
   if (!lease.value || !displayData.value) return new Dec(0);
   const value = new Dec(amount.value);
-  switch (ProtocolsConfig[lease.value.protocol].type) {
-    case PositionTypes.long: {
-      return displayData.value.stableAsset.quo(value.mul(displayData.value.unitAsset));
-    }
-    case PositionTypes.short: {
-      return displayData.value.stableAsset.quo(displayData.value.unitAsset).mul(value);
-    }
+  const positionType = configStore.getPositionType(lease.value.protocol);
+
+  if (positionType === "Long") {
+    return displayData.value.stableAsset.quo(value.mul(displayData.value.unitAsset));
+  } else {
+    return displayData.value.stableAsset.quo(displayData.value.unitAsset).mul(value);
   }
-  return new Dec(0);
 }
 
 watch(

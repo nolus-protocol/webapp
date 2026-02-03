@@ -54,12 +54,14 @@
 import { Asset, Button, ToastType, Widget } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { isMobile, Logger, NetworkUtils, walletOperation } from "@/common/utils";
-import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
+import { isMobile, Logger, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
+import { useStakingStore } from "@/common/stores/staking";
+import { useAsyncOperation } from "@/common/composables";
 import { Dec } from "@keplr-wallet/unit";
+import { NATIVE_ASSET } from "@/config/global";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -83,12 +85,13 @@ const loadRewards = inject("loadRewards", async () => {});
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
-const loading = ref(false);
+const stakingStore = useStakingStore();
+const { loading, run } = useAsyncOperation();
 const disabled = ref(false);
 
 async function onWithdrawRewards() {
+  disabled.value = true;
   try {
-    disabled.value = true;
     await walletOperation(requestClaim);
   } catch (error: Error | any) {
     Logger.error(error);
@@ -98,49 +101,40 @@ async function onWithdrawRewards() {
 }
 
 async function requestClaim() {
-  try {
-    loading.value = true;
-    if (wallet.wallet) {
-      const delegator = await NetworkUtils.loadDelegator();
+  await run(async () => {
+    if (!wallet.wallet) return;
 
-      const data = delegator.rewards
-        .filter((item: any) => {
-          const coin = item?.reward?.[0];
-
-          if (coin) {
-            const asset = getCurrencyByDenom(coin.denom);
-            const amount = new Dec(coin.amount, asset.decimal_digits);
-
-            if (amount.isPositive()) {
-              return true;
-            }
-          }
-
-          return false;
-        })
-        .map((item: any) => {
-          return {
-            validator: item.validator_address,
-            delegator: wallet.wallet?.address
-          };
+    const data = stakingStore.rewards
+      .filter((reward) => {
+        return reward.rewards.some((r) => {
+          const amount = new Dec(r.amount, NATIVE_ASSET.decimal_digits);
+          return amount.isPositive();
         });
+      })
+      .map((reward) => ({
+        validator: reward.validator_address,
+        delegator: wallet.wallet?.address
+      }));
 
-      const { txHash, txBytes, usedFee } = await wallet.wallet.simulateWithdrawRewardTx(data);
-
-      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-
-      loadRewards();
+    if (data.length === 0) {
+      onShowToast({
+        type: ToastType.error,
+        message: i18n.t("message.no-rewards")
+      });
+      return;
     }
+
+    const { txBytes } = await wallet.wallet.simulateWithdrawRewardTx(data);
+    await wallet.wallet.broadcastTx(txBytes as Uint8Array);
+
+    await stakingStore.fetchPositions();
+    loadRewards();
     await balancesStore.fetchBalances();
     historyStore.loadActivities();
     onShowToast({
       type: ToastType.success,
       message: i18n.t("message.rewards-claimed-successful")
     });
-  } catch (error: Error | any) {
-    Logger.error(error);
-  } finally {
-    loading.value = false;
-  }
+  });
 }
 </script>

@@ -56,7 +56,6 @@ import { setTheme, getTheme, type Theme } from "@/common/utils/ThemeManager";
 import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
 import { useConfigStore } from "@/common/stores/config";
 import { useRouter } from "vue-router";
-import { Contracts } from "@/config/global";
 
 import DarkIcon from "@/assets/icons/theme/dark.svg";
 import LightIcon from "@/assets/icons/theme/light.svg";
@@ -85,14 +84,7 @@ const ThemeIcons = {
   sync: h(SyncIcon)
 };
 
-const options = Object.keys(Contracts.protocolsFilter).map((item) => {
-  const protocol = Contracts.protocolsFilter[item];
-  return {
-    value: protocol.key,
-    label: protocol.name,
-    icon: protocol.image
-  };
-});
+const options = configStore.getNetworkFilterOptions();
 const option = options.find((item) => item.value == WalletManager.getProtocolFilter());
 
 const languagesOptions = ref(

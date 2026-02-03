@@ -129,15 +129,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useConfigStore } from "@/common/stores/config";
-import {
-  Contracts,
-  MAX_DECIMALS,
-  MID_DECIMALS,
-  NATIVE_CURRENCY,
-  PositionTypes,
-  ProtocolsConfig,
-  UPDATE_LEASES
-} from "@/config/global";
+import { MAX_DECIMALS, MID_DECIMALS, NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
@@ -173,8 +165,7 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
-  return protocols.disabled;
+  return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
 });
 
 const leasesData = computed<TableRowItemProps[]>(() => {
@@ -247,7 +238,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
             textClass: "line-clamp-1 [display:-webkit-box]"
           },
           {
-            value: `${i18n.t(`message.${ProtocolsConfig[item.protocol]?.type ?? "long"}`)}`,
+            value: `${i18n.t(`message.${configStore.getPositionType(item.protocol).toLowerCase()}`)}`,
             variant: "left",
             class: "max-w-[45px]"
           },
@@ -338,18 +329,15 @@ function getTitle(item: LeaseInfo) {
 
 function getAssetIcon(item: LeaseInfo) {
   const positionTicker = item.etl_data?.lease_position_ticker ?? item.amount.ticker;
-  
-  switch (ProtocolsConfig[item.protocol]?.type) {
-    case PositionTypes.long: {
-      if (item.status === "opening" && item.opening_info) {
-        return configStore.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`]!;
-      }
-      break;
+  const positionType = configStore.getPositionType(item.protocol);
+
+  if (positionType === "Long") {
+    if (item.status === "opening" && item.opening_info) {
+      return configStore.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`]!;
     }
-    case PositionTypes.short: {
-      if (item.status === "opening" && item.opening_info) {
-        return configStore.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`]!;
-      }
+  } else if (positionType === "Short") {
+    if (item.status === "opening" && item.opening_info) {
+      return configStore.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`]!;
     }
   }
   return configStore.assetIcons?.[`${positionTicker}@${item.protocol}`] as string;
@@ -357,24 +345,22 @@ function getAssetIcon(item: LeaseInfo) {
 
 function getAsset(lease: LeaseInfo) {
   try {
-    const positionType = ProtocolsConfig[lease.protocol]?.type ?? PositionTypes.long;
-    
-    switch (positionType) {
-      case PositionTypes.long: {
-        const ticker = lease.amount.ticker || lease.opening_info?.currency;
-        if (!ticker) return null;
-        const item = getCurrencyByTicker(ticker as string);
-        const asset = getCurrencyByDenom(item?.ibcData as string);
-        return asset;
-      }
-      case PositionTypes.short: {
-        const positionTicker = lease.etl_data?.lease_position_ticker ?? lease.amount.ticker;
-        if (!positionTicker) return null;
-        const item = getCurrencyByTicker(positionTicker as string);
-        const asset = getCurrencyByDenom(item?.ibcData as string);
-        return asset;
-      }
+    const positionType = configStore.getPositionType(lease.protocol);
+
+    if (positionType === "Long") {
+      const ticker = lease.amount.ticker || lease.opening_info?.currency;
+      if (!ticker) return null;
+      const item = getCurrencyByTicker(ticker as string);
+      const asset = getCurrencyByDenom(item?.ibcData as string);
+      return asset;
+    } else if (positionType === "Short") {
+      const positionTicker = lease.etl_data?.lease_position_ticker ?? lease.amount.ticker;
+      if (!positionTicker) return null;
+      const item = getCurrencyByTicker(positionTicker as string);
+      const asset = getCurrencyByDenom(item?.ibcData as string);
+      return asset;
     }
+    return null;
   } catch (e) {
     Logger.error("[Leases] Error getting asset for lease:", lease.address, e);
     return null;

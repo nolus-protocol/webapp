@@ -16,6 +16,3 @@ export const WASM_EVENTS = {
     index: 0
   }
 };
-
-export const IGNORE_LEASE_ASSETS_STABLES: string[] = ["USDC_NOBLE"];
-export const IGNORE_LEASES: string[] = ["nolus1mqezz2qs8cy8qx50yms0r6xc3lae20tms8dqq3t2tl7dd6gnxhxq3kz4uf"];

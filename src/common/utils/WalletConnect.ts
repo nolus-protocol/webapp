@@ -84,7 +84,7 @@ export const validateAmountV2 = (amount: string, amount2: string) => {
   return "";
 };
 
-export const walletOperation = async (operation: () => void) => {
+export const walletOperation = async (operation: () => void | Promise<void>) => {
   const walletStore = useWalletStore();
   switch (WalletManager.getWalletConnectMechanism()) {
     case WalletConnectMechanism.KEPLR: {
@@ -121,7 +121,7 @@ export const walletOperation = async (operation: () => void) => {
     }
   }
 
-  operation();
+  await operation();
 };
 
 export const externalWalletOperation = async (

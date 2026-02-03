@@ -10,7 +10,7 @@
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
-      :error-msg="error"
+      :error-msg="validationError"
     >
       <template v-slot:label>
         <div class="flex items-center gap-1">
@@ -78,6 +78,7 @@ import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { useAsyncOperation } from "@/common/composables";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -90,8 +91,8 @@ const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
 const pricesStore = usePricesStore();
 const input = ref("0");
-const error = ref("");
-const loading = ref(false);
+const validationError = ref("");
+const { loading, run } = useAsyncOperation();
 const disabled = ref(false);
 const i18n = useI18n();
 const loadDelegated = inject("loadDelegated", () => false);
@@ -139,8 +140,8 @@ function onInput(data: string) {
 
 async function onNextClick() {
   if (validateInputs().length == 0) {
+    disabled.value = true;
     try {
-      disabled.value = true;
       await walletOperation(delegate);
     } catch (e) {
       Logger.error(e);
@@ -152,63 +153,57 @@ async function onNextClick() {
 
 function validateInputs() {
   const selectedCurrency = assets.value[0];
-  error.value = validateAmountV2(input.value, selectedCurrency.balance.value);
-  return error.value;
+  validationError.value = validateAmountV2(input.value, selectedCurrency.balance.value);
+  return validationError.value;
 }
 
 async function delegate() {
-  try {
-    loading.value = true;
-    if (wallet.wallet && error.value.length == 0) {
-      let validators = await getValidators();
-      let division = STAKING.VALIDATORS_NUMBER;
+  await run(async () => {
+    if (!wallet.wallet || validationError.value.length > 0) return;
 
-      if (validators?.length > 0) {
-        division = validators?.length;
-      }
+    let validators = await getValidators();
+    let division = STAKING.VALIDATORS_NUMBER;
 
-      const data = CurrencyUtils.convertNolusToUNolus(input.value);
-      const amount = Number(data.amount.toString());
-      const quotient = Math.floor(amount / division);
-      const remainder = amount % division;
-      const amounts = [];
+    if (validators?.length > 0) {
+      division = validators?.length;
+    }
 
-      validators = validators.sort((a: any, b: any) => {
-        return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
-      });
+    const data = CurrencyUtils.convertNolusToUNolus(input.value);
+    const amount = Number(data.amount.toString());
+    const quotient = Math.floor(amount / division);
+    const remainder = amount % division;
+    const amounts = [];
 
-      for (const v of validators) {
-        amounts.push({
-          value: quotient,
-          validator: v.operator_address
-        });
-      }
+    validators = validators.sort((a: any, b: any) => {
+      return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
+    });
 
-      amounts[0].value += remainder;
-
-      const delegations = amounts.map((item) => {
-        return {
-          validator: item.validator,
-          amount: coin(item.value, data.denom)
-        };
-      });
-      const { txHash, txBytes, usedFee } = await wallet.wallet.simulateDelegateTx(delegations);
-
-      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadDelegated(), balancesStore.fetchBalances()]);
-      historyStore.loadActivities();
-      onClose();
-      onShowToast({
-        type: ToastType.success,
-        message: i18n.t("message.delegate-successful")
+    for (const v of validators) {
+      amounts.push({
+        value: quotient,
+        validator: v.operator_address
       });
     }
-  } catch (err: Error | any) {
-    error.value = err.toString();
-    Logger.error(error);
-  } finally {
-    loading.value = false;
-  }
+
+    amounts[0].value += remainder;
+
+    const delegations = amounts.map((item) => {
+      return {
+        validator: item.validator,
+        amount: coin(item.value, data.denom)
+      };
+    });
+    const { txBytes } = await wallet.wallet.simulateDelegateTx(delegations);
+
+    await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+    await Promise.all([loadDelegated(), balancesStore.fetchBalances()]);
+    historyStore.loadActivities();
+    onClose();
+    onShowToast({
+      type: ToastType.success,
+      message: i18n.t("message.delegate-successful")
+    });
+  });
 }
 
 async function getValidators() {

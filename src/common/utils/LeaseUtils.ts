@@ -2,7 +2,7 @@ import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
 import type { LeaseAttributes } from "../types/LeaseAttributes";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { PERCENT, PERMILLE } from "@/config/global";
 import { BackendApi } from "@/common/api";
 import { getCurrencyByTicker, getProtocolByContract, getLpnByProtocol } from "./CurrencyLookup";
 import { useConfigStore } from "../stores/config";
@@ -86,16 +86,13 @@ export class LeaseUtils {
       let leasePositionTicker = result.lease.LS_asset_symbol;
       let l_c = result.lease.LS_asset_symbol;
 
-      switch (ProtocolsConfig[contract].type) {
-        case PositionTypes.short: {
-          leasePositionTicker = lpn.ticker;
-          break;
-        }
+      const configStore = useConfigStore();
+      if (configStore.isShortPosition(contract)) {
+        leasePositionTicker = lpn.ticker;
       }
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
-      const configStore = useConfigStore();
       const currency = configStore.currenciesData[`${l_c}@${contract}`];
 
       return {

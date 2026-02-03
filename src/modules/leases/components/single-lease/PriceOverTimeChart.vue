@@ -36,7 +36,7 @@ import type { LeaseInfo } from "@/common/api";
 import { isMobile, LeaseUtils } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-import { MAX_DECIMALS, NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
 import { plot, lineY, ruleY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
@@ -168,15 +168,11 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
     const unitAsset = new Dec(props.lease.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
     const stableAsset = new Dec(props.lease.debt.principal, Number(stableAssetInfo?.decimal_digits ?? 0));
     
-    switch (ProtocolsConfig[protocolKey]?.type) {
-      case PositionTypes.long: {
-        liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
-        break;
-      }
-      case PositionTypes.short: {
-        liquidation = LeaseUtils.calculateLiquidationShort(unitAsset.add(uAsset), stableAsset.add(stableAdd));
-        break;
-      }
+    const positionType = configStore.getPositionType(protocolKey);
+    if (positionType === "Long") {
+      liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
+    } else {
+      liquidation = LeaseUtils.calculateLiquidationShort(unitAsset.add(uAsset), stableAsset.add(stableAdd));
     }
   }
 
@@ -184,24 +180,21 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
 }
 
 async function loadData(intetval: string) {
-  const posType = ProtocolsConfig[props.lease?.protocol!]?.type;
+  const positionType = configStore.getPositionType(props.lease?.protocol!);
   const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
   
-  switch (posType) {
-    case PositionTypes.long: {
-      let [key, protocol]: string[] = ticker?.includes("@")
-        ? ticker.split("@")
-        : [ticker as string, props.lease!.protocol];
+  if (positionType === "Long") {
+    let [key, protocol]: string[] = ticker?.includes("@")
+      ? ticker.split("@")
+      : [ticker as string, props.lease!.protocol];
 
-      const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
-      return prices;
-    }
-    case PositionTypes.short: {
-      const lpn = getLpnByProtocol(props.lease?.protocol!);
-      let [key, protocol] = lpn.key.split("@");
-      const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
-      return prices;
-    }
+    const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
+    return prices;
+  } else {
+    const lpn = getLpnByProtocol(props.lease?.protocol!);
+    let [key, protocol] = lpn.key.split("@");
+    const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
+    return prices;
   }
 }
 

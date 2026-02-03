@@ -158,7 +158,7 @@ import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { minimumLeaseAmount, PERCENT, PERMILLE } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
@@ -305,10 +305,7 @@ const balances = computed(() => {
       return false;
     }
 
-    if (ProtocolsConfig[protocol].lease && !ProtocolsConfig[protocol].currencies.includes(ticker)) {
-      return false;
-    }
-
+    // Only show LPN currency for repayment
     const lpn = getLpnByProtocol(protocol);
     if (item.key != lpn.key) {
       return false;
@@ -391,29 +388,26 @@ function getRepayment(p: number) {
     repaymentInStable = repaymentInStable.add(repaymentInStable.mul(new Dec(swapFee.value)));
   }
 
-  switch (ProtocolsConfig[lease.value.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = getLpnByProtocol(lease.value.protocol);
-      const price = new Dec(pricesStore.prices[lpn!.key as string].price);
-      const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency!.key as string].price);
+  const positionType = configStore.getPositionType(lease.value.protocol);
 
-      const repayment = repaymentInStable.mul(price);
-
-      return {
-        repayment: repayment.quo(selected_asset_price),
-        repaymentInStable: repayment,
-        selectedCurrencyInfo: selectedCurrency
-      };
-    }
-    case PositionTypes.long: {
-      const price = new Dec(pricesStore.prices[selectedCurrency!.key as string]?.price ?? 1);
-      const repayment = repaymentInStable.quo(price);
-      return {
-        repayment,
-        repaymentInStable,
-        selectedCurrencyInfo: selectedCurrency
-      };
-    }
+  if (positionType === "Short") {
+    let lpn = getLpnByProtocol(lease.value.protocol);
+    const price = new Dec(pricesStore.prices[lpn!.key as string].price);
+    const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency!.key as string].price);
+    const repayment = repaymentInStable.mul(price);
+    return {
+      repayment: repayment.quo(selected_asset_price),
+      repaymentInStable: repayment,
+      selectedCurrencyInfo: selectedCurrency
+    };
+  } else {
+    const price = new Dec(pricesStore.prices[selectedCurrency!.key as string]?.price ?? 1);
+    const repayment = repaymentInStable.quo(price);
+    return {
+      repayment,
+      repaymentInStable,
+      selectedCurrencyInfo: selectedCurrency
+    };
   }
 }
 
@@ -563,12 +557,11 @@ function getDebtValue() {
   let debt = outStandingDebt();
   debt = debt.add(debt.mul(new Dec(swapFee.value)));
 
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = getLpnByProtocol(lease.value!.protocol);
-      const price = new Dec(pricesStore.prices[lpn!.key as string].price);
-      return debt.mul(price);
-    }
+  const positionType = configStore.getPositionType(lease.value!.protocol);
+  if (positionType === "Short") {
+    let lpn = getLpnByProtocol(lease.value!.protocol);
+    const price = new Dec(pricesStore.prices[lpn!.key as string].price);
+    return debt.mul(price);
   }
   return debt;
 }
@@ -650,23 +643,20 @@ const detbPartial = computed(() => {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
     const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
 
-    switch (ProtocolsConfig[lease.value.protocol].type) {
-      case PositionTypes.short: {
-        const rest = debtTotal.repayment.sub(d);
-        return {
-          payment: `${formatNumber(d.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`,
-          rest: `${formatNumber(rest.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`
-        };
-      }
-      case PositionTypes.long: {
-        const asset = d;
-        const rest = debtTotal.repayment.sub(d);
-        let lpn = getLpnByProtocol(lease.value.protocol);
-        return {
-          payment: `${formatNumber(asset.toString(), lpn.decimal_digits)} ${lpn.shortName}`,
-          rest: `${formatNumber(rest.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`
-        };
-      }
+    const positionType = configStore.getPositionType(lease.value.protocol);
+    const rest = debtTotal.repayment.sub(d);
+
+    if (positionType === "Short") {
+      return {
+        payment: `${formatNumber(d.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`,
+        rest: `${formatNumber(rest.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`
+      };
+    } else {
+      let lpn = getLpnByProtocol(lease.value.protocol);
+      return {
+        payment: `${formatNumber(d.toString(), lpn.decimal_digits)} ${lpn.shortName}`,
+        rest: `${formatNumber(rest.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`
+      };
     }
   }
 
@@ -682,15 +672,12 @@ const debtData = computed(() => {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
     const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
 
-    switch (ProtocolsConfig[lease.value.protocol].type) {
-      case PositionTypes.short: {
-        return `${formatNumber(d.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`;
-      }
-      case PositionTypes.long: {
-        let lpn = getLpnByProtocol(lease.value.protocol);
-        const asset = d;
-        return `${formatNumber(asset.toString(), lpn.decimal_digits)} ${lpn.shortName}`;
-      }
+    const positionType = configStore.getPositionType(lease.value.protocol);
+    if (positionType === "Short") {
+      return `${formatNumber(d.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`;
+    } else {
+      let lpn = getLpnByProtocol(lease.value.protocol);
+      return `${formatNumber(d.toString(), lpn.decimal_digits)} ${lpn.shortName}`;
     }
   }
 
@@ -712,15 +699,11 @@ const liquidation = computed(() => {
     new Dec(amount.value.length > 0 ? amount.value : 0)
   );
 
-  switch (ProtocolsConfig[lease.value.protocol].type) {
-    case PositionTypes.long: {
-      liquidationVal = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
-      break;
-    }
-    case PositionTypes.short: {
-      liquidationVal = LeaseUtils.calculateLiquidationShort(unitAsset, stableAsset);
-      break;
-    }
+  const positionType = configStore.getPositionType(lease.value.protocol);
+  if (positionType === "Long") {
+    liquidationVal = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+  } else {
+    liquidationVal = LeaseUtils.calculateLiquidationShort(unitAsset, stableAsset);
   }
 
   return `${NATIVE_CURRENCY.symbol}${formatNumber(liquidationVal.toString(), lpn?.decimal_digits ?? 6)}`;

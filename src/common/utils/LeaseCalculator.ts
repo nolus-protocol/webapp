@@ -9,7 +9,7 @@
 
 import { Dec } from "@keplr-wallet/unit";
 import type { LeaseInfo } from "@/common/api";
-import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig, INTEREST_DECIMALS, MONTHS, LEASE_DUE } from "@/config/global";
+import { PERCENT, PERMILLE, INTEREST_DECIMALS, MONTHS, LEASE_DUE } from "@/config/global";
 
 // ============================================================================
 // Types
@@ -27,6 +27,7 @@ export interface PriceProvider {
 export interface CurrencyProvider {
   getCurrency(ticker: string, protocol: string): CurrencyInfo | undefined;
   getLpnCurrency(protocol: string): CurrencyInfo | undefined;
+  getPositionType(protocol: string): "Long" | "Short";
 }
 
 export interface LeaseDisplayData {
@@ -81,7 +82,7 @@ export class LeaseCalculator {
    */
   calculateDisplayData(lease: LeaseInfo): LeaseDisplayData {
     const protocol = lease.protocol;
-    const positionType = ProtocolsConfig[protocol]?.type ?? PositionTypes.long;
+    const positionType = this.currencyProvider.getPositionType(protocol).toLowerCase();
 
     // Get currency info
     const ticker = lease.amount.ticker;
@@ -243,7 +244,7 @@ export class LeaseCalculator {
       return new Dec(0);
     }
 
-    if (positionType === PositionTypes.long) {
+    if (positionType === "long") {
       // Long: liquidation = debt / collateral (roughly)
       return stableAsset.quo(unitAsset);
     } else {
@@ -326,7 +327,7 @@ export class LeaseCalculator {
     const slPercent = lease.close_policy.stop_loss / (PERMILLE / PERCENT);
     let slPrice: Dec;
 
-    if (positionType === PositionTypes.long) {
+    if (positionType === "long") {
       slPrice = stableAsset
         .quo(new Dec(lease.close_policy.stop_loss).quo(new Dec(PERMILLE)))
         .quo(unitAsset);
@@ -359,7 +360,7 @@ export class LeaseCalculator {
     const tpPercent = lease.close_policy.take_profit / (PERMILLE / PERCENT);
     let tpPrice: Dec;
 
-    if (positionType === PositionTypes.long) {
+    if (positionType === "long") {
       tpPrice = stableAsset
         .quo(new Dec(lease.close_policy.take_profit).quo(new Dec(PERMILLE)))
         .quo(unitAsset);
@@ -411,7 +412,7 @@ export class LeaseCalculator {
       : new Dec(0);
 
     const openingPrice =
-      positionType === PositionTypes.long
+      positionType === "long"
         ? new Dec(lease.etl_data?.price ?? "0")
         : new Dec(lease.etl_data?.lpn_price ?? "0");
 

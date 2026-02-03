@@ -10,7 +10,7 @@
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
-      :error-msg="error"
+      :error-msg="validationError"
     >
       <template v-slot:label>
         <div class="flex items-center gap-1">
@@ -76,6 +76,7 @@ import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { useAsyncOperation } from "@/common/composables";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -91,8 +92,8 @@ const pricesStore = usePricesStore();
 const i18n = useI18n();
 
 const input = ref("0");
-const error = ref("");
-const loading = ref(false);
+const validationError = ref("");
+const { loading, run } = useAsyncOperation();
 const disabled = ref(false);
 const loadDelegated = inject("loadDelegated", () => false);
 const onClose = inject("close", () => {});
@@ -159,8 +160,8 @@ function onInput(data: string) {
 
 async function onNextClick() {
   if (validateInputs().length == 0) {
+    disabled.value = true;
     try {
-      disabled.value = true;
       await walletOperation(undelegate);
     } catch (e) {
       Logger.error(e);
@@ -172,60 +173,51 @@ async function onNextClick() {
 
 function validateInputs() {
   const selectedCurrency = assets.value[0];
-  error.value = validateAmountV2(input.value, selectedCurrency.balance.value);
-  return error.value;
+  validationError.value = validateAmountV2(input.value, selectedCurrency.balance.value);
+  return validationError.value;
 }
 
 async function undelegate() {
-  if (wallet.wallet) {
-    try {
-      loading.value = true;
+  await run(async () => {
+    if (!wallet.wallet) return;
 
-      const amountToTransfer = CurrencyUtils.convertNolusToUNolus(input.value);
+    const amountToTransfer = CurrencyUtils.convertNolusToUNolus(input.value);
 
-      let amountToTransferDecimal = amountToTransfer.amount.toDec();
-      const transactions = [];
+    let amountToTransferDecimal = amountToTransfer.amount.toDec();
+    const transactions = [];
 
-      // Use staking store delegations
-      for (const delegation of stakingStore.delegations) {
-        const amount = new Dec(delegation.balance.amount);
+    for (const delegation of stakingStore.delegations) {
+      const amount = new Dec(delegation.balance.amount);
+      const rest = amountToTransferDecimal.sub(amount);
 
-        const rest = amountToTransferDecimal.sub(amount);
-
-        if (rest.isNegative() || rest.isZero()) {
-          const transfer = new Dec(amountToTransferDecimal.toString());
-          transactions.push({
-            validator: delegation.validator_address,
-            amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
-          });
-          break;
-        } else {
-          const transfer = new Dec(amount.toString());
-          transactions.push({
-            validator: delegation.validator_address,
-            amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
-          });
-        }
-
-        amountToTransferDecimal = rest;
+      if (rest.isNegative() || rest.isZero()) {
+        const transfer = new Dec(amountToTransferDecimal.toString());
+        transactions.push({
+          validator: delegation.validator_address,
+          amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
+        });
+        break;
+      } else {
+        const transfer = new Dec(amount.toString());
+        transactions.push({
+          validator: delegation.validator_address,
+          amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
+        });
       }
 
-      const { txHash, txBytes, usedFee } = await wallet.wallet.simulateUndelegateTx(transactions);
-
-      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadDelegated(), balancesStore.fetchBalances(), stakingStore.fetchPositions()]);
-      historyStore.loadActivities();
-      onClose();
-      onShowToast({
-        type: ToastType.success,
-        message: i18n.t("message.undelegate-successful")
-      });
-    } catch (err: Error | any) {
-      error.value = err.toString();
-      Logger.error(error);
-    } finally {
-      loading.value = false;
+      amountToTransferDecimal = rest;
     }
-  }
+
+    const { txBytes } = await wallet.wallet.simulateUndelegateTx(transactions);
+
+    await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+    await Promise.all([loadDelegated(), balancesStore.fetchBalances(), stakingStore.fetchPositions()]);
+    historyStore.loadActivities();
+    onClose();
+    onShowToast({
+      type: ToastType.success,
+      message: i18n.t("message.undelegate-successful")
+    });
+  });
 }
 </script>

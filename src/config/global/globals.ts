@@ -6,13 +6,6 @@ export const LINKEDIN_ACCOUNT = "https://www.linkedin.com/company/nolus-platform
 export const DISCORD_ACCOUNT = "https://discord.com/invite/Rmwz8S6ZJP";
 export const SUPPORT_URL = "https://hub.nolus.io";
 
-// Intercom JWT token endpoint - uses backend instead of beacon
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-if (!BACKEND_URL) {
-  throw new Error("VITE_BACKEND_URL environment variable is required");
-}
-export const INTERCOM_URL = `${BACKEND_URL}/api/intercom/hash`;
-
 export enum APPEARANCE {
   light = "light",
   dark = "dark",

@@ -592,6 +592,88 @@ export const useConfigStore = defineStore("config", () => {
     return networkName?.toUpperCase();
   }
 
+  /** Get network icon by network key (e.g., "OSMOSIS" -> "/icons/networks/osmosis.svg") */
+  function getNetworkIcon(networkKey: string): string | undefined {
+    // Try by key first
+    const network = networkByKey.value.get(networkKey);
+    if (network?.icon) return network.icon;
+
+    // Try case-insensitive match
+    for (const n of networks.value) {
+      if (n.key.toUpperCase() === networkKey.toUpperCase()) {
+        return n.icon;
+      }
+    }
+    return undefined;
+  }
+
+  /** Get network icon for a protocol (looks up protocol's network, then network's icon) */
+  function getNetworkIconByProtocol(protocolKey: string): string | undefined {
+    const networkFilter = getNetworkFilterByProtocol(protocolKey);
+    if (!networkFilter) return undefined;
+    return getNetworkIcon(networkFilter);
+  }
+
+  /** Get position type for a protocol ("Long" | "Short") */
+  function getPositionType(protocolKey: string): "Long" | "Short" {
+    // Try gated protocols first (preferred source)
+    const gatedProtocol = gatedProtocolsByName.value[protocolKey];
+    if (gatedProtocol) {
+      return gatedProtocol.position_type;
+    }
+
+    // Fall back to /api/config protocols
+    const protocol = protocols.value[protocolKey];
+    if (protocol?.position_type) {
+      // Normalize to capitalized format
+      const type = protocol.position_type.toLowerCase();
+      return type === "short" ? "Short" : "Long";
+    }
+
+    // Default to Long
+    return "Long";
+  }
+
+  /** Check if a protocol is a short position type */
+  function isShortPosition(protocolKey: string): boolean {
+    return getPositionType(protocolKey) === "Short";
+  }
+
+  /** Check if a protocol is a long position type */
+  function isLongPosition(protocolKey: string): boolean {
+    return getPositionType(protocolKey) === "Long";
+  }
+
+  /** Get available network filters (keys of networks that have protocols) */
+  function getAvailableNetworkFilters(): string[] {
+    return Object.keys(protocolsByNetwork.value);
+  }
+
+  /** Check if a network filter is valid */
+  function isValidNetworkFilter(filter: string): boolean {
+    return getAvailableNetworkFilters().includes(filter.toUpperCase());
+  }
+
+  /** Get network filter dropdown options (for UI dropdowns) */
+  function getNetworkFilterOptions(): { value: string; label: string; icon: string }[] {
+    const filters = getAvailableNetworkFilters();
+    return filters.map((filterKey) => {
+      const network = networkByKey.value.get(filterKey.toLowerCase());
+      return {
+        value: filterKey,
+        label: network?.name ?? filterKey,
+        icon: network?.icon ?? ""
+      };
+    });
+  }
+
+  /** Check if a protocol filter (network) is disabled (no active protocols) */
+  function isProtocolFilterDisabled(networkFilter: string): boolean {
+    const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
+    // If no active protocols for this network, it's disabled
+    return networkProtocols.length === 0;
+  }
+
   // ==========================================================================
   // Getters - Currencies (replaces CurrencyLookup.ts functions)
   // ==========================================================================
@@ -937,6 +1019,15 @@ export const useConfigStore = defineStore("config", () => {
     getNetworkByValue,
     getNetworkNameByProtocol,
     getNetworkFilterByProtocol,
+    getNetworkIcon,
+    getNetworkIconByProtocol,
+    getPositionType,
+    isShortPosition,
+    isLongPosition,
+    getAvailableNetworkFilters,
+    isValidNetworkFilter,
+    getNetworkFilterOptions,
+    isProtocolFilterDisabled,
     getContracts,
 
     // Getters - Currencies

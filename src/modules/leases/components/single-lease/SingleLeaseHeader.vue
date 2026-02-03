@@ -12,9 +12,7 @@
         <div class="flex items-center gap-4">
           <div class="flex gap-1 text-14 text-typography-default">
             {{ $t("message.type") }}:<span class="font-semibold">
-              {{
-                ProtocolsConfig[lease?.protocol!]?.type ? $t(`message.${ProtocolsConfig[lease?.protocol!]?.type}`) : ""
-              }}
+              {{ lease?.protocol ? $t(`message.${configStore.getPositionType(lease.protocol).toLowerCase()}`) : "" }}
             </span>
           </div>
           <div
@@ -126,7 +124,7 @@ import { formatDate } from "@/common/utils";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
-import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { Dec } from "@keplr-wallet/unit";
@@ -173,13 +171,14 @@ const stable = computed(() => {
   const protocol = props.lease.protocol;
   const asset = configStore.currenciesData?.[`${ticker}@${protocol}`];
 
-  if (posType === PositionTypes.long) {
+  if (posType === "long") {
     const price = pricesStore.prices[`${ticker}@${protocol}`];
     const value = new Dec(props.lease.amount.amount, asset?.decimal_digits ?? 0).mul(new Dec(price?.price ?? "0"));
     return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
-  } else if (posType === PositionTypes.short) {
-    const c = configStore.currenciesData?.[`${ProtocolsConfig[protocol]?.stable}@${protocol}`];
-    const value = new Dec(props.lease.amount.amount, c?.decimal_digits ?? 0);
+  } else if (posType === "short") {
+    // For short positions, use LPN for decimal digits
+    const lpn = configStore.getLpnByProtocol(protocol);
+    const value = new Dec(props.lease.amount.amount, lpn?.decimal_digits ?? 0);
     return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
   }
 

@@ -179,7 +179,7 @@ import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { Button, SvgIcon } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT, ProtocolsConfig } from "@/config/global";
+import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { LeaseUtils } from "@/common/utils";
@@ -258,8 +258,8 @@ const totalLoan = computed(() => {
 
 const assetLoan = computed(() => {
   const [t, p] = asset.value?.key?.split("@") ?? [];
-  const currency = configStore.currenciesData?.[`${ProtocolsConfig[p]?.stable}@${p}`];
-  return currency;
+  const lpn = getLpnByProtocol(p);
+  return lpn;
 });
 
 const asset = computed(() => {

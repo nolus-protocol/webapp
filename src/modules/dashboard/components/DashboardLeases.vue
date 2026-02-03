@@ -79,7 +79,7 @@ import { useLeasesStore } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
 import { useConfigStore } from "@/common/stores/config";
-import { Contracts, NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -106,8 +106,7 @@ watch(
 );
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[configStore.protocolFilter];
-  return protocols.disabled;
+  return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
 });
 
 const emptyState = computed(() => {

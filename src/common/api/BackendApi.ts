@@ -574,6 +574,21 @@ export class BackendApiClient {
   }
 
   // =========================================================================
+  // Intercom
+  // =========================================================================
+
+  /**
+   * Get Intercom JWT token for user authentication
+   */
+  async getIntercomToken(wallet: string, walletType?: string): Promise<{ token: string }> {
+    const body: { wallet: string; wallet_type?: string } = { wallet };
+    if (walletType) {
+      body.wallet_type = walletType;
+    }
+    return this.request<{ token: string }>("POST", "/api/intercom/hash", body);
+  }
+
+  // =========================================================================
   // ETL - Analytics & Statistics
   // =========================================================================
 

@@ -264,13 +264,7 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
-import {
-  MAX_DECIMALS,
-  MID_DECIMALS,
-  NATIVE_CURRENCY,
-  PositionTypes,
-  ProtocolsConfig
-} from "@/config/global";
+import { MAX_DECIMALS, MID_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
 import { computed, inject, onMounted, ref, watch } from "vue";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
@@ -358,21 +352,21 @@ const amount = computed(() => {
 
 const assetLoan = computed(() => {
   const posType = props.displayData?.positionType;
-  if (posType === PositionTypes.long) {
+  if (posType === "long") {
     return asset.value;
-  } else if (posType === PositionTypes.short) {
-    const p = props.lease?.protocol!;
-    const currency = configStore.currenciesData![`${ProtocolsConfig[p]?.stable}@${p}`];
-    return currency;
+  } else if (posType === "short") {
+    // For short positions, use LPN
+    const lpnCurrency = lpn.value;
+    return lpnCurrency ?? asset.value;
   }
   return asset.value;
 });
 
 const pricerPerAsset = computed(() => {
   const posType = props.displayData?.positionType;
-  if (posType === PositionTypes.long) {
+  if (posType === "long") {
     return asset.value;
-  } else if (posType === PositionTypes.short) {
+  } else if (posType === "short") {
     const p = props.lease?.protocol!;
     const ticker = props.lease?.etl_data?.lease_position_ticker;
     const currency = configStore.currenciesData![`${ticker}@${p}`];
@@ -416,7 +410,7 @@ const stable = computed<CurrencyComponentProps>(() => {
   const posType = props.displayData.positionType;
   const assetAmount = new Dec(props.lease.amount.amount, assetLoan.value?.decimal_digits ?? 0);
 
-  if (posType === PositionTypes.long) {
+  if (posType === "long") {
     const ticker = props.lease.amount.ticker;
     const protocol = props.lease.protocol;
     const price = pricesStore.prices[`${ticker}@${protocol}`];
@@ -428,7 +422,7 @@ const stable = computed<CurrencyComponentProps>(() => {
       denom: NATIVE_CURRENCY.symbol,
       fontSize: 16
     } as CurrencyComponentProps;
-  } else if (posType === PositionTypes.short) {
+  } else if (posType === "short") {
     const ticker = props.lease.etl_data?.lease_position_ticker ?? props.lease.amount.ticker;
     const protocol = props.lease.protocol;
     const ast = configStore.currenciesData?.[`${ticker}@${protocol}`];

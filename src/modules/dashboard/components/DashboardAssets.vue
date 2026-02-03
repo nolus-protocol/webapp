@@ -86,7 +86,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
 import { useRouter } from "vue-router";
@@ -164,14 +164,17 @@ function setAvailableAssets() {
 }
 
 function isEarn(denom: string) {
-  const curency = getCurrencyByDenom(denom);
-  const [_, protocol] = curency.key.split("@");
-  if (!ProtocolsConfig[protocol].rewards) {
+  const currency = getCurrencyByDenom(denom);
+  const [_, protocol] = currency.key.split("@");
+  
+  // Check if protocol is active (gated protocols have rewards enabled)
+  const gatedProtocol = configStore.getGatedProtocol(protocol);
+  if (!gatedProtocol) {
     return false;
   }
 
   const lpns = (configStore.lpn ?? []).map((item) => item.ticker);
-  return lpns.includes(curency.ticker);
+  return lpns.includes(currency.ticker);
 }
 
 function getApr(key: string) {

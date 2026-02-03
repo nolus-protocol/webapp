@@ -71,7 +71,7 @@ import shareImageThree from "@/assets/icons/share-image-3.png?url";
 import shareImageFour from "@/assets/icons/share-image-4.png?url";
 import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
-import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 
@@ -103,43 +103,40 @@ const asset = () => {
     return item;
   }
 
-  switch (ProtocolsConfig[leaseData.protocol]?.type) {
-    case PositionTypes.long: {
-      const ticker = leaseData.amount.ticker;
-      const item = getCurrencyByTicker(ticker as string);
-      const assetData = getCurrencyByDenom(item?.ibcData as string);
-      return assetData;
-    }
-    case PositionTypes.short: {
-      const ticker = leaseData.etl_data?.lease_position_ticker ?? leaseData.amount.ticker;
-      const item = getCurrencyByTicker(ticker as string);
-      const assetData = getCurrencyByDenom(item?.ibcData as string);
-      return assetData;
-    }
+  const positionType = configStore.getPositionType(leaseData.protocol);
+
+  if (positionType === "Long") {
+    const ticker = leaseData.amount.ticker;
+    const item = getCurrencyByTicker(ticker as string);
+    const assetData = getCurrencyByDenom(item?.ibcData as string);
+    return assetData;
+  } else {
+    const ticker = leaseData.etl_data?.lease_position_ticker ?? leaseData.amount.ticker;
+    const item = getCurrencyByTicker(ticker as string);
+    const assetData = getCurrencyByDenom(item?.ibcData as string);
+    return assetData;
   }
 };
 
 const currentPrice = () => {
   if (!leaseData) return "0";
   
-  switch (ProtocolsConfig[leaseData.protocol]?.type) {
-    case PositionTypes.long: {
-      if (leaseData.status === "opening" && leaseData.etl_data?.lease_position_ticker) {
-        const item = configStore.currenciesData?.[`${leaseData.etl_data.lease_position_ticker}@${leaseData.protocol}`];
-        return formatNumber(
-          pricesStore.prices[item?.ibcData as string]?.price ?? "0",
-          NATIVE_CURRENCY.maximumFractionDigits
-        );
-      }
-      break;
+  const positionType = configStore.getPositionType(leaseData.protocol);
+
+  if (positionType === "Long") {
+    if (leaseData.status === "opening" && leaseData.etl_data?.lease_position_ticker) {
+      const item = configStore.currenciesData?.[`${leaseData.etl_data.lease_position_ticker}@${leaseData.protocol}`];
+      return formatNumber(
+        pricesStore.prices[item?.ibcData as string]?.price ?? "0",
+        NATIVE_CURRENCY.maximumFractionDigits
+      );
     }
-    case PositionTypes.short: {
-      if (leaseData.status === "opening" && leaseData.debt?.ticker) {
-        return formatNumber(
-          pricesStore.prices[`${leaseData.debt.ticker}@${leaseData.protocol}`]?.price ?? "0",
-          NATIVE_CURRENCY.maximumFractionDigits
-        );
-      }
+  } else {
+    if (leaseData.status === "opening" && leaseData.debt?.ticker) {
+      return formatNumber(
+        pricesStore.prices[`${leaseData.debt.ticker}@${leaseData.protocol}`]?.price ?? "0",
+        NATIVE_CURRENCY.maximumFractionDigits
+      );
     }
   }
 
@@ -383,7 +380,7 @@ async function setArrow(ctx: CanvasRenderingContext2D) {
 
 async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
   ctx.font = "600 30px 'Garet'";
-  const posType = leaseData ? ProtocolsConfig[leaseData.protocol]?.type : "long";
+  const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
   return ctx.measureText(
     `${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase()
   ).width;
@@ -392,7 +389,7 @@ async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
 async function setBuyText(ctx: CanvasRenderingContext2D) {
   ctx.font = "600 30px 'Garet'";
   ctx.fillStyle = "white";
-  const posType = leaseData ? ProtocolsConfig[leaseData.protocol]?.type : "long";
+  const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
   ctx.fillText(
     `${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
     150,
