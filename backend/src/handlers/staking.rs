@@ -16,7 +16,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::debug;
+use tracing::{debug, warn};
 
 use crate::error::AppError;
 use crate::query_types::AddressQuery;
@@ -260,9 +260,21 @@ pub async fn get_positions(
     debug!("Validators result: {:?}", validators_result.is_ok());
 
     let delegations = delegations_result.unwrap_or_default();
-    let rewards_response = rewards_result.ok();
+    let rewards_response = match rewards_result {
+        Ok(r) => Some(r),
+        Err(e) => {
+            warn!("Failed to fetch staking rewards: {}", e);
+            None
+        }
+    };
     let unbonding_delegations = unbonding_result.unwrap_or_default();
-    let validators = validators_result.ok();
+    let validators = match validators_result {
+        Ok(v) => Some(v),
+        Err(e) => {
+            warn!("Failed to fetch validators for staking positions: {}", e);
+            None
+        }
+    };
 
     // Build delegations list
     let delegation_positions: Vec<StakingPosition> = delegations

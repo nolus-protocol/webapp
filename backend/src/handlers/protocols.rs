@@ -10,30 +10,9 @@ use tracing::debug;
 
 use crate::cache_keys;
 use crate::error::AppError;
-use crate::external::etl::{EtlProtocol, EtlProtocolContracts};
+use crate::external::etl::EtlProtocol;
+use crate::handlers::common_types::ProtocolContracts;
 use crate::AppState;
-
-/// Protocol contracts
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProtocolContracts {
-    pub leaser: Option<String>,
-    pub lpp: Option<String>,
-    pub oracle: Option<String>,
-    pub profit: Option<String>,
-    pub reserve: Option<String>,
-}
-
-impl From<EtlProtocolContracts> for ProtocolContracts {
-    fn from(etl: EtlProtocolContracts) -> Self {
-        Self {
-            leaser: etl.leaser,
-            lpp: etl.lpp,
-            oracle: etl.oracle,
-            profit: etl.profit,
-            reserve: etl.reserve,
-        }
-    }
-}
 
 /// Protocol information from ETL
 #[derive(Debug, Clone, Serialize, Deserialize)]

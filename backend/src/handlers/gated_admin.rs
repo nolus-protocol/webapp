@@ -9,7 +9,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 use crate::config_store::gated_types::{
     AdminCurrencyResponse, AdminNetworkResponse, AdminProtocolResponse,
@@ -35,7 +35,13 @@ pub async fn list_currencies(
     debug!("Admin: listing all currencies with enrichment status");
 
     // Load config and ETL data
-    let currency_config = state.config_store.load_currency_display().await.ok();
+    let currency_config = match state.config_store.load_currency_display().await {
+        Ok(config) => Some(config),
+        Err(e) => {
+            warn!("Failed to load currency display config: {}", e);
+            None
+        }
+    };
     let etl_currencies = state.etl_client.fetch_currencies().await?;
 
     let response: Vec<AdminCurrencyResponse> = etl_currencies
@@ -79,8 +85,20 @@ pub async fn list_protocols(
     debug!("Admin: listing all protocols with readiness status");
 
     // Load configs and ETL data
-    let currency_config = state.config_store.load_currency_display().await.ok();
-    let network_config = state.config_store.load_gated_network_config().await.ok();
+    let currency_config = match state.config_store.load_currency_display().await {
+        Ok(config) => Some(config),
+        Err(e) => {
+            warn!("Failed to load currency display config: {}", e);
+            None
+        }
+    };
+    let network_config = match state.config_store.load_gated_network_config().await {
+        Ok(config) => Some(config),
+        Err(e) => {
+            warn!("Failed to load network config: {}", e);
+            None
+        }
+    };
     let etl_protocols = state.etl_client.fetch_protocols().await?;
     let etl_currencies = state.etl_client.fetch_currencies().await?;
 
@@ -156,7 +174,13 @@ pub async fn list_networks(
     debug!("Admin: listing all networks with config status");
 
     // Load config and ETL data
-    let network_config = state.config_store.load_gated_network_config().await.ok();
+    let network_config = match state.config_store.load_gated_network_config().await {
+        Ok(config) => Some(config),
+        Err(e) => {
+            warn!("Failed to load network config: {}", e);
+            None
+        }
+    };
     let etl_protocols = state.etl_client.fetch_protocols().await?;
 
     // Get unique networks from ETL

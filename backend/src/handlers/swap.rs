@@ -187,8 +187,15 @@ pub async fn get_quote(
     let route = state.skip_client.get_route(route_request).await?;
 
     // Calculate exchange rate
-    let amount_in: f64 = query.amount.parse().unwrap_or(1.0);
-    let amount_out: f64 = route.amount_out.parse().unwrap_or(0.0);
+    let amount_in: f64 = query.amount.parse().map_err(|_| AppError::Validation {
+        message: format!("Invalid amount format: {}", query.amount),
+        field: Some("amount".to_string()),
+        details: None,
+    })?;
+    let amount_out: f64 = route.amount_out.parse().map_err(|_| AppError::ExternalApi {
+        api: "Skip".to_string(),
+        message: format!("Invalid amount_out from Skip API: {}", route.amount_out),
+    })?;
     let exchange_rate = if amount_in > 0.0 {
         format!("{:.8}", amount_out / amount_in)
     } else {
@@ -254,21 +261,21 @@ pub async fn execute_swap(
     let response = state.skip_client.get_messages(messages_request).await?;
 
     // Convert Skip messages to our format
-    let messages: Vec<SwapMessage> = response
-        .msgs
-        .into_iter()
-        .map(|m| {
-            // Parse the msg string as JSON
-            let msg_value: serde_json::Value =
-                serde_json::from_str(&m.msg).unwrap_or(serde_json::Value::Null);
+    let mut messages: Vec<SwapMessage> = Vec::with_capacity(response.msgs.len());
+    for m in response.msgs {
+        // Parse the msg string as JSON
+        let msg_value: serde_json::Value =
+            serde_json::from_str(&m.msg).map_err(|e| AppError::ExternalApi {
+                api: "Skip".to_string(),
+                message: format!("Failed to parse message JSON from Skip API: {}", e),
+            })?;
 
-            SwapMessage {
-                chain_id: m.chain_id,
-                msg_type_url: m.msg_type_url,
-                msg: msg_value,
-            }
-        })
-        .collect();
+        messages.push(SwapMessage {
+            chain_id: m.chain_id,
+            msg_type_url: m.msg_type_url,
+            msg: msg_value,
+        });
+    }
 
     Ok(Json(SwapTransactionResponse {
         messages,

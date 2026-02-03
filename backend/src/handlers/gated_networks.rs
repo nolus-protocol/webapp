@@ -13,6 +13,7 @@ use tracing::debug;
 
 use crate::cache_keys;
 use crate::error::AppError;
+use crate::handlers::common_types::CurrencyDisplayInfo;
 use crate::propagation::PropagationMerger;
 use crate::AppState;
 
@@ -88,18 +89,7 @@ pub struct PoolResponse {
     /// LPN ticker
     pub lpn: String,
     /// LPN display info
-    pub lpn_display: LpnDisplayInfo,
-}
-
-/// LPN display info
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LpnDisplayInfo {
-    pub ticker: String,
-    pub icon: String,
-    #[serde(rename = "displayName")]
-    pub display_name: String,
-    #[serde(rename = "shortName")]
-    pub short_name: String,
+    pub lpn_display: CurrencyDisplayInfo,
 }
 
 /// Response for network pools
@@ -267,7 +257,7 @@ pub async fn get_network_pools(
                 .unwrap_or(false)
         })
         .filter_map(|p| {
-            let lpn_display = currency_config.currencies.get(&p.lpn_symbol)?;
+            let lpn_display_config = currency_config.currencies.get(&p.lpn_symbol)?;
             let pool_data = pool_map.get(p.name.as_str());
 
             Some(PoolResponse {
@@ -280,15 +270,11 @@ pub async fn get_network_pools(
                 total_borrowed: pool_data.and_then(|pd| pd.total_borrowed.clone()),
                 borrow_apr: pool_data.and_then(|pd| pd.borrow_apr.clone()),
                 lpn: p.lpn_symbol.clone(),
-                lpn_display: LpnDisplayInfo {
-                    ticker: p.lpn_symbol.clone(),
-                    icon: lpn_display.icon.clone(),
-                    display_name: lpn_display.display_name.clone(),
-                    short_name: lpn_display
-                        .short_name
-                        .clone()
-                        .unwrap_or_else(|| p.lpn_symbol.clone()),
-                },
+                lpn_display: CurrencyDisplayInfo::from_config(
+                    &p.lpn_symbol,
+                    lpn_display_config,
+                    &p.lpn_symbol,
+                ),
             })
         })
         .collect();

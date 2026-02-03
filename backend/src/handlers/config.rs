@@ -11,6 +11,7 @@ use tracing::debug;
 use crate::cache_keys;
 use crate::error::AppError;
 use crate::external::etl::EtlProtocol;
+use crate::handlers::common_types::ProtocolContracts;
 use crate::AppState;
 
 /// Full application config response
@@ -34,15 +35,6 @@ pub struct ProtocolInfo {
     pub is_active: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProtocolContracts {
-    pub oracle: Option<String>,
-    pub lpp: Option<String>,
-    pub leaser: Option<String>,
-    pub profit: Option<String>,
-    pub reserve: Option<String>,
-}
-
 impl From<EtlProtocol> for ProtocolInfo {
     fn from(etl: EtlProtocol) -> Self {
         // Clean up dex field - ETL returns it with quotes like "\"Osmosis\""
@@ -54,13 +46,7 @@ impl From<EtlProtocol> for ProtocolInfo {
             dex,
             lpn: etl.lpn_symbol,
             position_type: etl.position_type.to_lowercase(),
-            contracts: ProtocolContracts {
-                oracle: etl.contracts.oracle,
-                lpp: etl.contracts.lpp,
-                leaser: etl.contracts.leaser,
-                profit: etl.contracts.profit,
-                reserve: etl.contracts.reserve,
-            },
+            contracts: ProtocolContracts::from(&etl.contracts),
             is_active: etl.is_active,
         }
     }

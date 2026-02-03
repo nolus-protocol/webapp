@@ -13,7 +13,7 @@ use std::sync::Arc;
 use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
 use reqwest::Client;
 use serde::Deserialize;
-use tracing::debug;
+use tracing::{debug, warn};
 
 use crate::AppState;
 
@@ -239,11 +239,11 @@ pub async fn batch_stats_overview(
             );
 
             let response = StatsOverviewBatch {
-                tvl: tvl.ok(),
-                tx_volume: tx_volume.ok(),
-                buyback_total: buyback_total.ok(),
-                realized_pnl_stats: realized_pnl_stats.ok(),
-                revenue: revenue.ok(),
+                tvl: ok_or_warn(tvl, "total-value-locked"),
+                tx_volume: ok_or_warn(tx_volume, "total-tx-value"),
+                buyback_total: ok_or_warn(buyback_total, "buyback-total"),
+                realized_pnl_stats: ok_or_warn(realized_pnl_stats, "realized-pnl-stats"),
+                revenue: ok_or_warn(revenue, "revenue"),
             };
 
             serde_json::to_value(response)
@@ -285,8 +285,8 @@ pub async fn batch_loans_stats(
             );
 
             let response = LoansStatsBatch {
-                open_position_value: open_position_value.ok(),
-                open_interest: open_interest.ok(),
+                open_position_value: ok_or_warn(open_position_value, "open-position-value"),
+                open_interest: ok_or_warn(open_interest, "open-interest"),
             };
 
             serde_json::to_value(response)
@@ -329,9 +329,9 @@ pub async fn batch_user_dashboard(
     );
 
     let response = UserDashboardBatch {
-        earnings: earnings.ok(),
-        realized_pnl: realized_pnl.ok(),
-        position_debt_value: position_debt_value.ok(),
+        earnings: ok_or_warn(earnings, "earnings"),
+        realized_pnl: ok_or_warn(realized_pnl, "realized-pnl"),
+        position_debt_value: ok_or_warn(position_debt_value, "position-debt-value"),
     };
 
     Ok(Json(response))
@@ -362,8 +362,8 @@ pub async fn batch_user_history(
     );
 
     let response = UserHistoryBatch {
-        history_stats: history_stats.ok(),
-        realized_pnl_data: realized_pnl_data.ok(),
+        history_stats: ok_or_warn(history_stats, "history-stats"),
+        realized_pnl_data: ok_or_warn(realized_pnl_data, "realized-pnl-data"),
     };
 
     Ok(Json(response))
@@ -384,6 +384,17 @@ pub async fn fetch_json(client: &Client, url: &str) -> Result<serde_json::Value,
         .json()
         .await
         .map_err(|e| e.to_string())
+}
+
+/// Convert Result to Option with warning log on error
+fn ok_or_warn<T>(result: Result<T, String>, endpoint: &str) -> Option<T> {
+    match result {
+        Ok(v) => Some(v),
+        Err(e) => {
+            warn!("ETL batch fetch failed for {}: {}", endpoint, e);
+            None
+        }
+    }
 }
 
 /// Internal helper to make POST request to ETL API and return response

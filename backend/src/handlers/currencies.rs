@@ -10,7 +10,7 @@ use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 use crate::cache_keys;
 use crate::error::AppError;
@@ -416,7 +416,13 @@ pub async fn get_balances(
             }
 
             // Calculate USD value
-            let amount_f64: f64 = bank_balance.amount.parse().unwrap_or(0.0);
+            let amount_f64: f64 = bank_balance.amount.parse().unwrap_or_else(|_| {
+                warn!(
+                    "Failed to parse balance amount for {}: {}",
+                    currency.ticker, bank_balance.amount
+                );
+                0.0
+            });
             let decimal_factor = 10_f64.powi(currency.decimal_digits as i32);
             let human_amount = amount_f64 / decimal_factor;
 

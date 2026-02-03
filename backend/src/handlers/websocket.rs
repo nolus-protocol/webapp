@@ -962,8 +962,20 @@ async fn fetch_prices(state: &AppState) -> Result<HashMap<String, String>, Strin
             }
 
             // Calculate price ratio
-            let amount: f64 = price.amount.amount.parse().unwrap_or(1.0);
-            let quote: f64 = price.amount_quote.amount.parse().unwrap_or(0.0);
+            let amount: f64 = price.amount.amount.parse().unwrap_or_else(|_| {
+                warn!(
+                    "Failed to parse price amount for {}: {}",
+                    price.amount.ticker, price.amount.amount
+                );
+                1.0
+            });
+            let quote: f64 = price.amount_quote.amount.parse().unwrap_or_else(|_| {
+                warn!(
+                    "Failed to parse price quote for {}: {}",
+                    price.amount.ticker, price.amount_quote.amount
+                );
+                0.0
+            });
             if amount > 0.0 {
                 let price_val = quote / amount;
                 prices.insert(price.amount.ticker, format!("{:.6}", price_val));

@@ -194,11 +194,6 @@ impl UserDataFilterContext {
     pub fn is_price_visible(&self, ticker: &str) -> bool {
         self.configured_currencies.contains(ticker)
     }
-
-    /// Get list of configured protocol names
-    pub fn get_configured_protocol_names(&self) -> Vec<String> {
-        self.configured_protocols.keys().cloned().collect()
-    }
 }
 
 #[cfg(test)]

@@ -1,4 +1,5 @@
 pub mod admin;
+pub mod common_types;
 pub mod config;
 pub mod currencies;
 pub mod earn;

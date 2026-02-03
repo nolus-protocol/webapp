@@ -16,7 +16,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 use crate::error::AppError;
 use crate::external::chain::{ClosingLeaseInfo, LeaseStatusResponse, OpenedLeaseInfo};
@@ -903,24 +903,32 @@ fn build_empty_debt(ticker: &str) -> LeaseDebtInfo {
     }
 }
 
+/// Parse amount string to u128 with warning on failure
+fn parse_amount(amount: &str, field_name: &str) -> u128 {
+    amount.parse().unwrap_or_else(|_| {
+        warn!("Failed to parse {} amount: {}", field_name, amount);
+        0
+    })
+}
+
 fn calculate_total_debt(opened: &OpenedLeaseInfo) -> String {
     // Parse all amounts and sum them
-    let principal: u128 = opened.principal_due.amount.parse().unwrap_or(0);
-    let overdue_margin: u128 = opened.overdue_margin.amount.parse().unwrap_or(0);
-    let overdue_interest: u128 = opened.overdue_interest.amount.parse().unwrap_or(0);
-    let due_margin: u128 = opened.due_margin.amount.parse().unwrap_or(0);
-    let due_interest: u128 = opened.due_interest.amount.parse().unwrap_or(0);
+    let principal = parse_amount(&opened.principal_due.amount, "principal_due");
+    let overdue_margin = parse_amount(&opened.overdue_margin.amount, "overdue_margin");
+    let overdue_interest = parse_amount(&opened.overdue_interest.amount, "overdue_interest");
+    let due_margin = parse_amount(&opened.due_margin.amount, "due_margin");
+    let due_interest = parse_amount(&opened.due_interest.amount, "due_interest");
 
     let total = principal + overdue_margin + overdue_interest + due_margin + due_interest;
     total.to_string()
 }
 
 fn calculate_total_debt_from_closing(closing: &ClosingLeaseInfo) -> String {
-    let principal: u128 = closing.principal_due.amount.parse().unwrap_or(0);
-    let overdue_margin: u128 = closing.overdue_margin.amount.parse().unwrap_or(0);
-    let overdue_interest: u128 = closing.overdue_interest.amount.parse().unwrap_or(0);
-    let due_margin: u128 = closing.due_margin.amount.parse().unwrap_or(0);
-    let due_interest: u128 = closing.due_interest.amount.parse().unwrap_or(0);
+    let principal = parse_amount(&closing.principal_due.amount, "principal_due");
+    let overdue_margin = parse_amount(&closing.overdue_margin.amount, "overdue_margin");
+    let overdue_interest = parse_amount(&closing.overdue_interest.amount, "overdue_interest");
+    let due_margin = parse_amount(&closing.due_margin.amount, "due_margin");
+    let due_interest = parse_amount(&closing.due_interest.amount, "due_interest");
 
     let total = principal + overdue_margin + overdue_interest + due_margin + due_interest;
     total.to_string()

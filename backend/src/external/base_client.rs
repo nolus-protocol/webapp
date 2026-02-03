@@ -111,29 +111,6 @@ pub trait ExternalApiClient: Send + Sync {
         self.handle_response(response, endpoint).await
     }
 
-    /// Make a GET request with optional query parameters (skips None values)
-    #[allow(dead_code)]
-    async fn get_with_optional_query<T: DeserializeOwned>(
-        &self,
-        endpoint: &str,
-        params: &[(&str, Option<&str>)],
-    ) -> Result<T, AppError> {
-        let url = self.build_url_with_optional_query(endpoint, params);
-        debug!("{}: GET {}", self.api_name(), url);
-
-        let mut request = self.client().get(&url);
-        if let Some(token) = self.bearer_token() {
-            request = request.bearer_auth(token);
-        }
-
-        let response = request
-            .send()
-            .await
-            .map_err(|e| self.request_error(endpoint, e))?;
-
-        self.handle_response(response, endpoint).await
-    }
-
     // ========================================================================
     // POST Requests
     // ========================================================================
@@ -160,50 +137,9 @@ pub trait ExternalApiClient: Send + Sync {
         self.handle_response(response, endpoint).await
     }
 
-    /// Make a POST request without expecting a response body
-    #[allow(dead_code)]
-    async fn post_no_response<B: Serialize + Send + Sync>(
-        &self,
-        endpoint: &str,
-        body: &B,
-    ) -> Result<(), AppError> {
-        let url = self.build_url(endpoint);
-        debug!("{}: POST {}", self.api_name(), url);
-
-        let mut request = self.client().post(&url).json(body);
-        if let Some(token) = self.bearer_token() {
-            request = request.bearer_auth(token);
-        }
-
-        let response = request
-            .send()
-            .await
-            .map_err(|e| self.request_error(endpoint, e))?;
-
-        self.check_status(response, endpoint).await?;
-        Ok(())
-    }
-
     // ========================================================================
     // Raw Response Methods (for special handling)
     // ========================================================================
-
-    /// Make a GET request and return the raw response for custom handling
-    #[allow(dead_code)]
-    async fn get_raw(&self, endpoint: &str) -> Result<Response, AppError> {
-        let url = self.build_url(endpoint);
-        debug!("{}: GET {} (raw)", self.api_name(), url);
-
-        let mut request = self.client().get(&url);
-        if let Some(token) = self.bearer_token() {
-            request = request.bearer_auth(token);
-        }
-
-        request
-            .send()
-            .await
-            .map_err(|e| self.request_error(endpoint, e))
-    }
 
     /// Make a POST request and return the raw response for custom handling
     async fn post_raw<B: Serialize + Send + Sync>(
@@ -239,25 +175,6 @@ pub trait ExternalApiClient: Send + Sync {
         let query: Vec<String> = params
             .iter()
             .map(|(k, v)| format!("{}={}", k, urlencoding::encode(v)))
-            .collect();
-
-        if query.is_empty() {
-            self.build_url(endpoint)
-        } else {
-            format!("{}?{}", self.build_url(endpoint), query.join("&"))
-        }
-    }
-
-    /// Build a URL with optional query parameters
-    #[allow(dead_code)]
-    fn build_url_with_optional_query(
-        &self,
-        endpoint: &str,
-        params: &[(&str, Option<&str>)],
-    ) -> String {
-        let query: Vec<String> = params
-            .iter()
-            .filter_map(|(k, v)| v.map(|val| format!("{}={}", k, urlencoding::encode(val))))
             .collect();
 
         if query.is_empty() {
@@ -423,21 +340,6 @@ mod tests {
         let url = client.build_url_with_query("search", &[("q", "test"), ("limit", "10")]);
         assert!(url.contains("q=test"));
         assert!(url.contains("limit=10"));
-    }
-
-    #[test]
-    fn test_build_url_with_optional_query() {
-        let client = TestClient {
-            base_url: "https://api.example.com".to_string(),
-            bearer_token: None,
-        };
-        let url = client.build_url_with_optional_query(
-            "search",
-            &[("q", Some("test")), ("filter", None), ("limit", Some("10"))],
-        );
-        assert!(url.contains("q=test"));
-        assert!(url.contains("limit=10"));
-        assert!(!url.contains("filter"));
     }
 
     #[test]

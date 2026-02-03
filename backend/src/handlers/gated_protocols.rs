@@ -14,6 +14,7 @@ use tracing::debug;
 
 use crate::cache_keys;
 use crate::error::AppError;
+use crate::handlers::common_types::{CurrencyDisplayInfo, ProtocolContracts};
 use crate::handlers::currencies::get_prices;
 use crate::propagation::PropagationFilter;
 use crate::AppState;
@@ -35,34 +36,6 @@ pub struct ProtocolResponse {
     pub lpn_display: CurrencyDisplayInfo,
     /// Contract addresses
     pub contracts: ProtocolContracts,
-}
-
-/// Currency display info
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CurrencyDisplayInfo {
-    pub ticker: String,
-    pub icon: String,
-    #[serde(rename = "displayName")]
-    pub display_name: String,
-    #[serde(rename = "shortName")]
-    pub short_name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub color: Option<String>,
-}
-
-/// Protocol contract addresses
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProtocolContracts {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub leaser: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lpp: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub oracle: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub profit: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reserve: Option<String>,
 }
 
 /// Response for all protocols
@@ -179,13 +152,7 @@ async fn fetch_protocols_internal(state: Arc<AppState>) -> Result<serde_json::Va
                         .unwrap_or_else(|| p.lpn_symbol.clone()),
                     color: lpn_display.color.clone(),
                 },
-                contracts: ProtocolContracts {
-                    leaser: p.contracts.leaser.clone(),
-                    lpp: p.contracts.lpp.clone(),
-                    oracle: p.contracts.oracle.clone(),
-                    profit: p.contracts.profit.clone(),
-                    reserve: p.contracts.reserve.clone(),
-                },
+                contracts: ProtocolContracts::from(&p.contracts),
             })
         })
         .collect();
@@ -351,13 +318,7 @@ pub async fn get_network_protocols(
                         .unwrap_or_else(|| p.lpn_symbol.clone()),
                     color: lpn_display.color.clone(),
                 },
-                contracts: ProtocolContracts {
-                    leaser: p.contracts.leaser.clone(),
-                    lpp: p.contracts.lpp.clone(),
-                    oracle: p.contracts.oracle.clone(),
-                    profit: p.contracts.profit.clone(),
-                    reserve: p.contracts.reserve.clone(),
-                },
+                contracts: ProtocolContracts::from(&p.contracts),
             })
         })
         .collect();
