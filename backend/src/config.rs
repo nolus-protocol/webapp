@@ -1,9 +1,7 @@
 use serde::Deserialize;
 use std::env;
-use std::fs;
-use std::path::Path;
 use thiserror::Error;
-use tracing::{info, warn};
+use tracing::warn;
 
 // ============================================================================
 // Configuration Errors
@@ -45,64 +43,6 @@ impl ValidationResult {
 
     pub fn has_warnings(&self) -> bool {
         !self.warnings.is_empty()
-    }
-}
-
-// ============================================================================
-// Endpoints Config File Structure
-// ============================================================================
-
-/// Structure for parsing endpoints config files (e.g., config/endpoints/pirin.json)
-#[derive(Debug, Clone, Deserialize)]
-pub struct EndpointsConfigFile {
-    #[serde(rename = "NOLUS")]
-    pub nolus: Option<NetworkEndpoints>,
-    #[serde(rename = "OSMOSIS")]
-    pub osmosis: Option<NetworkEndpoints>,
-    #[serde(rename = "NEUTRON")]
-    pub neutron: Option<NetworkEndpoints>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct NetworkEndpoints {
-    pub primary: EndpointPair,
-    /// Fallback endpoints from config file (reserved for future use)
-    #[serde(default)]
-    #[allow(dead_code)]
-    pub fallback: Vec<EndpointPair>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct EndpointPair {
-    pub rpc: String,
-    pub api: String,
-}
-
-impl EndpointsConfigFile {
-    /// Load endpoints from a config file
-    pub fn load_from_file(path: &Path) -> anyhow::Result<Self> {
-        let content = fs::read_to_string(path)?;
-        let config: Self = serde_json::from_str(&content)?;
-        Ok(config)
-    }
-
-    /// Try to load endpoints from the default config path
-    pub fn load_default() -> Option<Self> {
-        let config_path = Path::new("./config/endpoints/pirin.json");
-        if config_path.exists() {
-            match Self::load_from_file(config_path) {
-                Ok(config) => {
-                    info!("Loaded endpoints from {}", config_path.display());
-                    Some(config)
-                }
-                Err(e) => {
-                    warn!("Failed to parse endpoints config file: {}", e);
-                    None
-                }
-            }
-        } else {
-            None
-        }
     }
 }
 
@@ -378,76 +318,27 @@ impl AppConfig {
         Ok(())
     }
 
-    /// Helper to get endpoint from config file, env var, or fail
-    /// Priority: 1. Environment variable, 2. Config file, 3. Fail
-    fn get_required_endpoint(
-        env_var: &str,
-        config_value: Option<&str>,
-        field_name: &str,
-    ) -> anyhow::Result<String> {
-        // First check environment variable
-        if let Ok(value) = env::var(env_var) {
-            if !value.is_empty() {
-                return Ok(value);
-            }
+    /// Helper to get required env var or fail fast
+    fn get_required_env(env_var: &str, field_name: &str) -> anyhow::Result<String> {
+        match env::var(env_var) {
+            Ok(value) if !value.is_empty() => Ok(value),
+            _ => anyhow::bail!(
+                "Missing required configuration: {} (set {} env var)",
+                field_name,
+                env_var
+            ),
         }
-
-        // Then check config file value
-        if let Some(value) = config_value {
-            if !value.is_empty() {
-                return Ok(value.to_string());
-            }
-        }
-
-        // Neither set - fail fast
-        anyhow::bail!(
-            "Missing required endpoint: {} (set {} env var or configure in config/endpoints/pirin.json)",
-            field_name,
-            env_var
-        )
     }
 
-    /// Load configuration from config files and environment variables
-    /// Priority: 1. Environment variable, 2. Config file, 3. Fail for required fields
+    /// Load configuration from environment variables
+    /// All required endpoints must be set via environment variables
     pub fn load() -> anyhow::Result<Self> {
-        // Try to load endpoints from config file
-        let endpoints_config = EndpointsConfigFile::load_default();
-
-        // Extract endpoints from config file if available
-        let nolus_rpc_from_config = endpoints_config
-            .as_ref()
-            .and_then(|c| c.nolus.as_ref())
-            .map(|n| n.primary.rpc.as_str());
-        let nolus_rest_from_config = endpoints_config
-            .as_ref()
-            .and_then(|c| c.nolus.as_ref())
-            .map(|n| n.primary.api.as_str());
-        let osmosis_rpc_from_config = endpoints_config
-            .as_ref()
-            .and_then(|c| c.osmosis.as_ref())
-            .map(|n| n.primary.rpc.as_str());
-        let neutron_rpc_from_config = endpoints_config
-            .as_ref()
-            .and_then(|c| c.neutron.as_ref())
-            .map(|n| n.primary.rpc.as_str());
-
         // Load required endpoints (fail fast if not configured)
-        let nolus_rpc_url =
-            Self::get_required_endpoint("NOLUS_RPC_URL", nolus_rpc_from_config, "Nolus RPC")?;
-        let nolus_rest_url =
-            Self::get_required_endpoint("NOLUS_REST_URL", nolus_rest_from_config, "Nolus REST")?;
-        let osmosis_rpc_url =
-            Self::get_required_endpoint("OSMOSIS_RPC_URL", osmosis_rpc_from_config, "Osmosis RPC")?;
-        let neutron_rpc_url =
-            Self::get_required_endpoint("NEUTRON_RPC_URL", neutron_rpc_from_config, "Neutron RPC")?;
-
-        // ETL API URL - required, check env var first, then fail
-        let etl_api_url = env::var("ETL_API_URL").unwrap_or_else(|_| String::new());
-        if etl_api_url.is_empty() {
-            anyhow::bail!(
-                "Missing required configuration: ETL_API_URL (set ETL_API_URL env var)"
-            );
-        }
+        let nolus_rpc_url = Self::get_required_env("NOLUS_RPC_URL", "Nolus RPC")?;
+        let nolus_rest_url = Self::get_required_env("NOLUS_REST_URL", "Nolus REST")?;
+        let osmosis_rpc_url = Self::get_required_env("OSMOSIS_RPC_URL", "Osmosis RPC")?;
+        let neutron_rpc_url = Self::get_required_env("NEUTRON_RPC_URL", "Neutron RPC")?;
+        let etl_api_url = Self::get_required_env("ETL_API_URL", "ETL API")?;
 
         let external = ExternalApiConfig {
             // Unauthenticated
@@ -664,39 +555,22 @@ mod tests {
     // ========================================================================
 
     #[test]
-    fn test_get_required_endpoint_from_env() {
-        // This test verifies the priority: env var > config file
-        let result = AppConfig::get_required_endpoint(
-            "PATH", // PATH is always set
-            Some("config_value"),
-            "test",
-        );
+    fn test_get_required_env_from_env() {
+        // PATH is always set on Unix systems
+        let result = AppConfig::get_required_env("PATH", "test");
         assert!(result.is_ok());
-        // Should use env var, not config value
         assert!(!result.unwrap().is_empty());
     }
 
     #[test]
-    fn test_get_required_endpoint_from_config() {
-        let result = AppConfig::get_required_endpoint(
+    fn test_get_required_env_fails_when_missing() {
+        let result = AppConfig::get_required_env(
             "NONEXISTENT_ENV_VAR_12345",
-            Some("https://example.com"),
-            "test",
-        );
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap(), "https://example.com");
-    }
-
-    #[test]
-    fn test_get_required_endpoint_fails_when_missing() {
-        let result = AppConfig::get_required_endpoint(
-            "NONEXISTENT_ENV_VAR_12345",
-            None,
             "Test Endpoint",
         );
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("Missing required endpoint"));
+        assert!(err.contains("Missing required configuration"));
         assert!(err.contains("Test Endpoint"));
     }
 
