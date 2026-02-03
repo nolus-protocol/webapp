@@ -83,12 +83,9 @@ pub struct ExternalApiConfig {
     pub skip_api_url: String,
     pub skip_api_key: Option<String>,
 
-    // Chain RPCs & REST
+    // Chain RPCs & REST (only Nolus required - all contracts are on Nolus)
     pub nolus_rpc_url: String,
     pub nolus_rest_url: String,
-    pub osmosis_rpc_url: String,
-    pub neutron_rpc_url: String,
-    pub solana_rpc_url: Option<String>,
 
     // Authenticated APIs - Referral
     pub referral_api_url: String,
@@ -331,13 +328,12 @@ impl AppConfig {
     }
 
     /// Load configuration from environment variables
-    /// All required endpoints must be set via environment variables
+    /// Only Nolus endpoints and ETL URL are required to start
     pub fn load() -> anyhow::Result<Self> {
         // Load required endpoints (fail fast if not configured)
+        // Only Nolus chain is required - all contracts (Admin, Oracle, Leaser, etc.) are on Nolus
         let nolus_rpc_url = Self::get_required_env("NOLUS_RPC_URL", "Nolus RPC")?;
         let nolus_rest_url = Self::get_required_env("NOLUS_REST_URL", "Nolus REST")?;
-        let osmosis_rpc_url = Self::get_required_env("OSMOSIS_RPC_URL", "Osmosis RPC")?;
-        let neutron_rpc_url = Self::get_required_env("NEUTRON_RPC_URL", "Neutron RPC")?;
         let etl_api_url = Self::get_required_env("ETL_API_URL", "ETL API")?;
 
         let external = ExternalApiConfig {
@@ -347,12 +343,9 @@ impl AppConfig {
                 .unwrap_or_else(|_| "https://api.skip.money".to_string()),
             skip_api_key: env::var("SKIP_API_KEY").ok(),
 
-            // Chain RPCs & REST (loaded above with fail-fast)
+            // Chain RPCs & REST (only Nolus required)
             nolus_rpc_url,
             nolus_rest_url,
-            osmosis_rpc_url,
-            neutron_rpc_url,
-            solana_rpc_url: env::var("SOLANA_RPC_URL").ok(),
 
             // Authenticated - Referral
             referral_api_url: env::var("REFERRAL_API_URL").unwrap_or_else(|_| String::new()),
@@ -447,9 +440,6 @@ mod tests {
                 skip_api_key: None,
                 nolus_rpc_url: "https://rpc.nolus.network".to_string(),
                 nolus_rest_url: "https://lcd.nolus.network".to_string(),
-                osmosis_rpc_url: "https://rpc.osmosis.zone".to_string(),
-                neutron_rpc_url: "https://rpc.neutron.org".to_string(),
-                solana_rpc_url: None,
                 referral_api_url: String::new(),
                 referral_api_token: String::new(),
                 zero_interest_api_url: String::new(),
