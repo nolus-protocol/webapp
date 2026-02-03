@@ -64,12 +64,12 @@ import type {
   DenomMetadataInfo,
   NodeInfoResponse,
   NetworkStatusResponse,
+  GatedNetworksResponse,
   // Webapp
   WebappCurrenciesConfig,
   WebappChainIdsConfig,
   WebappHistoryCurrenciesConfig,
   WebappHistoryProtocolsConfig,
-  WebappNetworkEndpointsConfig,
   WebappDownpaymentRange,
   WebappDueProjectionConfig,
   WebappZeroInterestAddresses,
@@ -91,7 +91,7 @@ import type {
   LeaseClosingResponse,
   LeasesSearchResponse,
   LpWithdrawResponse,
-  RealizedPnlDataResponse,
+  RealizedPnlDataResponse
 } from "./types";
 
 import { ApiError as ApiErrorClass } from "./types";
@@ -174,9 +174,11 @@ export class BackendApiClient {
       this.inFlight.set(cacheKey, fetchPromise);
       // Cleanup in-flight cache after promise settles
       // The .catch(() => {}) prevents unhandled rejection warnings from the cleanup chain
-      fetchPromise.finally(() => {
-        this.inFlight.delete(cacheKey);
-      }).catch(() => {});
+      fetchPromise
+        .finally(() => {
+          this.inFlight.delete(cacheKey);
+        })
+        .catch(() => {});
     }
 
     return fetchPromise;
@@ -192,13 +194,13 @@ export class BackendApiClient {
   ): Promise<T> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...options.headers
     };
 
     const response = await fetch(urlString, {
       method,
       headers,
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      body: options.body ? JSON.stringify(options.body) : undefined
     });
 
     if (!response.ok) {
@@ -239,7 +241,7 @@ export class BackendApiClient {
     for (const [key, info] of Object.entries(response.prices)) {
       priceData[key] = {
         price: info.price_usd,
-        symbol: info.symbol,
+        symbol: info.symbol
       };
     }
     return priceData;
@@ -247,7 +249,7 @@ export class BackendApiClient {
 
   async getBalances(address: string): Promise<BalancesResponse> {
     return this.request<BalancesResponse>("GET", "/api/balances", {
-      params: { address },
+      params: { address }
     });
   }
 
@@ -257,7 +259,7 @@ export class BackendApiClient {
 
   async getLeases(owner: string): Promise<LeaseInfo[]> {
     const response = await this.request<LeasesResponse>("GET", "/api/leases", {
-      params: { owner },
+      params: { owner }
     });
     return response.leases;
   }
@@ -268,7 +270,7 @@ export class BackendApiClient {
 
   async getLeaseHistory(address: string, skip?: number, limit?: number): Promise<LeaseHistoryEntry[]> {
     return this.request<LeaseHistoryEntry[]>("GET", `/api/leases/${address}/history`, {
-      params: { skip, limit },
+      params: { skip, limit }
     });
   }
 
@@ -286,7 +288,7 @@ export class BackendApiClient {
 
   async getEarnPositions(address: string): Promise<EarnPositionsResponse> {
     return this.request<EarnPositionsResponse>("GET", "/api/earn/positions", {
-      params: { address },
+      params: { address }
     });
   }
 
@@ -300,7 +302,7 @@ export class BackendApiClient {
 
   async getValidators(status?: string): Promise<ValidatorInfo[]> {
     return this.request<ValidatorInfo[]>("GET", "/api/staking/validators", {
-      params: { status },
+      params: { status }
     });
   }
 
@@ -310,7 +312,7 @@ export class BackendApiClient {
 
   async getStakingPositions(address: string): Promise<StakingPositionsResponse> {
     return this.request<StakingPositionsResponse>("GET", "/api/staking/positions", {
-      params: { address },
+      params: { address }
     });
   }
 
@@ -324,7 +326,7 @@ export class BackendApiClient {
 
   async getSkipChains(includeEvm = true, includeSvm = true): Promise<SkipChain[]> {
     return this.request<SkipChain[]>("GET", "/api/swap/chains", {
-      params: { include_evm: includeEvm, include_svm: includeSvm },
+      params: { include_evm: includeEvm, include_svm: includeSvm }
     });
   }
 
@@ -338,13 +340,13 @@ export class BackendApiClient {
 
   async getSkipStatus(chainId: string, txHash: string): Promise<import("./types").SkipStatusResponse> {
     return this.request("GET", `/api/swap/status/${txHash}`, {
-      params: { chain_id: chainId },
+      params: { chain_id: chainId }
     });
   }
 
   async trackSkipTransaction(chainId: string, txHash: string): Promise<SkipTrackResponse> {
     return this.request<SkipTrackResponse>("POST", "/api/swap/track", {
-      body: { chain_id: chainId, tx_hash: txHash },
+      body: { chain_id: chainId, tx_hash: txHash }
     });
   }
 
@@ -358,7 +360,7 @@ export class BackendApiClient {
 
   async registerAsReferrer(walletAddress: string): Promise<RegisterReferrerResponse> {
     return this.request<RegisterReferrerResponse>("POST", "/api/referral/register", {
-      body: { wallet_address: walletAddress },
+      body: { wallet_address: walletAddress }
     });
   }
 
@@ -371,7 +373,7 @@ export class BackendApiClient {
     options?: { status?: ReferralStatusType; limit?: number; offset?: number }
   ): Promise<ReferralsListResponse> {
     return this.request<ReferralsListResponse>("GET", `/api/referral/referrals/${walletAddress}`, {
-      params: options,
+      params: options
     });
   }
 
@@ -380,7 +382,7 @@ export class BackendApiClient {
     options?: { status?: RewardStatusType; limit?: number; offset?: number }
   ): Promise<RewardsListResponse> {
     return this.request<RewardsListResponse>("GET", `/api/referral/rewards/${walletAddress}`, {
-      params: options,
+      params: options
     });
   }
 
@@ -389,13 +391,13 @@ export class BackendApiClient {
     options?: { status?: PayoutStatusType; limit?: number; offset?: number }
   ): Promise<PayoutsListResponse> {
     return this.request<PayoutsListResponse>("GET", `/api/referral/payouts/${walletAddress}`, {
-      params: options,
+      params: options
     });
   }
 
   async assignReferral(referralCode: string, referredWallet: string): Promise<AssignReferralResponse> {
     return this.request<AssignReferralResponse>("POST", "/api/referral/assign", {
-      body: { referral_code: referralCode, referred_wallet: referredWallet },
+      body: { referral_code: referralCode, referred_wallet: referredWallet }
     });
   }
 
@@ -413,7 +415,7 @@ export class BackendApiClient {
     currency?: string
   ): Promise<CampaignEligibilityResponse> {
     return this.request<CampaignEligibilityResponse>("GET", "/api/campaigns/eligibility", {
-      params: { wallet, protocol, currency },
+      params: { wallet, protocol, currency }
     });
   }
 
@@ -423,7 +425,7 @@ export class BackendApiClient {
 
   async getProposals(limit?: number, voter?: string): Promise<ProposalsResponse> {
     return this.request<ProposalsResponse>("GET", "/api/governance/proposals", {
-      params: { limit, voter },
+      params: { limit, voter }
     });
   }
 
@@ -471,6 +473,14 @@ export class BackendApiClient {
   }
 
   // =========================================================================
+  // Gated Networks
+  // =========================================================================
+
+  async getGatedNetworks(): Promise<GatedNetworksResponse> {
+    return this.request<GatedNetworksResponse>("GET", "/api/networks/gated");
+  }
+
+  // =========================================================================
   // Webapp Configuration
   // =========================================================================
 
@@ -488,10 +498,6 @@ export class BackendApiClient {
 
   async getWebappHistoryProtocols(): Promise<WebappHistoryProtocolsConfig> {
     return this.request<WebappHistoryProtocolsConfig>("GET", "/api/webapp/config/history-protocols");
-  }
-
-  async getWebappNetworkEndpoints(network: string): Promise<WebappNetworkEndpointsConfig> {
-    return this.request<WebappNetworkEndpointsConfig>("GET", `/api/webapp/config/endpoints/${network}`);
   }
 
   async getWebappDownpaymentRangeForProtocol(protocol: string): Promise<WebappDownpaymentRange> {
@@ -557,7 +563,7 @@ export class BackendApiClient {
    */
   async getUserDashboard(address: string): Promise<UserDashboardBatchResponse> {
     return this.request<UserDashboardBatchResponse>("GET", "/api/etl/batch/user-dashboard", {
-      params: { address },
+      params: { address }
     });
   }
 
@@ -566,7 +572,7 @@ export class BackendApiClient {
    */
   async getUserHistory(address: string): Promise<UserHistoryBatchResponse> {
     return this.request<UserHistoryBatchResponse>("GET", "/api/etl/batch/user-history", {
-      params: { address },
+      params: { address }
     });
   }
 
@@ -619,13 +625,9 @@ export class BackendApiClient {
   /**
    * Fetch price series for charting
    */
-  async getPriceSeries(
-    key: string,
-    protocol: string,
-    interval: string
-  ): Promise<PriceSeriesResponse> {
+  async getPriceSeries(key: string, protocol: string, interval: string): Promise<PriceSeriesResponse> {
     return this.request<PriceSeriesResponse>("GET", "/api/etl/prices", {
-      params: { key, protocol, interval },
+      params: { key, protocol, interval }
     });
   }
 
@@ -634,7 +636,7 @@ export class BackendApiClient {
    */
   async getPnlOverTime(address: string, interval: string): Promise<PnlOverTimeResponse> {
     return this.request<PnlOverTimeResponse>("GET", "/api/etl/pnl-over-time", {
-      params: { address, interval },
+      params: { address, interval }
     });
   }
 
@@ -657,7 +659,7 @@ export class BackendApiClient {
    */
   async getSupplyBorrowHistory(period?: string): Promise<TimeSeriesResponse> {
     return this.request<TimeSeriesResponse>("GET", "/api/etl/supplied-borrowed-history", {
-      params: period ? { period } : undefined,
+      params: period ? { period } : undefined
     });
   }
 
@@ -666,7 +668,7 @@ export class BackendApiClient {
    */
   async getLeaseOpening(leaseAddress: string): Promise<LeaseOpeningResponse> {
     return this.request<LeaseOpeningResponse>("GET", "/api/etl/ls-opening", {
-      params: { lease: leaseAddress },
+      params: { lease: leaseAddress }
     });
   }
 
@@ -710,7 +712,7 @@ export class BackendApiClient {
    */
   async getPnlLog(address: string, skip: number = 0, limit: number = 10): Promise<LeaseClosingResponse> {
     return this.request<LeaseClosingResponse>("GET", "/api/etl/ls-loan-closing", {
-      params: { address, skip, limit },
+      params: { address, skip, limit }
     });
   }
 
@@ -719,7 +721,7 @@ export class BackendApiClient {
    */
   async getLpWithdraw(txHash: string): Promise<LpWithdrawResponse> {
     return this.request<LpWithdrawResponse>("GET", "/api/etl/lp-withdraw", {
-      params: { tx_hash: txHash },
+      params: { tx_hash: txHash }
     });
   }
 }

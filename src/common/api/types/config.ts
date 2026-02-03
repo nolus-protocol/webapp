@@ -96,3 +96,28 @@ export interface ContractsInfo {
   admin: string;
   dispatcher: string;
 }
+
+/**
+ * Gated network info from /api/networks/gated
+ * Matches backend GatedNetworkInfo
+ */
+export interface GatedNetworkInfo {
+  network: string;
+  name: string;
+  chain_id: string;
+  prefix: string;
+  rpc: string;
+  lcd: string;
+  fallback_rpc?: string[];
+  fallback_lcd?: string[];
+  gas_price: string;
+  explorer: string;
+  icon: string;
+  primaryProtocol?: string;
+  estimation?: number;
+}
+
+export interface GatedNetworksResponse {
+  networks: GatedNetworkInfo[];
+  count: number;
+}

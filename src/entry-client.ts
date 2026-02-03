@@ -20,7 +20,8 @@ const { app, router } = createApp();
 
 async function bootstrap() {
   // Initialize NolusClient with RPC endpoint (still needed for wallet signing)
-  const rpc = (await fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
+  const endpoints = await fetchEndpoints(ChainConstants.CHAIN_KEY);
+  const rpc = endpoints.rpc;
   NolusClient.setInstance(rpc);
 
   // Mount the app first
@@ -42,17 +43,13 @@ async function bootstrap() {
     () => walletStore.wallet?.address,
     async (newAddress, oldAddress) => {
       if (newAddress && newAddress !== oldAddress) {
-        console.log("[App] Wallet connected:", newAddress);
         await connectionStore.connectWallet(newAddress);
       } else if (!newAddress && oldAddress) {
-        console.log("[App] Wallet disconnected");
         connectionStore.disconnectWallet();
       }
     },
     { immediate: true }
   );
-
-  console.log("[App] Initialized successfully");
 }
 
 router

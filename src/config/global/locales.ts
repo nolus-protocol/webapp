@@ -1,8 +1,19 @@
-import { BackendApi } from "@/common/api";
+// Load locale files directly from backend config (single source of truth)
+// Uses dynamic imports for code-splitting - only loads locale when needed
+// Path is relative to project root for import.meta.glob
+const localeModules = import.meta.glob("/backend/config/locales/active/*.json");
 
-// Load locale from backend API
-const loadLocale = (lang: string) => () =>
-  BackendApi.getWebappLocale(lang) as Promise<Record<string, unknown>>;
+// Helper to load a locale, returns empty object if not found
+const loadLocale = (lang: string) => async (): Promise<Record<string, unknown>> => {
+  const path = `/backend/config/locales/active/${lang}.json`;
+  const loader = localeModules[path];
+  if (loader) {
+    const module = (await loader()) as { default: Record<string, unknown> };
+    return module.default;
+  }
+  // Locale not found - return empty, will fall back to default locale
+  return {};
+};
 
 const languages: {
   [key: string]: {
@@ -20,7 +31,7 @@ const languages: {
   tr: { key: "tr", label: "Türkçe", load: loadLocale("tr") },
   id: { key: "id", label: "Bahasa Indo", load: loadLocale("id") },
   jp: { key: "jp", label: "日本語", load: loadLocale("jp") },
-  kr: { key: "kr", label: "한국어", load: loadLocale("kr") },
+  kr: { key: "kr", label: "한국어", load: loadLocale("kr") }
 };
 
 export { languages };

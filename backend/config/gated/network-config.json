@@ -3,10 +3,10 @@
     "name": "Nolus",
     "chain_id": "pirin-1",
     "prefix": "nolus",
-    "rpc": "https://pirin-cl.nolus.network:26657",
-    "lcd": "https://pirin-cl.nolus.network:1317",
-    "fallback_rpc": [],
-    "fallback_lcd": [],
+    "rpc": "https://rpc.nolus.network",
+    "lcd": "https://lcd.nolus.network",
+    "fallback_rpc": ["https://pirin-cl.nolus.network:26657"],
+    "fallback_lcd": ["https://pirin-cl.nolus.network:1317"],
     "gas_price": "0.0025unls",
     "explorer": "https://explorer.nolus.io",
     "icon": "/icons/networks/nolus.svg",
@@ -18,14 +18,8 @@
     "prefix": "osmo",
     "rpc": "https://rpc.osmosis.zone",
     "lcd": "https://lcd.osmosis.zone",
-    "fallback_rpc": [
-      "https://rpc-osmosis.blockapsis.com",
-      "https://osmosis-rpc.polkachu.com"
-    ],
-    "fallback_lcd": [
-      "https://lcd-osmosis.blockapsis.com",
-      "https://osmosis-api.polkachu.com"
-    ],
+    "fallback_rpc": ["https://rpc-osmosis.blockapsis.com", "https://osmosis-rpc.polkachu.com"],
+    "fallback_lcd": ["https://lcd-osmosis.blockapsis.com", "https://osmosis-api.polkachu.com"],
     "gas_price": "0.025uosmo",
     "explorer": "https://www.mintscan.io/osmosis",
     "icon": "/icons/networks/osmosis.svg",
@@ -38,12 +32,8 @@
     "prefix": "neutron",
     "rpc": "https://rpc-lb.neutron.org",
     "lcd": "https://rest-lb.neutron.org",
-    "fallback_rpc": [
-      "https://neutron-rpc.polkachu.com"
-    ],
-    "fallback_lcd": [
-      "https://neutron-api.polkachu.com"
-    ],
+    "fallback_rpc": ["https://neutron-rpc.polkachu.com"],
+    "fallback_lcd": ["https://neutron-api.polkachu.com"],
     "gas_price": "0.025untrn",
     "explorer": "https://www.mintscan.io/neutron",
     "icon": "/icons/networks/neutron.svg",
