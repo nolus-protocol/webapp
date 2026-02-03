@@ -17,6 +17,7 @@ use std::sync::Arc;
 use tracing::debug;
 
 use crate::error::AppError;
+use crate::propagation::build_filter_context;
 use crate::query_types::AddressQuery;
 use crate::AppState;
 
@@ -118,10 +119,15 @@ const INTEREST_DECIMALS: u32 = 7;
 /// GET /api/earn/pools
 /// Returns all earn pools with current APY and utilization
 /// Uses caching with request coalescing to prevent thundering herd
+///
+/// Pools are filtered based on gated configuration - only configured protocols are returned
 pub async fn get_pools(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<EarnPool>>, AppError> {
     debug!("Getting all earn pools");
+
+    // Build filter context for gated filtering
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
 
     // Use get_or_fetch to coalesce concurrent requests
     let result = state
@@ -142,7 +148,13 @@ pub async fn get_pools(
         AppError::Internal(format!("Failed to deserialize pools: {}", e))
     })?;
 
-    Ok(Json(pools))
+    // Filter pools to only configured protocols
+    let filtered_pools: Vec<EarnPool> = pools
+        .into_iter()
+        .filter(|pool| filter_ctx.is_earn_position_visible(&pool.protocol))
+        .collect();
+
+    Ok(Json(filtered_pools))
 }
 
 /// Internal function to fetch all pools (called by cache)
@@ -190,11 +202,21 @@ async fn fetch_all_pools_internal(
 
 /// GET /api/earn/pools/:protocol
 /// Returns details for a specific pool
+///
+/// Returns 404 if protocol is not configured in gated config
 pub async fn get_pool(
     State(state): State<Arc<AppState>>,
     Path(protocol): Path<String>,
 ) -> Result<Json<EarnPool>, AppError> {
     debug!("Getting pool for protocol: {}", protocol);
+
+    // Build filter context and check if protocol is configured
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+    if !filter_ctx.is_earn_position_visible(&protocol) {
+        return Err(AppError::NotFound {
+            resource: format!("Pool for protocol: {}", protocol),
+        });
+    }
 
     let etl_pools = state.etl_client.fetch_pools().await.ok();
 
@@ -205,24 +227,34 @@ pub async fn get_pool(
 
 /// GET /api/earn/positions?owner=...
 /// Returns all earn positions for an owner
+///
+/// Positions are filtered based on gated configuration - only configured protocols are returned
 pub async fn get_positions(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressQuery>,
 ) -> Result<Json<EarnPositionsResponse>, AppError> {
     debug!("Getting earn positions for owner: {}", query.address);
 
+    // Build filter context for gated filtering
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+
     let admin_address = &state.config.protocols.admin_contract;
 
-    // Get all protocols
-    let protocols = state
+    // Get all protocols and filter to configured ones
+    let all_protocols = state
         .chain_client
         .get_admin_protocols(admin_address)
         .await?;
 
+    let protocols: Vec<String> = all_protocols
+        .into_iter()
+        .filter(|p| filter_ctx.is_earn_position_visible(p))
+        .collect();
+
     // Fetch ETL pool data for APY
     let etl_pools = state.etl_client.fetch_pools().await.ok();
 
-    // Fetch all positions in parallel
+    // Fetch all positions in parallel (only for configured protocols)
     let position_futures: Vec<_> = protocols
         .iter()
         .map(|protocol| {

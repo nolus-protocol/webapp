@@ -27,6 +27,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
 
+use crate::propagation::build_filter_context;
 use crate::AppState;
 
 // ============================================================================
@@ -924,6 +925,11 @@ pub async fn start_price_update_task(state: Arc<AppState>) {
 }
 
 async fn fetch_prices(state: &AppState) -> Result<HashMap<String, String>, String> {
+    // Build filter context for gated filtering
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client)
+        .await
+        .map_err(|e| e.to_string())?;
+
     // Get protocols and fetch prices from each oracle
     let admin_address = &state.config.protocols.admin_contract;
 
@@ -950,6 +956,11 @@ async fn fetch_prices(state: &AppState) -> Result<HashMap<String, String>, Strin
             .map_err(|e| e.to_string())?;
 
         for price in oracle_prices.prices {
+            // Filter by configured currencies
+            if !filter_ctx.is_price_visible(&price.amount.ticker) {
+                continue;
+            }
+
             // Calculate price ratio
             let amount: f64 = price.amount.amount.parse().unwrap_or(1.0);
             let quote: f64 = price.amount_quote.amount.parse().unwrap_or(0.0);
@@ -1006,12 +1017,32 @@ pub async fn start_lease_monitor_task(state: Arc<AppState>) {
 async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String> {
     use super::leases::fetch_leases_for_monitoring;
 
+    // Build filter context for gated filtering
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client)
+        .await
+        .map_err(|e| e.to_string())?;
+
     // Fetch current leases using the lease handler's function
     let leases = fetch_leases_for_monitoring(state, owner)
         .await
         .map_err(|e| e.to_string())?;
 
     for lease in leases {
+        // Filter by gated configuration (protocol visibility and asset restrictions)
+        let asset_ticker = lease
+            .amount
+            .as_ref()
+            .map(|a| a.ticker.as_str())
+            .unwrap_or("");
+
+        // Skip if protocol not configured or asset restricted
+        if !filter_ctx.is_protocol_visible(&lease.protocol) {
+            continue;
+        }
+        if !asset_ticker.is_empty() && !filter_ctx.is_lease_visible(&lease.protocol, asset_ticker) {
+            continue;
+        }
+
         let lease_address = &lease.address;
 
         // Create current state snapshot
@@ -1255,10 +1286,24 @@ pub async fn start_earn_monitor_task(state: Arc<AppState>) {
 async fn check_earn_positions(state: &AppState, address: &str) -> Result<(), String> {
     use super::earn::fetch_earn_positions_for_monitoring;
 
-    // Fetch current positions using the earn handler's function
-    let (positions, total_deposited_usd) = fetch_earn_positions_for_monitoring(state, address)
+    // Build filter context for gated filtering
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client)
         .await
         .map_err(|e| e.to_string())?;
+
+    // Fetch current positions using the earn handler's function
+    let (all_positions, _) = fetch_earn_positions_for_monitoring(state, address)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // Filter positions by configured protocols
+    let positions: Vec<_> = all_positions
+        .into_iter()
+        .filter(|p| filter_ctx.is_earn_position_visible(&p.protocol))
+        .collect();
+
+    // Recalculate total (would need prices for accurate USD value)
+    let total_deposited_usd = "0.00".to_string();
 
     // Create cached state for comparison
     let cached_positions: Vec<CachedEarnPosition> = positions

@@ -5,8 +5,9 @@
 //!
 //! ## Components
 //! - `validator`: Validates config against ETL data
-//! - `filter`: Filters unconfigured/blacklisted items
+//! - `filter`: Filters unconfigured/blacklisted items from ETL data
 //! - `merger`: Merges ETL data with enrichment config
+//! - `user_data_filter`: Filters user-specific data (leases, earn, balances)
 //!
 //! ## Design Principles
 //! - **Hidden by default**: Unconfigured items never reach frontend
@@ -15,8 +16,10 @@
 
 pub mod filter;
 pub mod merger;
+pub mod user_data_filter;
 pub mod validator;
 
 pub use filter::PropagationFilter;
 pub use merger::PropagationMerger;
+pub use user_data_filter::{build_filter_context, UserDataFilterContext};
 pub use validator::PropagationValidator;

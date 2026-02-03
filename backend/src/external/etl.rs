@@ -279,6 +279,18 @@ pub struct EtlProtocolContracts {
     pub reserve: Option<String>,
 }
 
+impl Default for EtlProtocolContracts {
+    fn default() -> Self {
+        Self {
+            leaser: None,
+            lpp: None,
+            oracle: None,
+            profit: None,
+            reserve: None,
+        }
+    }
+}
+
 /// Protocol from ETL API
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EtlProtocol {

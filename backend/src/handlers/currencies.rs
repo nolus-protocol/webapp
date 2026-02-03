@@ -15,6 +15,7 @@ use tracing::{debug, error};
 use crate::cache_keys;
 use crate::error::AppError;
 use crate::handlers::config::get_config;
+use crate::propagation::build_filter_context;
 use crate::query_types::AddressQuery;
 use crate::AppState;
 
@@ -363,6 +364,10 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
 
 /// GET /api/balances?address=...
 /// Returns balances for a wallet address
+///
+/// Balances are filtered based on gated configuration:
+/// - Only balances for configured currencies are returned
+/// - Currencies in ignore_all are excluded
 pub async fn get_balances(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressQuery>,
@@ -377,6 +382,9 @@ pub async fn get_balances(
             details: None,
         });
     }
+
+    // Build filter context for gated filtering
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
 
     // Fetch balances, currencies, and prices in parallel
     let (bank_balances_result, currencies_result, prices_result) = tokio::join!(
@@ -402,6 +410,11 @@ pub async fn get_balances(
             .find(|c| c.bank_symbol == bank_balance.denom);
 
         if let Some(currency) = currency {
+            // Skip if currency is not visible (not configured or in ignore_all)
+            if !filter_ctx.is_balance_visible(&currency.ticker) {
+                continue;
+            }
+
             // Calculate USD value
             let amount_f64: f64 = bank_balance.amount.parse().unwrap_or(0.0);
             let decimal_factor = 10_f64.powi(currency.decimal_digits as i32);
@@ -423,17 +436,8 @@ pub async fn get_balances(
                 amount_usd: amount_usd.to_string(),
                 decimal_digits: currency.decimal_digits,
             });
-        } else {
-            // Unknown denom - still include it but without USD value
-            balances.push(BalanceInfo {
-                key: bank_balance.denom.clone(),
-                symbol: bank_balance.denom.clone(),
-                denom: bank_balance.denom,
-                amount: bank_balance.amount,
-                amount_usd: "0".to_string(),
-                decimal_digits: 6,
-            });
         }
+        // Note: Unknown denoms are now excluded (gated by default)
     }
 
     Ok(Json(BalancesResponse {

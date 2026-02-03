@@ -20,6 +20,7 @@ use tracing::{debug, error};
 
 use crate::error::AppError;
 use crate::external::chain::{ClosingLeaseInfo, LeaseStatusResponse, OpenedLeaseInfo};
+use crate::propagation::build_filter_context;
 use crate::query_types::{AddressWithProtocolQuery, OptionalProtocolQuery};
 use crate::AppState;
 
@@ -252,26 +253,46 @@ const INTEREST_DECIMALS: u32 = 7;
 
 /// GET /api/leases?owner=...&protocol=...
 /// Returns all leases for an owner across all or a specific protocol
+///
+/// Leases are filtered based on gated configuration:
+/// - Only leases from configured protocols are returned
+/// - Asset restrictions (ignore_all, ignore_long, ignore_short) are applied
 pub async fn get_leases(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressWithProtocolQuery>,
 ) -> Result<Json<LeasesResponse>, AppError> {
     debug!("Getting leases for owner: {}", query.address);
 
+    // Build filter context for gated filtering
+    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+
     let admin_address = &state.config.protocols.admin_contract;
 
-    // Get all protocols or filter to specific one
+    // Get all protocols or filter to specific one, then apply gated filter
     let protocols: Vec<String> = match &query.protocol {
-        Some(p) => vec![p.clone()],
+        Some(p) => {
+            // If specific protocol requested, only return it if configured
+            if filter_ctx.is_protocol_visible(p) {
+                vec![p.clone()]
+            } else {
+                vec![]
+            }
+        }
         None => {
-            state
+            // Get all protocols from chain and filter to configured ones
+            let all_protocols = state
                 .chain_client
                 .get_admin_protocols(admin_address)
-                .await?
+                .await?;
+
+            all_protocols
+                .into_iter()
+                .filter(|p| filter_ctx.is_protocol_visible(p))
+                .collect()
         }
     };
 
-    // Fetch leases from all protocols in parallel
+    // Fetch leases from all configured protocols in parallel
     let protocol_futures: Vec<_> = protocols
         .iter()
         .map(|protocol| {
@@ -279,6 +300,7 @@ pub async fn get_leases(
             let protocol = protocol.clone();
             let owner = query.address.clone();
             let admin_address = admin_address.clone();
+            let filter_ctx = filter_ctx.clone();
             async move {
                 // Get protocol contracts
                 let protocol_contracts = match state
@@ -320,10 +342,18 @@ pub async fn get_leases(
                     })
                     .collect();
 
-                futures::future::join_all(lease_futures)
+                let leases: Vec<LeaseInfo> = futures::future::join_all(lease_futures)
                     .await
                     .into_iter()
                     .flatten()
+                    .collect();
+
+                // Filter leases based on asset restrictions
+                leases
+                    .into_iter()
+                    .filter(|lease| {
+                        filter_ctx.is_lease_visible(&lease.protocol, &lease.amount.ticker)
+                    })
                     .collect::<Vec<_>>()
             }
         })
@@ -978,6 +1008,7 @@ fn parse_paid_off_in_progress(in_progress: &Option<serde_json::Value>) -> Option
 #[derive(Debug, Clone)]
 pub struct LeaseMonitorInfo {
     pub address: String,
+    pub protocol: String,
     pub status: String,
     pub amount: Option<LeaseAssetInfo>,
     pub debt: Option<LeaseDebtInfo>,
@@ -1042,7 +1073,10 @@ pub async fn fetch_leases_for_monitoring(
                     .map(|addr| {
                         let chain_client = chain_client.clone();
                         let addr = addr.clone();
-                        async move { fetch_lease_monitor_info_internal(&chain_client, &addr).await }
+                        let protocol = protocol.clone();
+                        async move {
+                            fetch_lease_monitor_info_internal(&chain_client, &addr, &protocol).await
+                        }
                     })
                     .collect();
 
@@ -1069,12 +1103,14 @@ pub async fn fetch_leases_for_monitoring(
 async fn fetch_lease_monitor_info_internal(
     chain_client: &crate::external::chain::ChainClient,
     lease_address: &str,
+    protocol: &str,
 ) -> Result<LeaseMonitorInfo, AppError> {
     let lease_status = chain_client.get_lease_status(lease_address).await?;
 
     let info = match &lease_status {
         LeaseStatusResponse::Opening(opening) => LeaseMonitorInfo {
             address: lease_address.to_string(),
+            protocol: protocol.to_string(),
             status: "opening".to_string(),
             amount: None,
             debt: Some(build_empty_debt(&opening.opening.loan.ticker)),
@@ -1092,6 +1128,7 @@ async fn fetch_lease_monitor_info_internal(
             let total_debt = calculate_total_debt(info);
             LeaseMonitorInfo {
                 address: lease_address.to_string(),
+                protocol: protocol.to_string(),
                 status: "opened".to_string(),
                 amount: Some(LeaseAssetInfo {
                     ticker: info.amount.ticker.clone(),
@@ -1128,6 +1165,7 @@ async fn fetch_lease_monitor_info_internal(
             let total_debt = calculate_total_debt_from_closing(info);
             LeaseMonitorInfo {
                 address: lease_address.to_string(),
+                protocol: protocol.to_string(),
                 status: "closing".to_string(),
                 amount: Some(LeaseAssetInfo {
                     ticker: info.amount.ticker.clone(),
@@ -1158,6 +1196,7 @@ async fn fetch_lease_monitor_info_internal(
         }
         LeaseStatusResponse::PaidOff(paid_off) => LeaseMonitorInfo {
             address: lease_address.to_string(),
+            protocol: protocol.to_string(),
             status: "paid_off".to_string(),
             amount: Some(LeaseAssetInfo {
                 ticker: paid_off.paid_off.amount.ticker.clone(),
@@ -1172,6 +1211,7 @@ async fn fetch_lease_monitor_info_internal(
         },
         LeaseStatusResponse::Closed(_) => LeaseMonitorInfo {
             address: lease_address.to_string(),
+            protocol: protocol.to_string(),
             status: "closed".to_string(),
             amount: None,
             debt: None,
@@ -1182,6 +1222,7 @@ async fn fetch_lease_monitor_info_internal(
         },
         LeaseStatusResponse::Liquidated(_) => LeaseMonitorInfo {
             address: lease_address.to_string(),
+            protocol: protocol.to_string(),
             status: "liquidated".to_string(),
             amount: None,
             debt: None,

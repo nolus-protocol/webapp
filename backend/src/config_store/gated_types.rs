@@ -173,7 +173,8 @@ pub struct AssetRestrictions {
 pub struct SwapSettingsConfig {
     /// Skip API base URL
     pub api_url: String,
-    /// Blacklisted denoms (IBC denoms to exclude from swap routes)
+    /// Blacklisted currency tickers to exclude from swap routes
+    /// Uses tickers (e.g., "ATOM", "OSMO") for uniformity with other gated configs
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub blacklist: Vec<String>,
     /// Slippage tolerance in percentage (e.g., 1 = 1%)
