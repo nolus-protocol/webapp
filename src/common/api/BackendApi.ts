@@ -496,6 +496,24 @@ export class BackendApiClient {
   }
 
   // =========================================================================
+  // Gated Protocols
+  // =========================================================================
+
+  /**
+   * Get all configured (gated) protocols
+   */
+  async getGatedProtocols(): Promise<import("./types").GatedProtocolsResponse> {
+    return this.request<import("./types").GatedProtocolsResponse>("GET", "/api/protocols/gated");
+  }
+
+  /**
+   * Get currencies for a specific protocol with Oracle prices
+   */
+  async getProtocolCurrencies(protocol: string): Promise<import("./types").ProtocolCurrenciesResponse> {
+    return this.request<import("./types").ProtocolCurrenciesResponse>("GET", `/api/protocols/${protocol}/currencies`);
+  }
+
+  // =========================================================================
   // Webapp Configuration
   // =========================================================================
 

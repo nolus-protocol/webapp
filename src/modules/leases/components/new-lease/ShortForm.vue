@@ -206,8 +206,6 @@ import {
   PERCENT,
   PERMILLE,
   POSITIONS,
-  PositionTypes,
-  ProtocolsConfig,
   SORT_LEASE,
   WASM_EVENTS
 } from "@/config/global";
@@ -278,16 +276,31 @@ watch(
 );
 
 const totalBalances = computed(() => {
-  let currencies: ExternalCurrency[] = [];
+  const currencies: ExternalCurrency[] = [];
   const b = balancesStore.balances;
-  for (const protocol in ProtocolsConfig) {
-    if (ProtocolsConfig[protocol].type == PositionTypes.short) {
-      for (const c of ProtocolsConfig[protocol].currencies) {
-        const item = configStore.currenciesData?.[`${c}@${protocol}`];
+  const seenDenoms = new Set<string>();
 
-        let balance = b.find((c) => c.denom == item?.ibcData);
-        if (currencies.findIndex((item) => item.balance.denom == balance?.denom) == -1) {
-          currencies.push({ ...item, balance: balance } as ExternalCurrency);
+  // Use short protocols from gated protocols API
+  const shortProtocols = configStore.shortProtocolsForCurrentNetwork;
+
+  for (const protocol of shortProtocols) {
+    // Get cached currencies for this protocol
+    const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol.protocol);
+
+    for (const currency of protocolCurrencies) {
+      // Find matching currency in currenciesData to get full info
+      const key = `${currency.ticker}@${protocol.protocol}`;
+      const currencyInfo = configStore.currenciesData?.[key];
+
+      if (currencyInfo) {
+        const balance = b.find((bal) => bal.denom === currencyInfo.ibcData);
+        // Deduplicate by denom
+        if (balance && !seenDenoms.has(balance.denom)) {
+          seenDenoms.add(balance.denom);
+          currencies.push({ ...currencyInfo, balance: balance } as ExternalCurrency);
+        } else if (!balance && !seenDenoms.has(currencyInfo.ibcData)) {
+          seenDenoms.add(currencyInfo.ibcData);
+          currencies.push({ ...currencyInfo, balance: { denom: currencyInfo.ibcData, amount: "0" } } as ExternalCurrency);
         }
       }
     }
@@ -345,34 +358,34 @@ const assets = computed(() => {
 });
 
 const coinList = computed(() => {
-  let currencies: ExternalCurrency[] = [];
+  // For short positions, the "coin to lease" is determined by the short protocols
+  // Each short protocol represents an asset that can be shorted
+  const shortProtocols = configStore.shortProtocolsForCurrentNetwork;
 
-  for (const protocol of configStore.protocols) {
-    if (ProtocolsConfig[protocol].type == PositionTypes.short && ProtocolsConfig[protocol].lease) {
-      const c =
-        configStore.lpn?.filter((item) => {
-          const [ticker, p] = item.key.split("@");
-
-          if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
-            return false;
-          }
-
-          if (p == protocol) {
-            return true;
-          }
-          return false;
-        }) ?? [];
-      currencies = [...currencies, ...c];
-    }
-  }
-
-  const list = currencies.map((item) => ({
-    key: item.key,
-    ticker: item.ticker,
-    label: item.shortName as string,
-    value: item.ibcData,
-    icon: item.icon as string
-  }));
+  const list = shortProtocols
+    .filter((protocol) => {
+      // The LPN ticker is in the protocol name (e.g., OSMOSIS-OSMOSIS-ALL_BTC -> ALL_BTC is what's shorted)
+      // Check if this should be ignored
+      const assetToShort = protocol.lpn; // For short protocols, lpn is the asset being shorted
+      if (
+        ignoreLeaseAssets.value?.includes(assetToShort) ||
+        ignoreLeaseAssets.value?.includes(`${assetToShort}@${protocol.protocol}`)
+      ) {
+        return false;
+      }
+      return true;
+    })
+    .map((protocol) => {
+      // Get the LPN info from the protocol's lpn_display
+      return {
+        key: `${protocol.lpn}@${protocol.protocol}`,
+        ticker: protocol.lpn,
+        label: protocol.lpn_display?.shortName || protocol.lpn,
+        value: protocol.lpn, // This will be used to find the currency
+        icon: protocol.lpn_display?.icon || "",
+        protocol: protocol.protocol
+      };
+    });
 
   const sortOrder = new Map(SORT_LEASE.map((t, i) => [t, i]));
 
@@ -399,10 +412,25 @@ const calculatedBalance = computed(() => {
 });
 
 const swapAmount = computed(() => {
-  let total = leaseApply.value?.total;
+  const total = leaseApply.value?.total;
   const selectedDownPaymentCurrency = currency.value;
-  let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
-  const stable = configStore.currenciesData![`${ProtocolsConfig[protocol].stable}@${protocol}`];
+  if (!selectedDownPaymentCurrency?.key) {
+    return "";
+  }
+  const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+
+  // Get the LPN for this protocol from gated protocols
+  const gatedProtocol = configStore.getGatedProtocol(protocol);
+  if (!gatedProtocol) {
+    return "";
+  }
+
+  const stableKey = `${gatedProtocol.lpn}@${protocol}`;
+  const stable = configStore.currenciesData?.[stableKey];
+  if (!stable) {
+    return "";
+  }
+
   const a = new Dec(total?.amount ?? 0, stable.decimal_digits);
   return `${formatNumber(a.toString(), stable.decimal_digits)} ${stable.shortName}`;
 });

@@ -207,8 +207,6 @@ import {
   PERCENT,
   PERMILLE,
   POSITIONS,
-  PositionTypes,
-  ProtocolsConfig,
   SORT_LEASE,
   WASM_EVENTS
 } from "@/config/global";
@@ -278,13 +276,22 @@ watch(
 );
 
 const totalBalances = computed(() => {
-  let currencies: ExternalCurrency[] = [];
-  for (const protocol in ProtocolsConfig) {
-    if (ProtocolsConfig[protocol].type == PositionTypes.long) {
-      for (const c of ProtocolsConfig[protocol].currencies) {
-        const item = configStore.currenciesData?.[`${c}@${protocol}`];
-        let balance = balancesStore.balances.find((c) => c.denom == item?.ibcData);
-        currencies.push({ ...item, balance: balance } as ExternalCurrency);
+  const currencies: ExternalCurrency[] = [];
+  // Use long protocols from gated protocols API
+  const longProtocols = configStore.longProtocolsForCurrentNetwork;
+
+  for (const protocol of longProtocols) {
+    // Get cached currencies for this protocol
+    const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol.protocol);
+
+    for (const currency of protocolCurrencies) {
+      // Find matching currency in currenciesData to get full info
+      const key = `${currency.ticker}@${protocol.protocol}`;
+      const currencyInfo = configStore.currenciesData?.[key];
+
+      if (currencyInfo) {
+        const balance = balancesStore.balances.find((b) => b.denom === currencyInfo.ibcData);
+        currencies.push({ ...currencyInfo, balance: balance } as ExternalCurrency);
       }
     }
   }
@@ -353,33 +360,35 @@ const assets = computed(() => {
 });
 
 const coinList = computed(() => {
-  const list = balances.value
+  if (!currency.value?.key) {
+    return [];
+  }
+
+  const [_ticker, downPaymentProtocol] = currency.value.key.split("@");
+
+  // Get currencies for the selected protocol that can be leased (group === "lease")
+  const protocolCurrencies = configStore.getCachedProtocolCurrencies(downPaymentProtocol);
+  const leaseCurrencies = protocolCurrencies.filter((c) => c.group === "lease");
+
+  const list = leaseCurrencies
     .filter((item) => {
-      let [ticker, protocol] = item.key.split("@");
-
-      const [_currency, downPaymentProtocol] = currency.value?.key.split("@");
-      if (downPaymentProtocol != protocol) {
+      // Check if this currency should be ignored
+      if (
+        ignoreLeaseAssets.value?.includes(item.ticker) ||
+        ignoreLeaseAssets.value?.includes(`${item.ticker}@${downPaymentProtocol}`)
+      ) {
         return false;
       }
-
-      if (!configStore.lease?.[protocol].includes(ticker)) {
-        return false;
-      }
-
-      if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
-        return false;
-      }
-
-      return configStore.leaseCurrencies.includes(ticker);
+      return true;
     })
     .map((item) => {
       return {
-        decimal_digits: item.decimal_digits,
-        key: item.key,
+        decimal_digits: item.decimals,
+        key: `${item.ticker}@${downPaymentProtocol}`,
         ticker: item.ticker,
-        label: item.shortName as string,
-        value: item.ibcData,
-        icon: item.icon as string
+        label: item.shortName,
+        value: item.bank_symbol,
+        icon: item.icon
       };
     });
 
@@ -413,18 +422,22 @@ const balances = computed(() => {
     }
 
     const [ticker, protocol] = item.key?.split("@") ?? [];
-    let cticker = ticker;
 
-    if (!ProtocolsConfig[protocol].lease) {
-      return false;
-    }
-
+    // Check if this currency should be ignored
     if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
       return false;
     }
 
-    const lpns = ((configStore.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
-    return lpns.includes(item.key as string) || configStore.leaseCurrencies.includes(cticker);
+    // Get protocol currencies from cache and check if this is valid collateral
+    const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol);
+    const currencyInfo = protocolCurrencies.find((c) => c.ticker === ticker);
+
+    // Valid collateral: LPN, native, or lease currencies
+    if (currencyInfo) {
+      return currencyInfo.group === "lpn" || currencyInfo.group === "native" || currencyInfo.group === "lease";
+    }
+
+    return false;
   });
 });
 

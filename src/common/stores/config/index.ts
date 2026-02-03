@@ -23,12 +23,18 @@ import {
   type CurrenciesResponse,
   type CurrencyInfo,
   type AssetsResponse,
-  type AssetInfo
+  type AssetInfo,
+  type GatedProtocolsResponse,
+  type GatedProtocolInfo,
+  type ProtocolCurrenciesResponse,
+  type ProtocolCurrencyInfo
 } from "@/common/api";
 
 const CONFIG_STORAGE_KEY = "nolus_config_cache";
 const CURRENCIES_STORAGE_KEY = "nolus_currencies_cache";
 const ASSETS_STORAGE_KEY = "nolus_assets_cache";
+const GATED_PROTOCOLS_STORAGE_KEY = "nolus_gated_protocols_cache";
+const PROTOCOL_CURRENCIES_STORAGE_KEY = "nolus_protocol_currencies_cache";
 const PROTOCOL_FILTER_KEY = "protocol_filter";
 const SELECTED_NETWORK_KEY = "selected_network";
 const CACHE_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
@@ -47,10 +53,17 @@ export const useConfigStore = defineStore("config", () => {
   // Assets from /api/assets (deduplicated with network mappings)
   const assetsResponse = ref<AssetsResponse | null>(null);
 
+  // Gated protocols from /api/protocols/gated
+  const gatedProtocolsResponse = ref<GatedProtocolsResponse | null>(null);
+
+  // Protocol currencies cache - keyed by protocol name
+  const protocolCurrenciesCache = ref<{ [protocol: string]: ProtocolCurrenciesResponse }>({});
+
   // Loading states
   const loading = ref(false);
   const currenciesLoading = ref(false);
   const assetsLoading = ref(false);
+  const gatedProtocolsLoading = ref(false);
   const error = ref<string | null>(null);
   const initialized = ref(false);
 
@@ -143,6 +156,60 @@ export const useConfigStore = defineStore("config", () => {
     }
   }
 
+  function loadGatedProtocolsFromCache(): boolean {
+    try {
+      const cached = localStorage.getItem(GATED_PROTOCOLS_STORAGE_KEY);
+      if (!cached) return false;
+
+      const { data, timestamp } = JSON.parse(cached);
+      const age = Date.now() - timestamp;
+
+      if (age < CACHE_MAX_AGE_MS && data) {
+        gatedProtocolsResponse.value = data;
+        return true;
+      }
+    } catch (e) {
+      console.warn("[ConfigStore] Failed to load gated protocols from cache:", e);
+    }
+    return false;
+  }
+
+  function saveGatedProtocolsToCache(): void {
+    try {
+      const cacheData = { data: gatedProtocolsResponse.value, timestamp: Date.now() };
+      localStorage.setItem(GATED_PROTOCOLS_STORAGE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+      console.warn("[ConfigStore] Failed to save gated protocols to cache:", e);
+    }
+  }
+
+  function loadProtocolCurrenciesFromCache(): boolean {
+    try {
+      const cached = localStorage.getItem(PROTOCOL_CURRENCIES_STORAGE_KEY);
+      if (!cached) return false;
+
+      const { data, timestamp } = JSON.parse(cached);
+      const age = Date.now() - timestamp;
+
+      if (age < CACHE_MAX_AGE_MS && data) {
+        protocolCurrenciesCache.value = data;
+        return true;
+      }
+    } catch (e) {
+      console.warn("[ConfigStore] Failed to load protocol currencies from cache:", e);
+    }
+    return false;
+  }
+
+  function saveProtocolCurrenciesToCache(): void {
+    try {
+      const cacheData = { data: protocolCurrenciesCache.value, timestamp: Date.now() };
+      localStorage.setItem(PROTOCOL_CURRENCIES_STORAGE_KEY, JSON.stringify(cacheData));
+    } catch (e) {
+      console.warn("[ConfigStore] Failed to save protocol currencies to cache:", e);
+    }
+  }
+
   // Auto-save to cache when data changes
   watch(
     config,
@@ -164,6 +231,22 @@ export const useConfigStore = defineStore("config", () => {
     assetsResponse,
     () => {
       if (assetsResponse.value) saveAssetsToCache();
+    },
+    { deep: true }
+  );
+
+  watch(
+    gatedProtocolsResponse,
+    () => {
+      if (gatedProtocolsResponse.value) saveGatedProtocolsToCache();
+    },
+    { deep: true }
+  );
+
+  watch(
+    protocolCurrenciesCache,
+    () => {
+      if (Object.keys(protocolCurrenciesCache.value).length > 0) saveProtocolCurrenciesToCache();
     },
     { deep: true }
   );
@@ -343,6 +426,107 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Check if assets are loaded */
   const hasAssets = computed(() => assets.value.length > 0);
+
+  // ==========================================================================
+  // Computed - Gated Protocols
+  // ==========================================================================
+
+  /** All gated protocols */
+  const gatedProtocols = computed<GatedProtocolInfo[]>(() => gatedProtocolsResponse.value?.protocols ?? []);
+
+  /** Gated protocols indexed by protocol name */
+  const gatedProtocolsByName = computed<{ [protocol: string]: GatedProtocolInfo }>(() => {
+    const result: { [protocol: string]: GatedProtocolInfo } = {};
+    for (const protocol of gatedProtocols.value) {
+      result[protocol.protocol] = protocol;
+    }
+    return result;
+  });
+
+  /** Gated protocols grouped by network (uppercase key) */
+  const gatedProtocolsByNetwork = computed<{ [network: string]: GatedProtocolInfo[] }>(() => {
+    const result: { [network: string]: GatedProtocolInfo[] } = {};
+    for (const protocol of gatedProtocols.value) {
+      const networkKey = protocol.network.toUpperCase();
+      if (!result[networkKey]) {
+        result[networkKey] = [];
+      }
+      result[networkKey].push(protocol);
+    }
+    return result;
+  });
+
+  /** Long protocols for the current network filter */
+  const longProtocolsForCurrentNetwork = computed<GatedProtocolInfo[]>(() => {
+    const networkProtocols = gatedProtocolsByNetwork.value[protocolFilter.value] ?? [];
+    return networkProtocols.filter((p) => p.position_type === "Long");
+  });
+
+  /** Short protocols for the current network filter */
+  const shortProtocolsForCurrentNetwork = computed<GatedProtocolInfo[]>(() => {
+    const networkProtocols = gatedProtocolsByNetwork.value[protocolFilter.value] ?? [];
+    return networkProtocols.filter((p) => p.position_type === "Short");
+  });
+
+  /** Check if gated protocols are loaded */
+  const hasGatedProtocols = computed(() => gatedProtocols.value.length > 0);
+
+  // ==========================================================================
+  // Getters - Gated Protocols
+  // ==========================================================================
+
+  /** Get gated protocol by name */
+  function getGatedProtocol(protocol: string): GatedProtocolInfo | undefined {
+    return gatedProtocolsByName.value[protocol];
+  }
+
+  /** Get long protocols for a network */
+  function getLongProtocolsForNetwork(network: string): GatedProtocolInfo[] {
+    const networkProtocols = gatedProtocolsByNetwork.value[network.toUpperCase()] ?? [];
+    return networkProtocols.filter((p) => p.position_type === "Long");
+  }
+
+  /** Get short protocols for a network */
+  function getShortProtocolsForNetwork(network: string): GatedProtocolInfo[] {
+    const networkProtocols = gatedProtocolsByNetwork.value[network.toUpperCase()] ?? [];
+    return networkProtocols.filter((p) => p.position_type === "Short");
+  }
+
+  /** Get currencies for a protocol (from cache or fetch) */
+  async function getProtocolCurrencies(protocol: string): Promise<ProtocolCurrencyInfo[]> {
+    // Check cache first
+    if (protocolCurrenciesCache.value[protocol]) {
+      return protocolCurrenciesCache.value[protocol].currencies;
+    }
+
+    // Fetch from API
+    try {
+      const response = await BackendApi.getProtocolCurrencies(protocol);
+      protocolCurrenciesCache.value[protocol] = response;
+      return response.currencies;
+    } catch (e) {
+      console.error(`[ConfigStore] Failed to fetch currencies for protocol ${protocol}:`, e);
+      return [];
+    }
+  }
+
+  /** Get cached protocol currencies (synchronous, returns empty if not cached) */
+  function getCachedProtocolCurrencies(protocol: string): ProtocolCurrencyInfo[] {
+    return protocolCurrenciesCache.value[protocol]?.currencies ?? [];
+  }
+
+  /** Get lease currencies for a protocol (group === "lease") */
+  async function getLeaseCurrenciesForProtocol(protocol: string): Promise<ProtocolCurrencyInfo[]> {
+    const currencies = await getProtocolCurrencies(protocol);
+    return currencies.filter((c) => c.group === "lease");
+  }
+
+  /** Get collateral currencies for a protocol (all currencies that can be used as down payment) */
+  async function getCollateralCurrenciesForProtocol(protocol: string): Promise<ProtocolCurrencyInfo[]> {
+    const currencies = await getProtocolCurrencies(protocol);
+    // Collateral includes lease currencies + lpn + native (anything user can pay with)
+    return currencies.filter((c) => c.group === "lease" || c.group === "lpn" || c.group === "native");
+  }
 
   // ==========================================================================
   // Getters - Assets
@@ -592,6 +776,30 @@ export const useConfigStore = defineStore("config", () => {
   }
 
   /**
+   * Fetch gated protocols from /api/protocols/gated
+   */
+  async function fetchGatedProtocols(): Promise<void> {
+    gatedProtocolsLoading.value = true;
+
+    try {
+      gatedProtocolsResponse.value = await BackendApi.getGatedProtocols();
+    } catch (e) {
+      console.error("[ConfigStore] Failed to fetch gated protocols:", e);
+      throw e;
+    } finally {
+      gatedProtocolsLoading.value = false;
+    }
+  }
+
+  /**
+   * Prefetch currencies for all protocols of a network
+   */
+  async function prefetchProtocolCurrenciesForNetwork(network: string): Promise<void> {
+    const networkProtocols = gatedProtocolsByNetwork.value[network.toUpperCase()] ?? [];
+    await Promise.all(networkProtocols.map((p) => getProtocolCurrencies(p.protocol)));
+  }
+
+  /**
    * Initialize the store - load cache immediately, then refresh in background
    */
   async function initialize(): Promise<void> {
@@ -601,20 +809,32 @@ export const useConfigStore = defineStore("config", () => {
     const hadConfigCache = loadConfigFromCache();
     const hadCurrenciesCache = loadCurrenciesFromCache();
     const hadAssetsCache = loadAssetsFromCache();
+    const hadGatedProtocolsCache = loadGatedProtocolsFromCache();
+    const hadProtocolCurrenciesCache = loadProtocolCurrenciesFromCache();
 
     // Determine which network to fetch assets for
     const networkToFetch = protocolFilter.value || "OSMOSIS";
 
-    if (hadConfigCache && hadCurrenciesCache && hadAssetsCache) {
+    const allCached =
+      hadConfigCache && hadCurrenciesCache && hadAssetsCache && hadGatedProtocolsCache && hadProtocolCurrenciesCache;
+
+    if (allCached) {
       initialized.value = true;
       // Background refresh - don't block
-      Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch)]).catch((e) => {
-        console.error("[ConfigStore] Background refresh failed:", e);
-      });
+      Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]).catch(
+        (e) => {
+          console.error("[ConfigStore] Background refresh failed:", e);
+        }
+      );
     } else {
       // No cache - must wait for fresh data
-      await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch)]);
+      await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]);
       initialized.value = true;
+
+      // Prefetch protocol currencies for current network after gated protocols are loaded
+      prefetchProtocolCurrenciesForNetwork(networkToFetch).catch((e) => {
+        console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
+      });
     }
   }
 
@@ -622,6 +842,10 @@ export const useConfigStore = defineStore("config", () => {
   watch(protocolFilter, async (newFilter) => {
     if (initialized.value && newFilter) {
       await fetchNetworkAssets(newFilter);
+      // Also prefetch protocol currencies for the new network
+      prefetchProtocolCurrenciesForNetwork(newFilter).catch((e) => {
+        console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
+      });
     }
   });
 
@@ -641,9 +865,12 @@ export const useConfigStore = defineStore("config", () => {
     config,
     currenciesResponse,
     assetsResponse,
+    gatedProtocolsResponse,
+    protocolCurrenciesCache,
     loading,
     currenciesLoading,
     assetsLoading,
+    gatedProtocolsLoading,
     error,
     initialized,
     protocolFilter,
@@ -680,10 +907,27 @@ export const useConfigStore = defineStore("config", () => {
     assetTickersByNetwork,
     hasAssets,
 
+    // Computed - Gated Protocols
+    gatedProtocols,
+    gatedProtocolsByName,
+    gatedProtocolsByNetwork,
+    longProtocolsForCurrentNetwork,
+    shortProtocolsForCurrentNetwork,
+    hasGatedProtocols,
+
     // Getters - Assets
     getAsset,
     getAssetTickersForNetwork,
     isAssetAvailableForNetwork,
+
+    // Getters - Gated Protocols
+    getGatedProtocol,
+    getLongProtocolsForNetwork,
+    getShortProtocolsForNetwork,
+    getProtocolCurrencies,
+    getCachedProtocolCurrencies,
+    getLeaseCurrenciesForProtocol,
+    getCollateralCurrenciesForProtocol,
 
     // Getters - Protocols & Networks
     getProtocol,
@@ -722,6 +966,8 @@ export const useConfigStore = defineStore("config", () => {
     fetchCurrencies,
     fetchAssets,
     fetchNetworkAssets,
+    fetchGatedProtocols,
+    prefetchProtocolCurrenciesForNetwork,
     initialize,
     refresh
   };

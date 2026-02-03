@@ -216,3 +216,65 @@ export interface AssetsResponse {
   assets: AssetInfo[];
   count: number;
 }
+
+/**
+ * LPN display info for gated protocols
+ */
+export interface LpnDisplayInfo {
+  ticker: string;
+  icon: string;
+  displayName: string;
+  shortName: string;
+  color?: string;
+}
+
+/**
+ * Protocol contracts info
+ */
+export interface GatedProtocolContracts {
+  leaser: string | null;
+  lpp: string;
+  oracle: string | null;
+  profit: string | null;
+  reserve?: string | null;
+}
+
+/**
+ * Gated protocol info from /api/protocols/gated
+ */
+export interface GatedProtocolInfo {
+  protocol: string;
+  network: string;
+  dex: string;
+  position_type: "Long" | "Short";
+  lpn: string;
+  lpn_display: LpnDisplayInfo;
+  contracts: GatedProtocolContracts;
+}
+
+export interface GatedProtocolsResponse {
+  protocols: GatedProtocolInfo[];
+  count: number;
+}
+
+/**
+ * Currency info from /api/protocols/{protocol}/currencies
+ */
+export interface ProtocolCurrencyInfo {
+  ticker: string;
+  decimals: number;
+  icon: string;
+  displayName: string;
+  shortName: string;
+  color?: string;
+  bank_symbol: string;
+  dex_symbol: string;
+  group: "lease" | "lpn" | "native" | "collateral";
+  price?: string;
+}
+
+export interface ProtocolCurrenciesResponse {
+  protocol: string;
+  currencies: ProtocolCurrencyInfo[];
+  count: number;
+}
