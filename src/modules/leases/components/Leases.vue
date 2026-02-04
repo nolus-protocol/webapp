@@ -1,5 +1,5 @@
 <template>
-  <ListHeader :title="$t('message.leases')">
+  <ListHeader :title="$t('message.positions')">
     <Button
       v-if="wallet.wallet && !isProtocolDisabled"
       :label="$t('message.new-lease')"
@@ -165,7 +165,6 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const isProtocolDisabled = computed(() => {
-  if (!configStore.protocolFilter) return false;
   return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
 });
 
@@ -226,7 +225,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
             subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start",
             variant: "left",
             click: () => {
-              router.push(`/${RouteNames.LEASES}/${item.protocol.toLocaleLowerCase()}/${item.address}`);
+              router.push(`/${RouteNames.LEASES}/${item.address}`);
             },
             class: "text-typography-link font-semibold max-w-[150px] cursor-pointer"
           },
@@ -377,7 +376,7 @@ function getActions(lease: LeaseInfo, displayData: LeaseDisplayData) {
       size: "medium",
       key: `details-${lease.address}`,
       onClick: () => {
-        router.push(`/${RouteNames.LEASES}/${lease.protocol?.toLowerCase()}/${lease.address}`);
+        router.push(`/${RouteNames.LEASES}/${lease.address}`);
       }
     }),
     h<IAction>(Action, {

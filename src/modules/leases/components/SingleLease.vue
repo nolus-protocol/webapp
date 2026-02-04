@@ -77,7 +77,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/interest-collection`);
+                router.push(`/${RouteNames.LEASES}/${route.params.id}/interest-collection`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -99,7 +99,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/interest-collection`);
+                router.push(`/${RouteNames.LEASES}/${route.params.id}/interest-collection`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -121,7 +121,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/liquidation-partial`);
+                router.push(`/${RouteNames.LEASES}/${route.params.id}/liquidation-partial`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -143,7 +143,7 @@
           <a
             @click="
               () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/liquidation-full`);
+                router.push(`/${RouteNames.LEASES}/${route.params.id}/liquidation-full`);
               }
             "
             class="cursor-pointer font-normal text-typography-link"
@@ -234,7 +234,7 @@ let timeOut: NodeJS.Timeout;
 // Lease state
 const lease = ref<LeaseInfo | null>(null);
 const leaseAddress = computed(() => route.params.id as string);
-const protocol = computed(() => (route.params.protocol as string).toUpperCase());
+const protocol = computed(() => lease.value?.protocol ?? "");
 
 // Computed display data for child components
 const displayData = computed<LeaseDisplayData | null>(() => {
@@ -244,7 +244,7 @@ const displayData = computed<LeaseDisplayData | null>(() => {
 
 async function getLease() {
   try {
-    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value, protocol.value);
+    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value);
     if (result) {
       lease.value = result;
     }

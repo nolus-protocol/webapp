@@ -80,8 +80,8 @@ import type {
   LoansStatsBatchResponse,
   UserDashboardBatchResponse,
   UserHistoryBatchResponse,
-  PriceSeriesResponse,
-  PnlOverTimeResponse,
+  PriceSeriesDataPoint,
+  PnlOverTimeDataPoint,
   LeasesMonthlyResponse,
   LeasedAssetsResponse,
   TimeSeriesResponse,
@@ -672,18 +672,20 @@ export class BackendApiClient {
 
   /**
    * Fetch price series for charting
+   * ETL returns raw array of [timestamp, price] tuples
    */
-  async getPriceSeries(key: string, protocol: string, interval: string): Promise<PriceSeriesResponse> {
-    return this.request<PriceSeriesResponse>("GET", "/api/etl/prices", {
+  async getPriceSeries(key: string, protocol: string, interval: string): Promise<PriceSeriesDataPoint[]> {
+    return this.request<PriceSeriesDataPoint[]>("GET", "/api/etl/prices", {
       params: { key, protocol, interval }
     });
   }
 
   /**
    * Fetch PnL over time for charting
+   * ETL returns raw array of {amount, date} objects
    */
-  async getPnlOverTime(address: string, interval: string): Promise<PnlOverTimeResponse> {
-    return this.request<PnlOverTimeResponse>("GET", "/api/etl/pnl-over-time", {
+  async getPnlOverTime(address: string, interval: string): Promise<PnlOverTimeDataPoint[]> {
+    return this.request<PnlOverTimeDataPoint[]>("GET", "/api/etl/pnl-over-time", {
       params: { address, interval }
     });
   }

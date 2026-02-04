@@ -662,7 +662,7 @@ async function openLease() {
         message: i18n.t("message.currently-opening")
       });
 
-      router.push(`/${RouteNames.LEASES}/${protocol.toLowerCase()}/${data.value}`);
+      router.push(`/${RouteNames.LEASES}/${data.value}`);
     } catch (error: Error | any) {
       amountErrorMsg.value = error.toString();
       Logger.error(error);

@@ -14,7 +14,7 @@
           description: $t('message.position-summary-lease-description'),
           link: {
             label: $t('message.learn-more-leases'),
-            url: `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-summary`,
+            url: `/${RouteNames.LEASES}/${route.params.id}/learn-summary`,
             tooltip: { content: $t('message.learn-more-leases-tooltip') }
           }
         }
@@ -193,7 +193,7 @@
                 size="small"
                 @click="
                   router.push({
-                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.STOP_LOSS}`
+                    path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.STOP_LOSS}`
                   })
                 "
               />
@@ -231,7 +231,7 @@
                 size="small"
                 @click="
                   router.push({
-                    path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.TAKE_PROFIT}`
+                    path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.TAKE_PROFIT}`
                   })
                 "
               />

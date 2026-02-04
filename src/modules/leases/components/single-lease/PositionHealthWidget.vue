@@ -13,7 +13,7 @@
           description: $t('message.position-health-empty-description'),
           link: {
             label: $t('message.position-health-empty-link'),
-            url: `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-health`,
+            url: `/${RouteNames.LEASES}/${route.params.id}/learn-health`,
             tooltip: { content: $t('message.position-health-empty-tooltip') }
           }
         }
@@ -90,7 +90,7 @@
         <button
           @click="
             () => {
-              router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-health`);
+              router.push(`/${RouteNames.LEASES}/${route.params.id}/learn-health`);
             }
           "
           target="_blank"

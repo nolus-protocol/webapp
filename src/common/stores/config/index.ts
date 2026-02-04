@@ -424,6 +424,17 @@ export const useConfigStore = defineStore("config", () => {
     return result;
   });
 
+  /** Asset icons indexed by "TICKER@PROTOCOL" key */
+  const assetIcons = computed<{ [key: string]: string }>(() => {
+    const result: { [key: string]: string } = {};
+    for (const asset of assets.value) {
+      for (const protocol of asset.protocols) {
+        result[`${asset.ticker}@${protocol}`] = asset.icon;
+      }
+    }
+    return result;
+  });
+
   /** Check if assets are loaded */
   const hasAssets = computed(() => assets.value.length > 0);
 
@@ -658,7 +669,7 @@ export const useConfigStore = defineStore("config", () => {
   function getNetworkFilterOptions(): { value: string; label: string; icon: string }[] {
     const filters = getAvailableNetworkFilters();
     return filters.map((filterKey) => {
-      const network = networkByKey.value.get(filterKey.toLowerCase());
+      const network = networkByKey.value.get(filterKey);
       return {
         value: filterKey,
         label: network?.name ?? filterKey,
@@ -902,6 +913,7 @@ export const useConfigStore = defineStore("config", () => {
 
     if (allCached) {
       initialized.value = true;
+      ensureDefaultProtocolFilter();
       // Background refresh - don't block
       Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]).catch(
         (e) => {
@@ -911,12 +923,21 @@ export const useConfigStore = defineStore("config", () => {
     } else {
       // No cache - must wait for fresh data
       await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]);
+      ensureDefaultProtocolFilter();
       initialized.value = true;
 
       // Prefetch protocol currencies for current network after gated protocols are loaded
       prefetchProtocolCurrenciesForNetwork(networkToFetch).catch((e) => {
         console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
       });
+    }
+  }
+
+  /** Set protocolFilter to the first available network if it's empty or invalid */
+  function ensureDefaultProtocolFilter(): void {
+    const available = getAvailableNetworkFilters();
+    if (available.length > 0 && !available.includes(protocolFilter.value.toUpperCase())) {
+      protocolFilter.value = available[0];
     }
   }
 
@@ -986,6 +1007,7 @@ export const useConfigStore = defineStore("config", () => {
     // Computed - Assets
     assets,
     assetsByTicker,
+    assetIcons,
     assetTickersByNetwork,
     hasAssets,
 

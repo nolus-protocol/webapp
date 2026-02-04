@@ -211,8 +211,7 @@ export interface PriceSeriesResponse {
 }
 
 /**
- * Legacy price series data point - [timestamp, price]
- * @deprecated Use PriceSeriesResponse instead
+ * Price series data point - [timestamp, price] (raw ETL format)
  */
 export type PriceSeriesDataPoint = [number, number];
 
@@ -235,11 +234,10 @@ export interface PnlOverTimeResponse {
 }
 
 /**
- * Legacy PnL over time data point
- * @deprecated Use PnlOverTimeResponse instead
+ * PnL over time data point (raw ETL format)
  */
 export interface PnlOverTimeDataPoint {
-  amount: number;
+  amount: string;
   date: string;
 }
 

@@ -93,7 +93,7 @@
         size="medium"
         @click="
           router.push({
-            path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.REPAY}`
+            path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.REPAY}`
           })
         "
         v-if="TEMPLATES.opened == status && !openedSubState"
@@ -104,7 +104,7 @@
         size="medium"
         @click="
           router.push({
-            path: `/${RouteNames.LEASES}/${lease?.protocol?.toLowerCase()}/${lease?.address}/${SingleLeaseDialog.CLOSE}`
+            path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.CLOSE}`
           })
         "
         v-if="TEMPLATES.opened == status && !openedSubState"

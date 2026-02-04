@@ -106,7 +106,6 @@ watch(
 );
 
 const isProtocolDisabled = computed(() => {
-  if (!configStore.protocolFilter) return false;
   return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
 });
 

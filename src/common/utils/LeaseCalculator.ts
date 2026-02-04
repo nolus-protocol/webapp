@@ -133,8 +133,19 @@ export class LeaseCalculator {
       totalDebtUsd
     );
 
+    // Parse ETL data (needed for PnL calculation)
+    const { downPayment, openingPrice, fee, repaymentValue } = this.parseEtlData(
+      lease,
+      positionType,
+      lpnCurrency?.decimal_digits ?? 6
+    );
+
     // Calculate PnL
-    const { pnlAmount, pnlPercent, pnlPositive } = this.calculatePnl(lease);
+    const { pnlAmount, pnlPercent, pnlPositive } = this.calculatePnl(
+      assetValueUsd,
+      totalDebtUsd,
+      downPayment,
+    );
 
     // Calculate close policy prices
     const stopLoss = this.calculateStopLoss(lease, positionType, unitAsset, stableAsset);
@@ -142,13 +153,6 @@ export class LeaseCalculator {
 
     // Parse interest due warning
     const { interestDueWarning, interestDueDate } = this.parseInterestDueWarning(lease);
-
-    // Parse ETL data
-    const { downPayment, openingPrice, fee, repaymentValue } = this.parseEtlData(
-      lease,
-      positionType,
-      lpnCurrency?.decimal_digits ?? 6
-    );
 
     // Parse in progress type
     const inProgressType = this.parseInProgressType(lease);
@@ -286,13 +290,19 @@ export class LeaseCalculator {
 
   /**
    * Calculate PnL values
+   * PnL = (asset value - debt) - downpayment
+   * Percent = PnL / downpayment * 100
    */
-  calculatePnl(lease: LeaseInfo): {
+  calculatePnl(
+    assetValueUsd: Dec,
+    totalDebtUsd: Dec,
+    downPayment: Dec,
+  ): {
     pnlAmount: Dec;
     pnlPercent: Dec;
     pnlPositive: boolean;
   } {
-    if (!lease.pnl) {
+    if (!downPayment.isPositive()) {
       return {
         pnlAmount: new Dec(0),
         pnlPercent: new Dec(0),
@@ -300,8 +310,9 @@ export class LeaseCalculator {
       };
     }
 
-    const pnlAmount = new Dec(lease.pnl.amount);
-    const pnlPercent = new Dec(lease.pnl.percent);
+    const equity = assetValueUsd.sub(totalDebtUsd);
+    const pnlAmount = equity.sub(downPayment);
+    const pnlPercent = pnlAmount.quo(downPayment).mul(new Dec(100));
     const pnlPositive = pnlAmount.isPositive() || pnlAmount.isZero();
 
     return { pnlAmount, pnlPercent, pnlPositive };

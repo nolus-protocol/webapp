@@ -17,14 +17,14 @@ export const LeasesRouter: RouteRecordRaw = {
       },
       children: [
         {
-          path: "close/:protocol/:id",
+          path: "close/:id",
           component: () => import("./components/single-lease/CloseDialog.vue"),
           meta: {
             key: RouteNames.LEASES
           }
         },
         {
-          path: "repay/:protocol/:id",
+          path: "repay/:id",
           meta: {
             key: RouteNames.LEASES
           },
@@ -67,7 +67,7 @@ export const LeasesRouter: RouteRecordRaw = {
       ]
     },
     {
-      path: `:protocol/:id`,
+      path: `:id`,
       name: `${RouteNames.LEASES}-single`,
       component: () => import("./components/SingleLease.vue"),
       meta: {

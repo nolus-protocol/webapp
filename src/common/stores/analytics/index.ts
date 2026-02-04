@@ -13,7 +13,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { BackendApi } from "@/common/api";
 import type { IObjectKeys } from "@/common/types";
-import type { PriceDataPoint, PnlDataPoint, LeaseClosingEntry } from "@/common/api/types";
+import type { PriceSeriesDataPoint, PnlOverTimeDataPoint, LeaseClosingEntry } from "@/common/api/types";
 
 // Types
 export interface UserDashboardData {
@@ -48,11 +48,10 @@ export const useAnalyticsStore = defineStore("analytics", () => {
   });
 
   // PnL over time (user-specific chart)
-  const pnlOverTime = ref<PnlDataPoint[]>([]);
-  const pnlOverTimeInterval = ref<string>("");
+  const pnlOverTime = ref<PnlOverTimeDataPoint[]>([]);
 
   // Price series cache (keyed by "key:protocol:interval")
-  const priceSeriesCache = ref<Map<string, PriceDataPoint[]>>(new Map());
+  const priceSeriesCache = ref<Map<string, PriceSeriesDataPoint[]>>(new Map());
 
   // Realized PnL list (paginated)
   const realizedPnlList = ref<LeaseClosingEntry[]>([]);
@@ -269,8 +268,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const response = await BackendApi.getPnlOverTime(address.value, interval);
-      pnlOverTime.value = response.data;
-      pnlOverTimeInterval.value = response.interval;
+      pnlOverTime.value = response;
       lastUpdated.value = new Date();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch PnL over time";
@@ -289,7 +287,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     key: string,
     protocol: string,
     interval: string
-  ): Promise<PriceDataPoint[]> {
+  ): Promise<PriceSeriesDataPoint[]> {
     const cacheKey = `${key}:${protocol}:${interval}`;
 
     // Check cache first
@@ -302,8 +300,8 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const response = await BackendApi.getPriceSeries(key, protocol, interval);
-      priceSeriesCache.value.set(cacheKey, response.data);
-      return response.data;
+      priceSeriesCache.value.set(cacheKey, response);
+      return response;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch price series:", e);
       throw e;
@@ -364,7 +362,6 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     };
 
     pnlOverTime.value = [];
-    pnlOverTimeInterval.value = "";
     priceSeriesCache.value.clear();
     realizedPnlList.value = [];
     realizedPnlTotal.value = 0;
@@ -398,7 +395,6 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     dashboardData,
     historyData,
     pnlOverTime,
-    pnlOverTimeInterval,
     priceSeriesCache,
     realizedPnlList,
     realizedPnlTotal,

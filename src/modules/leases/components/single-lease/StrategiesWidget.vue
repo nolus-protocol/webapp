@@ -13,7 +13,7 @@
           description: $t('message.position-strategy-empty-description'),
           link: {
             label: $t('message.position-strategy-empty-link'),
-            url: `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-summary`,
+            url: `/${RouteNames.LEASES}/${route.params.id}/learn-summary`,
             tooltip: { content: $t('message.position-strategy-empty-tooltip') }
           }
         }

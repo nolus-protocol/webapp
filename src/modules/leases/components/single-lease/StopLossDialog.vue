@@ -4,7 +4,7 @@
     :title="$t(`message.stop-loss`)"
     showClose
     :disable-close="false"
-    @close-dialog="router.push(`/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`)"
+    @close-dialog="router.push(`/${RouteNames.LEASES}/${route.params.id}`)"
   >
     <template v-slot:content>
       <div class="custom-scroll max-h-full flex-1 overflow-auto">
@@ -150,10 +150,7 @@ const displayData = ref<LeaseDisplayData | null>(null);
 
 async function fetchLease() {
   try {
-    const result = await leasesStore.fetchLeaseDetails(
-      route.params.id as string,
-      (route.params.protocol as string).toUpperCase()
-    );
+    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
     if (result) {
       lease.value = result;
       displayData.value = leasesStore.getLeaseDisplayData(result);
@@ -167,8 +164,8 @@ async function fetchLease() {
 }
 
 const config = computed(() => {
-  const protocol = (route.params.protocol as string).toUpperCase();
-  return configStore.contracts[protocol];
+  if (!lease.value) return undefined;
+  return configStore.contracts[lease.value.protocol];
 });
 
 onMounted(() => {

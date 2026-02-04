@@ -9,7 +9,7 @@
         const path =
           route.matched[2].path == `/${RouteNames.LEASES}`
             ? `/${RouteNames.LEASES}`
-            : `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`;
+            : `/${RouteNames.LEASES}/${route.params.id}`;
         router.push(path);
       }
     "
@@ -308,10 +308,7 @@ const displayData = ref<LeaseDisplayData | null>(null);
 
 async function fetchLease() {
   try {
-    const result = await leasesStore.fetchLeaseDetails(
-      route.params.id as string,
-      (route.params.protocol as string).toUpperCase()
-    );
+    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
     if (result) {
       lease.value = result;
       displayData.value = leasesStore.getLeaseDisplayData(result);
@@ -325,8 +322,8 @@ async function fetchLease() {
 }
 
 const config = computed(() => {
-  const protocol = (route.params.protocol as string).toUpperCase();
-  return configStore.contracts[protocol];
+  if (!lease.value) return undefined;
+  return configStore.contracts[lease.value.protocol];
 });
 
 onMounted(() => {

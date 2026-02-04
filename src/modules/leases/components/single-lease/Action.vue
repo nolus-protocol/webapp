@@ -94,19 +94,19 @@ function sharePnl() {
 }
 
 function repay() {
-  router.push(`/${RouteNames.LEASES}/repay/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.address}`);
+  router.push(`/${RouteNames.LEASES}/repay/${props.lease.address}`);
   close();
 }
 
 function onClose() {
   router.push(
-    `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.address}`
+    `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.address}`
   );
   close();
 }
 
 function history() {
-  router.push(`/${RouteNames.LEASES}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.address}#history`);
+  router.push(`/${RouteNames.LEASES}/${props.lease.address}#history`);
   close();
 }
 
