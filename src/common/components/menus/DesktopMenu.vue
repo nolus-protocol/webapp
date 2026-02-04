@@ -8,7 +8,7 @@
         :to="item === RouteNames.DASHBOARD ? '/' : `/${item}`"
         class="router-link group flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
       >
-        <SidebarIcon :icon="item.toLowerCase()" />
+        <SidebarIcon :icon="iconMap[item] ?? item.toLowerCase()" />
         {{ $t(`message.${item}`) }}
       </RouterLink>
     </template>
@@ -19,6 +19,11 @@
 import { computed } from "vue";
 import { RouteNames } from "@/router";
 import SidebarIcon from "@/common/components/icons/SidebarIcon.vue";
+
+const iconMap: Record<string, string> = {
+  [RouteNames.LEASES]: "leases",
+  [RouteNames.HISTORY]: "history"
+};
 
 const filteredRouteNames = computed(() => {
   return Object.values(RouteNames).filter(
