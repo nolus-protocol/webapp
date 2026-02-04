@@ -66,18 +66,7 @@ const i18n = useI18n();
 const router = useRouter();
 const search = ref("");
 
-// Watch for wallet connection changes to refresh earn positions
-watch(
-  () => wallet.wallet?.address,
-  async (address) => {
-    if (address) {
-      await earnStore.setAddress(address);
-    } else {
-      earnStore.clear();
-    }
-  },
-  { immediate: true }
-);
+// Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
 
 function onSearch(data: string) {
   search.value = data;
@@ -138,9 +127,14 @@ const anualYield = computed(() => {
 const assetsRows = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
 
-  // Map pools to display rows, filtering by search
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+
+  // Map pools to display rows, filtering by network and search
   return earnStore.pools
     .filter((pool) => {
+      // Filter by selected network
+      if (!activeProtocols.includes(pool.protocol)) return false;
+
       if (param.length === 0) return true;
       const key = `${pool.currency}@${pool.protocol}`;
       const currency = configStore.currenciesData[key];
@@ -162,8 +156,10 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       const price = currency ? pricesStore.getPriceAsNumber(currency.key) : 0;
       const stableBalance = depositedAmount.mul(new Dec(price));
 
-      // Check if pool is accepting deposits - utilization is 0-100 from backend
-      const isOpen = pool.utilization < 100;
+      // Check if pool is accepting deposits
+      // deposit_capacity is null (unlimited) or a string amount from the LPP contract
+      // When deposit_capacity is "0", the pool is full and cannot accept new deposits
+      const isOpen = pool.deposit_capacity === null || pool.deposit_capacity === undefined || Number(pool.deposit_capacity) > 0;
 
       return {
         protocol: pool.protocol,

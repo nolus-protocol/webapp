@@ -52,9 +52,12 @@ const mobileMenu = ref<typeof MobileMenu | null>(null);
 
 watch(
   () => configStore.initialized,
-  (initialized) => {
+  async (initialized) => {
     if (!initialized) return;
-    walletOperation(() => {});
+    await walletOperation(() => {});
+    if (wallet.wallet?.address) {
+      await connectionStore.connectWallet(wallet.wallet.address);
+    }
     window.addEventListener("keplr_keystorechange", updateKeplr);
     window.addEventListener("leap_keystorechange", updateLeap);
     wallet.LOAD_APR();
