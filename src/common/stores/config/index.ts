@@ -924,12 +924,14 @@ export const useConfigStore = defineStore("config", () => {
       // No cache - must wait for fresh data
       await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]);
       ensureDefaultProtocolFilter();
-      initialized.value = true;
 
-      // Prefetch protocol currencies for current network after gated protocols are loaded
-      prefetchProtocolCurrenciesForNetwork(networkToFetch).catch((e) => {
+      // Prefetch protocol currencies for current network BEFORE setting initialized
+      // This ensures dropdowns have data when components render
+      await prefetchProtocolCurrenciesForNetwork(networkToFetch).catch((e) => {
         console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
       });
+
+      initialized.value = true;
     }
   }
 
@@ -946,7 +948,7 @@ export const useConfigStore = defineStore("config", () => {
     if (initialized.value && newFilter) {
       await fetchNetworkAssets(newFilter);
       // Also prefetch protocol currencies for the new network
-      prefetchProtocolCurrenciesForNetwork(newFilter).catch((e) => {
+      await prefetchProtocolCurrenciesForNetwork(newFilter).catch((e) => {
         console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
       });
     }

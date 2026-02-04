@@ -537,21 +537,9 @@ export class BackendApiClient {
     return this.request<WebappDownpaymentRange>("GET", `/api/webapp/config/lease/downpayment-ranges/${protocol}`);
   }
 
-  async getWebappIgnoreAssets(): Promise<string[]> {
-    return this.request<string[]>("GET", "/api/webapp/config/lease/ignore-assets");
-  }
-
-  async getWebappIgnoreLeaseLong(): Promise<string[]> {
-    return this.request<string[]>("GET", "/api/webapp/config/lease/ignore-lease-long");
-  }
-
-  async getWebappIgnoreLeaseShort(): Promise<string[]> {
-    return this.request<string[]>("GET", "/api/webapp/config/lease/ignore-lease-short");
-  }
-
-  async getWebappFreeInterestAssets(): Promise<string[]> {
-    return this.request<string[]>("GET", "/api/webapp/config/lease/free-interest");
-  }
+  // Note: Asset ignore lists (ignore_long, ignore_short, ignore_all) are now
+  // handled by the backend in /api/protocols/{protocol}/currencies endpoint.
+  // Free interest assets are handled by a 3rd party service.
 
   async getWebappDueProjection(): Promise<WebappDueProjectionConfig> {
     return this.request<WebappDueProjectionConfig>("GET", "/api/webapp/config/lease/due-projection");

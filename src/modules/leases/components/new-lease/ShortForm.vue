@@ -196,7 +196,7 @@ import { useHistoryStore } from "@/common/stores/history";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-import { getFreeInterest, getIgnoreLeaseShortAssets, getDownpaymentRange } from "@/common/utils/LeaseConfigService";
+import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
@@ -228,8 +228,7 @@ const router = useRouter();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 const reload = inject("reload", () => {});
 
-const freeInterest = ref<string[]>();
-const ignoreLeaseAssets = ref<string[]>();
+
 
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
@@ -255,12 +254,8 @@ watch(
 );
 
 async function onInit() {
-  const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
-    getFreeInterest(),
-    getIgnoreLeaseShortAssets()
-  ]);
-  freeInterest.value = freeInterestv;
-  ignoreLeaseAssets.value = ignoreLeaseAssetsv;
+  // Free interest is handled by a 3rd party service
+  // Asset filtering (ignore_short) is now done by the backend in /api/protocols/{protocol}/currencies
 }
 
 watch(
@@ -314,15 +309,10 @@ const currency = computed(() => {
 });
 
 const assets = computed(() => {
+  // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
   const data = [];
 
   for (const asset of (totalBalances.value as ExternalCurrency[]) ?? []) {
-    const [ticker, protocol] = asset.key.split("@");
-
-    if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
-      continue;
-    }
-
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = formatNumber(value.toString(), asset.decimal_digits);
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
@@ -360,21 +350,10 @@ const assets = computed(() => {
 const coinList = computed(() => {
   // For short positions, the "coin to lease" is determined by the short protocols
   // Each short protocol represents an asset that can be shorted
+  // Backend already filters out ignored assets based on lease-rules.json
   const shortProtocols = configStore.shortProtocolsForCurrentNetwork;
 
   const list = shortProtocols
-    .filter((protocol) => {
-      // The LPN ticker is in the protocol name (e.g., OSMOSIS-OSMOSIS-ALL_BTC -> ALL_BTC is what's shorted)
-      // Check if this should be ignored
-      const assetToShort = protocol.lpn; // For short protocols, lpn is the asset being shorted
-      if (
-        ignoreLeaseAssets.value?.includes(assetToShort) ||
-        ignoreLeaseAssets.value?.includes(`${assetToShort}@${protocol.protocol}`)
-      ) {
-        return false;
-      }
-      return true;
-    })
     .map((protocol) => {
       // Get the LPN info from the protocol's lpn_display
       return {

@@ -122,11 +122,8 @@ async fn fetch_protocols_internal(state: Arc<AppState>) -> Result<serde_json::Va
         .map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
 
     // Filter and merge protocols
-    let filtered_protocols = PropagationFilter::filter_protocols(
-        &etl_protocols,
-        &currency_config,
-        &network_config,
-    );
+    let filtered_protocols =
+        PropagationFilter::filter_protocols(&etl_protocols, &currency_config, &network_config);
 
     let protocols: Vec<ProtocolResponse> = filtered_protocols
         .iter()
@@ -167,6 +164,10 @@ async fn fetch_protocols_internal(state: Arc<AppState>) -> Result<serde_json::Va
 
 /// GET /api/protocols/:protocol/currencies
 /// Returns currencies for a specific protocol with protocol-specific prices
+///
+/// Currencies are filtered based on:
+/// - Currency display configuration (must have icon and displayName)
+/// - Lease rules asset restrictions (ignore_all, ignore_long, ignore_short)
 pub async fn get_protocol_currencies(
     State(state): State<Arc<AppState>>,
     Path(protocol): Path<String>,
@@ -174,15 +175,11 @@ pub async fn get_protocol_currencies(
     debug!("Fetching currencies for protocol: {}", protocol);
 
     // Load gated configs
-    let currency_config = state
-        .config_store
-        .load_currency_display()
-        .await?;
+    let currency_config = state.config_store.load_currency_display().await?;
 
-    let network_config = state
-        .config_store
-        .load_gated_network_config()
-        .await?;
+    let network_config = state.config_store.load_gated_network_config().await?;
+
+    let lease_rules = state.config_store.load_lease_rules().await?;
 
     // Fetch ETL data
     let etl_currencies = state.etl_client.fetch_currencies().await?;
@@ -192,17 +189,42 @@ pub async fn get_protocol_currencies(
     let prices_response = get_prices(State(state.clone())).await?;
 
     // Verify protocol exists and is configured
-    let configured_protocols = PropagationFilter::filter_protocols(
-        &etl_protocols,
-        &currency_config,
-        &network_config,
-    );
+    let configured_protocols =
+        PropagationFilter::filter_protocols(&etl_protocols, &currency_config, &network_config);
 
-    if !configured_protocols.iter().any(|p| p.name == protocol) {
-        return Err(AppError::NotFound {
+    let etl_protocol = configured_protocols
+        .iter()
+        .find(|p| p.name == protocol)
+        .ok_or_else(|| AppError::NotFound {
             resource: format!("Protocol {}", protocol),
-        });
-    }
+        })?;
+
+    // Get position type for this protocol (long or short)
+    let position_type = etl_protocol.position_type.to_lowercase();
+
+    // Build ignore set based on position type
+    let ignore_all: std::collections::HashSet<&str> = lease_rules
+        .asset_restrictions
+        .ignore_all
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+
+    let position_ignore: std::collections::HashSet<&str> = match position_type.as_str() {
+        "long" => lease_rules
+            .asset_restrictions
+            .ignore_long
+            .iter()
+            .map(|s| s.as_str())
+            .collect(),
+        "short" => lease_rules
+            .asset_restrictions
+            .ignore_short
+            .iter()
+            .map(|s| s.as_str())
+            .collect(),
+        _ => std::collections::HashSet::new(),
+    };
 
     // Filter currencies for this protocol
     let filtered_currencies = PropagationFilter::filter_currencies_for_protocol(
@@ -211,7 +233,7 @@ pub async fn get_protocol_currencies(
         &protocol,
     );
 
-    // Build response with Oracle prices
+    // Build response with Oracle prices, filtering out ignored assets
     let currencies: Vec<ProtocolCurrencyResponse> = filtered_currencies
         .iter()
         .filter_map(|c| {
@@ -220,12 +242,31 @@ pub async fn get_protocol_currencies(
                 return None;
             }
 
+            // Check if asset should be ignored (ignore_all)
+            if ignore_all.contains(c.ticker.as_str()) {
+                return None;
+            }
+
+            // Check if asset should be ignored for this position type
+            // Support both "TICKER" and "TICKER@PROTOCOL" formats
+            if position_ignore.contains(c.ticker.as_str()) {
+                return None;
+            }
+            let ticker_at_protocol = format!("{}@{}", c.ticker, protocol);
+            if position_ignore.iter().any(|&s| s == ticker_at_protocol) {
+                return None;
+            }
+
             // Get protocol-specific mapping
             let protocol_mapping = c.protocols.iter().find(|pm| pm.protocol == protocol)?;
 
             // Get protocol-specific price from Oracle
             let price_key = format!("{}@{}", c.ticker, protocol);
-            let price = prices_response.0.prices.get(&price_key).map(|p| p.price_usd.clone());
+            let price = prices_response
+                .0
+                .prices
+                .get(&price_key)
+                .map(|p| p.price_usd.clone());
 
             Some(ProtocolCurrencyResponse {
                 ticker: c.ticker.clone(),
@@ -261,15 +302,9 @@ pub async fn get_network_protocols(
     debug!("Fetching protocols for network: {}", network);
 
     // Load gated configs
-    let currency_config = state
-        .config_store
-        .load_currency_display()
-        .await?;
+    let currency_config = state.config_store.load_currency_display().await?;
 
-    let network_config = state
-        .config_store
-        .load_gated_network_config()
-        .await?;
+    let network_config = state.config_store.load_gated_network_config().await?;
 
     // Check network is configured
     if !network_config

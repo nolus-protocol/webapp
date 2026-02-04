@@ -3,9 +3,12 @@
  *
  * Handles fetching and caching of lease-related configuration:
  * - Downpayment ranges
- * - Free interest assets and addresses
+ * - Free interest addresses
  * - Due projection settings
- * - Ignore asset lists
+ *
+ * Note: Asset ignore lists (ignore_long, ignore_short, ignore_all) are now
+ * handled by the backend in /api/protocols/{protocol}/currencies endpoint.
+ * Free interest assets are handled by a 3rd party service.
  */
 
 import { BackendApi } from "@/common/api";
@@ -26,33 +29,17 @@ export interface DueProjection {
 
 // Cached promises
 const downpaymentRangeCache: Record<string, Promise<Record<string, DownpaymentRange>>> = {};
-let freeInterestCache: Promise<string[]> | null = null;
 let freeInterestAddressCache: Promise<FreeInterestAddresses> | null = null;
 let dueProjectionCache: Promise<DueProjection> | null = null;
-let ignoreLeaseLongCache: Promise<string[]> | null = null;
-let ignoreLeaseShortCache: Promise<string[]> | null = null;
-let ignoreAssetsCache: Promise<string[]> | null = null;
 
 /**
  * Get downpayment range for a protocol
  */
-export async function getDownpaymentRange(
-  protocol: string
-): Promise<Record<string, DownpaymentRange>> {
+export async function getDownpaymentRange(protocol: string): Promise<Record<string, DownpaymentRange>> {
   if (!downpaymentRangeCache[protocol]) {
     downpaymentRangeCache[protocol] = fetchDownpaymentRange(protocol);
   }
   return downpaymentRangeCache[protocol];
-}
-
-/**
- * Get free interest assets
- */
-export async function getFreeInterest(): Promise<string[]> {
-  if (!freeInterestCache) {
-    freeInterestCache = fetchFreeInterest();
-  }
-  return freeInterestCache;
 }
 
 /**
@@ -76,61 +63,21 @@ export async function getDueProjectionSecs(): Promise<DueProjection> {
 }
 
 /**
- * Get assets to ignore for long leases
- */
-export async function getIgnoreLeaseLongAssets(): Promise<string[]> {
-  if (!ignoreLeaseLongCache) {
-    ignoreLeaseLongCache = fetchIgnoreLeaseLongAssets();
-  }
-  return ignoreLeaseLongCache;
-}
-
-/**
- * Get assets to ignore for short leases
- */
-export async function getIgnoreLeaseShortAssets(): Promise<string[]> {
-  if (!ignoreLeaseShortCache) {
-    ignoreLeaseShortCache = fetchIgnoreLeaseShortAssets();
-  }
-  return ignoreLeaseShortCache;
-}
-
-/**
- * Get general ignored assets
- */
-export async function getIgnoreAssets(): Promise<string[]> {
-  if (!ignoreAssetsCache) {
-    ignoreAssetsCache = fetchIgnoreAssets();
-  }
-  return ignoreAssetsCache;
-}
-
-/**
  * Clear all lease config caches
  */
 export function clearLeaseConfigCaches(): void {
   Object.keys(downpaymentRangeCache).forEach((key) => delete downpaymentRangeCache[key]);
-  freeInterestCache = null;
   freeInterestAddressCache = null;
   dueProjectionCache = null;
-  ignoreLeaseLongCache = null;
-  ignoreLeaseShortCache = null;
-  ignoreAssetsCache = null;
 }
 
 // =============================================================================
 // Private Implementation
 // =============================================================================
 
-async function fetchDownpaymentRange(
-  protocol: string
-): Promise<Record<string, DownpaymentRange>> {
+async function fetchDownpaymentRange(protocol: string): Promise<Record<string, DownpaymentRange>> {
   const response = await BackendApi.getWebappDownpaymentRangeForProtocol(protocol);
   return { [protocol]: response };
-}
-
-async function fetchFreeInterest(): Promise<string[]> {
-  return BackendApi.getWebappFreeInterestAssets();
 }
 
 async function fetchFreeInterestAddress(): Promise<FreeInterestAddresses> {
@@ -141,17 +88,3 @@ async function fetchDueProjectionSecs(): Promise<DueProjection> {
   const response = await BackendApi.getWebappDueProjection();
   return { due_projection_secs: response.seconds };
 }
-
-async function fetchIgnoreLeaseLongAssets(): Promise<string[]> {
-  return BackendApi.getWebappIgnoreLeaseLong();
-}
-
-async function fetchIgnoreLeaseShortAssets(): Promise<string[]> {
-  return BackendApi.getWebappIgnoreLeaseShort();
-}
-
-async function fetchIgnoreAssets(): Promise<string[]> {
-  return BackendApi.getWebappIgnoreAssets();
-}
-
-

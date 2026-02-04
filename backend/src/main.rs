@@ -293,7 +293,10 @@ fn create_router(state: Arc<AppState>) -> Router {
         )
         .route("/earnings", get(handlers::etl_proxy::proxy_earnings))
         .route("/lp-withdraw", get(handlers::etl_proxy::proxy_lp_withdraw))
-        .route("/txs", get(handlers::transactions::get_enriched_transactions))
+        .route(
+            "/txs",
+            get(handlers::transactions::get_enriched_transactions),
+        )
         .route(
             "/leases-search",
             get(handlers::etl_proxy::proxy_leases_search),
@@ -352,9 +355,17 @@ fn create_router(state: Arc<AppState>) -> Router {
             "/webapp/config/swap/skip-route",
             get(handlers::config::get_skip_route_config),
         )
+        // Webapp lease configuration endpoints (needed by frontend for downpayment validation)
+        .route(
+            "/webapp/config/lease/downpayment-ranges/{protocol}",
+            get(handlers::config::get_downpayment_ranges),
+        )
         // Protocols (ETL-based, includes active and deprecated)
         .route("/protocols", get(handlers::protocols::get_protocols))
-        .route("/protocols/active", get(handlers::protocols::get_active_protocols))
+        .route(
+            "/protocols/active",
+            get(handlers::protocols::get_active_protocols),
+        )
         // Currencies & Prices
         .route("/currencies", get(handlers::currencies::get_currencies))
         .route("/currencies/{key}", get(handlers::currencies::get_currency))
@@ -481,14 +492,23 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/assets", get(handlers::gated_assets::get_assets))
         .route("/assets/{ticker}", get(handlers::gated_assets::get_asset))
         // Gated Propagation API - Protocols
-        .route("/protocols/gated", get(handlers::gated_protocols::get_protocols))
+        .route(
+            "/protocols/gated",
+            get(handlers::gated_protocols::get_protocols),
+        )
         .route(
             "/protocols/{protocol}/currencies",
             get(handlers::gated_protocols::get_protocol_currencies),
         )
         // Gated Propagation API - Networks
-        .route("/networks/gated", get(handlers::gated_networks::get_networks))
-        .route("/networks/{network}/info", get(handlers::gated_networks::get_network))
+        .route(
+            "/networks/gated",
+            get(handlers::gated_networks::get_networks),
+        )
+        .route(
+            "/networks/{network}/info",
+            get(handlers::gated_networks::get_network),
+        )
         .route(
             "/networks/{network}/assets",
             get(handlers::gated_assets::get_network_assets),
@@ -626,10 +646,7 @@ fn create_router(state: Arc<AppState>) -> Router {
             "/gated/protocols",
             get(handlers::gated_admin::list_protocols),
         )
-        .route(
-            "/gated/networks",
-            get(handlers::gated_admin::list_networks),
-        )
+        .route("/gated/networks", get(handlers::gated_admin::list_networks))
         .route(
             "/gated/unconfigured",
             get(handlers::gated_admin::get_unconfigured),

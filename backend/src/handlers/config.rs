@@ -217,7 +217,9 @@ pub async fn get_protocols(
 
 /// GET /api/config/networks
 /// Returns network configuration
-pub async fn get_networks(State(state): State<Arc<AppState>>) -> Result<Json<Vec<NetworkInfo>>, AppError> {
+pub async fn get_networks(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<Vec<NetworkInfo>>, AppError> {
     let config = get_config(State(state)).await?;
     Ok(Json(config.0.networks))
 }
@@ -241,10 +243,7 @@ pub async fn get_locale(
     }
 
     // Load locale from translation storage
-    let locale = state
-        .translation_storage
-        .load_active(&lang)
-        .await?;
+    let locale = state.translation_storage.load_active(&lang).await?;
 
     Ok(Json(locale))
 }
@@ -262,10 +261,7 @@ pub async fn get_hidden_proposals(
 ) -> Result<Json<HiddenProposalsResponse>, AppError> {
     debug!("Fetching hidden proposals config");
 
-    let ui_settings = state
-        .config_store
-        .load_ui_settings()
-        .await?;
+    let ui_settings = state.config_store.load_ui_settings().await?;
 
     Ok(Json(HiddenProposalsResponse {
         hidden_ids: ui_settings.hidden_proposals,
@@ -306,14 +302,14 @@ async fn fetch_skip_route_config_internal(
         state.etl_client.fetch_currencies(),
     );
 
-    let swap_settings = swap_settings_result
-        .map_err(|e| format!("Failed to load swap settings: {}", e))?;
-    let network_config = network_config_result
-        .map_err(|e| format!("Failed to load network config: {}", e))?;
-    let protocols_response = protocols_result
-        .map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
-    let currencies_response = currencies_result
-        .map_err(|e| format!("Failed to fetch currencies from ETL: {}", e))?;
+    let swap_settings =
+        swap_settings_result.map_err(|e| format!("Failed to load swap settings: {}", e))?;
+    let network_config =
+        network_config_result.map_err(|e| format!("Failed to load network config: {}", e))?;
+    let protocols_response =
+        protocols_result.map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
+    let currencies_response =
+        currencies_result.map_err(|e| format!("Failed to fetch currencies from ETL: {}", e))?;
 
     // Build protocol -> network lookup from ETL protocols
     let mut protocol_to_network: HashMap<String, String> = HashMap::new();
@@ -383,25 +379,37 @@ async fn fetch_skip_route_config_internal(
     // Build transfers as { network: { currencies: [...] } }
     let mut transfers_map = serde_json::Map::new();
     for (network, currencies) in transfers {
-        transfers_map.insert(
-            network,
-            serde_json::json!({ "currencies": currencies }),
-        );
+        transfers_map.insert(network, serde_json::json!({ "currencies": currencies }));
     }
 
     // Build flat response matching SkipRouteConfigType
     let mut response = serde_json::Map::new();
 
-    response.insert("api_url".to_string(), serde_json::json!(swap_settings.api_url));
-    response.insert("blacklist".to_string(), serde_json::json!(swap_settings.blacklist));
-    response.insert("slippage".to_string(), serde_json::json!(swap_settings.slippage));
-    response.insert("gas_multiplier".to_string(), serde_json::json!(swap_settings.gas_multiplier));
+    response.insert(
+        "api_url".to_string(),
+        serde_json::json!(swap_settings.api_url),
+    );
+    response.insert(
+        "blacklist".to_string(),
+        serde_json::json!(swap_settings.blacklist),
+    );
+    response.insert(
+        "slippage".to_string(),
+        serde_json::json!(swap_settings.slippage),
+    );
+    response.insert(
+        "gas_multiplier".to_string(),
+        serde_json::json!(swap_settings.gas_multiplier),
+    );
     response.insert("fee".to_string(), serde_json::json!(swap_settings.fee));
     response.insert(
         "fee_address".to_string(),
         serde_json::json!(swap_settings.fee_address.unwrap_or_default()),
     );
-    response.insert("timeoutSeconds".to_string(), serde_json::json!(swap_settings.timeout_seconds));
+    response.insert(
+        "timeoutSeconds".to_string(),
+        serde_json::json!(swap_settings.timeout_seconds),
+    );
 
     // Resolve swap_to_currency ticker to denom
     let swap_to_denom = swap_settings
@@ -410,7 +418,10 @@ async fn fetch_skip_route_config_internal(
         .and_then(|ticker| ticker_to_denom.get(ticker))
         .cloned()
         .unwrap_or_default();
-    response.insert("swap_to_currency".to_string(), serde_json::json!(swap_to_denom));
+    response.insert(
+        "swap_to_currency".to_string(),
+        serde_json::json!(swap_to_denom),
+    );
 
     // Resolve swap_currencies tickers to denoms per network
     for (network, ticker) in &swap_settings.swap_currencies {
@@ -420,7 +431,10 @@ async fn fetch_skip_route_config_internal(
             .or_else(|| ticker_to_denom.get(ticker))
             .cloned()
             .unwrap_or_default();
-        response.insert(format!("swap_currency_{}", network), serde_json::json!(denom));
+        response.insert(
+            format!("swap_currency_{}", network),
+            serde_json::json!(denom),
+        );
     }
 
     // Build swap_venues from network config (venues are defined per-network)
@@ -439,7 +453,41 @@ async fn fetch_skip_route_config_internal(
     response.insert("swap_venues".to_string(), serde_json::json!(venues));
 
     // Add dynamically generated transfers
-    response.insert("transfers".to_string(), serde_json::Value::Object(transfers_map));
+    response.insert(
+        "transfers".to_string(),
+        serde_json::Value::Object(transfers_map),
+    );
 
     Ok(serde_json::Value::Object(response))
+}
+
+// ============================================================================
+// Lease Configuration Endpoints
+// ============================================================================
+
+/// Response for downpayment ranges
+#[derive(Debug, Serialize)]
+pub struct DownpaymentRangesResponse {
+    #[serde(flatten)]
+    pub ranges:
+        std::collections::HashMap<String, crate::config_store::gated_types::DownpaymentRange>,
+}
+
+/// GET /api/webapp/config/lease/downpayment-ranges/:protocol
+/// Returns downpayment ranges for a specific protocol
+pub async fn get_downpayment_ranges(
+    State(state): State<Arc<AppState>>,
+    Path(protocol): Path<String>,
+) -> Result<Json<DownpaymentRangesResponse>, AppError> {
+    debug!("Fetching downpayment ranges for protocol: {}", protocol);
+
+    let lease_rules = state.config_store.load_lease_rules().await?;
+
+    let ranges = lease_rules
+        .downpayment_ranges
+        .get(&protocol)
+        .cloned()
+        .unwrap_or_default();
+
+    Ok(Json(DownpaymentRangesResponse { ranges }))
 }

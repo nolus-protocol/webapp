@@ -197,7 +197,7 @@ import { useHistoryStore } from "@/common/stores/history";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-import { getFreeInterest, getIgnoreLeaseLongAssets, getDownpaymentRange } from "@/common/utils/LeaseConfigService";
+import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
@@ -228,8 +228,7 @@ const i18n = useI18n();
 const router = useRouter();
 const showDetails = ref(false);
 
-const freeInterest = ref<string[]>();
-const ignoreLeaseAssets = ref<string[]>();
+
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
@@ -255,12 +254,8 @@ watch(
 );
 
 async function onInit() {
-  const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
-    getFreeInterest(),
-    getIgnoreLeaseLongAssets()
-  ]);
-  freeInterest.value = freeInterestv;
-  ignoreLeaseAssets.value = ignoreLeaseAssetsv;
+  // Free interest is handled by a 3rd party service
+  // Asset filtering (ignore_long) is now done by the backend in /api/protocols/{protocol}/currencies
 }
 
 watch(
@@ -370,17 +365,8 @@ const coinList = computed(() => {
   const protocolCurrencies = configStore.getCachedProtocolCurrencies(downPaymentProtocol);
   const leaseCurrencies = protocolCurrencies.filter((c) => c.group === "lease");
 
+  // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
   const list = leaseCurrencies
-    .filter((item) => {
-      // Check if this currency should be ignored
-      if (
-        ignoreLeaseAssets.value?.includes(item.ticker) ||
-        ignoreLeaseAssets.value?.includes(`${item.ticker}@${downPaymentProtocol}`)
-      ) {
-        return false;
-      }
-      return true;
-    })
     .map((item) => {
       return {
         decimal_digits: item.decimals,
@@ -416,17 +402,13 @@ const calculatedBalance = computed(() => {
 });
 
 const balances = computed(() => {
+  // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
   return totalBalances.value.filter((item) => {
     if (!item.key) {
       return false;
     }
 
     const [ticker, protocol] = item.key?.split("@") ?? [];
-
-    // Check if this currency should be ignored
-    if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
-      return false;
-    }
 
     // Get protocol currencies from cache and check if this is valid collateral
     const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol);

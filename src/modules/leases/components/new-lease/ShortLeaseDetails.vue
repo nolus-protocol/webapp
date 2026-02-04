@@ -184,7 +184,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { LeaseUtils } from "@/common/utils";
 import { getCurrencyByTicker, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-import { getFreeInterest } from "@/common/utils/LeaseConfigService";
+
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
@@ -203,10 +203,9 @@ const configStore = useConfigStore();
 const showDetails = ref(false);
 const swapFee = ref(0);
 const swapStableFee = ref(0);
-const freeInterest = ref<string[]>([]);
 
 onMounted(async () => {
-  freeInterest.value = await getFreeInterest();
+  // Free interest is handled by a 3rd party service
 });
 
 onUnmounted(() => {
@@ -234,9 +233,7 @@ const sizeAmount = computed(() => {
 });
 
 const isFreeLease = computed(() => {
-  if (freeInterest.value.includes(props.loanCurrency)) {
-    return true;
-  }
+  // Free interest is handled by a 3rd party service
   return false;
 });
 
