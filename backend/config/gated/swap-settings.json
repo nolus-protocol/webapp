@@ -1,17 +1,14 @@
 {
-  "api_url": "https://beacon.nolus.network/skip",
+  "api_url": "https://api.skip.money",
   "blacklist": [],
   "slippage": 1,
   "gas_multiplier": 2,
   "fee": 35,
+  "fee_address": "",
   "timeoutSeconds": "60",
-  "swap_venues": [
-    { "name": "osmosis-poolmanager", "chain_id": "osmosis-1", "address": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz" },
-    { "name": "neutron-astroport", "chain_id": "neutron-1", "address": "neutron1war9ee549tt9rla54g56ca78y969l6239pang9" }
-  ],
   "swap_currencies": {
-    "osmosis": "ibc/F5FABF52B54E65064B57BF6DBD8E5FAD22CEE9F4B8A57ADBB20CCD0173AA72A4",
-    "neutron": "ibc/18161D8EFBD00FF5B7683EF8E923B8913453567FBE3FB6672D75712B0DEB6682"
+    "osmosis": "USDC_NOBLE",
+    "neutron": "USDC_NOBLE"
   },
-  "swap_to_currency": "unls"
+  "swap_to_currency": "NLS"
 }

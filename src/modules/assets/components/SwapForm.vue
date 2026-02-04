@@ -234,8 +234,12 @@ const secondCalculatedBalance = computed(() => {
 });
 
 const selectedAsset = computed(() => {
-  const item = assets.value.find((item) => item.value == selectedFirstCurrencyOption.value?.value)!;
-  return item;
+  if (!selectedFirstCurrencyOption.value) return undefined;
+  return (
+    assets.value.find((item) => item.value == selectedFirstCurrencyOption.value?.value) ??
+    assets.value.find((item) => item.ibcData == selectedFirstCurrencyOption.value?.ibcData) ??
+    selectedFirstCurrencyOption.value
+  );
 });
 
 const balances = computed(() => {
@@ -373,12 +377,21 @@ async function setRoute(token: Coin, revert = false) {
     try {
       loading.value = true;
       error.value = "";
+
+      const config = await getSkipRouteConfig();
+      const network = configStore.protocolFilter.toLowerCase();
+      const venue = config.swap_venues.find((v) => v.chain_id.startsWith(network));
+      const options = venue ? { swap_venues: [venue] } : {};
+
       if (revert) {
         route = await SkipRouter.getRoute(
           selectedFirstCurrencyOption.value!.ibcData,
           selectedSecondCurrencyOption.value!.ibcData,
           token.amount.toString(),
-          revert
+          revert,
+          undefined,
+          undefined,
+          options
         );
         firstInputAmount.value = new Dec(route?.amount_in, selectedFirstCurrencyOption.value!.decimal_digits).toString(
           selectedFirstCurrencyOption.value!.decimal_digits
@@ -389,7 +402,10 @@ async function setRoute(token: Coin, revert = false) {
           selectedFirstCurrencyOption.value!.ibcData,
           selectedSecondCurrencyOption.value!.ibcData,
           token.amount.toString(),
-          revert
+          revert,
+          undefined,
+          undefined,
+          options
         );
         secondInputAmount.value = new Dec(
           route?.amount_out,

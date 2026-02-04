@@ -65,7 +65,8 @@ export const useBalancesStore = defineStore("balances", () => {
     }
 
     const result: ExternalCurrency[] = [];
-    const seenTickers = new Set<string>(); // Deduplicate by ticker
+    const seenTickers = new Map<string, number>(); // ticker -> index in result
+    const networkProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
 
     for (const balance of balances.value) {
       // Get currency info from config store
@@ -87,20 +88,26 @@ export const useBalancesStore = defineStore("balances", () => {
         continue;
       }
 
-      // Deduplicate - only show each ticker once (same asset may exist in multiple protocols)
-      if (seenTickers.has(ticker)) {
-        continue;
-      }
-      seenTickers.add(ticker);
-
-      // Convert to ExternalCurrency format with balance
-      result.push({
+      const entry = {
         ...currency,
         balance: {
           denom: balance.denom,
           amount: balance.amount
         }
-      } as ExternalCurrency);
+      } as ExternalCurrency;
+
+      const existingIndex = seenTickers.get(ticker);
+      if (existingIndex !== undefined) {
+        // Replace if this currency's protocol belongs to the current network
+        const belongsToNetwork = networkProtocols.includes(currency.protocol);
+        if (belongsToNetwork) {
+          result[existingIndex] = entry;
+        }
+        continue;
+      }
+
+      seenTickers.set(ticker, result.length);
+      result.push(entry);
     }
 
     return result;

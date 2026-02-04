@@ -117,9 +117,22 @@ pub struct NetworkSettings {
     /// Whether to use packet forwarding for IBC
     #[serde(skip_serializing_if = "Option::is_none")]
     pub forward: Option<bool>,
+    /// Swap venue (DEX) for this network (optional — only networks with a DEX have this)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub swap_venue: Option<NetworkSwapVenue>,
     /// Pool-specific configurations keyed by protocol (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE")
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub pools: HashMap<String, PoolConfig>,
+}
+
+/// Swap venue (DEX) configuration within a network
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NetworkSwapVenue {
+    /// Venue name (e.g., "osmosis-poolmanager", "neutron-astroport")
+    pub name: String,
+    /// Contract address for this venue
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub address: Option<String>,
 }
 
 impl NetworkSettings {
@@ -196,16 +209,18 @@ pub struct SwapSettingsConfig {
     /// Base fee in basis points
     #[serde(default = "default_fee")]
     pub fee: u32,
+    /// Fee recipient address
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fee_address: Option<String>,
     /// Transaction timeout in seconds
     #[serde(rename = "timeoutSeconds", default = "default_timeout")]
     pub timeout_seconds: String,
-    /// Swap venues (DEXes) to use
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub swap_venues: Vec<SwapVenue>,
-    /// Swap currency mapping per network
+    /// Swap currency ticker mapping per network (e.g., { "osmosis": "USDC_NOBLE" })
+    /// Tickers are resolved to IBC denoms at runtime via ETL data
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub swap_currencies: HashMap<String, String>,
-    /// Target currency for swaps (e.g., "unls")
+    /// Target currency ticker for swaps (e.g., "NLS")
+    /// Resolved to denom at runtime via ETL data
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_to_currency: Option<String>,
 }
@@ -224,18 +239,6 @@ fn default_fee() -> u32 {
 
 fn default_timeout() -> String {
     "60".to_string()
-}
-
-/// Swap venue (DEX) configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwapVenue {
-    /// Venue name (e.g., "osmosis-poolmanager", "neutron-astroport")
-    pub name: String,
-    /// Chain ID where this venue operates
-    pub chain_id: String,
-    /// Contract address for this venue (optional)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub address: Option<String>,
 }
 
 // ============================================================================
@@ -476,6 +479,7 @@ impl From<NetworkSettingsInput> for NetworkSettings {
             primary_protocol: input.primary_protocol,
             estimation: input.estimation,
             forward: input.forward,
+            swap_venue: None,
             pools: HashMap::new(),
         }
     }
@@ -546,6 +550,7 @@ mod tests {
             primary_protocol: Some("OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()),
             estimation: Some(20),
             forward: None,
+            swap_venue: None,
             pools: HashMap::new(),
         };
         assert!(configured.is_configured());
@@ -564,6 +569,7 @@ mod tests {
             primary_protocol: None,
             estimation: None,
             forward: None,
+            swap_venue: None,
             pools: HashMap::new(),
         };
         assert!(!unconfigured_no_rpc.is_configured());

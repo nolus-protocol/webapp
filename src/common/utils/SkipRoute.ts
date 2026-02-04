@@ -105,7 +105,8 @@ export class SkipRouter {
       allow_multi_tx: true,
       allow_unsafe: true,
       swap_venues: config.swap_venues,
-      experimental_features: ["stargate", "eureka", "hyperlane", "cctp"],
+      bridges: ["IBC"],
+      experimental_features: ["stargate", "eureka"],
       smart_swap_options: {
         split_routes: true,
         evm_swaps: true

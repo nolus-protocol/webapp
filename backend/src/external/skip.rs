@@ -44,6 +44,7 @@ impl SkipClient {
         if !response.status().is_success() {
             let status = response.status();
             let body = response.text().await.unwrap_or_default();
+            tracing::error!("Skip API error: HTTP {} - {}", status, body);
             return Err(AppError::ExternalApi {
                 api: "Skip".to_string(),
                 message: format!("HTTP {}: {}", status, body),
@@ -327,11 +328,20 @@ pub struct SkipChainMessage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SkipStatusResponse {
     pub status: String,
-    pub transfer_sequence: Option<Vec<SkipTransferStatus>>,
+    #[serde(default)]
+    pub state: Option<String>,
+    pub transfer_sequence: Option<Vec<SkipTransferSequenceItem>>,
+    #[serde(default)]
+    pub error: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipTransferStatus {
+pub struct SkipTransferSequenceItem {
+    pub ibc_transfer: Option<SkipIbcTransferStatus>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SkipIbcTransferStatus {
     pub src_chain_id: String,
     pub dst_chain_id: String,
     pub state: String,

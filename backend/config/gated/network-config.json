@@ -16,8 +16,8 @@
     "name": "Osmosis",
     "chain_id": "osmosis-1",
     "prefix": "osmo",
-    "rpc": "https://rpc.osmosis.zone",
-    "lcd": "https://lcd.osmosis.zone",
+    "rpc": "https://rpc-osmosis.nolus.network",
+    "lcd": "https://lcd-osmosis.nolus.network",
     "fallback_rpc": ["https://rpc-osmosis.blockapsis.com", "https://osmosis-rpc.polkachu.com"],
     "fallback_lcd": ["https://lcd-osmosis.blockapsis.com", "https://osmosis-api.polkachu.com"],
     "gas_price": "0.025uosmo",
@@ -25,6 +25,7 @@
     "icon": "/icons/networks/osmosis.svg",
     "primaryProtocol": "OSMOSIS-OSMOSIS-USDC_NOBLE",
     "estimation": 20,
+    "swap_venue": { "name": "osmosis-poolmanager", "address": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz" },
     "pools": {
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
         "icon": "/assets/icons/pools/osmosis-usdc.svg"
@@ -47,8 +48,8 @@
     "name": "Neutron",
     "chain_id": "neutron-1",
     "prefix": "neutron",
-    "rpc": "https://rpc-lb.neutron.org",
-    "lcd": "https://rest-lb.neutron.org",
+    "rpc": "https://rpc-neutron.nolus.network",
+    "lcd": "https://lcd-neutron.nolus.network",
     "fallback_rpc": ["https://neutron-rpc.polkachu.com"],
     "fallback_lcd": ["https://neutron-api.polkachu.com"],
     "gas_price": "0.025untrn",
@@ -57,6 +58,7 @@
     "primaryProtocol": "NEUTRON-ASTROPORT-USDC_NOBLE",
     "estimation": 20,
     "forward": false,
+    "swap_venue": { "name": "neutron-astroport", "address": "neutron1war9ee549tt9rla54g56ca78y969l6239pang9" },
     "pools": {
       "NEUTRON-ASTROPORT-USDC_NOBLE": {
         "icon": "/assets/icons/pools/neutron-usdc.svg"

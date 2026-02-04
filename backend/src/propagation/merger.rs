@@ -98,6 +98,7 @@ mod tests {
                     primary_protocol: Some("OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()),
                     estimation: Some(6),
                     forward: None,
+                    swap_venue: None,
                     pools: HashMap::new(),
                 },
             )]),

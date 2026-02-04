@@ -13,6 +13,7 @@ export interface RouteRequest {
     chain_id: string;
   }[];
   experimental_features: string[];
+  bridges?: string[];
   smart_swap_options: {
     split_routes: boolean;
     evm_swaps: boolean;

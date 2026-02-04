@@ -118,21 +118,6 @@ pub struct SwapMessage {
     pub msg: serde_json::Value,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SwapStatus {
-    /// Overall status
-    pub status: SwapStatusType,
-    /// Transfer sequence info
-    pub transfers: Vec<TransferStatus>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransferStatus {
-    pub src_chain_id: String,
-    pub dst_chain_id: String,
-    pub state: String,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum SwapStatusType {
@@ -289,28 +274,19 @@ pub async fn get_status(
     State(state): State<Arc<AppState>>,
     Path(tx_hash): Path<String>,
     Query(query): Query<SwapStatusChainQuery>,
-) -> Result<Json<SwapStatus>, AppError> {
+) -> Result<Json<serde_json::Value>, AppError> {
     debug!("Getting swap status for tx: {}", tx_hash);
 
-    let response = state
-        .skip_client
-        .get_status(&tx_hash, &query.chain_id)
-        .await?;
+    let url = format!(
+        "{}/v2/tx/status?tx_hash={}&chain_id={}",
+        state.skip_client.base_url(),
+        tx_hash,
+        query.chain_id
+    );
 
-    let status = parse_skip_status(&response.status);
+    let response = state.skip_client.get_raw(&url).await?;
 
-    let transfers = response
-        .transfer_sequence
-        .unwrap_or_default()
-        .into_iter()
-        .map(|t| TransferStatus {
-            src_chain_id: t.src_chain_id,
-            dst_chain_id: t.dst_chain_id,
-            state: t.state,
-        })
-        .collect();
-
-    Ok(Json(SwapStatus { status, transfers }))
+    Ok(Json(response))
 }
 
 #[derive(Debug, Deserialize)]
@@ -428,7 +404,7 @@ pub async fn get_messages(
     State(state): State<Arc<AppState>>,
     Json(request): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    debug!("Getting swap messages via Skip API");
+    debug!("Getting swap messages via Skip API: {}", request);
 
     // Pass through to Skip API directly for maximum compatibility
     let url = format!("{}/v2/fungible/msgs", state.skip_client.base_url());
@@ -475,13 +451,4 @@ pub async fn track_transaction(
 // ============================================================================
 // Helper Functions
 // ============================================================================
-
-fn parse_skip_status(status: &str) -> SwapStatusType {
-    match status.to_lowercase().as_str() {
-        "state_completed" | "completed" | "success" => SwapStatusType::Completed,
-        "state_pending" | "pending" | "received" => SwapStatusType::Pending,
-        "state_in_progress" | "in_progress" | "ongoing" => SwapStatusType::InProgress,
-        _ => SwapStatusType::Failed,
-    }
-}
 

@@ -33,6 +33,9 @@ pub mod config {
     /// Full app configuration
     pub const APP_CONFIG: &str = "app_config";
 
+    /// Skip route config (transfers + swap settings)
+    pub const SKIP_ROUTE_CONFIG: &str = "skip_route_config";
+
     /// Protocol-specific configuration (use with format!)
     pub const PROTOCOL_PREFIX: &str = "protocol:";
 

@@ -1189,7 +1189,12 @@ async fn check_skip_tx_status(
     let completed_hops = transfer_sequence
         .map(|seq| {
             seq.iter()
-                .filter(|t| t.state == "TRANSFER_SUCCESS" || t.state == "STATE_COMPLETED")
+                .filter(|item| {
+                    item.ibc_transfer
+                        .as_ref()
+                        .map(|t| t.state == "TRANSFER_SUCCESS" || t.state == "STATE_COMPLETED")
+                        .unwrap_or(false)
+                })
                 .count() as u32
         })
         .unwrap_or(0);

@@ -348,6 +348,10 @@ fn create_router(state: Arc<AppState>) -> Router {
             "/webapp/config/governance/hidden-proposals",
             get(handlers::config::get_hidden_proposals),
         )
+        .route(
+            "/webapp/config/swap/skip-route",
+            get(handlers::config::get_skip_route_config),
+        )
         // Protocols (ETL-based, includes active and deprecated)
         .route("/protocols", get(handlers::protocols::get_protocols))
         .route("/protocols/active", get(handlers::protocols::get_active_protocols))

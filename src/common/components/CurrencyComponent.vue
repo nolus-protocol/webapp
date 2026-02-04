@@ -8,7 +8,7 @@
         {{ amount.symbol
         }}<template v-if="isDenomInfront"> {{ amount.denom }}<template v-if="hasSpace">&nbsp;</template> </template>
         <template v-if="around">~</template>
-        <template v-if="animatedReveal">
+        <template v-if="animatedReveal && !hide">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
             :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
@@ -26,7 +26,7 @@
         class="items-center"
       >
         <template v-if="around">~</template>
-        <template v-if="animatedReveal">
+        <template v-if="animatedReveal && !hide">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
             :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
