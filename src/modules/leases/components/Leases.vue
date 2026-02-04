@@ -125,6 +125,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
+import { usePricesStore } from "@/common/stores/prices";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useConfigStore } from "@/common/stores/config";
 import { MAX_DECIMALS, MID_DECIMALS, NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
@@ -135,6 +136,7 @@ import TableNumber from "@/common/components/TableNumber.vue";
 import type { LeaseInfo } from "@/common/api";
 
 const leasesStore = useLeasesStore();
+const pricesStore = usePricesStore();
 const leaseLoaded = computed(() => !leasesStore.loading || leasesStore.leases.length > 0);
 const leases = computed(() => leasesStore.leases);
 const activeLeases = ref(new Dec(0));
@@ -408,10 +410,11 @@ function isLeaseInProgress(lease: LeaseInfo): boolean {
 }
 
 watch(
-  () => leases.value,
+  [() => leases.value, () => pricesStore.prices],
   () => {
     setLeases();
-  }
+  },
+  { deep: true, immediate: true }
 );
 
 // Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts

@@ -75,8 +75,10 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
 import { useConfigStore } from "@/common/stores/config";
+import { useConnectionStore } from "@/common/stores/connection";
 
 const wallet = useWalletStore();
+const connectionStore = useConnectionStore();
 const dialog = ref();
 const i18n = useI18n();
 const router = useRouter();
@@ -110,6 +112,7 @@ async function onClickDisconnect() {
     router.push({ name: RouteNames.DASHBOARD });
     WalletManager.eraseWalletInfo();
     wallet[WalletActions.DISCONNECT]();
+    connectionStore.disconnectWallet();
     onShowToast({
       type: ToastType.success,
       message: i18n.t("message.wallet-disconnected")

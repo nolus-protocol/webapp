@@ -67,7 +67,7 @@ import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore, useBalancesStore, useStakingStore, usePricesStore, useAnalyticsStore, useHistoryStore } from "@/common/stores";
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 
 const props = defineProps<{
   showEmpty: boolean;
@@ -88,19 +88,7 @@ const earningsAmount = computed(() =>
   analyticsStore.earnings?.earnings ?? "0.00"
 );
 
-// Set staking address when wallet connects/disconnects
-watch(
-  () => wallet.wallet?.address,
-  async (address) => {
-    if (address) {
-      await stakingStore.setAddress(address);
-      // Analytics store is initialized by connection store
-    } else {
-      stakingStore.clear();
-    }
-  },
-  { immediate: true }
-);
+// Staking and analytics stores are initialized by connectionStore.connectWallet()
 
 const isEmpty = computed(() => {
   return props.showEmpty || !stakingStore.hasPositions;

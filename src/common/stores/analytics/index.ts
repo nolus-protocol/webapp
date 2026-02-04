@@ -323,13 +323,14 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     }
 
     address.value = newAddress;
-    initialized.value = true;
 
     // Fetch dashboard and history data in parallel
     await Promise.all([
       fetchDashboardData(),
       fetchHistoryData()
     ]);
+
+    initialized.value = true;
   }
 
   /**

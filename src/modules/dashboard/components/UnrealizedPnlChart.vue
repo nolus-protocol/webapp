@@ -56,11 +56,11 @@ watch(
   { immediate: true }
 );
 
-// Also watch for wallet changes to trigger fetch
+// Watch for wallet changes to trigger fetch
 watch(
   () => wallet.wallet?.address,
   () => {
-    if (wallet.wallet?.address && !analyticsStore.positionDebtValue) {
+    if (wallet.wallet?.address) {
       loadData();
     }
   },

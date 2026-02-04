@@ -79,15 +79,13 @@ const router = useRouter();
 
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
-// Watch for wallet connection changes
+// Watch for wallet connection changes (staking store is managed by connectionStore)
 watch(
   () => wallet.wallet?.address,
   async (address) => {
     if (address) {
-      await stakingStore.setAddress(address);
       await loadVested();
     } else {
-      stakingStore.clear();
       vestedTokens.value = [];
     }
   },

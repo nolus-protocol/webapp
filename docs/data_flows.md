@@ -130,17 +130,21 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 ### Key Implementation Details
 
 - **Event listener registration**: The `configStore.initialized` watcher in `view.vue` uses `{ immediate: true }` — critical because with optimistic localStorage caching, `initialized` may already be `true` when the component mounts. Without `immediate`, the watcher callback never fires and event listeners are never registered.
-- **No component-level wallet watchers**: Individual page components (`Leases.vue`, `DashboardLeases.vue`, etc.) do NOT watch wallet changes. All store coordination happens exclusively through `connectionStore.connectWallet()`.
+- **No component-level wallet watchers**: Individual page components (`Leases.vue`, `DashboardLeases.vue`, etc.) do NOT watch wallet changes. All store coordination happens exclusively through `connectionStore.connectWallet()`. Components like `DashboardRewards.vue`, `UndelegateForm.vue`, and `stake/view.vue` rely on `connectionStore` — they do NOT have their own wallet watchers to call `stakingStore.setAddress()` or `stakingStore.fetchPositions()`.
 - **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts`, `connectPhantom.ts`, `connectSolFlare.ts`) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly — that's `connectionStore`'s responsibility.
+- **Disconnect flow**: `Disconnect.vue` calls both `wallet[WalletActions.DISCONNECT]()` (clears wallet state) and `connectionStore.disconnectWallet()` (clears all user-specific stores: balances, leases, staking, earn, analytics, history).
+- **Price polling ownership**: Price polling is handled exclusively by `pricesStore.startPolling()` (called during `pricesStore.initialize()`). `view.vue` does NOT have its own price polling interval — it only manages balance polling. This avoids duplicate price fetches.
+- **Balance polling**: `view.vue` manages a balance polling interval via `startBalancePolling()`, called when `configStore.initialized` becomes true.
 
 ### Key Files
 
 | File | Role |
 |------|------|
-| `src/modules/view.vue` | Registers `keplr_keystorechange` / `leap_keystorechange` event listeners |
+| `src/modules/view.vue` | Registers `keplr_keystorechange` / `leap_keystorechange` event listeners, manages balance polling |
 | `src/entry-client.ts` | Watches `walletStore.wallet?.address` for initial page load reconnect |
 | `src/common/stores/connection/index.ts` | `connectWallet()` / `disconnectWallet()` — coordinates all user-specific stores |
 | `src/common/stores/wallet/actions/connect*.ts` | Set wallet state only (no direct store calls) |
+| `src/common/components/auth/Disconnect.vue` | Calls `connectionStore.disconnectWallet()` on user disconnect |
 
 ---
 
@@ -626,7 +630,7 @@ const assetKey = "ATOM@OSMOSIS-OSMOSIS-USDC_NOBLE";
 |-------|-----|-----------|
 | Backend Moka Cache | 30 seconds | Prices need to be fresh for trading |
 | Frontend localStorage | 5 minutes | Optimistic loading, background refresh |
-| Frontend Polling | 30 seconds | Keep prices updated |
+| Frontend Polling | 30 seconds | `pricesStore.startPolling()` — sole owner of price polling (no duplicate intervals in `view.vue`) |
 
 ### Config Impact on Prices
 
@@ -1134,6 +1138,27 @@ const { pnlAmount, pnlPercent, pnlPositive } = leaseCalculator.calculatePnl(
 ```
 
 The `downpayment` value comes from the backend's `pnl.downpayment` field (sourced from ETL `ls-opening.downpayment_amount`).
+
+### Leases Summary Reactivity Pattern
+
+The `Leases.vue` component uses **ref-based state** for summary totals (PnL, Value, Debt) rather than computed properties. These are recalculated by `setLeases()` via a watch:
+
+```typescript
+watch(
+  [() => leases.value, () => pricesStore.prices],
+  () => { setLeases(); },
+  { deep: true, immediate: true }
+);
+```
+
+**Critical: both `deep` and `immediate` are required:**
+- `immediate: true` — On SPA navigation, leases are already in the store from `connectionStore.connectWallet()`. Without `immediate`, the watch never fires and summary stays at $0.00.
+- `deep: true` — Prices object mutations (from polling/WebSocket) need to trigger recalculation.
+- Watching `pricesStore.prices` — Summary depends on current prices via `LeaseCalculator.calculateDisplayData()`. Without this, price updates don't refresh the summary.
+
+Individual lease rows don't have this issue because `leasesData` is a `computed` property that automatically tracks reactive dependencies (including `pricesStore.prices` accessed inside `getLeaseDisplayData()`).
+
+**Pattern rule:** Any `ref`-based aggregation that depends on store data from multiple sources must watch all dependencies with `{ immediate: true }`. See `AssetsTable.vue` for the same correct pattern.
 
 ---
 
@@ -2288,7 +2313,7 @@ The `useAnalyticsStore` manages user-specific analytics data that requires a wal
 
 ### Lifecycle
 
-- **Initialized**: When wallet connects via `useConnectionStore.connectWallet()`
+- **Initialized**: When wallet connects via `useConnectionStore.connectWallet()`. The `initialized` flag is set to `true` only **after** both `fetchDashboardData()` and `fetchHistoryData()` complete — not before. This ensures components that check `analyticsStore.initialized` don't render with empty data.
 - **Cleared**: When wallet disconnects via `useConnectionStore.disconnectWallet()`
 - **In-memory only**: No localStorage caching (user-specific, cleared on disconnect)
 

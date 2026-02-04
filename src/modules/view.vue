@@ -24,11 +24,10 @@
 import { onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
-import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useConnectionStore } from "@/common/stores/connection";
 import { useEarnStore } from "@/common/stores/earn";
-import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/global";
+import { UPDATE_BALANCE_INTERVAL } from "@/config/global";
 import { IntercomService, Logger, WalletManager, walletOperation } from "@/common/utils";
 
 import Sidebar from "@/common/components/Sidebar.vue";
@@ -36,12 +35,10 @@ import Header from "@/common/components/Header.vue";
 import MobileMenu from "@/common/components/menus/MobileMenu.vue";
 
 let balanceInterval: NodeJS.Timeout | undefined;
-let pricesInterval: NodeJS.Timeout | undefined;
 let sessionTimeOut: NodeJS.Timeout | undefined;
 
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
-const pricesStore = usePricesStore();
 const configStore = useConfigStore();
 const connectionStore = useConnectionStore();
 const earnStore = useEarnStore();
@@ -61,14 +58,13 @@ watch(
     window.addEventListener("keplr_keystorechange", updateKeplr);
     window.addEventListener("leap_keystorechange", updateLeap);
     wallet.LOAD_APR();
-    checkBalances();
+    startBalancePolling();
   },
   { immediate: true }
 );
 
 onUnmounted(() => {
   clearInterval(balanceInterval);
-  clearInterval(pricesInterval);
   clearInterval(sessionTimeOut);
   window.removeEventListener("keplr_keystorechange", updateKeplr);
   window.removeEventListener("leap_keystorechange", updateLeap);
@@ -105,7 +101,7 @@ async function updateLeap() {
 
 async function loadNetwork() {
   try {
-    await Promise.all([wallet.LOAD_APR(), earnStore.fetchPools(), checkBalances(), checkPrices()]);
+    await Promise.all([wallet.LOAD_APR(), earnStore.fetchPools()]);
   } catch (error: Error | any) {
     Logger.error(error);
     showErrorDialog.value = true;
@@ -113,7 +109,8 @@ async function loadNetwork() {
   }
 }
 
-async function checkBalances() {
+function startBalancePolling() {
+  clearInterval(balanceInterval);
   balanceInterval = setInterval(async () => {
     try {
       if (WalletManager.getWalletAddress() !== "") {
@@ -124,17 +121,6 @@ async function checkBalances() {
       errorMessage.value = error?.message;
     }
   }, UPDATE_BALANCE_INTERVAL);
-}
-
-async function checkPrices() {
-  pricesInterval = setInterval(async () => {
-    try {
-      await pricesStore.fetchPrices();
-    } catch (error: Error | any) {
-      showErrorDialog.value = true;
-      errorMessage.value = error?.message;
-    }
-  }, UPDATE_PRICES_INTERVAL);
 }
 </script>
 

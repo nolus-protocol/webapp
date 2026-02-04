@@ -67,7 +67,7 @@
 
 <script lang="ts" setup>
 import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, ref } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
@@ -100,18 +100,7 @@ const onClose = inject("close", () => {});
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
-// Use staking store delegations - fetch on wallet change
-watch(
-  () => wallet.wallet?.address,
-  async (address) => {
-    if (address) {
-      await stakingStore.fetchPositions();
-    }
-  },
-  {
-    immediate: true
-  }
-);
+// Staking store positions are fetched by connectionStore.connectWallet()
 
 const date = computed(() => {
   const date = new Date();
