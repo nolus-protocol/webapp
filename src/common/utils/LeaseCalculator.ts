@@ -90,9 +90,7 @@ export class LeaseCalculator {
     const lpnCurrency = this.currencyProvider.getLpnCurrency(protocol);
 
     // Calculate unit and stable asset amounts
-    const unitAsset = currency
-      ? new Dec(lease.amount.amount, currency.decimal_digits)
-      : new Dec(lease.amount.amount);
+    const unitAsset = currency ? new Dec(lease.amount.amount, currency.decimal_digits) : new Dec(lease.amount.amount);
     const stableAsset = lpnCurrency
       ? new Dec(lease.debt.principal, lpnCurrency.decimal_digits)
       : new Dec(lease.debt.principal);
@@ -104,40 +102,27 @@ export class LeaseCalculator {
     const { interestRate, interestRateMonthly } = this.calculateInterestRates(lease);
 
     // Get prices
-    const assetPrice = currency
-      ? new Dec(this.priceProvider.getPriceAsNumber(currency.key))
-      : new Dec(0);
-    const lpnPrice = lpnCurrency
-      ? new Dec(this.priceProvider.getPriceAsNumber(lpnCurrency.key))
-      : new Dec(1);
+    const assetPrice = currency ? new Dec(this.priceProvider.getPriceAsNumber(currency.key)) : new Dec(0);
+    const lpnPrice = lpnCurrency ? new Dec(this.priceProvider.getPriceAsNumber(lpnCurrency.key)) : new Dec(1);
 
     // Calculate asset value and debt in USD
     const assetValueUsd = unitAsset.mul(assetPrice);
-    const debtAmount = lpnCurrency
-      ? new Dec(lease.debt.total, lpnCurrency.decimal_digits)
-      : new Dec(lease.debt.total);
+    const debtAmount = lpnCurrency ? new Dec(lease.debt.total, lpnCurrency.decimal_digits) : new Dec(lease.debt.total);
     const totalDebtUsd = debtAmount.mul(lpnPrice);
 
     // Calculate liquidation price
-    const liquidationPrice = this.calculateLiquidationPrice(
-      lease,
-      positionType,
-      unitAsset,
-      stableAsset
-    );
+    const liquidationPrice = this.calculateLiquidationPrice(lease, positionType, unitAsset, stableAsset);
 
     // Calculate health
-    const { health, healthStatus } = this.calculateHealth(
-      lease,
-      assetValueUsd,
-      totalDebtUsd
-    );
+    const { health, healthStatus } = this.calculateHealth(lease, assetValueUsd, totalDebtUsd);
 
     // Parse ETL data (needed for PnL calculation)
+    // Note: downpayment uses LPN decimals, fee uses asset decimals (to match production)
     const { downPayment, openingPrice, fee, repaymentValue } = this.parseEtlData(
       lease,
       positionType,
-      lpnCurrency?.decimal_digits ?? 6
+      lpnCurrency?.decimal_digits ?? 6,
+      currency?.decimal_digits ?? 8
     );
 
     // Calculate PnL
@@ -145,6 +130,8 @@ export class LeaseCalculator {
       assetValueUsd,
       totalDebtUsd,
       downPayment,
+      fee,
+      repaymentValue
     );
 
     // Calculate close policy prices
@@ -182,7 +169,7 @@ export class LeaseCalculator {
       repaymentValue,
       inProgressType,
       unitAsset,
-      stableAsset,
+      stableAsset
     };
   }
 
@@ -196,16 +183,9 @@ export class LeaseCalculator {
     const dueMargin = new Dec(lease.debt.due_margin);
     const dueInterest = new Dec(lease.debt.due_interest);
 
-    const totalDebt = principal
-      .add(overdueMargin)
-      .add(overdueInterest)
-      .add(dueMargin)
-      .add(dueInterest);
+    const totalDebt = principal.add(overdueMargin).add(overdueInterest).add(dueMargin).add(dueInterest);
 
-    const interestDue = overdueMargin
-      .add(overdueInterest)
-      .add(dueMargin)
-      .add(dueInterest);
+    const interestDue = overdueMargin.add(overdueInterest).add(dueMargin).add(dueInterest);
 
     return { totalDebt, interestDue };
   }
@@ -214,46 +194,40 @@ export class LeaseCalculator {
    * Calculate annual and monthly interest rates
    */
   calculateInterestRates(lease: LeaseInfo): { interestRate: Dec; interestRateMonthly: Dec } {
-    const loanRate = new Dec(lease.interest.loan_rate / PERMILLE);
-    const marginRate = new Dec(lease.interest.margin_rate / PERCENT);
-    const interestRate = loanRate.add(marginRate);
+    // Backend already returns annual_rate_percent as a percentage (e.g., 17.4 for 17.4%)
+    const annualRatePercent = lease.interest.annual_rate_percent ?? 0;
 
-    const interestRateDecimal = new Dec(
-      (Number(lease.interest.loan_rate) + Number(lease.interest.margin_rate)) /
-        Math.pow(10, INTEREST_DECIMALS) /
-        MONTHS
-    );
+    // interestRate is the annual rate as a percentage value (17.4 for 17.4%)
+    const interestRate = new Dec(annualRatePercent);
 
-    return { interestRate, interestRateMonthly: interestRateDecimal };
+    // Monthly rate is simply annual rate divided by 12 (1.45 for 1.45%)
+    const interestRateMonthly = new Dec(annualRatePercent / MONTHS);
+
+    return { interestRate, interestRateMonthly };
   }
 
   /**
    * Calculate liquidation price
+   * For Long: (debt / collateral) / 0.9
+   * For Short: (collateral * 0.9) / debt
    */
-  calculateLiquidationPrice(
-    lease: LeaseInfo,
-    positionType: string,
-    unitAsset: Dec,
-    stableAsset: Dec
-  ): Dec {
+  calculateLiquidationPrice(lease: LeaseInfo, positionType: string, unitAsset: Dec, stableAsset: Dec): Dec {
     if (lease.liquidation_price) {
       return new Dec(lease.liquidation_price);
     }
 
-    if (
-      lease.status !== "opened" ||
-      !unitAsset.isPositive() ||
-      !stableAsset.isPositive()
-    ) {
+    if (lease.status !== "opened" || !unitAsset.isPositive() || !stableAsset.isPositive()) {
       return new Dec(0);
     }
 
+    const liquidationFactor = new Dec(0.9);
+
     if (positionType === "long") {
-      // Long: liquidation = debt / collateral (roughly)
-      return stableAsset.quo(unitAsset);
+      // Long: liquidation = (debt / collateral) / 0.9
+      return stableAsset.quo(unitAsset).quo(liquidationFactor);
     } else {
-      // Short: liquidation = collateral / debt
-      return unitAsset.quo(stableAsset);
+      // Short: liquidation = (collateral * 0.9) / debt
+      return unitAsset.mul(liquidationFactor).quo(stableAsset);
     }
   }
 
@@ -271,10 +245,7 @@ export class LeaseCalculator {
 
     const ltv = totalDebtUsd.quo(assetValueUsd).sub(new Dec(0.2));
     const healthDec = new Dec(1).sub(ltv.quo(new Dec(0.7)));
-    const health = Math.min(
-      100,
-      Math.max(0, Number(healthDec.mul(new Dec(PERCENT)).toString(2)))
-    );
+    const health = Math.min(100, Math.max(0, Number(healthDec.mul(new Dec(PERCENT)).toString(2))));
 
     let healthStatus: "green" | "yellow" | "red" = "green";
     if (health >= 25) {
@@ -290,29 +261,33 @@ export class LeaseCalculator {
 
   /**
    * Calculate PnL values
-   * PnL = (asset value - debt) - downpayment
-   * Percent = PnL / downpayment * 100
+   * Formula: pnlAmount = currentAmount - (debt × lpnPrice) - downPayment + fee - repaymentValue
+   * Percent = pnlAmount / (downPayment + repaymentValue) * 100
    */
   calculatePnl(
-    assetValueUsd: Dec,
+    currentAmount: Dec,
     totalDebtUsd: Dec,
     downPayment: Dec,
+    fee: Dec,
+    repaymentValue: Dec
   ): {
     pnlAmount: Dec;
     pnlPercent: Dec;
     pnlPositive: boolean;
   } {
-    if (!downPayment.isPositive()) {
+    const totalInvested = downPayment.add(repaymentValue);
+
+    if (!totalInvested.isPositive()) {
       return {
         pnlAmount: new Dec(0),
         pnlPercent: new Dec(0),
-        pnlPositive: true,
+        pnlPositive: true
       };
     }
 
-    const equity = assetValueUsd.sub(totalDebtUsd);
-    const pnlAmount = equity.sub(downPayment);
-    const pnlPercent = pnlAmount.quo(downPayment).mul(new Dec(100));
+    // PnL = currentAmount - debt - downPayment + fee - repaymentValue
+    const pnlAmount = currentAmount.sub(totalDebtUsd).sub(downPayment).add(fee).sub(repaymentValue);
+    const pnlPercent = pnlAmount.quo(totalInvested).mul(new Dec(100));
     const pnlPositive = pnlAmount.isPositive() || pnlAmount.isZero();
 
     return { pnlAmount, pnlPercent, pnlPositive };
@@ -327,11 +302,7 @@ export class LeaseCalculator {
     unitAsset: Dec,
     stableAsset: Dec
   ): { percent: number; price: Dec } | null {
-    if (
-      !lease.close_policy?.stop_loss ||
-      !unitAsset.isPositive() ||
-      !stableAsset.isPositive()
-    ) {
+    if (!lease.close_policy?.stop_loss || !unitAsset.isPositive() || !stableAsset.isPositive()) {
       return null;
     }
 
@@ -339,13 +310,9 @@ export class LeaseCalculator {
     let slPrice: Dec;
 
     if (positionType === "long") {
-      slPrice = stableAsset
-        .quo(new Dec(lease.close_policy.stop_loss).quo(new Dec(PERMILLE)))
-        .quo(unitAsset);
+      slPrice = stableAsset.quo(new Dec(lease.close_policy.stop_loss).quo(new Dec(PERMILLE))).quo(unitAsset);
     } else {
-      slPrice = unitAsset
-        .mul(new Dec(lease.close_policy.stop_loss).quo(new Dec(PERMILLE)))
-        .quo(stableAsset);
+      slPrice = unitAsset.mul(new Dec(lease.close_policy.stop_loss).quo(new Dec(PERMILLE))).quo(stableAsset);
     }
 
     return { percent: slPercent, price: slPrice };
@@ -360,11 +327,7 @@ export class LeaseCalculator {
     unitAsset: Dec,
     stableAsset: Dec
   ): { percent: number; price: Dec } | null {
-    if (
-      !lease.close_policy?.take_profit ||
-      !unitAsset.isPositive() ||
-      !stableAsset.isPositive()
-    ) {
+    if (!lease.close_policy?.take_profit || !unitAsset.isPositive() || !stableAsset.isPositive()) {
       return null;
     }
 
@@ -372,13 +335,9 @@ export class LeaseCalculator {
     let tpPrice: Dec;
 
     if (positionType === "long") {
-      tpPrice = stableAsset
-        .quo(new Dec(lease.close_policy.take_profit).quo(new Dec(PERMILLE)))
-        .quo(unitAsset);
+      tpPrice = stableAsset.quo(new Dec(lease.close_policy.take_profit).quo(new Dec(PERMILLE))).quo(unitAsset);
     } else {
-      tpPrice = unitAsset
-        .mul(new Dec(lease.close_policy.take_profit).quo(new Dec(PERMILLE)))
-        .quo(stableAsset);
+      tpPrice = unitAsset.mul(new Dec(lease.close_policy.take_profit).quo(new Dec(PERMILLE))).quo(stableAsset);
     }
 
     return { percent: tpPercent, price: tpPrice };
@@ -398,20 +357,21 @@ export class LeaseCalculator {
     const collectIn = BigInt(lease.overdue_collect_in);
     const interestDueWarning = collectIn <= BigInt(LEASE_DUE);
     // Convert nanoseconds to milliseconds and add to current time
-    const interestDueDate = new Date(
-      Date.now() + Number(collectIn / BigInt(1000000))
-    );
+    const interestDueDate = new Date(Date.now() + Number(collectIn / BigInt(1000000)));
 
     return { interestDueWarning, interestDueDate };
   }
 
   /**
    * Parse ETL data from lease
+   * @param lpnDecimals - decimals for LPN currency (used for downpayment)
+   * @param assetDecimals - decimals for the leased asset (used for fee, matching production behavior)
    */
   parseEtlData(
     lease: LeaseInfo,
     positionType: string,
-    lpnDecimals: number
+    lpnDecimals: number,
+    assetDecimals: number
   ): {
     downPayment: Dec;
     openingPrice: Dec;
@@ -423,18 +383,13 @@ export class LeaseCalculator {
       : new Dec(0);
 
     const openingPrice =
-      positionType === "long"
-        ? new Dec(lease.etl_data?.price ?? "0")
-        : new Dec(lease.etl_data?.lpn_price ?? "0");
+      positionType === "long" ? new Dec(lease.etl_data?.price ?? "0") : new Dec(lease.etl_data?.lpn_price ?? "0");
 
-    const fee = lease.etl_data?.fee
-      ? new Dec(lease.etl_data.fee, lpnDecimals)
-      : new Dec(0);
+    // Fee uses asset decimals to match production behavior
+    const fee = lease.etl_data?.fee ? new Dec(lease.etl_data.fee, assetDecimals) : new Dec(0);
 
     // repayment_value from ETL is already formatted as a decimal number
-    const repaymentValue = lease.etl_data?.repayment_value
-      ? new Dec(lease.etl_data.repayment_value)
-      : new Dec(0);
+    const repaymentValue = lease.etl_data?.repayment_value ? new Dec(lease.etl_data.repayment_value) : new Dec(0);
 
     return { downPayment, openingPrice, fee, repaymentValue };
   }
@@ -442,9 +397,7 @@ export class LeaseCalculator {
   /**
    * Parse in progress type from lease
    */
-  parseInProgressType(
-    lease: LeaseInfo
-  ): "opening" | "repayment" | "close" | "liquidation" | "transfer_in" | null {
+  parseInProgressType(lease: LeaseInfo): "opening" | "repayment" | "close" | "liquidation" | "transfer_in" | null {
     if (!lease.in_progress) {
       return null;
     }
@@ -490,9 +443,7 @@ export class LeaseCalculator {
    * Filter leases by status
    */
   static filterOpenLeases(leases: LeaseInfo[]): LeaseInfo[] {
-    return leases.filter(
-      (l) => l.status === "opened" || l.status === "opening"
-    );
+    return leases.filter((l) => l.status === "opened" || l.status === "opening");
   }
 
   /**
@@ -500,11 +451,7 @@ export class LeaseCalculator {
    */
   static filterClosedLeases(leases: LeaseInfo[]): LeaseInfo[] {
     return leases.filter(
-      (l) =>
-        l.status === "closed" ||
-        l.status === "closing" ||
-        l.status === "liquidated" ||
-        l.status === "paid_off"
+      (l) => l.status === "closed" || l.status === "closing" || l.status === "liquidated" || l.status === "paid_off"
     );
   }
 }

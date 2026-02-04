@@ -493,7 +493,7 @@ const interestDueStatus = computed(() => {
 
 const interest = computed(() => {
   if (props.displayData) {
-    return props.displayData.interestRate.toString(2);
+    return props.displayData.interestRateMonthly.toString(2);
   }
   return "0.00";
 });

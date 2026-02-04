@@ -250,6 +250,12 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
         .await
         .map_err(|e| format!("Failed to get config: {}", e))?;
 
+    // Get currencies to have decimal information for price calculations
+    let currencies = get_currencies(State(state.clone()))
+        .await
+        .map_err(|e| format!("Failed to get currencies: {}", e))?;
+    let currencies_map = currencies.0.currencies;
+
     let mut prices = HashMap::new();
 
     // Filter to active protocols with oracle contracts
@@ -267,6 +273,7 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
             let chain_client = state.chain_client.clone();
             let oracle = protocol_info.contracts.oracle.clone().unwrap();
             let protocol_name = (*protocol_name).clone();
+            let currencies_map = currencies_map.clone();
             async move {
                 let mut protocol_prices = Vec::new();
 
@@ -282,19 +289,17 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
                     }
                 };
 
-                let stable_price = match chain_client
-                    .get_stable_price(&oracle, &base_currency)
-                    .await
-                {
-                    Ok(sp) => sp,
-                    Err(e) => {
-                        error!(
-                            "Failed to fetch stable price from protocol {}: {}",
-                            protocol_name, e
-                        );
-                        return protocol_prices;
-                    }
-                };
+                let stable_price =
+                    match chain_client.get_stable_price(&oracle, &base_currency).await {
+                        Ok(sp) => sp,
+                        Err(e) => {
+                            error!(
+                                "Failed to fetch stable price from protocol {}: {}",
+                                protocol_name, e
+                            );
+                            return protocol_prices;
+                        }
+                    };
 
                 // Calculate LPN price in USD
                 let lpn_price = calculate_price(
@@ -302,7 +307,13 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
                     &stable_price.amount.amount,
                 );
 
+                // Get LPN decimals
                 let lpn_key = format!("{}@{}", base_currency, protocol_name);
+                let lpn_decimals = currencies_map
+                    .get(&lpn_key)
+                    .map(|c| c.decimal_digits)
+                    .unwrap_or(6);
+
                 protocol_prices.push((
                     lpn_key.clone(),
                     PriceInfo {
@@ -317,10 +328,19 @@ async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value
                     Ok(oracle_prices) => {
                         for price in oracle_prices.prices {
                             let key = format!("{}@{}", price.amount.ticker, protocol_name);
-                            let asset_price = calculate_price_with_lpn(
+
+                            // Get asset decimals for proper price calculation
+                            let asset_decimals = currencies_map
+                                .get(&key)
+                                .map(|c| c.decimal_digits)
+                                .unwrap_or(6);
+
+                            let asset_price = calculate_price_with_decimals(
                                 &price.amount_quote.amount,
                                 &price.amount.amount,
                                 &lpn_price,
+                                asset_decimals,
+                                lpn_decimals,
                             );
                             protocol_prices.push((
                                 key.clone(),
@@ -462,20 +482,42 @@ pub fn calculate_price(quote_amount: &str, amount: &str) -> String {
     (quote / amt).to_string()
 }
 
-/// Calculate price with LPN base: (quote_amount / amount) * lpn_price
-pub fn calculate_price_with_lpn(quote_amount: &str, amount: &str, lpn_price: &str) -> String {
+/// Calculate price with LPN base and decimal adjustment
+/// Formula: ((quote_amount / amount) * lpn_price) * 10^(asset_decimals - lpn_decimals)
+/// This accounts for the different decimal precisions between the asset and the LPN currency
+pub fn calculate_price_with_decimals(
+    quote_amount: &str,
+    amount: &str,
+    lpn_price: &str,
+    asset_decimals: u8,
+    lpn_decimals: u8,
+) -> String {
     let quote: f64 = quote_amount.parse().unwrap_or(0.0);
     let amt: f64 = amount.parse().unwrap_or(1.0);
     let lpn: f64 = lpn_price.parse().unwrap_or(1.0);
     if amt == 0.0 {
         return "0".to_string();
     }
-    ((quote / amt) * lpn).to_string()
+
+    let mut value = (quote / amt) * lpn;
+
+    // Adjust for decimal difference between asset and LPN
+    let decimal_diff = asset_decimals as i16 - lpn_decimals as i16;
+    if decimal_diff != 0 {
+        let power = 10_f64.powi(decimal_diff.abs() as i32);
+        if decimal_diff > 0 {
+            value *= power;
+        } else {
+            value /= power;
+        }
+    }
+
+    value.to_string()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{calculate_price, calculate_price_with_lpn};
+    use super::{calculate_price, calculate_price_with_decimals};
 
     #[test]
     fn test_calculate_price() {
@@ -489,19 +531,25 @@ mod tests {
     }
 
     #[test]
-    fn test_calculate_price_with_lpn() {
-        assert_eq!(
-            calculate_price_with_lpn("100", "50", "1.0")
-                .parse::<f64>()
-                .unwrap(),
-            2.0
-        );
-        assert_eq!(
-            calculate_price_with_lpn("100", "50", "0.5")
-                .parse::<f64>()
-                .unwrap(),
-            1.0
-        );
-        assert_eq!(calculate_price_with_lpn("100", "0", "1.0"), "0");
+    fn test_calculate_price_with_decimals() {
+        // BTC (8 decimals) vs USDC (6 decimals)
+        // Raw price would be ~751, but with decimal adjustment should be ~75100
+        // Using simplified test values: quote=150, amount=100, lpn_price=1
+        // Raw: 150/100 * 1 = 1.5
+        // With BTC(8) vs USDC(6): 1.5 * 10^(8-6) = 1.5 * 100 = 150
+        let price = calculate_price_with_decimals("150", "100", "1.0", 8, 6);
+        assert_eq!(price.parse::<f64>().unwrap(), 150.0);
+
+        // Same decimals should give raw result
+        let price_same = calculate_price_with_decimals("150", "100", "1.0", 6, 6);
+        assert_eq!(price_same.parse::<f64>().unwrap(), 1.5);
+
+        // Asset has fewer decimals than LPN (e.g., 4 vs 6)
+        // Should divide by 10^2 = 100
+        let price_fewer = calculate_price_with_decimals("150", "100", "1.0", 4, 6);
+        assert_eq!(price_fewer.parse::<f64>().unwrap(), 0.015);
+
+        // Zero amount should return "0"
+        assert_eq!(calculate_price_with_decimals("100", "0", "1.0", 8, 6), "0");
     }
 }

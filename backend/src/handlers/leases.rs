@@ -28,8 +28,6 @@ use crate::AppState;
 // Request/Response Types
 // ============================================================================
 
-
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LeasesResponse {
     pub leases: Vec<LeaseInfo>,
@@ -394,8 +392,6 @@ pub async fn get_lease(
         .map(Json)
 }
 
-
-
 /// GET /api/leases/:address/history
 /// Returns transaction history for a lease
 pub async fn get_lease_history(
@@ -411,10 +407,11 @@ pub async fn get_lease_history(
     let history = match lease_opening {
         Ok(opening) => {
             // Check both top-level and nested history fields
-            let etl_history = opening.history
+            let etl_history = opening
+                .history
                 .or(opening.lease.history)
                 .unwrap_or_default();
-            
+
             // Convert ETL history entries to our format
             etl_history
                 .into_iter()
@@ -946,11 +943,9 @@ fn calculate_interest_info(opened: &OpenedLeaseInfo) -> LeaseInterestInfo {
 }
 
 fn calculate_annual_rate(loan_rate: u32, margin_rate: u32) -> f64 {
-    // loan_rate is in permille (per 1000)
-    // margin_rate is in percent (per 100)
-    // Both need to be converted to the interest decimals format
+    // Both loan_rate and margin_rate are in permille (per 1000)
     let loan_percent = loan_rate as f64 / PERMILLE;
-    let margin_percent = margin_rate as f64 / PERCENT;
+    let margin_percent = margin_rate as f64 / PERMILLE;
 
     // Return combined annual rate as percentage
     (loan_percent + margin_percent) * 100.0
@@ -1250,12 +1245,14 @@ mod tests {
 
     #[test]
     fn test_calculate_annual_rate() {
-        // loan_rate = 50 (permille = 5%) + margin_rate = 5 (percent = 5%) = 10%
-        assert!((calculate_annual_rate(50, 5) - 10.0).abs() < 0.001);
+        // loan_rate = 50 (permille = 5%) + margin_rate = 50 (permille = 5%) = 10%
+        assert!((calculate_annual_rate(50, 50) - 10.0).abs() < 0.001);
         // Zero rates
         assert_eq!(calculate_annual_rate(0, 0), 0.0);
         // Loan only: 100 permille = 10%
         assert!((calculate_annual_rate(100, 0) - 10.0).abs() < 0.001);
+        // Real example: loan_rate=94, margin_rate=80 → (94+80)/1000*100 = 17.4%
+        assert!((calculate_annual_rate(94, 80) - 17.4).abs() < 0.001);
     }
 
     #[test]
