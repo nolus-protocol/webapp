@@ -76,8 +76,7 @@ export function clearLeaseConfigCaches(): void {
 // =============================================================================
 
 async function fetchDownpaymentRange(protocol: string): Promise<Record<string, DownpaymentRange>> {
-  const response = await BackendApi.getWebappDownpaymentRangeForProtocol(protocol);
-  return { [protocol]: response };
+  return BackendApi.getWebappDownpaymentRangeForProtocol(protocol);
 }
 
 async function fetchFreeInterestAddress(): Promise<FreeInterestAddresses> {
