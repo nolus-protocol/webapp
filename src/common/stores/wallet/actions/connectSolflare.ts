@@ -7,8 +7,6 @@ import { Buffer } from "buffer";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { SolanaWallet } from "@/networks/sol";
 import { SolflareName } from "@/config/global";
-import { useBalancesStore } from "../../balances";
-import { useHistoryStore } from "../../history";
 
 export async function connectSolflare(this: Store) {
   const sol = new SolanaWallet();
@@ -23,13 +21,6 @@ export async function connectSolflare(this: Store) {
 
   this.wallet = nolusWalletOfflineSigner;
   this.walletName = SolflareName;
-
-  const balancesStore = useBalancesStore();
-  await balancesStore.setAddress(this.wallet?.address ?? "");
-
-  const historyStore = useHistoryStore();
-  historyStore.setAddress(this.wallet?.address ?? "");
-  historyStore.loadActivities();
 
   IntercomService.load(this.wallet.address, "solflare");
 }

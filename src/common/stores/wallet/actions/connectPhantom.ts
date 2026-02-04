@@ -7,8 +7,6 @@ import { Buffer } from "buffer";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { MetaMaskWallet } from "@/networks/evm";
 import { PhantomName } from "@/config/global";
-import { useBalancesStore } from "../../balances";
-import { useHistoryStore } from "../../history";
 
 export async function connectPhantom(this: Store) {
   const metamask = new MetaMaskWallet();
@@ -23,13 +21,6 @@ export async function connectPhantom(this: Store) {
 
   this.wallet = nolusWalletOfflineSigner;
   this.walletName = PhantomName;
-
-  const balancesStore = useBalancesStore();
-  await balancesStore.setAddress(this.wallet?.address ?? "");
-
-  const historyStore = useHistoryStore();
-  historyStore.setAddress(this.wallet?.address ?? "");
-  historyStore.loadActivities();
 
   IntercomService.load(this.wallet.address, "phantom");
 }

@@ -282,12 +282,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
   return items;
 });
 
-onMounted(async () => {
-  // Initialize leases store with wallet address
-  if (wallet.wallet?.address) {
-    await leasesStore.setOwner(wallet.wallet.address);
-  }
-  
+onMounted(() => {
   timeOut = setInterval(() => {
     leasesStore.refresh();
   }, UPDATE_LEASES);
@@ -419,17 +414,7 @@ watch(
   }
 );
 
-// Watch for wallet changes to update the store
-watch(
-  () => wallet.wallet?.address,
-  async (newAddress) => {
-    if (newAddress) {
-      await leasesStore.setOwner(newAddress);
-    } else {
-      leasesStore.clear();
-    }
-  }
-);
+// Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
 
 function setLeases() {
   try {

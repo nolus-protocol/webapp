@@ -92,18 +92,7 @@ const hide = ref(WalletManager.getHideBalances());
 
 defineProps<{ isVisible: boolean }>();
 
-// Set owner when wallet connects/disconnects
-watch(
-  () => wallet.wallet?.address,
-  async (address) => {
-    if (address) {
-      await leasesStore.setOwner(address);
-    } else {
-      leasesStore.clear();
-    }
-  },
-  { immediate: true }
-);
+// Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
 
 const isProtocolDisabled = computed(() => {
   return configStore.isProtocolFilterDisabled(configStore.protocolFilter);

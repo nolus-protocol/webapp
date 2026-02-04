@@ -26,6 +26,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
+import { useConnectionStore } from "@/common/stores/connection";
 import { useEarnStore } from "@/common/stores/earn";
 import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/global";
 import { IntercomService, Logger, WalletManager, walletOperation } from "@/common/utils";
@@ -42,6 +43,7 @@ const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const configStore = useConfigStore();
+const connectionStore = useConnectionStore();
 const earnStore = useEarnStore();
 
 const showErrorDialog = ref(false);
@@ -50,13 +52,15 @@ const mobileMenu = ref<typeof MobileMenu | null>(null);
 
 watch(
   () => configStore.initialized,
-  () => {
+  (initialized) => {
+    if (!initialized) return;
     walletOperation(() => {});
     window.addEventListener("keplr_keystorechange", updateKeplr);
     window.addEventListener("leap_keystorechange", updateLeap);
     wallet.LOAD_APR();
     checkBalances();
-  }
+  },
+  { immediate: true }
 );
 
 onUnmounted(() => {
@@ -64,15 +68,17 @@ onUnmounted(() => {
   clearInterval(pricesInterval);
   clearInterval(sessionTimeOut);
   window.removeEventListener("keplr_keystorechange", updateKeplr);
-  window.addEventListener("leap_keystorechange", updateLeap);
+  window.removeEventListener("leap_keystorechange", updateLeap);
 });
 
 async function updateKeplr() {
   try {
     IntercomService.getInstance().disconnect();
     await wallet.CONNECT_KEPLR();
+    if (wallet.wallet?.address) {
+      await connectionStore.connectWallet(wallet.wallet.address);
+    }
     await loadNetwork();
-    await balancesStore.fetchBalances();
   } catch (error: Error | any) {
     showErrorDialog.value = true;
     errorMessage.value = error?.message;
@@ -83,8 +89,10 @@ async function updateLeap() {
   try {
     IntercomService.getInstance().disconnect();
     await wallet.CONNECT_LEAP();
+    if (wallet.wallet?.address) {
+      await connectionStore.connectWallet(wallet.wallet.address);
+    }
     await loadNetwork();
-    await balancesStore.fetchBalances();
   } catch (error: Error | any) {
     Logger.error(error);
     showErrorDialog.value = true;

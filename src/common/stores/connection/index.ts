@@ -18,6 +18,7 @@ import { useStakingStore } from "../staking";
 import { useEarnStore } from "../earn";
 import { useStatsStore } from "../stats";
 import { useAnalyticsStore } from "../analytics";
+import { useHistoryStore } from "../history";
 
 export const useConnectionStore = defineStore("connection", () => {
   // State
@@ -97,6 +98,7 @@ export const useConnectionStore = defineStore("connection", () => {
     const stakingStore = useStakingStore();
     const earnStore = useEarnStore();
     const analyticsStore = useAnalyticsStore();
+    const historyStore = useHistoryStore();
 
     await Promise.all([
       balancesStore.setAddress(address),
@@ -105,6 +107,9 @@ export const useConnectionStore = defineStore("connection", () => {
       earnStore.setAddress(address),
       analyticsStore.setAddress(address),
     ]);
+
+    historyStore.setAddress(address);
+    historyStore.loadActivities();
   }
 
   /**
@@ -119,12 +124,14 @@ export const useConnectionStore = defineStore("connection", () => {
     const stakingStore = useStakingStore();
     const earnStore = useEarnStore();
     const analyticsStore = useAnalyticsStore();
+    const historyStore = useHistoryStore();
 
     balancesStore.clear();
     leasesStore.clear();
     stakingStore.clear();
     earnStore.clear();
     analyticsStore.clear();
+    historyStore.setAddress(null);
   }
 
   /**

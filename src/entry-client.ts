@@ -38,11 +38,17 @@ async function bootstrap() {
   const walletStore = useWalletStore();
   await walletStore.ignoreAssets();
 
-  // Watch wallet changes and sync with new stores
+  // Watch wallet changes and sync with new stores.
+  // This handles initial page load auto-reconnect (via walletOperation in view.vue).
+  // Wallet switch from extension is handled directly by view.vue's updateKeplr/updateLeap.
   watch(
     () => walletStore.wallet?.address,
     async (newAddress, oldAddress) => {
       if (newAddress && newAddress !== oldAddress) {
+        // Skip if connectionStore already has this address (handled by view.vue)
+        if (connectionStore.walletAddress === newAddress) {
+          return;
+        }
         await connectionStore.connectWallet(newAddress);
       } else if (!newAddress && oldAddress) {
         connectionStore.disconnectWallet();

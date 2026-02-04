@@ -8,8 +8,6 @@ import { WalletConnectMechanism } from "@/common/types";
 import { KeplrEmbedChainInfo } from "@/config/global/keplr";
 import { Buffer } from "buffer";
 import { IntercomService } from "@/common/utils/IntercomService";
-import { useBalancesStore } from "../../balances";
-import { useHistoryStore } from "../../history";
 
 export async function connectKeplr(this: Store) {
   await WalletUtils.getKeplr();
@@ -53,14 +51,8 @@ export async function connectKeplr(this: Store) {
 
       this.wallet = nolusWalletOfflineSigner;
       this.walletName = (await keplrWindow.keplr.getKey(chainId)).name;
-      
-      const balancesStore = useBalancesStore();
-      await balancesStore.setAddress(this.wallet?.address ?? "");
     }
   }
 
-  const historyStore = useHistoryStore();
-  historyStore.setAddress(this.wallet?.address ?? "");
-  historyStore.loadActivities();
   IntercomService.load(this.wallet?.address as string, "keplr");
 }
