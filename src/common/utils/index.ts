@@ -9,7 +9,6 @@ export * from "./LeaseConfigService";
 export * from "./NumberFormatUtils";
 export * from "./CurrencyLookup";
 
-export * from "./BalanceLookup";
 export * from "./IbcUtils";
 
 export * from "./EnvNetworkUtils";

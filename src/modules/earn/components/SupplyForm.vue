@@ -94,7 +94,6 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { getBalance } from "@/common/utils/BalanceLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
@@ -125,8 +124,8 @@ const assets = computed(() => {
 
     for (const lpn of lpns ?? []) {
       const [_, p] = lpn.key.split("@");
-      const asset = getBalance(lpn.ibcData);
-      const value = new Dec(asset.balance.amount, lpn.decimal_digits);
+      const amount = balancesStore.getBalance(lpn.ibcData);
+      const value = new Dec(amount, lpn.decimal_digits);
 
       const balance = formatNumber(value.toString(), lpn.decimal_digits);
       const price = new Dec(pricesStore.prices?.[lpn.key]?.price ?? "0");

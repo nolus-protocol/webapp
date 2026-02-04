@@ -87,7 +87,8 @@ const stableAmount = computed(() => {
   for (const position of earnStore.positions) {
     const pool = earnStore.getPool(position.protocol);
     if (pool) {
-      const currency = configStore.getCurrency(pool.currency);
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
       if (currency) {
         const price = pricesStore.getPriceAsNumber(currency.key);
         const amount = new Dec(position.deposited_lpn, currency.decimal_digits);
@@ -125,7 +126,8 @@ const anualYield = computed(() => {
   for (const position of earnStore.positions) {
     const pool = earnStore.getPool(position.protocol);
     if (pool) {
-      const currency = configStore.getCurrency(pool.currency);
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
       if (currency) {
         const price = pricesStore.getPriceAsNumber(currency.key);
         const deposited = new Dec(position.deposited_lpn, currency.decimal_digits);
@@ -147,16 +149,19 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
   return earnStore.pools
     .filter((pool) => {
       if (param.length === 0) return true;
-      const currency = configStore.getCurrency(pool.currency);
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
       if (!currency) return false;
       return (
         pool.protocol.toLowerCase().includes(param) ||
         currency.ticker.toLowerCase().includes(param) ||
-        currency.key.toLowerCase().includes(param)
+        currency.shortName.toLowerCase().includes(param) ||
+        currency.name.toLowerCase().includes(param)
       );
     })
     .map((pool) => {
-      const currency = configStore.getCurrency(pool.currency);
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
       const position = earnStore.getPosition(pool.protocol);
       
       // Get user's deposit amount for this pool
@@ -197,8 +202,8 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       return {
         items: [
           {
-            value: item.currency?.ticker ?? item.protocol,
-            subValue: item.currency?.key ?? "",
+            value: item.currency?.shortName ?? item.protocol,
+            subValue: item.currency?.name ?? "",
             image: item.currency?.icon,
             variant: "left"
           },
