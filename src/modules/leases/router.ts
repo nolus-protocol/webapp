@@ -67,17 +67,6 @@ export const LeasesRouter: RouteRecordRaw = {
       ]
     },
     {
-      path: "pnl-log",
-      name: `${RouteNames.LEASES}-pnl-log`,
-      component: () => import("./components/PnlLog.vue"),
-      meta: {
-        title: "Nolus Protocol - Pnl log",
-        key: `${RouteNames.LEASES}-pnl-log`,
-        description:
-          "Explore lease positions with the Nolus Protocol. Streamline tracking, management, and insights for your leasing activities"
-      }
-    },
-    {
       path: `:protocol/:id`,
       name: `${RouteNames.LEASES}-single`,
       component: () => import("./components/SingleLease.vue"),

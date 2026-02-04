@@ -14,9 +14,9 @@
   "message": {
     "connect-wallet": "Bağlan",
     "keplr": "Keplr",
-    "history": "Aktiviteler",
+    "activities": "Aktiviteler",
     "lease": "Margin",
-    "leases": "Margin",
+    "positions": "Margin",
     "earn": "Kazanç",
     "assets": "Varlıklar",
     "asset": "Varlık",

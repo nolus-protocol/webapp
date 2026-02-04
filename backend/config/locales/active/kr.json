@@ -14,9 +14,9 @@
   "message": {
     "connect-wallet": "연결",
     "keplr": "Keplr",
-    "history": "활동",
+    "activities": "활동",
     "lease": "Margin",
-    "leases": "Margin",
+    "positions": "Margin",
     "earn": "Earn",
     "assets": "자산",
     "asset": "자산",

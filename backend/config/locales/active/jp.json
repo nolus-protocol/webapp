@@ -14,9 +14,9 @@
   "message": {
     "connect-wallet": "接続",
     "keplr": "Keplr",
-    "history": "アクティビティ",
+    "activities": "アクティビティ",
     "lease": "Margin",
-    "leases": "Margin",
+    "positions": "Margin",
     "earn": "Earn",
     "assets": "資産",
     "asset": "資産",

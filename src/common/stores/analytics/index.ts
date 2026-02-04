@@ -237,16 +237,15 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     realizedPnlListLoading.value = true;
 
     try {
-      const response = await BackendApi.getPnlLog(address.value, skip, limit);
+      const entries = await BackendApi.getPnlLog(address.value, skip, limit);
       
       if (skip === 0) {
-        realizedPnlList.value = response.data;
+        realizedPnlList.value = entries;
       } else {
-        realizedPnlList.value = [...realizedPnlList.value, ...response.data];
+        realizedPnlList.value = [...realizedPnlList.value, ...entries];
       }
       
-      realizedPnlTotal.value = response.total;
-      return response.data;
+      return entries;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch PnL list:", e);
       throw e;

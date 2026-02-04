@@ -14,9 +14,9 @@
   "message": {
     "connect-wallet": "Connecter",
     "keplr": "Keplr",
-    "history": "Activités",
+    "activities": "Activités",
     "lease": "Margin",
-    "leases": "Margin",
+    "positions": "Margin",
     "earn": "Gagner",
     "assets": "Actifs",
     "asset": "Actif",

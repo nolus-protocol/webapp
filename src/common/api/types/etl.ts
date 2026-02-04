@@ -440,36 +440,22 @@ export interface LeaseOpeningData {
 }
 
 /**
- * Lease closing entry
+ * Lease closing entry (matches ETL ls-loan-closing response)
  */
 export interface LeaseClosingEntry {
-  lease_address: string;
-  pnl: string;
-  pnl_percent: string;
-  close_time: string;
-  close_type: string;
-  position_ticker?: string;
-}
-
-/**
- * Lease closing paginated response
- */
-export interface LeaseClosingResponse {
-  data: LeaseClosingEntry[];
-  total: number;
-  skip: number;
-  limit: number;
-}
-
-/**
- * Legacy PnL log entry
- * @deprecated Use LeaseClosingResponse instead
- */
-export interface PnlLogEntry {
-  lease_address: string;
-  pnl: string;
-  pnl_percent: string;
-  closed_at: string;
+  LS_contract_id: string;
+  LS_amnt: string;
+  LS_amnt_stable: string;
+  LS_pnl: number;
+  LS_timestamp: string;
+  Type: string;
+  Block: number;
+  LS_asset_symbol: string;
+  LS_loan_pool_id: string;
+  LS_Close_Strategy?: string;
+  LS_Close_Strategy_Ltv?: number;
+  Ls_receive: number;
+  Ls_sent: number;
 }
 
 /**

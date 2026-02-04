@@ -71,7 +71,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           }
         ];
       }
-      return msg.type;
+      return [msg.type, null];
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
       if (msg.from == address) {
@@ -134,7 +134,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         ];
       }
 
-      return msg.type;
+      return [msg.type, null];
     }
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
       try {
@@ -188,7 +188,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           }
         ];
       } catch (e) {
-        return msg.type;
+        return [msg.type, null];
       }
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
@@ -288,7 +288,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           const protocol = getProtocolByContract(msg.data.contract);
           const lpn = getLpnByProtocol(protocol);
           if (!lpn) {
-            return msg.type;
+            return [msg.type, null];
           }
           const withdraw = await BackendApi.getLpWithdraw(msg.tx_hash);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
@@ -342,10 +342,10 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
       } catch (error) {
         Logger.error(error);
-        return msg.type;
+        return [msg.type, null];
       }
 
-      return msg.type;
+      return [msg.type, null];
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
       const m = voteMessages[msg.data.option];
@@ -399,7 +399,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       ];
     }
     default: {
-      return msg.typeUrl;
+      return [msg.typeUrl, null];
     }
   }
 }
@@ -410,10 +410,10 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
       return i18n.t("message.transfer-history");
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-      return i18n.t("message.transfer-history");
+      return msg.is_swap ? i18n.t("message.swap-history") : i18n.t("message.transfer-history");
     }
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
-      return i18n.t("message.transfer-history");
+      return msg.is_swap ? i18n.t("message.swap-history") : i18n.t("message.transfer-history");
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
       try {

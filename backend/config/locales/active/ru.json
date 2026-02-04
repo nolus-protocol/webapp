@@ -14,9 +14,9 @@
   "message": {
     "connect-wallet": "Подключить",
     "keplr": "Keplr",
-    "history": "Активности",
+    "activities": "Активности",
     "lease": "Маржа",
-    "leases": "Маржа",
+    "positions": "Маржа",
     "earn": "Заработок",
     "assets": "Активы",
     "asset": "Актив",

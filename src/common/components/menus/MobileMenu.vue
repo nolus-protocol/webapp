@@ -33,7 +33,7 @@
                 "
               >
                 <SvgIcon
-                  :name="item"
+                  :name="iconMap[item] ?? item"
                   size="l"
                 />
                 {{ $t(`message.${item}`) }}
@@ -89,6 +89,11 @@ import { BackendApi } from "@/common/api";
 
 const toggleMobileNav = ref(false);
 const toggleMenuWrapper = ref(false);
+
+const iconMap: Record<string, string> = {
+  [RouteNames.LEASES]: "leases",
+  [RouteNames.HISTORY]: "history"
+};
 
 const filteredRouteNames = computed(() => {
   return Object.values(RouteNames).filter(

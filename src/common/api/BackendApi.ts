@@ -88,7 +88,7 @@ import type {
   TxEntry,
   TransactionFilters,
   LeaseOpeningResponse,
-  LeaseClosingResponse,
+  LeaseClosingEntry,
   LeasesSearchResponse,
   LpWithdrawResponse,
   RealizedPnlDataResponse
@@ -758,8 +758,8 @@ export class BackendApiClient {
   /**
    * Fetch PnL log (closed positions, paginated)
    */
-  async getPnlLog(address: string, skip: number = 0, limit: number = 10): Promise<LeaseClosingResponse> {
-    return this.request<LeaseClosingResponse>("GET", "/api/etl/ls-loan-closing", {
+  async getPnlLog(address: string, skip: number = 0, limit: number = 10): Promise<LeaseClosingEntry[]> {
+    return this.request<LeaseClosingEntry[]>("GET", "/api/etl/ls-loan-closing", {
       params: { address, skip, limit }
     });
   }
@@ -769,7 +769,7 @@ export class BackendApiClient {
    */
   async getLpWithdraw(txHash: string): Promise<LpWithdrawResponse> {
     return this.request<LpWithdrawResponse>("GET", "/api/etl/lp-withdraw", {
-      params: { tx_hash: txHash }
+      params: { tx: txHash }
     });
   }
 }

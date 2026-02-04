@@ -9,7 +9,7 @@
         class="router-link flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
       >
         <SvgIcon
-          :name="item"
+          :name="iconMap[item] ?? item"
           size="l"
         />
         {{ $t(`message.${item}`) }}
@@ -22,6 +22,11 @@
 import { computed } from "vue";
 import { RouteNames } from "@/router";
 import { SvgIcon } from "web-components";
+
+const iconMap: Record<string, string> = {
+  [RouteNames.LEASES]: "leases",
+  [RouteNames.HISTORY]: "history"
+};
 
 const filteredRouteNames = computed(() => {
   return Object.values(RouteNames).filter(

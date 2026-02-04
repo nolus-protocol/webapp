@@ -51,7 +51,7 @@
               description: $t('message.start-lease-description'),
               button:
                 wallet.wallet && !isProtocolDisabled
-                  ? { name: $t('message.open-position'), icon: 'plus', url: '/leases/open/long' }
+                  ? { name: $t('message.open-position'), icon: 'plus', url: `/${RouteNames.LEASES}/open/long` }
                   : undefined,
               link: { label: $t('message.learn-new-leases'), url: `/learn-leases` }
             }
@@ -106,6 +106,7 @@ watch(
 );
 
 const isProtocolDisabled = computed(() => {
+  if (!configStore.protocolFilter) return false;
   return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
 });
 

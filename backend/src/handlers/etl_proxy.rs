@@ -156,7 +156,7 @@ etl_proxy_raw_with_params!(
     ["period"]
 );
 etl_proxy_raw_with_params!(proxy_earnings, "earnings", ["address"]);
-etl_proxy_raw_with_params!(proxy_lp_withdraw, "lp-withdraw", ["tx_hash"]);
+etl_proxy_raw_with_params!(proxy_lp_withdraw, "lp-withdraw", ["tx"]);
 etl_proxy_raw_with_params!(
     proxy_history_stats,
     "history-stats",

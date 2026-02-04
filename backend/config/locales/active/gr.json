@@ -14,9 +14,9 @@
   "message": {
     "connect-wallet": "Σύνδεση",
     "keplr": "Keplr",
-    "history": "Δραστηριότητες",
+    "activities": "Δραστηριότητες",
     "lease": "Margin",
-    "leases": "Margin",
+    "positions": "Margin",
     "earn": "Earn",
     "assets": "Περιουσιακά στοιχεία",
     "asset": "Περιουσιακό στοιχείο",

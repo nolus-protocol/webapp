@@ -14,9 +14,9 @@
   "message": {
     "connect-wallet": "Hubungkan",
     "keplr": "Keplr",
-    "history": "Aktivitas",
+    "activities": "Aktivitas",
     "lease": "Margin",
-    "leases": "Margin",
+    "positions": "Margin",
     "earn": "Earn",
     "assets": "Aset",
     "asset": "Aset",

@@ -64,10 +64,12 @@ pub async fn get_enriched_transactions(
         AppError::Internal(format!("Failed to parse ETL transactions response: {}", e))
     })?;
 
+    let user_address = query.params.get("address").cloned().unwrap_or_default();
+
     let enriched: Vec<serde_json::Value> = raw_txs
         .into_iter()
         .filter(|tx| is_user_transaction(tx))
-        .map(enrich_transaction)
+        .map(|tx| enrich_transaction(tx, &user_address))
         .collect();
 
     Ok(Json(enriched))
@@ -97,7 +99,9 @@ fn is_user_transaction(tx: &serde_json::Value) -> bool {
 
 /// Insert a decoded `data` field into a transaction JSON object.
 /// Preserves all original flat fields from ETL.
-fn enrich_transaction(mut tx: serde_json::Value) -> serde_json::Value {
+/// For IBC transactions, adds `is_swap` by comparing the counterparty address
+/// with the user's address (same bech32 data = transfer, different = swap).
+fn enrich_transaction(mut tx: serde_json::Value, user_address: &str) -> serde_json::Value {
     if let Some(obj) = tx.as_object_mut() {
         let tx_type = obj.get("type").and_then(|v| v.as_str()).map(String::from);
         let value = obj.get("value").and_then(|v| v.as_str()).map(String::from);
@@ -111,9 +115,63 @@ fn enrich_transaction(mut tx: serde_json::Value) -> serde_json::Value {
                     debug!("Could not decode tx value for type: {}", tx_type);
                 }
             }
+
+            // Detect swap vs transfer for IBC transactions
+            if let Some(is_swap) = detect_is_swap(&tx_type, obj, user_address) {
+                obj.insert("is_swap".to_string(), serde_json::Value::Bool(is_swap));
+            }
         }
     }
     tx
+}
+
+/// Detect whether an IBC transaction is a swap or a direct transfer.
+///
+/// Compares the bech32 address data (the part between the separator and checksum)
+/// of the user and the counterparty. Same data = same key on different chain = transfer.
+/// Different data = Skip/DEX intermediate address = swap.
+fn detect_is_swap(
+    tx_type: &str,
+    obj: &serde_json::Map<String, serde_json::Value>,
+    user_address: &str,
+) -> Option<bool> {
+    let user_data = bech32_data_part(user_address)?;
+
+    match tx_type {
+        "/ibc.applications.transfer.v1.MsgTransfer" => {
+            // Outbound: compare user with receiver
+            let receiver = obj
+                .get("data")
+                .and_then(|d| d.get("receiver"))
+                .and_then(|v| v.as_str())?;
+            let receiver_data = bech32_data_part(receiver)?;
+            Some(user_data != receiver_data)
+        }
+        "/ibc.core.channel.v1.MsgRecvPacket" => {
+            // Inbound: parse packet.data JSON, compare user with sender
+            let packet_data_str = obj
+                .get("data")
+                .and_then(|d| d.get("packet"))
+                .and_then(|p| p.get("data"))
+                .and_then(|v| v.as_str())?;
+            let packet_data: serde_json::Value = serde_json::from_str(packet_data_str).ok()?;
+            let sender = packet_data.get("sender").and_then(|v| v.as_str())?;
+            let sender_data = bech32_data_part(sender)?;
+            Some(user_data != sender_data)
+        }
+        _ => None,
+    }
+}
+
+/// Extract the bech32 data part from an address (between the `1` separator and the last 6 checksum chars).
+/// Same-key addresses across Cosmos chains share this data part.
+fn bech32_data_part(addr: &str) -> Option<&str> {
+    let sep = addr.find('1')?;
+    let data = &addr[sep + 1..];
+    if data.len() <= 6 {
+        return None;
+    }
+    Some(&data[..data.len() - 6])
 }
 
 /// Decode a protobuf message based on its type URL.
@@ -361,11 +419,29 @@ mod tests {
             "rewards": "1000unls",
             "timestamp": "2025-01-15T10:30:00Z"
         });
-        let enriched = enrich_transaction(tx);
+        let enriched = enrich_transaction(tx, "nolus1sender");
         assert_eq!(enriched["block"], 12345);
         assert_eq!(enriched["tx_hash"], "ABC123");
         assert_eq!(enriched["from"], "nolus1sender");
         assert_eq!(enriched["rewards"], "1000unls");
         assert_eq!(enriched["timestamp"], "2025-01-15T10:30:00Z");
+    }
+
+    #[test]
+    fn test_bech32_data_part() {
+        // Same key, different chains — data part matches
+        assert_eq!(
+            bech32_data_part("nolus1ncc58ptqrkd7r7uk60dx4eufvvqf2edhtktv0q"),
+            bech32_data_part("neutron1ncc58ptqrkd7r7uk60dx4eufvvqf2edheej3hz")
+        );
+        // Different key — data part differs
+        assert_ne!(
+            bech32_data_part("nolus1ncc58ptqrkd7r7uk60dx4eufvvqf2edhtktv0q"),
+            bech32_data_part("osmo1m8wg4vxkefhs374qxmmqpyusgz289wmulex5qdwpfx7jnrxzer5s9cv83q")
+        );
+        // Invalid address
+        assert!(bech32_data_part("invalid").is_none());
+        // Too short
+        assert!(bech32_data_part("x1abcdef").is_none());
     }
 }
