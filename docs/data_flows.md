@@ -131,7 +131,7 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 
 - **Event listener registration**: The `configStore.initialized` watcher in `view.vue` uses `{ immediate: true }` — critical because with optimistic localStorage caching, `initialized` may already be `true` when the component mounts. Without `immediate`, the watcher callback never fires and event listeners are never registered.
 - **No component-level wallet watchers**: Individual page components (`Leases.vue`, `DashboardLeases.vue`, etc.) do NOT watch wallet changes. All store coordination happens exclusively through `connectionStore.connectWallet()`.
-- **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, etc.) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly — that's `connectionStore`'s responsibility.
+- **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts`, `connectPhantom.ts`, `connectSolFlare.ts`) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly — that's `connectionStore`'s responsibility.
 
 ### Key Files
 
@@ -1372,8 +1372,7 @@ Swaps use the Skip API for cross-chain routing. The frontend constrains routes t
 │    3. Load ETL currencies + protocols (cached)                              │
 │    4. Resolve tickers → IBC denoms via ETL data                            │
 │    5. Build Cosmos transfers dynamically from ETL                           │
-│    6. Merge EVM transfers from static config                               │
-│    7. Build swap_venues from network config                                 │
+│    6. Build swap_venues from network config                                 │
 │                                                                              │
 │  POST /api/swap/route    → proxy to Skip /v2/fungible/route                │
 │  POST /api/swap/messages → proxy to Skip /v2/fungible/msgs                 │
@@ -1393,7 +1392,7 @@ Swaps use the Skip API for cross-chain routing. The frontend constrains routes t
 │    4. Display route quote, execute swap on approval                         │
 │                                                                              │
 │  SkipRoute.ts:                                                              │
-│    - bridges: ["IBC"] (prevents CCTP/Noble multi-hop)                       │
+│    - bridges: ["IBC"] (only IBC bridges supported, no CCTP)                 │
 │    - experimental_features: ["stargate", "eureka"]                          │
 │                                                                              │
 │  balancesStore (filteredBalances):                                           │
@@ -1412,7 +1411,7 @@ The frontend fetches `GET /api/webapp/config/swap/skip-route` which returns swap
 |------|--------|-----|
 | Swap currency denoms | ETL currencies + `swap-settings.json` tickers | Ticker (e.g., `"USDC_NOBLE"`) resolved to IBC denom via ETL `bank_symbol` |
 | Swap venues | `network-config.json` per-network `swap_venue` | Name + address from config, `chain_id` from network's `chain_id` field |
-| Cosmos transfers | ETL currencies + protocols | `bank_symbol` → `dex_symbol` per protocol, grouped by protocol's network |
+| Cosmos transfers | ETL currencies + protocols | `bank_symbol` → `dex_symbol` per protocol, grouped by network (Osmosis, Neutron) |
 | Static settings | `swap-settings.json` | `slippage`, `fee`, `gas_multiplier`, `blacklist`, etc. |
 
 ### Step 2: Venue Filtering (Frontend)
@@ -1442,7 +1441,7 @@ This ensures routes go through a single DEX (e.g., Osmosis Poolmanager when on O
   dest_asset_denom: "ibc/F5FABF52...",  // USDC on Osmosis
   dest_asset_chain_id: "osmosis-1",
   amount_in: "1000000000",
-  bridges: ["IBC"],  // Prevents CCTP routes through Noble
+  bridges: ["IBC"],  // Only IBC bridges (CCTP not supported)
   swap_venues: [{ "name": "osmosis-poolmanager", "chain_id": "osmosis-1" }],
   experimental_features: ["stargate", "eureka"]
 }
@@ -1483,7 +1482,7 @@ This ensures routes go through a single DEX (e.g., Osmosis Poolmanager when on O
 }
 ```
 
-With `bridges: ["IBC"]` and a single venue, routes are direct 3-chain hops (Nolus → DEX chain → Nolus) instead of 5+ chain routes through Noble/CCTP.
+With `bridges: ["IBC"]` and a single venue, routes are direct 3-chain hops (Nolus → DEX chain → Nolus).
 
 ### Step 5: Balance Deduplication
 
@@ -1529,7 +1528,7 @@ This ensures the swap form uses the correct IBC denom for the selected network.
 }
 ```
 
-**`backend/config/gated/network-config.json`** — Swap venues per network:
+**`backend/config/gated/network-config.json`** — Swap venues per network (only Osmosis and Neutron):
 
 ```json
 {

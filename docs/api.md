@@ -102,9 +102,8 @@ Returns protocol configuration including contracts and network settings.
 Returns Skip API swap routing configuration. Combines static swap settings with dynamic data from ETL (Cosmos network transfers) and gated network config (swap venues, chain IDs).
 
 **Key behavior:**
-- **Cosmos transfers** (OSMOSIS, NEUTRON, etc.) are built dynamically from ETL currency data — each currency's `bank_symbol`/`dex_symbol` per protocol, grouped by the protocol's network
-- **EVM transfers** (ETHEREUM, ARBITRUM, etc.) are served from static config in `swap-settings.json`
-- **Swap venues** come from `network-config.json` per-network `swap_venue` field
+- **Cosmos transfers** (OSMOSIS, NEUTRON) are built dynamically from ETL currency data — each currency's `bank_symbol`/`dex_symbol` per protocol, grouped by the protocol's network
+- **Swap venues** come from `network-config.json` per-network `swap_venue` field (Osmosis, Neutron)
 - **Swap currency tickers** (e.g., `"USDC_NOBLE"`) are resolved to IBC denoms at runtime via ETL data
 
 **Response:**

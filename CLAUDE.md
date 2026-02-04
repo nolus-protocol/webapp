@@ -173,12 +173,12 @@ cargo test -- --nocapture     # Show println! output
   - `configStore.getNetworkFilterOptions()` - returns network options for filter dropdowns
   - `configStore.assetIcons` - maps tickers to icon URLs from gated config
   - `getLpnByProtocol(protocol)` - gets the LPN (stable) currency for a protocol
-- **Swap routing**: Swaps use Skip API constrained to IBC-only bridges (`bridges: ["IBC"]`) and filtered to the user's selected network's venue. Config uses tickers in `swap-settings.json` (resolved to IBC denoms at runtime via ETL). Swap venues are defined per-network in `network-config.json`. Cosmos transfers are built dynamically from ETL `bank_symbol`/`dex_symbol`. See `backend/src/handlers/config.rs:fetch_skip_route_config_internal()` and `src/modules/assets/components/SwapForm.vue`
+- **Swap routing**: Swaps use Skip API constrained to IBC-only bridges (`bridges: ["IBC"]`) and filtered to the user's selected network's venue. Only Cosmos wallets are supported for swaps (no EVM/CCTP paths). Config uses tickers in `swap-settings.json` (resolved to IBC denoms at runtime via ETL). Swap venues are defined per-network in `network-config.json` (Osmosis, Neutron). Cosmos transfers are built dynamically from ETL `bank_symbol`/`dex_symbol`. See `backend/src/handlers/config.rs:fetch_skip_route_config_internal()` and `src/modules/assets/components/SwapForm.vue`
 - **Network-aware balance deduplication**: `filteredBalances` in `src/common/stores/balances/index.ts` deduplicates currencies by ticker, preferring the IBC denom whose protocol belongs to the user's selected network (via `configStore.protocolFilter`)
 - **Frontend PnL calculation**: `LeaseCalculator.calculatePnl()` computes PnL on the frontend from asset value, debt, and downpayment. The backend `lease.pnl` field is not used for display.
 - **ETL chart data**: Price series (`/api/etl/prices`) returns raw `[[timestamp, price], ...]` arrays; PnL over time (`/api/etl/pnl-over-time`) returns raw `[{amount, date}, ...]` arrays. Both are proxied as-is (not wrapped in response objects). Note: `pnl-over-time` expects a **lease contract address**, not a wallet address.
 - **Chart rendering**: Position charts and stats charts use Observable Plot with downsampling (~200 points max), `catmull-rom` curve interpolation, `strokeWidth: 2`. Price charts compute Y domain from price data only (liquidation price included only if within 70% of price range).
-- **Wallet connection centralization**: All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions (`connectKeplr.ts`, etc.) only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard). The `configStore.initialized` watcher in `view.vue` must use `{ immediate: true }` because optimistic caching means `initialized` may already be `true` at mount time.
+- **Wallet connection centralization**: All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions (`connectKeplr.ts`, etc.) only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard). The `configStore.initialized` watcher in `view.vue` must use `{ immediate: true }` because optimistic caching means `initialized` may already be `true` at mount time. Supported wallets: Keplr, Leap, Ledger (USB + Bluetooth), Phantom (EVM), Solflare (Solana). MetaMask and WalletConnect were removed.
 
 ## URL Routing
 
@@ -207,6 +207,8 @@ Navigation menus (`DesktopMenu.vue`, `MobileMenu.vue`) generate links from the e
 - **Frontend**: Vue 3.5, TypeScript 5.8, Pinia 3, Vite 7, Tailwind CSS, vue-i18n
 - **Backend**: Rust (Axum, Tokio, Moka cache, reqwest)
 - **Blockchain**: CosmJS, @nolus/nolusjs, cosmrs
+- **Supported Networks**: Nolus, Osmosis, Neutron (configured via `src/networks/config.ts` and `src/config/global/networks.ts`)
+- **Supported Wallets**: Keplr, Leap, Ledger (USB + Bluetooth), Phantom (EVM via MetaMaskWallet class), Solflare (Solana)
 
 ## Design Principles
 
@@ -238,3 +240,22 @@ Extended documentation is available in the `docs/` folder:
 - `backend api enrichments and proxy.md` - Gated propagation system + transaction enrichment details
 - `translations.md` - Translation management system
 - `protocol architecture.md` - Protocol and contract architecture
+
+## Network & Wallet Architecture
+
+### Supported Networks (3)
+Only Nolus, Osmosis, and Neutron are configured. Network definitions live in `src/networks/list/{nolus,osmosis,neutron}/` with static `embedChainInfo` functions that provide Keplr/Leap wallet extension data (bech32 config, currencies, features). The backend provides runtime data (RPC, LCD, gas, chains) via `network-config.json`.
+
+### Network Config
+- `src/networks/config.ts` — `CHAIN_INFO_EMBEDDERS` map (3 entries: NOLUS, OSMOSIS, NEUTRON)
+- `src/config/global/networks.ts` — `SUPPORTED_NETWORKS` array
+- `src/networks/cosm/` — Cosmos wallet infrastructure (BaseWallet, WalletFactory, accountParser)
+- `src/networks/evm/` — EVM wallet class (used by Phantom)
+- `src/networks/sol/` — Solana wallet class (used by Solflare)
+- `src/networks/metamask/` — MetaMaskWallet class (reused by Phantom's EVM connection)
+
+### Wallet Connection Actions
+Each wallet type has a connect action in `src/common/stores/wallet/actions/`:
+- `connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts` — Cosmos wallets
+- `connectPhantom.ts` — Uses `MetaMaskWallet` class from `src/networks/metamask/`
+- `connectSolFlare.ts` — Uses Solana wallet from `src/networks/sol/`
