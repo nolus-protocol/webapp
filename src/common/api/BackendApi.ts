@@ -774,6 +774,20 @@ export class BackendApiClient {
       params: { tx: txHash }
     });
   }
+
+  /**
+   * Fetch supplied funds total (from ETL)
+   */
+  async getSuppliedFunds(): Promise<import("./types").SuppliedFundsResponse> {
+    return this.request<import("./types").SuppliedFundsResponse>("GET", "/api/etl/supplied-funds");
+  }
+
+  /**
+   * Fetch ETL pools data (includes deposit_suspension threshold)
+   */
+  async getEtlPools(): Promise<import("./types").PoolsResponse> {
+    return this.request<import("./types").PoolsResponse>("GET", "/api/etl/pools");
+  }
 }
 
 // Export singleton instance

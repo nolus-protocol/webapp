@@ -24,7 +24,24 @@
     "explorer": "https://www.mintscan.io/osmosis",
     "icon": "/icons/networks/osmosis.svg",
     "primaryProtocol": "OSMOSIS-OSMOSIS-USDC_NOBLE",
-    "estimation": 20
+    "estimation": 20,
+    "pools": {
+      "OSMOSIS-OSMOSIS-USDC_NOBLE": {
+        "icon": "/assets/icons/pools/osmosis-usdc.svg"
+      },
+      "OSMOSIS-OSMOSIS-ALL_SOL": {
+        "icon": "/assets/icons/pools/osmosis-allsol.svg"
+      },
+      "OSMOSIS-OSMOSIS-ALL_BTC": {
+        "icon": "/assets/icons/pools/osmosis-allbtc.svg"
+      },
+      "OSMOSIS-OSMOSIS-AKT": {
+        "icon": "/assets/icons/pools/osmosis-akt.svg"
+      },
+      "OSMOSIS-OSMOSIS-ATOM": {
+        "icon": "/assets/icons/pools/osmosis-atom.svg"
+      }
+    }
   },
   "NEUTRON": {
     "name": "Neutron",
@@ -39,6 +56,11 @@
     "icon": "/icons/networks/neutron.svg",
     "primaryProtocol": "NEUTRON-ASTROPORT-USDC_NOBLE",
     "estimation": 20,
-    "forward": false
+    "forward": false,
+    "pools": {
+      "NEUTRON-ASTROPORT-USDC_NOBLE": {
+        "icon": "/assets/icons/pools/neutron-usdc.svg"
+      }
+    }
   }
 }

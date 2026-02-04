@@ -12,6 +12,7 @@ export interface EarnPool {
   utilization: number;
   available_liquidity: string;
   deposit_capacity?: string;
+  icon?: string;
 }
 
 export interface EarnPosition {

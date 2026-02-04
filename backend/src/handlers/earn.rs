@@ -45,6 +45,9 @@ pub struct EarnPool {
     pub available_liquidity: String,
     /// Deposit capacity remaining
     pub deposit_capacity: Option<String>,
+    /// Pool icon path
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -66,8 +69,6 @@ pub struct EarnPosition {
     /// Current APY for this pool
     pub current_apy: f64,
 }
-
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EarnPositionsResponse {
@@ -144,23 +145,35 @@ pub async fn get_pools(
         })?;
 
     // Deserialize the cached JSON back to Vec<EarnPool>
-    let pools: Vec<EarnPool> = serde_json::from_value(result).map_err(|e| {
-        AppError::Internal(format!("Failed to deserialize pools: {}", e))
-    })?;
+    let pools: Vec<EarnPool> = serde_json::from_value(result)
+        .map_err(|e| AppError::Internal(format!("Failed to deserialize pools: {}", e)))?;
 
-    // Filter pools to only configured protocols
+    // Load network config to get pool icons
+    let network_config = state.config_store.load_gated_network_config().await?;
+
+    // Filter pools to only configured protocols and enrich with icons
     let filtered_pools: Vec<EarnPool> = pools
         .into_iter()
         .filter(|pool| filter_ctx.is_earn_position_visible(&pool.protocol))
+        .map(|mut pool| {
+            // Look up pool icon from network config
+            // Protocol format is "NETWORK-DEX-LPN", extract network part
+            if let Some(network_key) = pool.protocol.split('-').next() {
+                if let Some(network_settings) = network_config.networks.get(network_key) {
+                    if let Some(pool_config) = network_settings.pools.get(&pool.protocol) {
+                        pool.icon = Some(pool_config.icon.clone());
+                    }
+                }
+            }
+            pool
+        })
         .collect();
 
     Ok(Json(filtered_pools))
 }
 
 /// Internal function to fetch all pools (called by cache)
-async fn fetch_all_pools_internal(
-    state: Arc<AppState>,
-) -> Result<serde_json::Value, String> {
+async fn fetch_all_pools_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
     let admin_address = &state.config.protocols.admin_contract;
 
     // Get all protocols
@@ -496,13 +509,23 @@ async fn fetch_pool_info(
 
     // Calculate available liquidity
     let total_balance: u128 = lpp_balance.balance.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse LPP balance for {}: {}", protocol, lpp_balance.balance.amount);
+        warn!(
+            "Failed to parse LPP balance for {}: {}",
+            protocol, lpp_balance.balance.amount
+        );
         0
     });
-    let total_principal: u128 = lpp_balance.total_principal_due.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse LPP total_principal_due for {}: {}", protocol, lpp_balance.total_principal_due.amount);
-        0
-    });
+    let total_principal: u128 = lpp_balance
+        .total_principal_due
+        .amount
+        .parse()
+        .unwrap_or_else(|_| {
+            warn!(
+                "Failed to parse LPP total_principal_due for {}: {}",
+                protocol, lpp_balance.total_principal_due.amount
+            );
+            0
+        });
     let available = total_balance.saturating_sub(total_principal);
 
     Ok(EarnPool {
@@ -515,6 +538,7 @@ async fn fetch_pool_info(
         utilization,
         available_liquidity: available.to_string(),
         deposit_capacity: deposit_capacity.map(|dc| dc.amount),
+        icon: None, // Populated later from network config
     })
 }
 
@@ -540,7 +564,10 @@ async fn fetch_position_info(
         .await?;
 
     let deposit_amount: u128 = deposit.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse deposit amount for {} owner {}: {}", protocol, owner, deposit.amount);
+        warn!(
+            "Failed to parse deposit amount for {} owner {}: {}",
+            protocol, owner, deposit.amount
+        );
         0
     });
 
@@ -557,11 +584,17 @@ async fn fetch_position_info(
 
     // Calculate LPN value from nLPN
     let price_quote: u128 = lpp_price.amount_quote.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse LPP price_quote for {}: {}", protocol, lpp_price.amount_quote.amount);
+        warn!(
+            "Failed to parse LPP price_quote for {}: {}",
+            protocol, lpp_price.amount_quote.amount
+        );
         1
     });
     let price_amount: u128 = lpp_price.amount.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse LPP price_amount for {}: {}", protocol, lpp_price.amount.amount);
+        warn!(
+            "Failed to parse LPP price_amount for {}: {}",
+            protocol, lpp_price.amount.amount
+        );
         1
     });
     let lpp_price_ratio = if price_amount > 0 {
@@ -623,9 +656,7 @@ pub async fn fetch_earn_positions_for_monitoring(
             let state_ref = state;
             let protocol = protocol.clone();
             let address = address.to_string();
-            async move {
-                fetch_position_for_monitoring(state_ref, &protocol, &address).await
-            }
+            async move { fetch_position_for_monitoring(state_ref, &protocol, &address).await }
         })
         .collect();
 
@@ -673,7 +704,10 @@ async fn fetch_position_for_monitoring(
         .await?;
 
     let deposit_amount: u128 = deposit.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse WS deposit amount for {} owner {}: {}", protocol, owner, deposit.amount);
+        warn!(
+            "Failed to parse WS deposit amount for {} owner {}: {}",
+            protocol, owner, deposit.amount
+        );
         0
     });
 
@@ -687,11 +721,17 @@ async fn fetch_position_for_monitoring(
 
     // Calculate LPN value from nLPN
     let price_quote: u128 = lpp_price.amount_quote.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse WS LPP price_quote for {}: {}", protocol, lpp_price.amount_quote.amount);
+        warn!(
+            "Failed to parse WS LPP price_quote for {}: {}",
+            protocol, lpp_price.amount_quote.amount
+        );
         1
     });
     let price_amount: u128 = lpp_price.amount.amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse WS LPP price_amount for {}: {}", protocol, lpp_price.amount.amount);
+        warn!(
+            "Failed to parse WS LPP price_amount for {}: {}",
+            protocol, lpp_price.amount.amount
+        );
         1
     });
     let lpp_price_ratio = if price_amount > 0 {
@@ -714,4 +754,3 @@ async fn fetch_position_for_monitoring(
         rewards,
     }))
 }
-

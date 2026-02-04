@@ -132,8 +132,8 @@
   },
   "asset_restrictions": {
     "ignore_all": [],
-    "ignore_long": [],
-    "ignore_short": [],
+    "ignore_long": ["NLS"],
+    "ignore_short": ["NLS"],
     "free_interest": []
   }
 }

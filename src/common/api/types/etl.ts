@@ -376,34 +376,34 @@ export interface TransactionFilters {
 // =============================================================================
 
 /**
- * Pool info
+ * Pool info (from /api/etl/pools)
  */
 export interface PoolInfo {
   protocol: string;
-  lpp_address: string;
-  lpn_ticker: string;
-  total_deposits: string;
-  total_borrowed: string;
-  utilization: number;
-  apr: number;
-  deposit_cap?: string;
+  earn_apr?: string;
+  apr?: string;
+  utilization?: string;
+  supplied?: string;
+  total_supplied?: string;
+  borrowed?: string;
+  total_borrowed?: string;
+  borrow_apr?: string;
+  deposit_suspension?: string;
 }
 
 /**
- * Pools response
+ * Pools response (from /api/etl/pools)
  */
 export interface PoolsResponse {
-  pools: PoolInfo[];
+  protocols: PoolInfo[];
+  optimal?: string;
 }
 
 /**
- * Legacy pool data from ETL
- * @deprecated Use PoolsResponse instead
+ * Supplied funds response (from /api/etl/supplied-funds)
  */
-export interface EtlPoolData {
-  protocol: string;
-  apy: number;
-  utilization: number;
+export interface SuppliedFundsResponse {
+  amount: string;
 }
 
 // =============================================================================

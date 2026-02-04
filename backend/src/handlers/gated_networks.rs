@@ -90,6 +90,9 @@ pub struct PoolResponse {
     pub lpn: String,
     /// LPN display info
     pub lpn_display: CurrencyDisplayInfo,
+    /// Pool icon path
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
 }
 
 /// Response for network pools
@@ -171,10 +174,7 @@ pub async fn get_network(
     debug!("Fetching network: {}", network);
 
     // Load gated config
-    let network_config = state
-        .config_store
-        .load_gated_network_config()
-        .await?;
+    let network_config = state.config_store.load_gated_network_config().await?;
 
     let settings = network_config
         .networks
@@ -210,37 +210,26 @@ pub async fn get_network_pools(
     debug!("Fetching pools for network: {}", network);
 
     // Load gated configs
-    let currency_config = state
-        .config_store
-        .load_currency_display()
-        .await?;
+    let currency_config = state.config_store.load_currency_display().await?;
 
-    let network_config = state
-        .config_store
-        .load_gated_network_config()
-        .await?;
+    let network_config = state.config_store.load_gated_network_config().await?;
 
     // Check network is configured
-    if !network_config
+    let network_settings = network_config
         .networks
         .get(&network)
-        .map(|s| s.is_configured())
-        .unwrap_or(false)
-    {
-        return Err(AppError::NotFound {
+        .filter(|s| s.is_configured())
+        .ok_or_else(|| AppError::NotFound {
             resource: format!("Network {}", network),
-        });
-    }
+        })?;
 
     // Fetch ETL data
     let etl_protocols = state.etl_client.fetch_protocols().await?;
     let etl_pools = state.etl_client.fetch_pools().await?;
 
     // Build pool map
-    let pool_map: std::collections::HashMap<&str, &crate::external::etl::EtlPool> = etl_pools
-        .iter()
-        .map(|p| (p.protocol.as_str(), p))
-        .collect();
+    let pool_map: std::collections::HashMap<&str, &crate::external::etl::EtlPool> =
+        etl_pools.iter().map(|p| (p.protocol.as_str(), p)).collect();
 
     // Build pools response
     let pools: Vec<PoolResponse> = etl_protocols
@@ -259,6 +248,10 @@ pub async fn get_network_pools(
         .filter_map(|p| {
             let lpn_display_config = currency_config.currencies.get(&p.lpn_symbol)?;
             let pool_data = pool_map.get(p.name.as_str());
+            let pool_icon = network_settings
+                .pools
+                .get(&p.name)
+                .map(|pc| pc.icon.clone());
 
             Some(PoolResponse {
                 protocol: p.name.clone(),
@@ -275,6 +268,7 @@ pub async fn get_network_pools(
                     lpn_display_config,
                     &p.lpn_symbol,
                 ),
+                icon: pool_icon,
             })
         })
         .collect();

@@ -14,14 +14,18 @@ import {
   type EarnPosition,
   type EarnPositionsResponse,
   type EarnStats,
-  type Unsubscribe,
+  type PoolInfo,
+  type SuppliedFundsResponse,
+  type Unsubscribe
 } from "@/common/api";
 
 export const useEarnStore = defineStore("earn", () => {
   // State
   const pools = ref<EarnPool[]>([]);
+  const etlPools = ref<PoolInfo[]>([]);
   const positions = ref<EarnPosition[]>([]);
   const stats = ref<EarnStats | null>(null);
+  const suppliedFunds = ref<SuppliedFundsResponse | null>(null);
   const address = ref<string | null>(null);
   const totalDepositedUsd = ref<string>("0");
 
@@ -75,6 +79,13 @@ export const useEarnStore = defineStore("earn", () => {
    */
   function getPoolByAddress(lppAddress: string): EarnPool | undefined {
     return pools.value.find((p) => p.lpp_address === lppAddress);
+  }
+
+  /**
+   * Get ETL pool data by protocol (includes deposit_suspension)
+   */
+  function getEtlPool(protocol: string): PoolInfo | undefined {
+    return etlPools.value.find((p) => p.protocol === protocol);
   }
 
   /**
@@ -137,6 +148,29 @@ export const useEarnStore = defineStore("earn", () => {
   }
 
   /**
+   * Fetch ETL pools data (includes deposit_suspension thresholds)
+   */
+  async function fetchEtlPools(): Promise<void> {
+    try {
+      const response = await BackendApi.getEtlPools();
+      etlPools.value = response.protocols;
+    } catch (e) {
+      console.error("[EarnStore] Failed to fetch ETL pools:", e);
+    }
+  }
+
+  /**
+   * Fetch supplied funds from ETL
+   */
+  async function fetchSuppliedFunds(): Promise<void> {
+    try {
+      suppliedFunds.value = await BackendApi.getSuppliedFunds();
+    } catch (e) {
+      console.error("[EarnStore] Failed to fetch supplied funds:", e);
+    }
+  }
+
+  /**
    * Subscribe to real-time updates via WebSocket
    */
   function subscribeToUpdates(): void {
@@ -157,7 +191,7 @@ export const useEarnStore = defineStore("earn", () => {
         deposited_lpn: p.deposited_lpn,
         deposited_usd: null,
         lpp_price: "1.0",
-        current_apy: 0,
+        current_apy: 0
       }));
       totalDepositedUsd.value = totalUsd;
       lastUpdated.value = new Date();
@@ -197,7 +231,7 @@ export const useEarnStore = defineStore("earn", () => {
     if (initialized.value) {
       return;
     }
-    await Promise.all([fetchPools(), fetchStats()]);
+    await Promise.all([fetchPools(), fetchStats(), fetchEtlPools(), fetchSuppliedFunds()]);
     initialized.value = true;
   }
 
@@ -205,7 +239,7 @@ export const useEarnStore = defineStore("earn", () => {
    * Refresh all data
    */
   async function refresh(): Promise<void> {
-    const promises: Promise<void>[] = [fetchPools(), fetchStats()];
+    const promises: Promise<void>[] = [fetchPools(), fetchStats(), fetchEtlPools(), fetchSuppliedFunds()];
     if (address.value) {
       promises.push(fetchPositions());
     }
@@ -230,8 +264,10 @@ export const useEarnStore = defineStore("earn", () => {
   return {
     // State
     pools,
+    etlPools,
     positions,
     stats,
+    suppliedFunds,
     address,
     totalDepositedUsd,
     poolsLoading,
@@ -250,18 +286,21 @@ export const useEarnStore = defineStore("earn", () => {
     getPool,
     getPosition,
     getPoolByAddress,
+    getEtlPool,
     getProtocolApr,
 
     // Actions
     fetchPools,
     fetchPositions,
     fetchStats,
+    fetchEtlPools,
+    fetchSuppliedFunds,
     subscribeToUpdates,
     unsubscribeFromUpdates,
     setAddress,
     initialize,
     refresh,
     cleanup,
-    clear, // Alias for backwards compatibility
+    clear // Alias for backwards compatibility
   };
 });

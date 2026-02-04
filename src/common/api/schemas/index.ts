@@ -48,19 +48,19 @@ export const TxHashSchema = z.string().regex(/^[A-Fa-f0-9]{64}$/, "Invalid trans
 export const PriceInfoSchema = z.object({
   key: z.string(),
   symbol: z.string(),
-  price_usd: z.string(),
+  price_usd: z.string()
 });
 
 export const PricesResponseSchema = z.object({
   prices: z.record(z.string(), PriceInfoSchema),
-  updated_at: z.string(),
+  updated_at: z.string()
 });
 
 export const PriceDataSchema = z.record(
   z.string(),
   z.object({
     price: z.string(),
-    symbol: z.string(),
+    symbol: z.string()
   })
 );
 
@@ -74,12 +74,12 @@ export const BalanceInfoSchema = z.object({
   denom: z.string(),
   amount: z.string(),
   amount_usd: z.string(),
-  decimal_digits: z.number(),
+  decimal_digits: z.number()
 });
 
 export const BalancesResponseSchema = z.object({
   balances: z.array(BalanceInfoSchema),
-  total_value_usd: z.string(),
+  total_value_usd: z.string()
 });
 
 // =============================================================================
@@ -91,7 +91,7 @@ export const ProtocolContractsSchema = z.object({
   lpp: z.string(),
   oracle: z.string(),
   profit: z.string().optional(),
-  reserve: z.string().optional(),
+  reserve: z.string().optional()
 });
 
 export const ProtocolInfoSchema = z.object({
@@ -103,7 +103,7 @@ export const ProtocolInfoSchema = z.object({
   utilization_optimal: z.number(),
   addon_optimal_interest_rate: z.number(),
   min_utilization: z.number(),
-  contracts: ProtocolContractsSchema,
+  contracts: ProtocolContractsSchema
 });
 
 export const CurrencyInfoSchema = z.object({
@@ -116,7 +116,7 @@ export const CurrencyInfoSchema = z.object({
   decimal_digits: z.number(),
   short_name: z.string().optional(),
   icon: z.string().optional(),
-  coingecko_id: z.string().optional(),
+  coingecko_id: z.string().optional()
 });
 
 export const NetworkConfigSchema = z.object({
@@ -126,14 +126,14 @@ export const NetworkConfigSchema = z.object({
   native_minimal_denom: z.string(),
   rpc_endpoint: z.string(),
   rest_endpoint: z.string(),
-  explorer_url: z.string().optional(),
+  explorer_url: z.string().optional()
 });
 
 export const ConfigResponseSchema = z.object({
   protocols: z.record(z.string(), ProtocolInfoSchema),
   currencies: z.record(z.string(), CurrencyInfoSchema),
   network: NetworkConfigSchema,
-  updated_at: z.string().optional(),
+  updated_at: z.string().optional()
 });
 
 // =============================================================================
@@ -145,22 +145,22 @@ export const LeaseQuoteSchema = z.object({
   borrow: z.string(),
   total: z.string(),
   annual_interest_rate: z.string(),
-  annual_interest_rate_margin: z.string(),
+  annual_interest_rate_margin: z.string()
 });
 
 export const LeaseOpenedSchema = z.object({
   amount: z.object({
     amount: z.string(),
-    ticker: z.string(),
+    ticker: z.string()
   }),
   loan: z.object({
     amount: z.string(),
-    ticker: z.string(),
+    ticker: z.string()
   }),
   downpayment: z.object({
     amount: z.string(),
-    ticker: z.string(),
-  }),
+    ticker: z.string()
+  })
 });
 
 export const LeaseStatusSchema = z.union([
@@ -168,7 +168,7 @@ export const LeaseStatusSchema = z.union([
   z.literal("Opened"),
   z.literal("PaidOff"),
   z.literal("Closed"),
-  z.literal("Liquidated"),
+  z.literal("Liquidated")
 ]);
 
 export const LeaseInfoSchema = z.object({
@@ -192,12 +192,12 @@ export const LeaseInfoSchema = z.object({
   position_asset: z.string().optional(),
   liquidation: z.any().optional(),
   in_progress: z.any().optional(),
-  etl_data: z.any().optional(),
+  etl_data: z.any().optional()
 });
 
 export const LeasesResponseSchema = z.object({
   leases: z.array(LeaseInfoSchema),
-  total_count: z.number().optional(),
+  total_count: z.number().optional()
 });
 
 // =============================================================================
@@ -213,7 +213,7 @@ export const ValidatorInfoSchema = z.object({
   commission_rate: z.string(),
   voting_power: z.string(),
   jailed: z.boolean(),
-  status: z.string(),
+  status: z.string()
 });
 
 export const ValidatorsResponseSchema = z.object({
@@ -221,9 +221,9 @@ export const ValidatorsResponseSchema = z.object({
   pagination: z
     .object({
       next_key: z.string().nullable(),
-      total: z.string(),
+      total: z.string()
     })
-    .optional(),
+    .optional()
 });
 
 export const DelegationInfoSchema = z.object({
@@ -232,14 +232,14 @@ export const DelegationInfoSchema = z.object({
   shares: z.string(),
   balance: z.object({
     denom: z.string(),
-    amount: z.string(),
-  }),
+    amount: z.string()
+  })
 });
 
 export const StakingPositionsResponseSchema = z.object({
   delegations: z.array(DelegationInfoSchema),
   total_staked: z.string(),
-  total_rewards: z.string(),
+  total_rewards: z.string()
 });
 
 // =============================================================================
@@ -248,18 +248,20 @@ export const StakingPositionsResponseSchema = z.object({
 
 export const PoolInfoSchema = z.object({
   protocol: z.string(),
-  lpp_address: z.string(),
-  lpn_ticker: z.string(),
-  lpn_symbol: z.string(),
-  total_deposits: z.string(),
-  total_borrowed: z.string(),
-  utilization: z.number(),
-  apr: z.number(),
-  deposit_cap: z.string().optional(),
+  earn_apr: z.string().optional(),
+  apr: z.string().optional(),
+  utilization: z.string().optional(),
+  supplied: z.string().optional(),
+  total_supplied: z.string().optional(),
+  borrowed: z.string().optional(),
+  total_borrowed: z.string().optional(),
+  borrow_apr: z.string().optional(),
+  deposit_suspension: z.string().optional()
 });
 
-export const EarnPoolsResponseSchema = z.object({
-  pools: z.array(PoolInfoSchema),
+export const PoolsResponseSchema = z.object({
+  protocols: z.array(PoolInfoSchema),
+  optimal: z.string().optional()
 });
 
 export const EarnPositionSchema = z.object({
@@ -267,12 +269,12 @@ export const EarnPositionSchema = z.object({
   deposit_amount: z.string(),
   deposit_value_usd: z.string(),
   rewards_amount: z.string(),
-  rewards_value_usd: z.string(),
+  rewards_value_usd: z.string()
 });
 
 export const EarnPositionsResponseSchema = z.object({
   positions: z.array(EarnPositionSchema),
-  total_value_usd: z.string(),
+  total_value_usd: z.string()
 });
 
 // =============================================================================
@@ -292,15 +294,15 @@ export const ProposalSchema = z.object({
   metadata: z.string().optional(),
   final_tally_result: z.any().optional(),
   tally: z.any().optional(),
-  voted: z.boolean().optional(),
+  voted: z.boolean().optional()
 });
 
 export const ProposalsResponseSchema = z.object({
   proposals: z.array(ProposalSchema),
   pagination: z.object({
     next_key: z.string().nullable(),
-    total: z.string(),
-  }),
+    total: z.string()
+  })
 });
 
 // =============================================================================
@@ -317,10 +319,10 @@ export const HealthCheckResponseSchema = z.object({
       z.object({
         status: z.enum(["healthy", "degraded", "unhealthy"]),
         latency_ms: z.number().optional(),
-        message: z.string().optional(),
+        message: z.string().optional()
       })
     )
-    .optional(),
+    .optional()
 });
 
 // =============================================================================
@@ -366,17 +368,13 @@ export function safeValidateResponse<T>(
 /**
  * Logs validation errors for debugging
  */
-export function logValidationError(
-  endpoint: string,
-  error: z.ZodError,
-  data?: unknown
-): void {
+export function logValidationError(endpoint: string, error: z.ZodError, data?: unknown): void {
   console.warn(`[API Validation] ${endpoint} response validation failed:`, {
     issues: error.issues.map((i) => ({
       path: i.path.join("."),
       message: i.message,
-      code: i.code,
+      code: i.code
     })),
-    receivedData: data,
+    receivedData: data
   });
 }

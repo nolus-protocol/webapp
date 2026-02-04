@@ -72,6 +72,13 @@ pub struct GatedNetworkConfig {
     pub networks: HashMap<String, NetworkSettings>,
 }
 
+/// Pool-specific configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PoolConfig {
+    /// Pool icon path
+    pub icon: String,
+}
+
 /// Settings for a single network
 /// A network is "configured" when it has RPC + LCD + gas_price
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,6 +117,9 @@ pub struct NetworkSettings {
     /// Whether to use packet forwarding for IBC
     #[serde(skip_serializing_if = "Option::is_none")]
     pub forward: Option<bool>,
+    /// Pool-specific configurations keyed by protocol (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE")
+    #[serde(default, skip_serializing_if = "HashMap::is_empty")]
+    pub pools: HashMap<String, PoolConfig>,
 }
 
 impl NetworkSettings {
@@ -466,6 +476,7 @@ impl From<NetworkSettingsInput> for NetworkSettings {
             primary_protocol: input.primary_protocol,
             estimation: input.estimation,
             forward: input.forward,
+            pools: HashMap::new(),
         }
     }
 }
@@ -535,6 +546,7 @@ mod tests {
             primary_protocol: Some("OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()),
             estimation: Some(20),
             forward: None,
+            pools: HashMap::new(),
         };
         assert!(configured.is_configured());
 
@@ -552,6 +564,7 @@ mod tests {
             primary_protocol: None,
             estimation: None,
             forward: None,
+            pools: HashMap::new(),
         };
         assert!(!unconfigured_no_rpc.is_configured());
     }
@@ -559,18 +572,16 @@ mod tests {
     #[test]
     fn test_currency_display_config_serialization() {
         let config = CurrencyDisplayConfig {
-            currencies: HashMap::from([
-                (
-                    "ATOM".to_string(),
-                    CurrencyDisplay {
-                        icon: "/icons/atom.svg".to_string(),
-                        display_name: "Cosmos Hub".to_string(),
-                        short_name: Some("ATOM".to_string()),
-                        color: Some("#6F7390".to_string()),
-                        coingecko_id: Some("cosmos".to_string()),
-                    },
-                ),
-            ]),
+            currencies: HashMap::from([(
+                "ATOM".to_string(),
+                CurrencyDisplay {
+                    icon: "/icons/atom.svg".to_string(),
+                    display_name: "Cosmos Hub".to_string(),
+                    short_name: Some("ATOM".to_string()),
+                    color: Some("#6F7390".to_string()),
+                    coingecko_id: Some("cosmos".to_string()),
+                },
+            )]),
         };
 
         let json = serde_json::to_string_pretty(&config).unwrap();
@@ -588,7 +599,10 @@ mod tests {
                 "OSMOSIS-OSMOSIS-USDC_NOBLE".to_string(),
                 HashMap::from([(
                     "ATOM".to_string(),
-                    DownpaymentRange { min: 40.0, max: 5000.0 },
+                    DownpaymentRange {
+                        min: 40.0,
+                        max: 5000.0,
+                    },
                 )]),
             )]),
             asset_restrictions: AssetRestrictions {
@@ -601,7 +615,9 @@ mod tests {
 
         let json = serde_json::to_string_pretty(&config).unwrap();
         let deserialized: LeaseRulesConfig = serde_json::from_str(&json).unwrap();
-        assert!(deserialized.downpayment_ranges.contains_key("OSMOSIS-OSMOSIS-USDC_NOBLE"));
+        assert!(deserialized
+            .downpayment_ranges
+            .contains_key("OSMOSIS-OSMOSIS-USDC_NOBLE"));
         assert_eq!(deserialized.asset_restrictions.ignore_all.len(), 1);
     }
 }

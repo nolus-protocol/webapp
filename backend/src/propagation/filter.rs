@@ -6,7 +6,7 @@
 use std::collections::HashSet;
 
 use crate::config_store::gated_types::{CurrencyDisplayConfig, GatedNetworkConfig};
-use crate::external::etl::{EtlCurrency, EtlCurrenciesResponse, EtlProtocol, EtlProtocolsResponse};
+use crate::external::etl::{EtlCurrenciesResponse, EtlCurrency, EtlProtocol, EtlProtocolsResponse};
 
 /// Filters ETL data based on gated configuration
 pub struct PropagationFilter;
@@ -209,6 +209,7 @@ mod tests {
                     primary_protocol: Some("OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()),
                     estimation: None,
                     forward: None,
+                    pools: HashMap::new(),
                 },
             )]),
         }
