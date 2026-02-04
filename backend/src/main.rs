@@ -293,7 +293,7 @@ fn create_router(state: Arc<AppState>) -> Router {
         )
         .route("/earnings", get(handlers::etl_proxy::proxy_earnings))
         .route("/lp-withdraw", get(handlers::etl_proxy::proxy_lp_withdraw))
-        .route("/txs", get(handlers::etl_proxy::proxy_txs))
+        .route("/txs", get(handlers::transactions::get_enriched_transactions))
         .route(
             "/leases-search",
             get(handlers::etl_proxy::proxy_leases_search),

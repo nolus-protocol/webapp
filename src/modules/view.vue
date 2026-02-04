@@ -54,6 +54,7 @@ watch(
     walletOperation(() => {});
     window.addEventListener("keplr_keystorechange", updateKeplr);
     window.addEventListener("leap_keystorechange", updateLeap);
+    wallet.LOAD_APR();
     checkBalances();
   }
 );

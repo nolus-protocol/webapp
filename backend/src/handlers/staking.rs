@@ -93,7 +93,7 @@ pub struct StakingPositionsResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ValidatorReward {
     pub validator_address: String,
-    pub reward: Vec<BalanceInfo>,
+    pub rewards: Vec<BalanceInfo>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -312,7 +312,7 @@ pub async fn get_positions(
                 .iter()
                 .map(|vr| ValidatorReward {
                     validator_address: vr.validator_address.clone(),
-                    reward: vr
+                    rewards: vr
                         .reward
                         .iter()
                         .map(|b| BalanceInfo {

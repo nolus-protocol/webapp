@@ -22,15 +22,7 @@ import { i18n } from "@/i18n";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
 import type { TxEntry, TransactionFilters } from "@/common/api/types";
-import { defaultRegistryTypes } from "@cosmjs/stargate";
-import { Registry } from "@cosmjs/proto-signing";
-import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { Any } from "cosmjs-types/google/protobuf/any";
 import { Buffer } from "buffer";
-
-// Registry for decoding transaction messages
-const registry = new Registry(defaultRegistryTypes);
-registry.register("/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract);
 
 export const useHistoryStore = defineStore("history", () => {
   // ==========================================================================
@@ -237,8 +229,7 @@ export const useHistoryStore = defineStore("history", () => {
     return rawTxs.map((item) => {
       return {
         ...item,
-        timestamp: new Date(item.timestamp),
-        type: item.tx_type
+        timestamp: new Date(item.timestamp)
       };
     });
   }
@@ -272,8 +263,8 @@ export const useHistoryStore = defineStore("history", () => {
     transactionsLoading.value = true;
 
     try {
-      const response = await BackendApi.getTransactions(address.value, skip, limit, filters);
-      const transformedTxs = transformTransactions(response.data, address.value);
+      const rawTxs = await BackendApi.getTransactions(address.value, skip, limit, filters);
+      const transformedTxs = transformTransactions(rawTxs, address.value);
       
       // Process each transaction with message formatting
       const promises = transformedTxs.map(async (d) => {
@@ -298,8 +289,8 @@ export const useHistoryStore = defineStore("history", () => {
         transactions.value = [...transactions.value, ...res];
       }
 
-      // Check if we've loaded all transactions based on total count
-      if (transactions.value.length >= response.total) {
+      // If we got fewer results than requested, all transactions are loaded
+      if (rawTxs.length < limit) {
         transactionsLoaded.value = true;
       }
 

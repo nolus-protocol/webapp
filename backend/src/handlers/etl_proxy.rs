@@ -173,11 +173,7 @@ etl_proxy_raw_with_params!(
     ["address", "skip", "limit"]
 );
 
-etl_proxy_raw_with_params!(
-    proxy_txs,
-    "txs",
-    ["address", "skip", "limit", "filter", "to"]
-);
+// proxy_txs replaced by handlers::transactions::get_enriched_transactions
 
 etl_proxy_raw_with_params!(
     proxy_leases_search,

@@ -85,7 +85,7 @@ import type {
   LeasesMonthlyResponse,
   LeasedAssetsResponse,
   TimeSeriesResponse,
-  TxsResponse,
+  TxEntry,
   TransactionFilters,
   LeaseOpeningResponse,
   LeaseClosingResponse,
@@ -632,7 +632,7 @@ export class BackendApiClient {
     skip: number = 0,
     limit: number = 50,
     filters?: TransactionFilters
-  ): Promise<TxsResponse> {
+  ): Promise<TxEntry[]> {
     const params: Record<string, string | number> = { address, skip, limit };
 
     if (filters) {
@@ -651,7 +651,7 @@ export class BackendApiClient {
       }
     }
 
-    return this.request<TxsResponse>("GET", "/api/etl/txs", { params });
+    return this.request<TxEntry[]>("GET", "/api/etl/txs", { params });
   }
 
   /**

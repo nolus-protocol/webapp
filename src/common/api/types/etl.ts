@@ -323,13 +323,19 @@ export interface SupplyBorrowHistoryDataPoint {
  * Transaction entry
  */
 export interface TxEntry {
-  hash: string;
-  height: number;
+  block?: number;
+  code?: number;
+  fee_amount?: string;
+  fee_denom?: string;
+  from?: string;
+  index?: number;
+  memo?: string;
+  rewards?: string;
   timestamp: string;
-  tx_type: string;
-  amount?: string;
-  asset?: string;
-  status?: string;
+  to?: string;
+  tx_hash: string;
+  type: string;
+  data?: Record<string, any>;
 }
 
 /**
