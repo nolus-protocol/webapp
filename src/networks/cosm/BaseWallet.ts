@@ -39,7 +39,6 @@ import {
 } from "@cosmjs/stargate";
 import type { MsgDelegate, MsgUndelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
 import type { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
-import { MsgDepositForBurnWithCaller } from "../list/noble/tx";
 import { SigningCosmWasmClient, type SigningCosmWasmClientOptions } from "@cosmjs/cosmwasm-stargate";
 import { WalletTypes } from "../types";
 
@@ -88,7 +87,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
   }
 
   private registerMessages() {
-    this.registry.register("/circle.cctp.v1.MsgDepositForBurnWithCaller", MsgDepositForBurnWithCaller);
+    // Custom message types can be registered here
   }
 
   async getSigner() {

@@ -9,13 +9,7 @@ const state = (): State => ({
   vest: [],
   
   // Staking APR
-  apr: 0,
-  
-  // Wallet connect state
-  wallet_connect: {
-    toast: false,
-    url: ""
-  }
+  apr: 0
 });
 
 const useWalletStore = defineStore("wallet", {

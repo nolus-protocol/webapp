@@ -5,15 +5,12 @@ import { fetchNetworkStatus, getSkipRouteConfig } from "./ConfigService";
 import { BackendApi } from "@/common/api";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
-import { MetaMaskWallet } from "@/networks/metamask";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
-import { MsgDepositForBurnWithCaller } from "@/networks/list/noble/tx";
 
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
   "/cosmwasm.wasm.v1.MsgExecuteContract" = "/cosmwasm.wasm.v1.MsgExecuteContract",
-  "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
-  "/circle.cctp.v1.MsgDepositForBurnWithCaller" = "/circle.cctp.v1.MsgDepositForBurnWithCaller"
+  "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend"
 }
 
 /**
@@ -126,7 +123,7 @@ export class SkipRouter {
 
   static async submitRoute(
     route: RouteResponse,
-    wallets: { [key: string]: BaseWallet | MetaMaskWallet },
+    wallets: { [key: string]: BaseWallet },
     callback: Function
   ) {
     try {
@@ -138,7 +135,7 @@ export class SkipRouter {
 
   private static async transaction(
     route: RouteResponse,
-    wallets: { [key: string]: BaseWallet | MetaMaskWallet },
+    wallets: { [key: string]: BaseWallet },
     callback: Function
   ) {
     try {
@@ -192,44 +189,20 @@ export class SkipRouter {
       const response = await client.getMessages(request as MessagesRequest);
 
       for (const tx of response?.txs ?? []) {
-        const chainId = tx?.cosmos_tx?.chain_id ?? tx?.evm_tx?.chain_id;
-        const wallet = wallets[tx?.cosmos_tx?.chain_id ?? tx?.evm_tx?.chain_id];
+        const chainId = tx?.cosmos_tx?.chain_id;
+        const wallet = wallets[chainId];
 
-        switch (wallet.constructor) {
-          case MetaMaskWallet: {
-            const msg = tx.evm_tx;
-            const signer = await wallet.getSigner();
-            for (const t of msg.required_erc20_approvals!) {
-              await (wallet as any).setApprove(t);
-            }
-
-            const txData = await (signer as IObjectKeys).sendTransaction({
-              account: wallet.address,
-              to: msg.to as string,
-              data: `0x${msg.data}`,
-              value: msg.value === "" ? undefined : BigInt(msg.value!)
-            });
-
-            await callback(txData, wallet, chainId);
-
-            break;
-          }
-          default: {
-            const msgs = [];
-            for (const m of tx.cosmos_tx.msgs) {
-              const msgJSON = JSON.parse(m.msg);
-              const message = SkipRouter.getTx(m, msgJSON);
-              msgs.push({
-                msg: message,
-                msgTypeUrl: m.msg_type_url
-              });
-            }
-            const txData = await (wallet as BaseWallet).simulateMultiTx(msgs as any, "");
-            await callback(txData, wallet, chainId);
-
-            break;
-          }
+        const msgs = [];
+        for (const m of tx.cosmos_tx.msgs) {
+          const msgJSON = JSON.parse(m.msg);
+          const message = SkipRouter.getTx(m, msgJSON);
+          msgs.push({
+            msg: message,
+            msgTypeUrl: m.msg_type_url
+          });
         }
+        const txData = await wallet.simulateMultiTx(msgs as any, "");
+        await callback(txData, wallet, chainId);
       }
     } catch (error) {
       throw error;
@@ -326,17 +299,6 @@ export class SkipRouter {
           amount: msgJSON.amount
         });
       }
-      case Messages["/circle.cctp.v1.MsgDepositForBurnWithCaller"]: {
-        return MsgDepositForBurnWithCaller.fromPartial({
-          amount: msgJSON.amount,
-          burnToken: msgJSON.burn_token,
-          destinationCaller: msgJSON.destination_caller,
-          destinationDomain: msgJSON.destination_domain,
-          from: msgJSON.from,
-          mintRecipient: msgJSON.mint_recipient
-        });
-      }
-
       default: {
         throw new Error("Action not supported");
       }

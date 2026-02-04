@@ -470,8 +470,6 @@
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "CSV 다운로드",
     "full-close-action": "포지션 {contract} 종료",
-    "metamask": "Metamask",
-    "walletconnect": "Walletconnect",
     "add-filter": "필터 추가",
     "filter-by-category": "유형별 필터",
     "filter-by-lease": "포지션 id로 필터",

@@ -470,8 +470,6 @@
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "Λήψη CSV",
     "full-close-action": "Κλείσιμο θέσης {contract}",
-    "metamask": "Metamask",
-    "walletconnect": "Walletconnect",
     "add-filter": "Προσθήκη φίλτρου",
     "filter-by-category": "Φιλτράρισμα κατά τύπο",
     "filter-by-lease": "Φιλτράρισμα κατά id θέσης",

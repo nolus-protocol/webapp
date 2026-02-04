@@ -31,28 +31,7 @@ export const NETWORK = NETWORKS[localStorage.getItem(CURRENT_NETWORK_KEY) || DEF
 export const SUPPORTED_NETWORKS = [
   "NOLUS",
   "OSMOSIS",
-  "COSMOS_HUB",
-  "AXELAR",
-  "STRIDE",
-  "JUNO",
-  "EVMOS",
-  "SECRET",
-  "STARGAZE",
-  "CELESTIA",
-  "NEUTRON",
-  "QUICKSILVER",
-  "DYMENSION",
-  "JACKAL",
-  "INJECTIVE",
-  "COMPOSABLE",
-  "NOBLE",
-  "MANTRA",
-  "XION",
-  "NILLION",
-  "BABYLON",
-  // "BINANCE",
-  "AVALANCHE",
-  "BASE"
+  "NEUTRON"
 ];
 
 export const IGNORED_NETWORKS = ["NOLUS"];

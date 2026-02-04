@@ -1,7 +1,7 @@
 import type { Store } from "../types";
 import { WalletManager } from "@/common/utils";
 import { WalletConnectMechanism } from "@/common/types";
-import { LedgerName, WalletConnectName } from "@/config/global";
+import { LedgerName } from "@/config/global";
 
 export async function loadWalletName(this: Store) {
   switch (WalletManager.getWalletConnectMechanism()) {
@@ -11,10 +11,6 @@ export async function loadWalletName(this: Store) {
     case WalletConnectMechanism.LEAP: {
       break;
     }
-    // case WalletConnectMechanism.WALLET_WC: {
-    //   this.walletName = WalletConnectName;
-    //   break;
-    // }
     case WalletConnectMechanism.LEDGER: {
       this.walletName = LedgerName;
       break;

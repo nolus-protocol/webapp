@@ -6,8 +6,7 @@ export {
   getSupportedNetworksData,
   getSupportedNetworkData,
   getNetworkData,
-  getChainInfoEmbedder,
-  PROOBUF_ONLY_NETWORK
+  getChainInfoEmbedder
 } from "./config";
 
 export {

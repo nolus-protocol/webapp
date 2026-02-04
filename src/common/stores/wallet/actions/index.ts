@@ -8,9 +8,7 @@ import { loadApr } from "./loadApr";
 import { loadVestedTokens } from "./loadVestedTokens";
 import { loadWalletName } from "./loadWalletName";
 import { ignoreAssets } from "./ignoreAssets";
-import { connectWithWalletConnect } from "./connectWC";
 import { connectPhantom } from "./connectPhantom";
-import { connectMetamask } from "./connectMetamask";
 import { connectSolflare } from "./connectSolflare";
 
 export const actions = {
@@ -18,8 +16,6 @@ export const actions = {
   [WalletActions.CONNECT_KEPLR]: connectKeplr,
   [WalletActions.CONNECT_LEAP]: connectLeap,
   [WalletActions.CONNECT_LEDGER]: connectLedger,
-  [WalletActions.CONNECT_WC]: connectWithWalletConnect,
-  [WalletActions.CONNECT_EVM_METAMASK]: connectMetamask,
   [WalletActions.CONNECT_EVM_PHANTOM]: connectPhantom,
   [WalletActions.CONNECT_SOL_SOLFLARE]: connectSolflare,
   [WalletActions.LOAD_VESTED_TOKENS]: loadVestedTokens,

@@ -470,8 +470,6 @@
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "CSVをダウンロード",
     "full-close-action": "ポジション {contract} をクローズ",
-    "metamask": "Metamask",
-    "walletconnect": "Walletconnect",
     "add-filter": "フィルターを追加",
     "filter-by-category": "タイプで絞り込む",
     "filter-by-lease": "ポジションIDで絞り込む",

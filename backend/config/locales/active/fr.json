@@ -470,8 +470,6 @@
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "Télécharger le CSV",
     "full-close-action": "Fermer la position {contract}",
-    "metamask": "Metamask",
-    "walletconnect": "Walletconnect",
     "add-filter": "Ajouter un filtre",
     "filter-by-category": "Filtrer par type",
     "filter-by-lease": "Filtrer par ID de position",

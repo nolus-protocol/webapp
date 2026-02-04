@@ -36,7 +36,6 @@
     "@ledgerhq/logs": "^6.13.0",
     "@nolus/nolusjs": "^3.7.5",
     "@observablehq/plot": "^0.6.17",
-    "@walletconnect/sign-client": "^2.23.3",
     "compression": "^1.8.1",
     "cosmjs-types": "^0.11.0",
     "cosmjs-types-legacy": "npm:cosmjs-types@0.8.0",

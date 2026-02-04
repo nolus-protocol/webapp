@@ -470,8 +470,6 @@
     "keplr-wallet-connect": "Wallet Connect（beta）",
     "download-csv": "下载 CSV",
     "full-close-action": "平仓 {contract}",
-    "metamask": "Metamask",
-    "walletconnect": "Walletconnect",
     "add-filter": "添加筛选",
     "filter-by-category": "按类型筛选",
     "filter-by-lease": "按仓位 id 筛选",

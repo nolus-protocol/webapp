@@ -470,8 +470,6 @@
     "keplr-wallet-connect": "Wallet Connect (beta)",
     "download-csv": "Unduh CSV",
     "full-close-action": "Tutup posisi {contract}",
-    "metamask": "Metamask",
-    "walletconnect": "Walletconnect",
     "add-filter": "Tambah filter",
     "filter-by-category": "Filter berdasarkan tipe",
     "filter-by-lease": "Filter berdasarkan id posisi",

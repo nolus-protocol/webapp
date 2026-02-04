@@ -14,15 +14,12 @@ import { AminoTypes } from "@cosmjs/stargate";
 import { WalletManager, WalletUtils, Logger } from "@/common/utils";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { type BaseWallet } from "./BaseWallet";
-import { createDepositForBurnWithCallerConverters } from "../list/noble/tx";
-import { getWalletConnectOfflineSigner } from "@/common/stores/wallet/actions/connectWC";
 import { MetaMaskWallet } from "../evm";
 import { SolanaWallet } from "../sol";
 
 const aminoTypes = {
   ...createIbcAminoConverters(),
-  ...createBankAminoConverters(),
-  ...createDepositForBurnWithCallerConverters()
+  ...createBankAminoConverters()
 };
 
 const MsgTransferAmino = new AminoTypes(aminoTypes);
@@ -126,43 +123,6 @@ async function authenticateLeap(wallet: Wallet, network: NetworkData) {
   }
 
   throw new Error("Failed to fetch wallet.");
-}
-
-export async function authenticateWalletConnect(wallet: Wallet, network: NetworkData) {
-  try {
-    const chainId = await wallet.getChainId();
-    const { signer } = await getWalletConnectOfflineSigner(undefined, chainId);
-    return await createWallet(
-      wallet,
-      signer as any,
-      network.prefix,
-      network.gasMultiplier,
-      network.gasPrice,
-      network.explorer
-    );
-  } catch (e) {
-    throw e;
-  }
-}
-
-export async function authenticateMetamask(wallet: Wallet, network: NetworkData) {
-  try {
-    const node = await fetchEndpoints(network.key);
-    const metamask = new MetaMaskWallet();
-    await metamask.connectCustom(node, network);
-    const signer = metamask.makeWCOfflineSigner();
-
-    return await createWallet(
-      wallet,
-      signer as any,
-      network.prefix,
-      network.gasMultiplier,
-      network.gasPrice,
-      network.explorer
-    );
-  } catch (e) {
-    throw e;
-  }
 }
 
 export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkData) {

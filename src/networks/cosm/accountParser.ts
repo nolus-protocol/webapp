@@ -2,9 +2,6 @@
 import { Uint64 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
 import { BaseAccount, ModuleAccount } from "cosmjs-types/cosmos/auth/v1beta1/auth";
-import { StridePeriodicVestingAccount } from "../list/stride/vesting";
-import { EthermintAccount } from "../list/evmos/etherming";
-import { EthermintAccount as InjectiveAccount } from "../list/injective/etherming";
 import { decodePubkey } from "./encode";
 
 import {
@@ -58,21 +55,6 @@ export function accountFromAny(input) {
     }
     case "/cosmos.vesting.v1beta1.PeriodicVestingAccount": {
       const baseAccount = PeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
-      (0, assert)(baseAccount);
-      return accountFromBaseAccount(baseAccount);
-    }
-    case "/stride.vesting.StridePeriodicVestingAccount": {
-      const baseAccount = StridePeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
-      (0, assert)(baseAccount);
-      return accountFromBaseAccount(baseAccount);
-    }
-    case "/ethermint.types.v1.EthAccount": {
-      const baseAccount = EthermintAccount.decode(value).baseAccount;
-      (0, assert)(baseAccount);
-      return accountFromBaseAccount(baseAccount);
-    }
-    case "/injective.types.v1beta1.EthAccount": {
-      const baseAccount = InjectiveAccount.decode(value).baseAccount;
       (0, assert)(baseAccount);
       return accountFromBaseAccount(baseAccount);
     }

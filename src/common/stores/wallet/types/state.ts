@@ -16,10 +16,4 @@ export type State = {
   
   // Staking APR
   apr: number;
-  
-  // Wallet connect state
-  wallet_connect: {
-    toast: boolean;
-    url: string;
-  };
 };

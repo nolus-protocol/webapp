@@ -9,32 +9,10 @@ import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK } from "@/config/global/ne
 
 import { embedChainInfo as nolusChainInfo } from "./list/nolus/contants";
 import { embedChainInfo as osmoChainInfo } from "./list/osmosis/contants";
-import { embedChainInfo as atomChainInfo } from "./list/cosmos/contants";
-import { embedChainInfo as alexarChainInfo } from "./list/axelar/contants";
-import { embedChainInfo as strideChainInfo } from "./list/stride/contants";
-import { embedChainInfo as junoChainInfo } from "./list/juno/contants";
-import { embedChainInfo as evmosChainInfo } from "./list/evmos/contants";
-import { embedChainInfo as persistenceChainInfo } from "./list/persistence/contants";
-import { embedChainInfo as secretChainInfo } from "./list/secret/contants";
-import { embedChainInfo as celestiaChainInfo } from "./list/celestia/contants";
-import { embedChainInfo as stargazeChainInfo } from "./list/stargaze/contants";
-import { embedChainInfo as quicksilverChainInfo } from "./list/quicksilver/contants";
 import { embedChainInfo as neutronChainInfo } from "./list/neutron/contants";
-import { embedChainInfo as dymensionChainInfo } from "./list/dymension/contants";
-import { embedChainInfo as jackalChainInfo } from "./list/jackal/contants";
-import { embedChainInfo as injectiveChainInfo } from "./list/injective/contants";
-import { embedChainInfo as composableChainInfo } from "./list/composable/contants";
-import { embedChainInfo as nobleChainInfo } from "./list/noble/contants";
-import { embedChainInfo as mantraChainInfo } from "./list/mantra/contants";
-import { embedChainInfo as nillionChainInfo } from "./list/nillion/contants";
-import { embedChainInfo as xionChainInfo } from "./list/xion/contants";
-import { embedChainInfo as babylonChainInfo } from "./list/babylon/contants";
-import { embedChainInfo as cudosChainInfo } from "./cudos/contants";
 
 import { useConfigStore } from "@/common/stores/config";
 import type { ExternalCurrencies } from "@/common/types";
-
-export const PROOBUF_ONLY_NETWORK = ["ARBITRUM"];
 
 /**
  * Chain info embedders indexed by network key
@@ -43,27 +21,7 @@ export const PROOBUF_ONLY_NETWORK = ["ARBITRUM"];
 const CHAIN_INFO_EMBEDDERS: { [key: string]: Function } = {
   NOLUS: nolusChainInfo,
   OSMOSIS: osmoChainInfo,
-  COSMOS_HUB: atomChainInfo,
-  AXELAR: alexarChainInfo,
-  STRIDE: strideChainInfo,
-  JUNO: junoChainInfo,
-  EVMOS: evmosChainInfo,
-  PERSISTENCE: persistenceChainInfo,
-  SECRET: secretChainInfo,
-  CELESTIA: celestiaChainInfo,
-  STARGAZE: stargazeChainInfo,
-  QUICKSILVER: quicksilverChainInfo,
-  NEUTRON: neutronChainInfo,
-  DYMENSION: dymensionChainInfo,
-  JACKAL: jackalChainInfo,
-  INJECTIVE: injectiveChainInfo,
-  COMPOSABLE: composableChainInfo,
-  NOBLE: nobleChainInfo,
-  MANTRA: mantraChainInfo,
-  NILLION: nillionChainInfo,
-  XION: xionChainInfo,
-  BABYLON: babylonChainInfo,
-  CUDOS: cudosChainInfo
+  NEUTRON: neutronChainInfo
 };
 
 /**
