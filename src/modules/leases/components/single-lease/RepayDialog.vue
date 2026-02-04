@@ -22,36 +22,29 @@
         <hr class="border-border-color" />
         <div class="flex flex-col gap-4 px-2 py-4">
           <AdvancedFormControl
-            searchable
             id="receive-send"
+            labelAdvanced
             :currencyOptions="assets"
             class="px-6 pt-4"
-            :label="$t('message.amount-to-repay')"
             :balanceLabel="$t('message.balance')"
             placeholder="0"
             :calculated-balance="calculatedBalance"
             :disabled-currency-picker="isLoading"
             :disabled-input-field="isLoading"
-            @on-selected-currency="
-              (option) => {
-                selectedCurrency = assets.findIndex((item) => item == option);
-              }
-            "
+            :selectedCurrencyOption="assets[0]"
             :value-only="amount"
             @input="handleAmountChange"
             :error-msg="amountErrorMsg"
-            :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
-            :item-template="
-              (item: any) =>
-                h<AssetItemProps>(AssetItem, {
-                  ...item,
-                  abbreviation: item.label,
-                  name: item.name,
-                  balance: item.balance.value
-                })
-            "
-            :selected-currency-option="currency"
-          />
+          >
+            <template v-slot:label>
+              <div class="flex items-center gap-1">
+                {{ $t("message.amount-to-repay") }}
+                <span class="flex items-center gap-1 font-normal"
+                  ><img :src="currency?.icon" /> {{ currency?.label }}</span
+                >
+              </div>
+            </template>
+          </AdvancedFormControl>
           <div class="px-6 py-3">
             <!-- :label-right="`${$t('message.debt')} (~${debt?.amount?.toString() ?? ''})`" -->
             <Slider
@@ -139,10 +132,8 @@ import {
   AdvancedFormControl,
   Button,
   Dialog,
-  AssetItem,
   Slider,
   SvgIcon,
-  type AssetItemProps,
   ToastType
 } from "web-components";
 import { RouteNames } from "@/router";
@@ -161,7 +152,7 @@ import type { ExternalCurrency } from "@/common/types";
 import { minimumLeaseAmount, PERCENT, PERMILLE } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
-import { h } from "vue";
+
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useI18n } from "vue-i18n";

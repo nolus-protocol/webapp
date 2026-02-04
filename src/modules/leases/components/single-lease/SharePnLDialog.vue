@@ -56,7 +56,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { nextTick, ref } from "vue";
 import { Button, Dialog } from "web-components";
 import { Logger } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -505,10 +505,11 @@ function share() {
 }
 
 defineExpose({
-  show: (data: LeaseInfo, displayData?: LeaseDisplayData) => {
+  show: async (data: LeaseInfo, displayData?: LeaseDisplayData) => {
     leaseData = data;
     leaseDisplayData = displayData ?? null;
     dialog?.value?.show();
+    await nextTick();
     generateCanvas();
 
     for (const key in canvasRefs.value) {
