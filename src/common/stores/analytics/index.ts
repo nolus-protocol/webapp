@@ -259,15 +259,15 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
   /**
    * Fetch PnL over time chart data
+   * @param leaseAddress - The lease contract address (not wallet address)
+   * @param interval - Time interval (e.g., "1", "7", "30")
    */
-  async function fetchPnlOverTime(interval: string = "1d"): Promise<void> {
-    if (!address.value) return;
-
+  async function fetchPnlOverTime(leaseAddress: string, interval: string = "1"): Promise<void> {
     pnlOverTimeLoading.value = true;
     error.value = null;
 
     try {
-      const response = await BackendApi.getPnlOverTime(address.value, interval);
+      const response = await BackendApi.getPnlOverTime(leaseAddress, interval);
       pnlOverTime.value = response;
       lastUpdated.value = new Date();
     } catch (e) {

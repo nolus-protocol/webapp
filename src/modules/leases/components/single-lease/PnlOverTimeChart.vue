@@ -79,7 +79,7 @@ const gradientHTML = `
 
 async function setData() {
   if (props.lease?.address) {
-    await analyticsStore.fetchPnlOverTime(chartTimeRange.value.days);
+    await analyticsStore.fetchPnlOverTime(props.lease.address, chartTimeRange.value.days);
     if (analyticsStore.pnlOverTime.length > 0) {
       data.value = analyticsStore.pnlOverTime.map((d) => ({
         date: new Date(d.date),

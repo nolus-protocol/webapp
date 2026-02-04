@@ -39,7 +39,7 @@
 
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
-import { lineY, plot, ruleY } from "@observablehq/plot";
+import { lineY, plot } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
 import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
@@ -94,6 +94,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   plotContainer.innerHTML = "";
 
+  // Downsample to ~200 points for a smoother chart
+  const maxPoints = 200;
+  const chartData =
+    data.value.length > maxPoints
+      ? data.value.filter((_, i) => i % Math.ceil(data.value.length / maxPoints) === 0)
+      : data.value;
+
   const plotChart = plot({
     color: { legend: true },
     style: { width: "100%" },
@@ -105,25 +112,28 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      ticks: 4,
+      ticks: 5,
       label: i18n.t("message.amount-$"),
       tickSize: 0,
       tickFormat: (d) => `$${d / 1e6}M`
     },
     x: { type: "time", label: i18n.t("message.date-capitalize") },
     marks: [
-      ruleY([0]),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "date",
         y: "borrowed",
         stroke: "#3470E2",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom"
       }),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "date",
         y: "supplied",
         stroke: "#19A96C",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom"
       })
     ]
   });

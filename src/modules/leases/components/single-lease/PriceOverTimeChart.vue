@@ -37,7 +37,7 @@ import { isMobile, LeaseUtils } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
-import { plot, lineY, ruleY } from "@observablehq/plot";
+import { plot, lineY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
@@ -202,6 +202,26 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+
+  // Downsample to ~200 points for a smoother chart
+  const maxPoints = 200;
+  const chartData =
+    data.value.length > maxPoints
+      ? data.value.filter((_, i) => i % Math.ceil(data.value.length / maxPoints) === 0)
+      : data.value;
+
+  // Compute Y domain from price data only (liquidation may be far below)
+  const prices = chartData.map((d) => d.Price);
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  // Include liquidation in domain only if it's close to price range
+  const firstLiquidation = Number(chartData[0]?.Liquidation ?? 0);
+  const domainMin = firstLiquidation > 0 && firstLiquidation > minPrice * 0.7 ? firstLiquidation : minPrice;
+  const range = maxPrice - domainMin;
+  const padding = range * 0.15 || maxPrice * 0.05;
+  const yDomain = [Math.max(0, domainMin - padding), maxPrice + padding];
+
   const plotChart = plot({
     color: { domain: likert.order, legend: false },
     width: chartWidth,
@@ -215,11 +235,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     },
     y: {
       type: "linear",
+      domain: yDomain,
+      clamp: true,
       grid: true,
       label: null,
       labelArrow: false,
       tickFormat: (d) => `$${d}`,
-      ticks: 4,
+      ticks: 5,
       tickSize: 0
     },
     x: {
@@ -227,19 +249,22 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "time"
     },
     marks: [
-      ruleY([0]),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "Date",
         y: "Price",
         stroke: "#3470E2",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom"
       }),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "Date",
         y: "Liquidation",
         stroke: "#FF5F3A",
-        strokeDasharray: "3, 3",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        strokeDasharray: "6, 4",
+        curve: "catmull-rom"
       })
     ]
   });
