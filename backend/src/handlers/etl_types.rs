@@ -147,11 +147,12 @@ pub struct PoolInfo {
 // User-Specific Types
 // ============================================================================
 
-/// User earnings response
+/// User earnings response (matches ETL /api/earnings response)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EarningsResponse {
-    pub address: String,
-    pub total_earnings: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub address: Option<String>,
+    pub earnings: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub by_protocol: Option<Vec<ProtocolEarnings>>,
 }

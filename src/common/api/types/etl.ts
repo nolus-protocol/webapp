@@ -108,8 +108,8 @@ export interface ProtocolEarnings {
  * User earnings response
  */
 export interface EarningsResponse {
-  address: string;
-  total_earnings: string;
+  address?: string;
+  earnings: string;
   by_protocol?: ProtocolEarnings[];
 }
 
