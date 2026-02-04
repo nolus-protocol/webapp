@@ -13,12 +13,6 @@
         @click="router.push('/')"
         class="relative hidden cursor-pointer md:flex lg:fixed"
       />
-      <RouterLink
-        to="/"
-        class="md:hidden"
-      >
-        <NolusIcon />
-      </RouterLink>
     </div>
     <HeaderMenu />
   </div>
@@ -27,7 +21,6 @@
 <script lang="ts" setup>
 import { SvgIcon } from "web-components";
 import Logo from "@/common/components/Logo.vue";
-import NolusIcon from "@/assets/icons/nolus-icon.svg";
 import HeaderMenu from "@/common/components/menus/HeaderMenu.vue";
 import { useRouter } from "vue-router";
 
