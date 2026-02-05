@@ -2,17 +2,13 @@
  * Stats Store - Global protocol statistics
  *
  * Provides centralized management of protocol-wide statistics.
- * Data is global (no user address needed) and cached in localStorage.
+ * Data is global (no user address needed). Browser HTTP cache handles caching.
  */
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { BackendApi } from "@/common/api";
 import type { IObjectKeys } from "@/common/types";
-
-// Cache configuration
-const STORAGE_KEY = "nolus_stats_cache";
-const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
 
 // Types for stats data
 export interface StatsOverview {
@@ -87,49 +83,6 @@ export const useStatsStore = defineStore("stats", () => {
   const hasLoansStats = computed(() => loansStats.value.openPositionValue !== null);
 
   // ==========================================================================
-  // Cache Management
-  // ==========================================================================
-
-  function loadFromCache(): boolean {
-    try {
-      const cached = localStorage.getItem(STORAGE_KEY);
-      if (!cached) return false;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const age = Date.now() - timestamp;
-
-      if (age < CACHE_MAX_AGE_MS && data) {
-        if (data.overview) overview.value = data.overview;
-        if (data.loansStats) loansStats.value = data.loansStats;
-        if (data.leasedAssets) leasedAssets.value = data.leasedAssets;
-        if (data.monthlyLeases) monthlyLeases.value = data.monthlyLeases;
-        lastUpdated.value = new Date(timestamp);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      console.warn("[StatsStore] Failed to load cache:", e);
-      return false;
-    }
-  }
-
-  function saveToCache(): void {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        data: {
-          overview: overview.value,
-          loansStats: loansStats.value,
-          leasedAssets: leasedAssets.value,
-          monthlyLeases: monthlyLeases.value
-        },
-        timestamp: Date.now()
-      }));
-    } catch (e) {
-      console.warn("[StatsStore] Failed to save cache:", e);
-    }
-  }
-
-  // ==========================================================================
   // Actions
   // ==========================================================================
 
@@ -155,7 +108,6 @@ export const useStatsStore = defineStore("stats", () => {
       };
 
       lastUpdated.value = new Date();
-      saveToCache();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch overview stats";
       console.error("[StatsStore] Failed to fetch overview:", e);
@@ -186,7 +138,6 @@ export const useStatsStore = defineStore("stats", () => {
       };
 
       lastUpdated.value = new Date();
-      saveToCache();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch loans stats";
       console.error("[StatsStore] Failed to fetch loans stats:", e);
@@ -211,7 +162,6 @@ export const useStatsStore = defineStore("stats", () => {
     try {
       leasedAssets.value = await BackendApi.getLeasedAssets();
       lastUpdated.value = new Date();
-      saveToCache();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch leased assets";
       console.error("[StatsStore] Failed to fetch leased assets:", e);
@@ -236,7 +186,6 @@ export const useStatsStore = defineStore("stats", () => {
     try {
       monthlyLeases.value = await BackendApi.getMonthlyLeases();
       lastUpdated.value = new Date();
-      saveToCache();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch monthly leases";
       console.error("[StatsStore] Failed to fetch monthly leases:", e);
@@ -268,34 +217,20 @@ export const useStatsStore = defineStore("stats", () => {
   }
 
   /**
-   * Initialize the store - load from cache and fetch fresh data
+   * Initialize the store - fetch fresh data
    */
   async function initialize(): Promise<void> {
     if (initialized.value) {
       return;
     }
 
-    const hadCache = loadFromCache();
-
-    if (hadCache) {
-      // Have cached data - fetch in background
-      initialized.value = true;
-      Promise.all([
-        fetchOverview(),
-        fetchLoansStats(),
-        fetchLeasedAssets(),
-        fetchMonthlyLeases()
-      ]).catch(e => console.error("[StatsStore] Background refresh failed:", e));
-    } else {
-      // No cache - wait for fetch
-      await Promise.all([
-        fetchOverview(),
-        fetchLoansStats(),
-        fetchLeasedAssets(),
-        fetchMonthlyLeases()
-      ]);
-      initialized.value = true;
-    }
+    await Promise.all([
+      fetchOverview(),
+      fetchLoansStats(),
+      fetchLeasedAssets(),
+      fetchMonthlyLeases()
+    ]);
+    initialized.value = true;
   }
 
   /**

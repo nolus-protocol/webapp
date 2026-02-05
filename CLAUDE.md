@@ -67,7 +67,7 @@ The backend uses a **background-refresh** architecture (`data_cache.rs` + `refre
 ### Key Patterns
 
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests
-- **Optimistic loading**: Stores use localStorage cache for instant UI, then fetch fresh data
+- **Browser HTTP caching**: Stores rely on browser HTTP cache (backed by backend `Cache-Control` headers) instead of manual localStorage caching. No localStorage data caches — only user preferences (`protocol_filter`, `selected_network`) persist in localStorage.
 - **Pinia stores**: Each domain (prices, leases, balances, etc.) has its own store with `initialize()` and `cleanup()` methods
 - **configStore as source of truth**: Protocol configuration, position types, and gated data come from `configStore` (fetched from backend), not hardcoded frontend config
 
@@ -78,7 +78,7 @@ src/
 ├── common/
 │   ├── api/              # BackendApi (REST), WebSocketClient (real-time)
 │   ├── stores/           # Pinia stores: prices, config, balances, leases, earn, staking, stats, analytics, etc.
-│   ├── composables/      # Vue composables (useNetworkCurrency, useValidation, useAsyncData)
+│   ├── composables/      # Vue composables (useNetworkCurrency, useValidation, useAsyncOperation)
 │   ├── components/       # Shared Vue components
 │   └── utils/            # Utilities (LeaseUtils, CurrencyLookup, PriceLookup, etc.)
 ├── modules/              # Feature modules (dashboard, leases, earn, stake, vote, etc.)
@@ -188,7 +188,7 @@ cargo test -- --nocapture     # Show println! output
 ## Key Patterns
 
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests
-- **Optimistic loading**: Stores use localStorage cache for instant UI, then fetch fresh data
+- **Browser HTTP caching**: Stores rely on browser HTTP cache (backed by backend `Cache-Control` headers) instead of manual localStorage caching. Only user preferences persist in localStorage.
 - **Pinia stores**: Each domain has its own store with `initialize()` and `cleanup()` methods
 - **WebSocket subscriptions**: Real-time updates for prices, balances, leases, staking, tx_status
 - **Transaction enrichment**: `/api/etl/txs` is a custom handler (not raw proxy) that decodes protobuf, filters system txs, adds `data` field, and detects swap vs transfer for IBC messages via `is_swap` field (bech32 address comparison). See `backend/src/handlers/transactions.rs`
@@ -211,7 +211,7 @@ cargo test -- --nocapture     # Show println! output
 - **Frontend PnL calculation**: `LeaseCalculator.calculatePnl()` computes PnL on the frontend from asset value, debt, and downpayment. The backend `lease.pnl` field is not used for display.
 - **ETL chart data**: Price series (`/api/etl/prices`) returns raw `[[timestamp, price], ...]` arrays; PnL over time (`/api/etl/pnl-over-time`) returns raw `[{amount, date}, ...]` arrays. Both are proxied as-is (not wrapped in response objects). Note: `pnl-over-time` expects a **lease contract address**, not a wallet address.
 - **Chart rendering**: Position charts and stats charts use Observable Plot with downsampling (~200 points max), `catmull-rom` curve interpolation, `strokeWidth: 2`. Price charts compute Y domain from price data only (liquidation price included only if within 70% of price range).
-- **Wallet connection centralization**: All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions (`connectKeplr.ts`, etc.) only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers (no `stakingStore.setAddress()` or `fetchPositions()` in components). `Disconnect.vue` calls both `wallet.DISCONNECT()` and `connectionStore.disconnectWallet()`. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard). The `configStore.initialized` watcher in `view.vue` must use `{ immediate: true }` because optimistic caching means `initialized` may already be `true` at mount time. Supported wallets: Keplr, Leap, Ledger (USB + Bluetooth), Phantom (EVM), Solflare (Solana). MetaMask and WalletConnect were removed.
+- **Wallet connection centralization**: All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions (`connectKeplr.ts`, etc.) only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers (no `stakingStore.setAddress()` or `fetchPositions()` in components). `Disconnect.vue` calls both `wallet.DISCONNECT()` and `connectionStore.disconnectWallet()`. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard). The `configStore.initialized` watcher in `view.vue` must use `{ immediate: true }` because `initialized` may already be `true` at mount time. Supported wallets: Keplr, Leap, Ledger (USB + Bluetooth), Phantom (EVM), Solflare (Solana). MetaMask and WalletConnect were removed.
 - **Price polling ownership**: Price polling is handled exclusively by `pricesStore.startPolling()` (called during `pricesStore.initialize()`). `view.vue` does NOT have its own price polling — it only manages balance polling via `startBalancePolling()`.
 - **Ref-based summary pattern**: When aggregating store data into `ref` values (e.g., summary totals in `Leases.vue`), the watch MUST include `{ immediate: true }` and watch all dependencies (leases + prices). Without `immediate`, SPA navigation shows stale $0.00 because store data is already loaded at mount time. See `Leases.vue` and `AssetsTable.vue` for the correct pattern.
 - **CometBFT event-driven refresh**: Chain data (prices, leases, earn) is refreshed via CometBFT WebSocket subscriptions (`chain_events.rs`) instead of fixed-interval timers. `NewBlock` events trigger price refreshes (~6s, every other block). `Tx` wasm events trigger lease monitoring (500ms debounce) and earn monitoring (10s debounce). WS URL is derived from `NOLUS_RPC_URL` + `/websocket` (no extra env var). On disconnect, exponential backoff reconnection (1s→30s). ETL/disk data (config, pools, validators, stats) stays on timers. Skip transaction tracking (`start_skip_tracking_task`) stays on a 5s timer (external API, no chain events).

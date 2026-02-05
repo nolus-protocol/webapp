@@ -7,8 +7,9 @@
  * - Protocol filter (replaces useApplicationStore.protocolFilter)
  * - Network selection
  *
- * Uses localStorage for optimistic loading - config rarely changes,
- * so cached data is usually valid.
+ * Browser HTTP cache (Cache-Control: max-age=3600, stale-while-revalidate=1800)
+ * handles caching at the network layer. User preferences (protocol filter,
+ * selected network) are persisted to localStorage.
  */
 
 import { defineStore } from "pinia";
@@ -30,14 +31,8 @@ import {
   type ProtocolCurrencyInfo
 } from "@/common/api";
 
-const CONFIG_STORAGE_KEY = "nolus_config_cache";
-const CURRENCIES_STORAGE_KEY = "nolus_currencies_cache";
-const ASSETS_STORAGE_KEY = "nolus_assets_cache";
-const GATED_PROTOCOLS_STORAGE_KEY = "nolus_gated_protocols_cache";
-const PROTOCOL_CURRENCIES_STORAGE_KEY = "nolus_protocol_currencies_cache";
 const PROTOCOL_FILTER_KEY = "protocol_filter";
 const SELECTED_NETWORK_KEY = "selected_network";
-const CACHE_MAX_AGE_MS = 60 * 60 * 1000; // 1 hour
 
 export const useConfigStore = defineStore("config", () => {
   // ==========================================================================
@@ -70,186 +65,6 @@ export const useConfigStore = defineStore("config", () => {
   // User preferences
   const protocolFilter = ref<string>(localStorage.getItem(PROTOCOL_FILTER_KEY) || "");
   const selectedNetwork = ref<string>(localStorage.getItem(SELECTED_NETWORK_KEY) || "mainnet");
-
-  // ==========================================================================
-  // Cache Management
-  // ==========================================================================
-
-  function loadConfigFromCache(): boolean {
-    try {
-      const cached = localStorage.getItem(CONFIG_STORAGE_KEY);
-      if (!cached) return false;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const age = Date.now() - timestamp;
-
-      if (age < CACHE_MAX_AGE_MS && data) {
-        config.value = data;
-        return true;
-      }
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to load config from cache:", e);
-    }
-    return false;
-  }
-
-  function loadCurrenciesFromCache(): boolean {
-    try {
-      const cached = localStorage.getItem(CURRENCIES_STORAGE_KEY);
-      if (!cached) return false;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const age = Date.now() - timestamp;
-
-      if (age < CACHE_MAX_AGE_MS && data) {
-        currenciesResponse.value = data;
-        return true;
-      }
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to load currencies from cache:", e);
-    }
-    return false;
-  }
-
-  function saveConfigToCache(): void {
-    try {
-      const cacheData = { data: config.value, timestamp: Date.now() };
-      localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to save config to cache:", e);
-    }
-  }
-
-  function saveCurrenciesToCache(): void {
-    try {
-      const cacheData = { data: currenciesResponse.value, timestamp: Date.now() };
-      localStorage.setItem(CURRENCIES_STORAGE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to save currencies to cache:", e);
-    }
-  }
-
-  function loadAssetsFromCache(): boolean {
-    try {
-      const cached = localStorage.getItem(ASSETS_STORAGE_KEY);
-      if (!cached) return false;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const age = Date.now() - timestamp;
-
-      if (age < CACHE_MAX_AGE_MS && data) {
-        assetsResponse.value = data;
-        return true;
-      }
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to load assets from cache:", e);
-    }
-    return false;
-  }
-
-  function saveAssetsToCache(): void {
-    try {
-      const cacheData = { data: assetsResponse.value, timestamp: Date.now() };
-      localStorage.setItem(ASSETS_STORAGE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to save assets to cache:", e);
-    }
-  }
-
-  function loadGatedProtocolsFromCache(): boolean {
-    try {
-      const cached = localStorage.getItem(GATED_PROTOCOLS_STORAGE_KEY);
-      if (!cached) return false;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const age = Date.now() - timestamp;
-
-      if (age < CACHE_MAX_AGE_MS && data) {
-        gatedProtocolsResponse.value = data;
-        return true;
-      }
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to load gated protocols from cache:", e);
-    }
-    return false;
-  }
-
-  function saveGatedProtocolsToCache(): void {
-    try {
-      const cacheData = { data: gatedProtocolsResponse.value, timestamp: Date.now() };
-      localStorage.setItem(GATED_PROTOCOLS_STORAGE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to save gated protocols to cache:", e);
-    }
-  }
-
-  function loadProtocolCurrenciesFromCache(): boolean {
-    try {
-      const cached = localStorage.getItem(PROTOCOL_CURRENCIES_STORAGE_KEY);
-      if (!cached) return false;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const age = Date.now() - timestamp;
-
-      if (age < CACHE_MAX_AGE_MS && data) {
-        protocolCurrenciesCache.value = data;
-        return true;
-      }
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to load protocol currencies from cache:", e);
-    }
-    return false;
-  }
-
-  function saveProtocolCurrenciesToCache(): void {
-    try {
-      const cacheData = { data: protocolCurrenciesCache.value, timestamp: Date.now() };
-      localStorage.setItem(PROTOCOL_CURRENCIES_STORAGE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn("[ConfigStore] Failed to save protocol currencies to cache:", e);
-    }
-  }
-
-  // Auto-save to cache when data changes
-  watch(
-    config,
-    () => {
-      if (config.value) saveConfigToCache();
-    },
-    { deep: true }
-  );
-
-  watch(
-    currenciesResponse,
-    () => {
-      if (currenciesResponse.value) saveCurrenciesToCache();
-    },
-    { deep: true }
-  );
-
-  watch(
-    assetsResponse,
-    () => {
-      if (assetsResponse.value) saveAssetsToCache();
-    },
-    { deep: true }
-  );
-
-  watch(
-    gatedProtocolsResponse,
-    () => {
-      if (gatedProtocolsResponse.value) saveGatedProtocolsToCache();
-    },
-    { deep: true }
-  );
-
-  watch(
-    protocolCurrenciesCache,
-    () => {
-      if (Object.keys(protocolCurrenciesCache.value).length > 0) saveProtocolCurrenciesToCache();
-    },
-    { deep: true }
-  );
 
   // Persist user preferences
   watch(protocolFilter, (val) => {
@@ -915,46 +730,19 @@ export const useConfigStore = defineStore("config", () => {
   }
 
   /**
-   * Initialize the store - load cache immediately, then refresh in background
+   * Initialize the store - fetch fresh data from backend
+   * Browser HTTP cache (Cache-Control: max-age=3600, stale-while-revalidate=1800)
+   * handles caching at the network layer.
    */
   async function initialize(): Promise<void> {
     if (initialized.value) return;
 
-    // Load cached data immediately for fast UI
-    const hadConfigCache = loadConfigFromCache();
-    const hadCurrenciesCache = loadCurrenciesFromCache();
-    const hadAssetsCache = loadAssetsFromCache();
-    const hadGatedProtocolsCache = loadGatedProtocolsFromCache();
-    const hadProtocolCurrenciesCache = loadProtocolCurrenciesFromCache();
-
-    // Determine which network to fetch assets for
     const networkToFetch = protocolFilter.value || "OSMOSIS";
 
-    const allCached =
-      hadConfigCache && hadCurrenciesCache && hadAssetsCache && hadGatedProtocolsCache && hadProtocolCurrenciesCache;
-
-    if (allCached) {
-      initialized.value = true;
-      ensureDefaultProtocolFilter();
-      // Background refresh - don't block
-      Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]).catch(
-        (e) => {
-          console.error("[ConfigStore] Background refresh failed:", e);
-        }
-      );
-    } else {
-      // No cache - must wait for fresh data
-      await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]);
-      ensureDefaultProtocolFilter();
-
-      // Prefetch protocol currencies for current network BEFORE setting initialized
-      // This ensures dropdowns have data when components render
-      await prefetchProtocolCurrenciesForNetwork(networkToFetch).catch((e) => {
-        console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
-      });
-
-      initialized.value = true;
-    }
+    await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]);
+    ensureDefaultProtocolFilter();
+    await prefetchProtocolCurrenciesForNetwork(networkToFetch);
+    initialized.value = true;
   }
 
   /** Set protocolFilter to the first available network if it's empty or invalid */

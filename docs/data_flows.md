@@ -129,7 +129,7 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 
 ### Key Implementation Details
 
-- **Event listener registration**: The `configStore.initialized` watcher in `view.vue` uses `{ immediate: true }` — critical because with optimistic localStorage caching, `initialized` may already be `true` when the component mounts. Without `immediate`, the watcher callback never fires and event listeners are never registered.
+- **Event listener registration**: The `configStore.initialized` watcher in `view.vue` uses `{ immediate: true }` — critical because `initialized` may already be `true` when the component mounts. Without `immediate`, the watcher callback never fires and event listeners are never registered.
 - **No component-level wallet watchers**: Individual page components (`Leases.vue`, `DashboardLeases.vue`, etc.) do NOT watch wallet changes. All store coordination happens exclusively through `connectionStore.connectWallet()`. Components like `DashboardRewards.vue`, `UndelegateForm.vue`, and `stake/view.vue` rely on `connectionStore` — they do NOT have their own wallet watchers to call `stakingStore.setAddress()` or `stakingStore.fetchPositions()`.
 - **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts`, `connectPhantom.ts`, `connectSolFlare.ts`) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly — that's `connectionStore`'s responsibility.
 - **Disconnect flow**: `Disconnect.vue` calls both `wallet[WalletActions.DISCONNECT]()` (clears wallet state) and `connectionStore.disconnectWallet()` (clears all user-specific stores: balances, leases, staking, earn, analytics, history).
@@ -645,7 +645,7 @@ async getPrices(): Promise<PriceData> {
 
 **Source:** `src/common/stores/prices/index.ts`
 
-The store caches prices in localStorage and provides helper methods:
+The store provides helper methods for price access:
 
 ```typescript
 // State
@@ -682,7 +682,7 @@ const assetKey = "ATOM@OSMOSIS-OSMOSIS-USDC_NOBLE";
 | Layer | TTL | Rationale |
 |-------|-----|-----------|
 | Backend cache (Cached<T>) | ~6 seconds | Refreshed on every 2nd NewBlock via CometBFT WebSocket events |
-| Frontend localStorage | 5 minutes | Optimistic loading, background refresh |
+| Browser HTTP cache | 10 seconds (`max-age=10, stale-while-revalidate=5`) | Backend `Cache-Control` headers, no manual localStorage caching |
 | Frontend Polling | 30 seconds | `pricesStore.startPolling()` — sole owner of price polling (no duplicate intervals in `view.vue`) |
 
 ### Config Impact on Prices
@@ -2269,14 +2269,16 @@ VITE_APP_NETWORKS=mainnet
 
 | Data Type | Backend Cache TTL | Frontend Cache | Refresh Strategy |
 |-----------|-------------------|----------------|------------------|
-| Prices | ~6 seconds | 5 min localStorage | CometBFT NewBlock event (every 2nd block) + WebSocket push |
-| Config | 1 hour | 1 hour localStorage | On-demand |
-| Currencies | 1 hour | Derived from config | On-demand |
+| Prices | ~6 seconds | Browser HTTP cache (`max-age=10`) | CometBFT NewBlock event (every 2nd block) + WebSocket push |
+| Config | 1 hour | Browser HTTP cache (`max-age=3600`) | On-demand |
+| Currencies | 1 hour | Browser HTTP cache (`max-age=3600`) | On-demand |
 | Validators | 5 minutes | None | On-demand |
-| User balances | None (real-time) | None | WebSocket |
-| User leases | None (real-time) | None | CometBFT Tx wasm event (500ms debounce) + WebSocket push |
+| User balances | None (real-time) | None (`no-store`) | WebSocket |
+| User leases | None (real-time) | None (`no-store`) | CometBFT Tx wasm event (500ms debounce) + WebSocket push |
 | Earn pools | 5 minutes | None | CometBFT Tx wasm event (10s debounce) |
-| Stats (TVL, etc.) | 5 minutes | 5 min localStorage | On-demand |
+| Stats (TVL, etc.) | 60-120 seconds | Browser HTTP cache (`max-age=60-120`) | On-demand |
+| Campaigns | 30 seconds | Browser HTTP cache (`max-age=30`) | On-demand |
+| Referrals | 30 seconds | Browser HTTP cache (`max-age=30`) | On-demand |
 | User analytics | None | In-memory only | On wallet connect |
 
 ---
@@ -2329,8 +2331,7 @@ The `useStatsStore` consolidates all global protocol statistics that don't requi
 
 ### Caching Strategy
 
-- **localStorage cache** with 5-minute TTL
-- **Optimistic loading**: Shows cached data immediately, then fetches fresh data
+- **Browser HTTP cache**: Backend sets `Cache-Control: max-age=60-120, stale-while-revalidate` on stats endpoints. No manual localStorage caching.
 - Initialized once on app startup via `useConnectionStore.initializeApp()`
 
 ### Component Usage

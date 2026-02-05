@@ -3,21 +3,16 @@
  *
  * Fetches active zero-interest campaigns and provides eligibility checking.
  * Used to display campaign badges and eligibility indicators in the UI.
- *
- * Uses localStorage for caching to provide instant loading.
+ * Browser HTTP cache handles caching.
  */
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import {
   BackendApi,
-  type ActiveCampaignsResponse,
   type ZeroInterestCampaign,
   type CampaignEligibilityResponse,
 } from "@/common/api";
-
-const STORAGE_KEY = "nolus_campaigns_cache";
-const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
 
 export const useCampaignsStore = defineStore("campaigns", () => {
   // State
@@ -34,46 +29,6 @@ export const useCampaignsStore = defineStore("campaigns", () => {
   const hasCampaigns = computed(() => campaigns.value.length > 0);
 
   /**
-   * Load cached campaigns from localStorage
-   */
-  function loadFromCache(): boolean {
-    try {
-      const cached = localStorage.getItem(STORAGE_KEY);
-      if (!cached) return false;
-
-      const { data, timestamp } = JSON.parse(cached);
-      const age = Date.now() - timestamp;
-
-      if (age < CACHE_MAX_AGE_MS && data) {
-        campaigns.value = data.campaigns || [];
-        allEligibleCurrencies.value = data.all_eligible_currencies || [];
-        allEligibleProtocols.value = data.all_eligible_protocols || [];
-        hasUniversalCampaign.value = data.has_universal_campaign || false;
-        lastUpdated.value = new Date(timestamp);
-        return true;
-      }
-    } catch (e) {
-      console.warn("[CampaignsStore] Failed to load from cache:", e);
-    }
-    return false;
-  }
-
-  /**
-   * Save campaigns to localStorage
-   */
-  function saveToCache(data: ActiveCampaignsResponse): void {
-    try {
-      const cacheData = {
-        data,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cacheData));
-    } catch (e) {
-      console.warn("[CampaignsStore] Failed to save to cache:", e);
-    }
-  }
-
-  /**
    * Fetch active campaigns from backend
    */
   async function fetchCampaigns(): Promise<void> {
@@ -87,7 +42,6 @@ export const useCampaignsStore = defineStore("campaigns", () => {
       allEligibleProtocols.value = response.all_eligible_protocols;
       hasUniversalCampaign.value = response.has_universal_campaign;
       lastUpdated.value = new Date();
-      saveToCache(response);
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch campaigns";
       console.error("[CampaignsStore] Failed to fetch campaigns:", e);
@@ -209,16 +163,7 @@ export const useCampaignsStore = defineStore("campaigns", () => {
    * Initialize the store
    */
   async function initialize(): Promise<void> {
-    const hadCache = loadFromCache();
-
-    if (hadCache) {
-      // Background refresh
-      fetchCampaigns().catch((e) => {
-        console.error("[CampaignsStore] Background refresh failed:", e);
-      });
-    } else {
-      await fetchCampaigns();
-    }
+    await fetchCampaigns();
   }
 
   /**

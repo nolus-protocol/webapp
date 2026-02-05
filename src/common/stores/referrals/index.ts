@@ -6,7 +6,7 @@
  * - Referral tracking and statistics
  * - Rewards and payouts history
  *
- * Uses localStorage for caching to provide instant loading.
+ * Browser HTTP cache handles caching.
  */
 
 import { defineStore } from "pinia";
@@ -23,16 +23,6 @@ import {
   type RegisterReferrerResponse,
   type AssignReferralResponse,
 } from "@/common/api";
-
-const STORAGE_KEY = "nolus_referral_cache";
-const CACHE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
-
-interface CachedData {
-  referrer: ReferrerInfo | null;
-  stats: ReferrerStats | null;
-  referrals: ReferralInfo[];
-  timestamp: number;
-}
 
 export const useReferralsStore = defineStore("referrals", () => {
   // =========================================================================
@@ -113,70 +103,6 @@ export const useReferralsStore = defineStore("referrals", () => {
   });
 
   // =========================================================================
-  // Cache Management
-  // =========================================================================
-
-  /**
-   * Get cache key for a wallet
-   */
-  function getCacheKey(wallet: string): string {
-    return `${STORAGE_KEY}_${wallet}`;
-  }
-
-  /**
-   * Load cached data from localStorage
-   */
-  function loadFromCache(wallet: string): boolean {
-    try {
-      const cached = localStorage.getItem(getCacheKey(wallet));
-      if (!cached) return false;
-
-      const data: CachedData = JSON.parse(cached);
-      const age = Date.now() - data.timestamp;
-
-      if (age < CACHE_MAX_AGE_MS) {
-        referrer.value = data.referrer;
-        stats.value = data.stats;
-        referrals.value = data.referrals || [];
-        lastUpdated.value = new Date(data.timestamp);
-        currentWallet.value = wallet;
-        return true;
-      }
-    } catch (e) {
-      console.warn("[ReferralsStore] Failed to load from cache:", e);
-    }
-    return false;
-  }
-
-  /**
-   * Save data to localStorage
-   */
-  function saveToCache(wallet: string): void {
-    try {
-      const data: CachedData = {
-        referrer: referrer.value,
-        stats: stats.value,
-        referrals: referrals.value,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(getCacheKey(wallet), JSON.stringify(data));
-    } catch (e) {
-      console.warn("[ReferralsStore] Failed to save to cache:", e);
-    }
-  }
-
-  /**
-   * Clear cache for a wallet
-   */
-  function clearCache(wallet?: string): void {
-    if (wallet) {
-      localStorage.removeItem(getCacheKey(wallet));
-    } else if (currentWallet.value) {
-      localStorage.removeItem(getCacheKey(currentWallet.value));
-    }
-  }
-
-  // =========================================================================
   // API Methods
   // =========================================================================
 
@@ -208,7 +134,6 @@ export const useReferralsStore = defineStore("referrals", () => {
       stats.value = response.stats;
       currentWallet.value = wallet;
       lastUpdated.value = new Date();
-      saveToCache(wallet);
     } catch (e: unknown) {
       // Not found is not an error - user is not a referrer
       if (e instanceof Error && e.message.includes("not found")) {
@@ -237,7 +162,6 @@ export const useReferralsStore = defineStore("referrals", () => {
     try {
       const response = await BackendApi.getReferrals(wallet, options);
       referrals.value = response.referrals;
-      saveToCache(wallet);
     } catch (e) {
       console.error("[ReferralsStore] Failed to fetch referrals:", e);
     }
@@ -322,7 +246,6 @@ export const useReferralsStore = defineStore("referrals", () => {
 
       currentWallet.value = wallet;
       lastUpdated.value = new Date();
-      saveToCache(wallet);
 
       return response;
     } catch (e) {
@@ -360,18 +283,9 @@ export const useReferralsStore = defineStore("referrals", () => {
       return;
     }
 
-    const hadCache = loadFromCache(wallet);
+    currentWallet.value = wallet;
+    await fetchStats(wallet);
 
-    if (hadCache) {
-      // Background refresh
-      fetchStats(wallet).catch((e) => {
-        console.error("[ReferralsStore] Background refresh failed:", e);
-      });
-    } else {
-      await fetchStats(wallet);
-    }
-
-    // Also fetch referrals if user is a referrer
     if (referrer.value) {
       fetchReferrals(wallet).catch((e) => {
         console.error("[ReferralsStore] Failed to fetch referrals:", e);
@@ -401,7 +315,6 @@ export const useReferralsStore = defineStore("referrals", () => {
   async function refresh(): Promise<void> {
     if (!currentWallet.value) return;
     
-    clearCache(currentWallet.value);
     await fetchStats(currentWallet.value);
     
     if (referrer.value) {
@@ -449,6 +362,5 @@ export const useReferralsStore = defineStore("referrals", () => {
     initialize,
     cleanup,
     refresh,
-    clearCache,
   };
 });
