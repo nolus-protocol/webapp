@@ -247,16 +247,6 @@ pub async fn get_balances(
     }))
 }
 
-/// Calculate price from quote_amount / amount
-pub fn calculate_price(quote_amount: &str, amount: &str) -> String {
-    let quote: f64 = quote_amount.parse().unwrap_or(0.0);
-    let amt: f64 = amount.parse().unwrap_or(1.0);
-    if amt == 0.0 {
-        return "0".to_string();
-    }
-    (quote / amt).to_string()
-}
-
 /// Calculate price with LPN base and decimal adjustment
 /// Formula: ((quote_amount / amount) * lpn_price) * 10^(asset_decimals - lpn_decimals)
 /// This accounts for the different decimal precisions between the asset and the LPN currency
@@ -292,18 +282,7 @@ pub fn calculate_price_with_decimals(
 
 #[cfg(test)]
 mod tests {
-    use super::{calculate_price, calculate_price_with_decimals};
-
-    #[test]
-    fn test_calculate_price() {
-        assert_eq!(calculate_price("100", "50").parse::<f64>().unwrap(), 2.0);
-        assert_eq!(calculate_price("150", "100").parse::<f64>().unwrap(), 1.5);
-        assert_eq!(calculate_price("100", "0"), "0");
-        assert_eq!(
-            calculate_price("invalid", "100").parse::<f64>().unwrap(),
-            0.0
-        );
-    }
+    use super::calculate_price_with_decimals;
 
     #[test]
     fn test_calculate_price_with_decimals() {
