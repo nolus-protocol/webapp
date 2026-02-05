@@ -142,6 +142,15 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   select(plotChart).selectAll("path").transition().duration(400).attr("opacity", 1);
 
+  const crosshair = select(plotChart)
+    .append("line")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.15)
+    .attr("stroke-width", 1)
+    .attr("y1", 0)
+    .attr("y2", chartHeight - marginBottom)
+    .style("display", "none");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [x] = pointer(event, plotChart);
@@ -149,6 +158,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
 
       if (closestData) {
+        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+
         tooltip.html(
           `<strong>${i18n.t("message.supplied")}:</strong> $${formatNumber(closestData.supplied, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.borrowed-chart")}:</strong> $${formatNumber(closestData.borrowed, NATIVE_CURRENCY.maximumFractionDigits)}`
         );
@@ -159,11 +170,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
         tooltip
           .style("opacity", 1)
-          .style("left", `${event.pageX - width / 2}px`) // Using native event
-          .style("top", `${event.pageY - height - 10}px`); // Using native event
+          .style("left", `${event.pageX - width / 2}px`)
+          .style("top", `${event.pageY - height - 10}px`);
       }
     })
     .on("mouseleave", () => {
+      crosshair.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }

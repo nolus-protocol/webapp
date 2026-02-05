@@ -136,6 +136,16 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   });
 
   plotContainer.appendChild(plotChart);
+
+  const crosshair = select(plotChart)
+    .append("line")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.15)
+    .attr("stroke-width", 1)
+    .attr("y1", 0)
+    .attr("y2", chartHeight - marginBottom)
+    .style("display", "none");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [x] = pointer(event, plotChart);
@@ -143,6 +153,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
 
       if (closestData) {
+        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+
         tooltip.html(
           `<strong>${i18n.t("message.amount")}:</strong> ${formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
         );
@@ -158,6 +170,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       }
     })
     .on("mouseleave", () => {
+      crosshair.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }
