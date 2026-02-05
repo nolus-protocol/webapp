@@ -132,18 +132,13 @@ pub enum LeaseInProgress {
         stage: Option<String>,
     },
     /// Repayment in progress
-    Repayment,
+    Repayment {},
     /// Close in progress
-    Close,
+    Close {},
     /// Liquidation in progress
     Liquidation {
         #[serde(skip_serializing_if = "Option::is_none")]
         cause: Option<String>,
-    },
-    /// Transfer in (for closing)
-    TransferIn {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        stage: Option<String>,
     },
 }
 
@@ -726,7 +721,9 @@ async fn fetch_lease_info(
             pnl: None,
             close_policy: None,
             overdue_collect_in: None,
-            in_progress: Some(LeaseInProgress::Opening { stage: None }),
+            in_progress: Some(LeaseInProgress::Opening {
+                stage: parse_opening_stage(&opening.opening.in_progress),
+            }),
             opening_info: Some(LeaseOpeningStateInfo {
                 currency: opening.opening.currency.clone(),
                 downpayment: LeaseAssetInfo {
@@ -773,7 +770,7 @@ async fn fetch_lease_info(
             pnl: None,
             close_policy: None,
             overdue_collect_in: None,
-            in_progress: parse_paid_off_in_progress(&paid_off.paid_off.in_progress),
+            in_progress: None,
             opening_info: None,
             etl_data: etl_info,
         },
@@ -841,7 +838,7 @@ fn build_opened_lease_info(
     let interest_info = calculate_interest_info(opened);
 
     // Parse in_progress state
-    let in_progress = parse_opened_in_progress(&opened.in_progress);
+    let in_progress = parse_opened_status(&opened.status);
 
     // Build close policy from chain data
     let close_policy = opened.close_policy.as_ref().map(|cp| LeaseClosePolicy {
@@ -928,7 +925,7 @@ fn build_closing_lease_info(
         pnl: None,
         close_policy: None,
         overdue_collect_in: None,
-        in_progress: Some(LeaseInProgress::Close),
+        in_progress: Some(LeaseInProgress::Close {}),
         opening_info: None,
         etl_data: etl_info,
     }
@@ -998,52 +995,59 @@ fn calculate_annual_rate(loan_rate: u32, margin_rate: u32) -> f64 {
     (loan_percent + margin_percent) * 100.0
 }
 
-/// Parse the in_progress field from an opened lease status
-fn parse_opened_in_progress(in_progress: &Option<serde_json::Value>) -> Option<LeaseInProgress> {
-    let value = in_progress.as_ref()?;
+/// Parse the `status` field from an opened lease's chain response.
+///
+/// Chain format:
+///   "idle"                           → None
+///   "slippage_protection_activated"  → None (TODO: handle if needed)
+///   {"in_progress": {"repayment": {"payment": ..., "in_progress": "swap"}}}  → Repayment
+///   {"in_progress": {"close": {"close": ..., "in_progress": "swap"}}}        → Close
+///   {"in_progress": {"liquidation": {"liquidation": ..., "cause": "overdue", "in_progress": "swap"}}} → Liquidation
+fn parse_opened_status(status: &Option<serde_json::Value>) -> Option<LeaseInProgress> {
+    let value = status.as_ref()?;
 
-    // The in_progress field can be:
-    // - { "repayment": {} }
-    // - { "close": {} }
-    // - { "liquidation": { "cause": "..." } }
-    if let Some(obj) = value.as_object() {
-        if obj.contains_key("repayment") {
-            return Some(LeaseInProgress::Repayment);
-        }
-        if obj.contains_key("close") {
-            return Some(LeaseInProgress::Close);
-        }
-        if let Some(liq) = obj.get("liquidation") {
-            let cause = liq
-                .as_object()
-                .and_then(|o| o.get("cause"))
-                .and_then(|c| c.as_str())
-                .map(String::from);
-            return Some(LeaseInProgress::Liquidation { cause });
-        }
+    // "idle" or "slippage_protection_activated" — no operation in progress
+    if value.is_string() {
+        return None;
+    }
+
+    // {"in_progress": { <ongoing_trx> }}
+    let ongoing = value.as_object()?.get("in_progress")?.as_object()?;
+
+    if ongoing.contains_key("repayment") {
+        return Some(LeaseInProgress::Repayment {});
+    }
+    if ongoing.contains_key("close") {
+        return Some(LeaseInProgress::Close {});
+    }
+    if let Some(liq) = ongoing.get("liquidation") {
+        let cause = liq
+            .as_object()
+            .and_then(|o| o.get("cause"))
+            .and_then(|c| c.as_str())
+            .map(String::from);
+        return Some(LeaseInProgress::Liquidation { cause });
     }
 
     None
 }
-
-/// Parse the in_progress field from a paid_off lease status
-fn parse_paid_off_in_progress(in_progress: &Option<serde_json::Value>) -> Option<LeaseInProgress> {
+/// Parse the opening stage from the chain's `in_progress` field.
+///
+/// Chain format (externally tagged enum):
+///   "open_ica_account"                    → Some("open_ica_account")
+///   {"transfer_out": {"ica_account": ..}} → Some("transfer_out")
+///   {"buy_asset": {"ica_account": ..}}    → Some("buy_asset")
+fn parse_opening_stage(in_progress: &Option<serde_json::Value>) -> Option<String> {
     let value = in_progress.as_ref()?;
 
-    // The in_progress field for paid_off can be:
-    // - { "transfer_in_init": {} }
-    // - { "transfer_in_finish": {} }
+    // Unit variant: serialized as a bare string (e.g., "open_ica_account")
+    if let Some(s) = value.as_str() {
+        return Some(s.to_string());
+    }
+
+    // Struct variant: serialized as {"variant_name": {...}}
     if let Some(obj) = value.as_object() {
-        if obj.contains_key("transfer_in_init") {
-            return Some(LeaseInProgress::TransferIn {
-                stage: Some("init".to_string()),
-            });
-        }
-        if obj.contains_key("transfer_in_finish") {
-            return Some(LeaseInProgress::TransferIn {
-                stage: Some("finish".to_string()),
-            });
-        }
+        return obj.keys().next().cloned();
     }
 
     None
@@ -1066,6 +1070,7 @@ pub struct LeaseMonitorInfo {
     pub liquidation_price: Option<String>,
     pub pnl: Option<LeasePnlInfo>,
     pub close_policy: Option<LeaseClosePolicy>,
+    pub in_progress: Option<LeaseInProgress>,
 }
 
 /// Fetch all leases for an owner (for WebSocket monitoring)
@@ -1172,6 +1177,9 @@ async fn fetch_lease_monitor_info_internal(
             liquidation_price: None,
             pnl: None,
             close_policy: None,
+            in_progress: Some(LeaseInProgress::Opening {
+                stage: parse_opening_stage(&opening.opening.in_progress),
+            }),
         },
         LeaseStatusResponse::Opened(opened) => {
             let info = &opened.opened;
@@ -1208,6 +1216,7 @@ async fn fetch_lease_monitor_info_internal(
                     stop_loss: cp.stop_loss,
                     take_profit: cp.take_profit,
                 }),
+                in_progress: parse_opened_status(&info.status),
             }
         }
         LeaseStatusResponse::Closing(closing) => {
@@ -1242,6 +1251,7 @@ async fn fetch_lease_monitor_info_internal(
                 liquidation_price: None,
                 pnl: None,
                 close_policy: None,
+                in_progress: Some(LeaseInProgress::Close {}),
             }
         }
         LeaseStatusResponse::PaidOff(paid_off) => LeaseMonitorInfo {
@@ -1258,6 +1268,7 @@ async fn fetch_lease_monitor_info_internal(
             liquidation_price: None,
             pnl: None,
             close_policy: None,
+            in_progress: None,
         },
         LeaseStatusResponse::Closed(_) => LeaseMonitorInfo {
             address: lease_address.to_string(),
@@ -1269,6 +1280,7 @@ async fn fetch_lease_monitor_info_internal(
             liquidation_price: None,
             pnl: None,
             close_policy: None,
+            in_progress: None,
         },
         LeaseStatusResponse::Liquidated(_) => LeaseMonitorInfo {
             address: lease_address.to_string(),
@@ -1280,6 +1292,7 @@ async fn fetch_lease_monitor_info_internal(
             liquidation_price: None,
             pnl: None,
             close_policy: None,
+            in_progress: None,
         },
     };
 

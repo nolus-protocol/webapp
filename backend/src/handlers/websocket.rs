@@ -78,13 +78,7 @@ pub enum ServerMessage {
         timestamp: String,
     },
     /// Lease update
-    LeaseUpdate {
-        address: String,
-        lease_id: String,
-        state: String,
-        data: serde_json::Value,
-        timestamp: String,
-    },
+    LeaseUpdate { lease: serde_json::Value },
     /// Transaction status update (pending, success, or failed)
     TxStatus {
         tx_hash: String,
@@ -276,6 +270,7 @@ pub struct CachedLeaseState {
     pub status: String,
     pub amount: String,
     pub debt_total: String,
+    pub in_progress: Option<String>,
 }
 
 /// Cached Skip transaction state for tracking
@@ -383,26 +378,14 @@ impl WebSocketManager {
     }
 
     /// Send lease update to relevant subscribers
-    pub fn send_lease_update(
-        &self,
-        address: &str,
-        lease_id: &str,
-        state: &str,
-        data: serde_json::Value,
-    ) {
-        let msg = ServerMessage::LeaseUpdate {
-            address: address.to_string(),
-            lease_id: lease_id.to_string(),
-            state: state.to_string(),
-            data,
-            timestamp: chrono::Utc::now().to_rfc3339(),
-        };
+    pub fn send_lease_update(&self, owner: &str, lease: serde_json::Value) {
+        let msg = ServerMessage::LeaseUpdate { lease };
 
         for entry in self.connections.iter() {
             let conn = entry.value();
             for sub in &conn.subscriptions {
                 if let Subscription::Leases { address: sub_addr } = sub {
-                    if sub_addr == address {
+                    if sub_addr == owner {
                         let _ = conn.message_tx.try_send(msg.clone());
                         break;
                     }
@@ -452,13 +435,9 @@ impl WebSocketManager {
                     false
                 }
             }),
-            ServerMessage::LeaseUpdate { address, .. } => subscriptions.iter().any(|s| {
-                if let Subscription::Leases { address: sub_addr } = s {
-                    sub_addr == address
-                } else {
-                    false
-                }
-            }),
+            ServerMessage::LeaseUpdate { .. } => subscriptions
+                .iter()
+                .any(|s| matches!(s, Subscription::Leases { .. })),
             _ => true,
         }
     }
@@ -903,29 +882,56 @@ fn send_error(conn_id: &str, state: &Arc<AppState>, code: &str, message: &str) {
 // Background Tasks
 // ============================================================================
 
-/// Start background task for price updates
-/// Reads from data_cache.prices (populated by background refresh) and broadcasts to subscribers.
-pub async fn start_price_update_task(state: Arc<AppState>) {
+/// Start background task for price updates, triggered by NewBlock events.
+///
+/// Skips every other block (~6s cadence) and adds a 200ms delay to let
+/// `refresh_prices` populate the cache before broadcasting.
+pub async fn start_price_update_task(
+    state: Arc<AppState>,
+    mut new_block_rx: tokio::sync::broadcast::Receiver<u64>,
+) {
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(15));
-
+        let mut counter: u64 = 0;
         loop {
-            interval.tick().await;
+            match new_block_rx.recv().await {
+                Ok(_) => {
+                    counter += 1;
+                    if counter % 2 != 0 {
+                        continue; // Skip every other block (~6s cadence)
+                    }
 
-            // Only broadcast if there are subscribers
-            if state.ws_manager.connection_count() == 0 {
-                continue;
-            }
+                    // Let refresh_prices populate the cache first
+                    tokio::time::sleep(Duration::from_millis(200)).await;
 
-            // Read prices from cache (zero latency — no chain queries)
-            if let Some(prices_response) = state.data_cache.prices.load() {
-                let prices: HashMap<String, String> = prices_response
-                    .prices
-                    .iter()
-                    .map(|(key, info)| (key.clone(), info.price_usd.clone()))
-                    .collect();
+                    if state.ws_manager.connection_count() == 0 {
+                        continue;
+                    }
 
-                state.ws_manager.broadcast_prices(prices);
+                    if let Some(prices_response) = state.data_cache.prices.load() {
+                        let prices: HashMap<String, String> = prices_response
+                            .prices
+                            .iter()
+                            .map(|(key, info)| (key.clone(), info.price_usd.clone()))
+                            .collect();
+
+                        state.ws_manager.broadcast_prices(prices);
+                    }
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                    // Catch up by broadcasting current prices
+                    if let Some(prices_response) = state.data_cache.prices.load() {
+                        let prices: HashMap<String, String> = prices_response
+                            .prices
+                            .iter()
+                            .map(|(key, info)| (key.clone(), info.price_usd.clone()))
+                            .collect();
+                        state.ws_manager.broadcast_prices(prices);
+                    }
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    error!("NewBlock channel closed, price update task stopping");
+                    return;
+                }
             }
         }
     });
@@ -935,15 +941,43 @@ pub async fn start_price_update_task(state: Arc<AppState>) {
 // Lease Monitoring Task
 // ============================================================================
 
-/// Start background task for lease state monitoring
-/// Polls lease states for subscribed owners and sends updates when state changes
-pub async fn start_lease_monitor_task(state: Arc<AppState>) {
+/// Start background task for lease state monitoring, triggered by contract execution events.
+///
+/// Uses 500ms debounce to batch events from the same block. Multiple transactions
+/// in one block produce multiple events — the debounce collapses them into one check.
+pub async fn start_lease_monitor_task(
+    state: Arc<AppState>,
+    mut contract_rx: tokio::sync::broadcast::Receiver<crate::chain_events::ContractExecEvent>,
+) {
     tokio::spawn(async move {
-        // Poll every 10 seconds for lease changes
-        let mut interval = tokio::time::interval(Duration::from_secs(10));
-
         loop {
-            interval.tick().await;
+            // Wait for first contract execution event
+            match contract_rx.recv().await {
+                Ok(_) => {}
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                    debug!("Lease monitor lagged {} events", n);
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    error!("Contract event channel closed, lease monitor stopping");
+                    return;
+                }
+            }
+
+            // Debounce: absorb additional events for 500ms
+            let debounce = tokio::time::sleep(Duration::from_millis(500));
+            tokio::pin!(debounce);
+            loop {
+                tokio::select! {
+                    _ = &mut debounce => break,
+                    result = contract_rx.recv() => {
+                        match result {
+                            Ok(_) => continue,
+                            Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                            Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
+                        }
+                    }
+                }
+            }
 
             // Get all owners with lease subscriptions
             let owners = state.ws_manager.get_subscribed_lease_owners();
@@ -1017,6 +1051,10 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
                 .as_ref()
                 .map(|d| d.total.clone())
                 .unwrap_or_default(),
+            in_progress: lease
+                .in_progress
+                .as_ref()
+                .map(|ip| serde_json::to_string(ip).unwrap_or_default()),
         };
 
         // Check if this is a new lease
@@ -1043,8 +1081,10 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
                 }
             };
 
-            // Build lease data for the update
+            // Build full lease object matching frontend LeaseInfo shape
             let lease_data = serde_json::json!({
+                "address": lease.address,
+                "protocol": lease.protocol,
                 "status": lease.status,
                 "amount": lease.amount,
                 "debt": lease.debt,
@@ -1052,12 +1092,11 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
                 "liquidation_price": lease.liquidation_price,
                 "pnl": lease.pnl,
                 "close_policy": lease.close_policy,
+                "in_progress": lease.in_progress,
             });
 
             // Send update to subscribers
-            state
-                .ws_manager
-                .send_lease_update(owner, lease_address, change_type, lease_data);
+            state.ws_manager.send_lease_update(owner, lease_data);
 
             info!(
                 "Lease {} for {} changed: {}",
@@ -1214,15 +1253,43 @@ async fn check_skip_tx_status(
 // Earn Position Monitoring Task
 // ============================================================================
 
-/// Start background task for earn position monitoring
-/// Polls earn positions for subscribed addresses and sends updates when state changes
-pub async fn start_earn_monitor_task(state: Arc<AppState>) {
+/// Start background task for earn position monitoring, triggered by contract execution events.
+///
+/// Uses 10s debounce — earn positions don't need per-block freshness.
+/// This reduces unnecessary chain queries while still providing 10-15s freshness.
+pub async fn start_earn_monitor_task(
+    state: Arc<AppState>,
+    mut contract_rx: tokio::sync::broadcast::Receiver<crate::chain_events::ContractExecEvent>,
+) {
     tokio::spawn(async move {
-        // Poll every 15 seconds for earn position changes
-        let mut interval = tokio::time::interval(Duration::from_secs(15));
-
         loop {
-            interval.tick().await;
+            // Wait for first contract execution event
+            match contract_rx.recv().await {
+                Ok(_) => {}
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                    debug!("Earn monitor lagged {} events", n);
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    error!("Contract event channel closed, earn monitor stopping");
+                    return;
+                }
+            }
+
+            // Debounce: absorb events for 10s (earn doesn't need per-block freshness)
+            let debounce = tokio::time::sleep(Duration::from_secs(10));
+            tokio::pin!(debounce);
+            loop {
+                tokio::select! {
+                    _ = &mut debounce => break,
+                    result = contract_rx.recv() => {
+                        match result {
+                            Ok(_) => continue,
+                            Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                            Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
+                        }
+                    }
+                }
+            }
 
             // Get all addresses with earn subscriptions
             let addresses = state.ws_manager.get_subscribed_earn_addresses();

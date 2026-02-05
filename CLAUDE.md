@@ -58,7 +58,7 @@ The backend uses a **background-refresh** architecture (`data_cache.rs` + `refre
 
 - **`Cached<T>`** — lock-free cached value using `arc-swap`. One writer (background task), many readers (handlers). Methods: `load()`, `store()`, `age_secs()`.
 - **`AppDataCache`** — single struct holding all 15 `Cached<T>` fields (app_config, prices, currencies, pools, validators, etc.)
-- **Background refresh tasks** (`refresh.rs`) — one `tokio::spawn` per data type, refreshing on fixed intervals (15s–300s). All chain/ETL/disk fetching happens here.
+- **Background refresh tasks** (`refresh.rs` + `chain_events.rs`) — one `tokio::spawn` per data type. Chain-driven data (prices, leases, earn) is refreshed via CometBFT WebSocket events (`NewBlock`, `Tx`); ETL/disk data refreshes on fixed intervals (30s–300s). All external fetching happens here.
 - **Handlers never fetch** — they read from cache via `data_cache.field.load()` and return 503 (`ServiceUnavailable`) if the cache isn't populated yet.
 - **Chain query semaphore** — `ChainClient` limits concurrent LCD requests (max 12) to prevent burst overload on cold start.
 - **Warm-up on startup** — `warm_essential_data()` runs before the server accepts requests, populating critical caches (gated config → filter context → protocol contracts → currencies → prices).
@@ -96,8 +96,9 @@ backend/
 │   ├── propagation/      # Gated propagation module (filter, merge, validate)
 │   ├── external/         # API clients (etl, skip, chain, referral, zero_interest)
 │   ├── config_store/     # Config loading (gated_types.rs, storage.rs)
+│   ├── chain_events.rs   # CometBFT WebSocket client, event parsing, broadcast channels
 │   ├── data_cache.rs     # Cached<T>, AppDataCache (lock-free background-refresh cache)
-│   ├── refresh.rs        # Background refresh tasks (one per data type)
+│   ├── refresh.rs        # Background refresh tasks (timer-based + event-driven)
 │   └── middleware.rs     # Rate limiting, auth, cache-control
 └── config/
     ├── gated/            # Gated propagation config files
@@ -213,6 +214,7 @@ cargo test -- --nocapture     # Show println! output
 - **Wallet connection centralization**: All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions (`connectKeplr.ts`, etc.) only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers (no `stakingStore.setAddress()` or `fetchPositions()` in components). `Disconnect.vue` calls both `wallet.DISCONNECT()` and `connectionStore.disconnectWallet()`. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard). The `configStore.initialized` watcher in `view.vue` must use `{ immediate: true }` because optimistic caching means `initialized` may already be `true` at mount time. Supported wallets: Keplr, Leap, Ledger (USB + Bluetooth), Phantom (EVM), Solflare (Solana). MetaMask and WalletConnect were removed.
 - **Price polling ownership**: Price polling is handled exclusively by `pricesStore.startPolling()` (called during `pricesStore.initialize()`). `view.vue` does NOT have its own price polling — it only manages balance polling via `startBalancePolling()`.
 - **Ref-based summary pattern**: When aggregating store data into `ref` values (e.g., summary totals in `Leases.vue`), the watch MUST include `{ immediate: true }` and watch all dependencies (leases + prices). Without `immediate`, SPA navigation shows stale $0.00 because store data is already loaded at mount time. See `Leases.vue` and `AssetsTable.vue` for the correct pattern.
+- **CometBFT event-driven refresh**: Chain data (prices, leases, earn) is refreshed via CometBFT WebSocket subscriptions (`chain_events.rs`) instead of fixed-interval timers. `NewBlock` events trigger price refreshes (~6s, every other block). `Tx` wasm events trigger lease monitoring (500ms debounce) and earn monitoring (10s debounce). WS URL is derived from `NOLUS_RPC_URL` + `/websocket` (no extra env var). On disconnect, exponential backoff reconnection (1s→30s). ETL/disk data (config, pools, validators, stats) stays on timers. Skip transaction tracking (`start_skip_tracking_task`) stays on a 5s timer (external API, no chain events).
 
 ## URL Routing
 
@@ -249,8 +251,7 @@ Navigation menus (`DesktopMenu.vue`, `MobileMenu.vue`) generate links from the e
 1. **No Fallbacks** - Fail fast, fix fast
 2. **No Dead Code** - Remove unused code immediately
 3. **No Backwards Compatibility Hacks** - Clean breaks, no aliases
-4. **Hybrid Approach** - ETL and Oracle are first-class citizens by use case
-5. **Historical Data Support** - ETL provides active + deprecated data
+4. **Hybrid Refresh** - Chain events for chain data, timers for ETL/disk data
 
 ## Code Quality Rules
 
@@ -274,7 +275,6 @@ Extended documentation is available in the `docs/` folder:
 - `backend api enrichments and proxy.md` - Gated propagation system + transaction enrichment details
 - `translations.md` - Translation management system
 - `protocol architecture.md` - Protocol and contract architecture
-- `websocket-subscriptions-proposal.md` - Future proposal: CometBFT WebSocket event subscriptions to replace timer-based polling in refresh tasks
 
 ## Network & Wallet Architecture
 

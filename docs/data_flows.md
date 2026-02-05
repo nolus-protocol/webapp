@@ -49,8 +49,8 @@ The Nolus Webapp follows a **Backend-for-Frontend (BFF)** pattern where all data
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                          RUST BACKEND (Axum)                                 │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │  Handlers   │  │   Cache     │  │   Config    │  │  WebSocket  │        │
-│  │ (Transform) │  │   (Moka)    │  │   Store     │  │   Manager   │        │
+│  │  Handlers   │  │ Cached<T>   │  │   Config    │  │  WebSocket  │        │
+│  │ (Transform) │  │ (arc-swap)  │  │   Store     │  │   Manager   │        │
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘        │
 └─────────────────────────────────────┬───────────────────────────────────────┘
                                       │
@@ -84,7 +84,7 @@ The Nolus Webapp follows a **Backend-for-Frontend (BFF)** pattern where all data
 |-------|----------|---------|
 | **External → Backend** | `backend/src/external/*.rs` | Fetch raw data from external APIs |
 | **Backend Handlers** | `backend/src/handlers/*.rs` | Transform, merge, enrich data (16 handlers) |
-| **Backend Cache** | `backend/src/cache.rs` | Cache frequently accessed data |
+| **Backend Cache** | `backend/src/data_cache.rs` | Lock-free Cached<T> values refreshed by background tasks (event-driven + timer-based) |
 | **Backend → Frontend** | REST API responses | Serialize to JSON |
 | **Frontend API Client** | `src/common/api/BackendApi.ts` | Transform response to store-friendly format |
 | **Frontend Stores** | `src/common/stores/*/index.ts` | State management, computed values |
@@ -681,7 +681,7 @@ const assetKey = "ATOM@OSMOSIS-OSMOSIS-USDC_NOBLE";
 
 | Layer | TTL | Rationale |
 |-------|-----|-----------|
-| Backend Moka Cache | 30 seconds | Prices need to be fresh for trading |
+| Backend cache (Cached<T>) | ~6 seconds | Refreshed on every 2nd NewBlock via CometBFT WebSocket events |
 | Frontend localStorage | 5 minutes | Optimistic loading, background refresh |
 | Frontend Polling | 30 seconds | `pricesStore.startPolling()` — sole owner of price polling (no duplicate intervals in `view.vue`) |
 
@@ -1746,13 +1746,46 @@ WebSocket enables real-time data push for prices, balances, leases, and transact
          │    topic: "prices" }  │                       │
          │<──────────────────────│                       │
          │                       │                       │
-         │                       │  Poll Oracle (30s)    │
+         │                       │  CometBFT NewBlock    │
+         │                       │  event (~6s, every    │
+         │                       │  other block) triggers│
+         │                       │  Oracle query         │
          │                       ├──────────────────────>│
          │                       │                       │
          │  { type: "price_update",                      │
          │    prices: {...} }    │                       │
          │<──────────────────────│                       │
 ```
+
+### Backend Event Architecture
+
+Chain-driven data is refreshed via CometBFT WebSocket event subscriptions (`chain_events.rs`) instead of fixed-interval timers:
+
+```
+CometBFT /websocket ──► ChainEventClient
+                              │
+                    ┌─────────┴──────────┐
+                    │                    │
+            broadcast<u64>       broadcast<ContractExecEvent>
+            (NewBlock height)    (wasm contract executions)
+                    │                    │
+              ┌─────┴─────┐       ┌──────┴──────────┐
+              │           │       │                  │
+        refresh_prices  price_   lease_monitor   earn_monitor
+        (every 2nd     update    (500ms debounce) (10s debounce)
+         block ~6s)    (every 2nd
+                        block)
+```
+
+| Task | Trigger | Freshness |
+|------|---------|-----------|
+| `refresh_prices` | NewBlock (every 2nd block) | ~6s |
+| `start_price_update_task` | NewBlock (every 2nd block) | ~6s |
+| `start_lease_monitor_task` | Tx wasm event + 500ms debounce | ~3.5s |
+| `start_earn_monitor_task` | Tx wasm event + 10s debounce | 10-15s |
+| `start_skip_tracking_task` | 5s timer (Skip API, no chain events) | 5s |
+
+ETL/disk data (config, pools, validators, stats, etc.) stays on fixed-interval timers (30s–300s).
 
 ### Message Types
 
@@ -2236,13 +2269,13 @@ VITE_APP_NETWORKS=mainnet
 
 | Data Type | Backend Cache TTL | Frontend Cache | Refresh Strategy |
 |-----------|-------------------|----------------|------------------|
-| Prices | 30 seconds | 5 min localStorage | Polling + WebSocket |
+| Prices | ~6 seconds | 5 min localStorage | CometBFT NewBlock event (every 2nd block) + WebSocket push |
 | Config | 1 hour | 1 hour localStorage | On-demand |
 | Currencies | 1 hour | Derived from config | On-demand |
 | Validators | 5 minutes | None | On-demand |
 | User balances | None (real-time) | None | WebSocket |
-| User leases | None (real-time) | None | WebSocket |
-| Earn pools | 5 minutes | None | On-demand |
+| User leases | None (real-time) | None | CometBFT Tx wasm event (500ms debounce) + WebSocket push |
+| Earn pools | 5 minutes | None | CometBFT Tx wasm event (10s debounce) |
 | Stats (TVL, etc.) | 5 minutes | 5 min localStorage | On-demand |
 | User analytics | None | In-memory only | On wallet connect |
 

@@ -6,8 +6,7 @@ export enum TEMPLATES {
   "paid",
   "closing",
   "closed",
-  "liquidated",
-  "repayment"
+  "liquidated"
 }
 
 /**

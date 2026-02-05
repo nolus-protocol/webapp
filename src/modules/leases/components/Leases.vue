@@ -303,6 +303,10 @@ function getTitle(item: LeaseInfo) {
     return `${i18n.t("message.opening")}...`;
   }
 
+  if (item.status === "closing") {
+    return `${i18n.t("message.closing")}...`;
+  }
+
   if (item.status === "opened") {
     if (item.in_progress && "close" in item.in_progress) {
       return `${i18n.t("message.closing")}...`;
@@ -311,11 +315,9 @@ function getTitle(item: LeaseInfo) {
     if (item.in_progress && "repayment" in item.in_progress) {
       return `${i18n.t("message.repaying")}...`;
     }
-  }
 
-  if (item.status === "paid_off") {
-    if (item.in_progress && "transfer_in" in item.in_progress) {
-      return `${i18n.t("message.collecting")}...`;
+    if (item.in_progress && "liquidation" in item.in_progress) {
+      return `${i18n.t("message.liquidating")}...`;
     }
   }
 
@@ -376,7 +378,6 @@ function getActions(lease: LeaseInfo, displayData: LeaseDisplayData) {
     }),
     h<IAction>(Action, {
       lease,
-      showCollect: false,
       showClose: isOpened,
       key: `action-${lease.address}`,
       opened: openMenuId == lease.address,

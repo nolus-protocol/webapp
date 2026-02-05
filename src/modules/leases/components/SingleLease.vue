@@ -1,16 +1,15 @@
 <template>
+  <template v-if="!lease">
+    <SingleLeaseHeader :loading="true" />
+    <div class="flex flex-col gap-8">
+      <div class="skeleton-box h-[200px] w-full rounded-lg" />
+    </div>
+  </template>
+  <template v-else>
   <SingleLeaseHeader
     :lease="lease"
     :display-data="displayData"
-    :loading="
-      status == TEMPLATES.opening ||
-      loadingClose ||
-      loadingOngoingPartialLiquidation ||
-      loadingFullPartialLiquidation ||
-      loadingOngoingPartialLiquidationLiability ||
-      loadingOngoingFullLiquidationLiability ||
-      loadintSlippageProtection
-    "
+    :loading="status == TEMPLATES.opening || isInProgress"
   />
   <div class="flex flex-col gap-8">
     <Alert
@@ -31,139 +30,19 @@
     </Alert>
 
     <Alert
-      v-if="loadingClose"
-      :title="$t('message.close-title')"
+      v-if="inProgressBanner"
+      :title="$t(inProgressBanner.titleKey)"
       :type="AlertType.info"
     >
       <template v-slot:content>
         <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.close-description") }}
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadingRepay"
-      :title="$t('message.repaid-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.repaid-description") }}
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadingCollect"
-      :title="$t('message.collect-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.collect-description") }}
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadingOngoingPartialLiquidation"
-      :title="$t('message.liquidation-ongoingpartial-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.liquidation-ongoingpartial-description") }}
+          {{ $t(inProgressBanner.descriptionKey) }}
           <a
-            @click="
-              () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.id}/interest-collection`);
-              }
-            "
+            v-if="inProgressBanner.link"
+            @click="router.push(inProgressBanner.link)"
             class="cursor-pointer font-normal text-typography-link"
           >
-            {{ $t("message.liquidation-ongoingpartial-description-link") }}
-          </a>
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadingFullPartialLiquidation"
-      :title="$t('message.liquidation-ongoinfull-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.liquidation-ongoinfull-description") }}
-          <a
-            @click="
-              () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.id}/interest-collection`);
-              }
-            "
-            class="cursor-pointer font-normal text-typography-link"
-          >
-            {{ $t("message.liquidation-ongoinfull-description-link") }}
-          </a>
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadingOngoingPartialLiquidationLiability"
-      :title="$t('message.liquidation-ongoingpartial-liability-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.liquidation-ongoingpartial-liability-description") }}
-          <a
-            @click="
-              () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.id}/liquidation-partial`);
-              }
-            "
-            class="cursor-pointer font-normal text-typography-link"
-          >
-            {{ $t("message.liquidation-ongoingpartial-liability-description-link") }}
-          </a>
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadingOngoingFullLiquidationLiability"
-      :title="$t('message.liquidation-ongoingfull-liability-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.liquidation-ongoingfull-liability-description") }}
-          <a
-            @click="
-              () => {
-                router.push(`/${RouteNames.LEASES}/${route.params.id}/liquidation-full`);
-              }
-            "
-            class="cursor-pointer font-normal text-typography-link"
-          >
-            {{ $t("message.liquidation-ongoingfull-liability-description-link") }}
-          </a>
-        </p>
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="loadintSlippageProtection"
-      :title="$t('message.market-anomaly-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.market-anomaly-title-desc") }}
-          <a class="cursor-pointer font-normal text-typography-link">
-            {{ $t("message.market-anomaly-title-desc-link") }}
+            {{ $t(inProgressBanner.linkKey!) }}
           </a>
         </p>
       </template>
@@ -173,28 +52,14 @@
     <PositionSummaryWidget
       :lease="lease"
       :display-data="displayData"
-      :loading="
-        loadingClose ||
-        loadingOngoingPartialLiquidation ||
-        loadingFullPartialLiquidation ||
-        loadingOngoingPartialLiquidationLiability ||
-        loadingOngoingFullLiquidationLiability
-      "
+      :loading="isInProgress"
     />
     <div class="flex flex-col gap-8 md:flex-row">
       <PositionHealthWidget
         :lease="lease"
         :display-data="displayData"
-        :loading="
-          status == TEMPLATES.opening ||
-          loadingClose ||
-          loadingOngoingPartialLiquidation ||
-          loadingFullPartialLiquidation ||
-          loadingOngoingPartialLiquidationLiability ||
-          loadingOngoingFullLiquidationLiability
-        "
+        :loading="status == TEMPLATES.opening || isInProgress"
       />
-      <!-- <StrategiesWidget :lease="lease" /> -->
     </div>
     <template v-if="lease?.etl_data">
       <LeaseLogWidget :lease="lease" />
@@ -205,6 +70,7 @@
     id="history"
     class="mt-[50px]"
   ></div>
+  </template>
 </template>
 
 <script lang="ts" setup>
@@ -323,45 +189,87 @@ watch(
   () => getLease()
 );
 
-const loadingClose = computed(() => {
-  return displayData.value?.inProgressType === "close";
-});
-
-const loadingRepay = computed(() => {
-  return displayData.value?.inProgressType === "repayment";
-});
-
-const loadingCollect = computed(() => {
-  return displayData.value?.inProgressType === "transfer_in";
-});
-
-const loadingOngoingPartialLiquidation = computed(() => {
-  if (!lease.value?.in_progress) return false;
-  if ("liquidation" in lease.value.in_progress) {
-    return lease.value.in_progress.liquidation.cause === "overdue";
+// Watch for WebSocket-driven store updates (real-time in_progress changes)
+watch(
+  () => leasesStore.getLease(leaseAddress.value),
+  (updated) => {
+    if (updated) {
+      lease.value = updated;
+    }
   }
-  return false;
-});
+);
 
-const loadingFullPartialLiquidation = computed(() => {
-  return false;
-});
-
-const loadingOngoingPartialLiquidationLiability = computed(() => {
-  if (!lease.value?.in_progress) return false;
-  if ("liquidation" in lease.value.in_progress) {
-    return lease.value.in_progress.liquidation.cause === "liability";
+// Redirect to positions list when lease reaches a terminal state
+watch(
+  () => lease.value?.status,
+  (newStatus) => {
+    if (newStatus === "closed" || newStatus === "liquidated" || newStatus === "paid_off") {
+      leasesStore.refresh().then(() => router.replace(`/${RouteNames.LEASES}`));
+    }
   }
-  return false;
+);
+
+const isInProgress = computed(() => {
+  if (lease.value?.status === "closing") return true;
+  const type = displayData.value?.inProgressType;
+  if (!type) return false;
+  return type === "close" || type === "liquidation";
 });
 
-const loadingOngoingFullLiquidationLiability = computed(() => {
-  return false;
+interface InProgressBanner {
+  titleKey: string;
+  descriptionKey: string;
+  link?: string;
+  linkKey?: string;
+}
+
+const inProgressBanner = computed<InProgressBanner | null>(() => {
+  const type = displayData.value?.inProgressType;
+  if (!type) return null;
+
+  if (type === "close") {
+    return {
+      titleKey: "message.close-title",
+      descriptionKey: "message.close-description"
+    };
+  }
+
+  if (type === "repayment") {
+    return {
+      titleKey: "message.repaid-title",
+      descriptionKey: "message.repaid-description"
+    };
+  }
+
+  if (type === "liquidation") {
+    const cause = getLiquidationCause();
+    if (cause === "liability") {
+      return {
+        titleKey: "message.liquidation-ongoingpartial-liability-title",
+        descriptionKey: "message.liquidation-ongoingpartial-liability-description",
+        link: `/${RouteNames.LEASES}/${route.params.id}/liquidation-partial`,
+        linkKey: "message.liquidation-ongoingpartial-liability-description-link"
+      };
+    }
+    // Default to overdue (interest collection) for any liquidation cause
+    return {
+      titleKey: "message.liquidation-ongoingpartial-title",
+      descriptionKey: "message.liquidation-ongoingpartial-description",
+      link: `/${RouteNames.LEASES}/${route.params.id}/interest-collection`,
+      linkKey: "message.liquidation-ongoingpartial-description-link"
+    };
+  }
+
+  return null;
 });
 
-const loadintSlippageProtection = computed(() => {
-  return false;
-});
+function getLiquidationCause(): string | undefined {
+  if (!lease.value?.in_progress) return undefined;
+  if ("liquidation" in lease.value.in_progress) {
+    return lease.value.in_progress.liquidation.cause;
+  }
+  return undefined;
+}
 
 function getProtocolIcon() {
   if (!lease.value?.protocol) return null;

@@ -79,10 +79,12 @@ lazy_static = "1"
 # Macro utilities for identifier concatenation
 paste = "1.0"
 
+# WebSocket client for CometBFT event subscriptions
+tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+
 [dev-dependencies]
 tokio-test = "0.4"
 wiremock = "0.6"
-tokio-tungstenite = "0.21"
 futures = "0.3"
 tempfile = "3.10"
 

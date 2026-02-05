@@ -252,17 +252,19 @@ export const useLeasesStore = defineStore("leases", () => {
       return;
     }
 
-    unsubscribe = WebSocketClient.subscribeLeases(owner.value, (lease) => {
+    unsubscribe = WebSocketClient.subscribeLeases(owner.value, (wsLease) => {
+      // Merge with existing data (WebSocket sends partial data, no ETL)
+      const existing = leaseDetails.value.get(wsLease.address);
+      const merged = existing ? { ...existing, ...wsLease } : wsLease as LeaseInfo;
+
       // Update in main list
-      const index = leases.value.findIndex((l) => l.address === lease.address);
+      const index = leases.value.findIndex((l) => l.address === merged.address);
       if (index !== -1) {
-        leases.value[index] = lease;
-      } else {
-        leases.value.push(lease);
+        leases.value[index] = merged;
       }
 
       // Update cache
-      leaseDetails.value.set(lease.address, lease);
+      leaseDetails.value.set(merged.address, merged);
       lastUpdated.value = new Date();
     });
   }

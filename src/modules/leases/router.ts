@@ -137,13 +137,6 @@ export const LeasesRouter: RouteRecordRaw = {
           meta: {
             key: `${RouteNames.LEASES}-single`
           }
-        },
-        {
-          path: `liquidation-full`,
-          component: () => import("@/common/components/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}-single`
-          }
         }
       ]
     }

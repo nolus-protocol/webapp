@@ -10,6 +10,7 @@ use std::sync::Arc;
 use futures::future::join_all;
 use tracing::{debug, error, info, warn};
 
+use crate::chain_events::EventChannels;
 use crate::data_cache::GatedConfigBundle;
 use crate::external::chain::ProtocolContractsInfo;
 use crate::handlers::config::{
@@ -61,10 +62,19 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
     info!("Essential data warm-up complete");
 }
 
-/// Start all background refresh tasks on their respective intervals.
-pub fn start_all(state: Arc<AppState>) {
-    // Fast refresh: prices (15s)
-    spawn_refresh("prices", state.clone(), 15, |s| Box::pin(refresh_prices(s)));
+/// Start all background refresh tasks.
+///
+/// Prices are event-driven (triggered by NewBlock via CometBFT WebSocket).
+/// All other tasks remain on timer intervals.
+pub fn start_all(state: Arc<AppState>, event_channels: &EventChannels) {
+    // Event-driven: prices refreshed every other NewBlock (~6s)
+    spawn_event_refresh(
+        "prices",
+        state.clone(),
+        event_channels.new_block.subscribe(),
+        2, // skip_factor: refresh every 2nd event
+        |s| Box::pin(refresh_prices(s)),
+    );
 
     // Medium refresh: filter context (30s)
     spawn_refresh("filter_context", state.clone(), 30, |s| {
@@ -115,7 +125,7 @@ pub fn start_all(state: Arc<AppState>) {
     info!("All background refresh tasks started");
 }
 
-/// Spawn a single refresh task that runs on an interval.
+/// Spawn a single refresh task that runs on a timer interval.
 fn spawn_refresh<F>(name: &'static str, state: Arc<AppState>, interval_secs: u64, f: F)
 where
     F: Fn(&Arc<AppState>) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>>
@@ -129,6 +139,48 @@ where
             interval.tick().await;
             f(&state).await;
             tracing::trace!("Refreshed {}", name);
+        }
+    });
+}
+
+/// Spawn a refresh task triggered by broadcast channel events.
+///
+/// `skip_factor`: refresh every Nth event (1 = every event, 2 = every other, etc.).
+/// When the channel closes, the task stops with an error log (fail loudly).
+/// When the consumer lags behind channel capacity, it does a single catch-up refresh.
+fn spawn_event_refresh<F, T: Clone + Send + 'static>(
+    name: &'static str,
+    state: Arc<AppState>,
+    mut event_rx: tokio::sync::broadcast::Receiver<T>,
+    skip_factor: u64,
+    f: F,
+) where
+    F: Fn(&Arc<AppState>) -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send + '_>>
+        + Send
+        + Sync
+        + 'static,
+{
+    tokio::spawn(async move {
+        let mut counter: u64 = 0;
+        loop {
+            match event_rx.recv().await {
+                Ok(_) => {
+                    counter += 1;
+                    if counter % skip_factor != 0 {
+                        continue;
+                    }
+                    f(&state).await;
+                    tracing::trace!("Refreshed {} (event-triggered)", name);
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                    tracing::debug!("{}: lagged {} events, refreshing once", name, n);
+                    f(&state).await;
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    tracing::error!("{}: event channel closed, task stopping", name);
+                    break;
+                }
+            }
         }
     });
 }

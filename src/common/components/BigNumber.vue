@@ -48,7 +48,7 @@
       <div
         v-else
         class="skeleton-box rounded-[4px]"
-        :style="[{ width: loadingWidth ?? '100%', height: `${amount?.fontSize || 32 * 1.2}px` }]"
+        :style="[{ width: loadingWidth ?? '100%', height: `${(amount?.fontSize ?? 32) * 1.2}px` }]"
       ></div>
     </div>
 
@@ -96,7 +96,7 @@
       <div
         v-else
         class="skeleton-box mt-1 rounded-[4px]"
-        :style="[{ width: loadingWidth ?? '100%', height: `${secondary?.fontSize || 12 * 1.2}px` }]"
+        :style="[{ width: loadingWidth ?? '100%', height: `${(secondary?.fontSize ?? 12) * 1.2}px` }]"
       ></div>
     </template>
   </div>

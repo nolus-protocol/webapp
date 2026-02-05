@@ -27,14 +27,6 @@
     class="max-w-[160px]"
   >
     <template #content>
-      <Collect
-        v-if="showCollect"
-        :lease="lease"
-        class="button-secondary flex !min-h-[unset] w-full justify-start rounded-none border-none !px-3 !py-3 text-16 !font-medium"
-        severity="secondary"
-        size="large"
-        @click="close"
-      />
       <button
         v-if="showClose"
         class="button-secondary w-full border-none px-3 py-3 text-left"
@@ -66,7 +58,6 @@
 </template>
 
 <script lang="ts" setup>
-import Collect from "./Collect.vue";
 import { onMounted, ref } from "vue";
 import { Button, Popover } from "web-components";
 import type { LeaseInfo } from "@/common/api";
@@ -75,7 +66,7 @@ import { RouteNames } from "@/router";
 import { getLeaseStatus, TEMPLATES } from "../common";
 import { SingleLeaseDialog } from "../../enums";
 
-export type IAction = { lease: LeaseInfo; showCollect: boolean; showClose: boolean; opened: boolean };
+export type IAction = { lease: LeaseInfo; showClose: boolean; opened: boolean };
 
 const props = defineProps<IAction>();
 

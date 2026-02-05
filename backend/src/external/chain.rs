@@ -1130,6 +1130,9 @@ pub struct LeaseOpeningInfo {
     pub downpayment: LeaseAmount,
     pub loan: LeaseAmount,
     pub loan_interest_rate: u32,
+    /// Chain returns: {"open_ica_account": {}}, {"transfer_out": {...}}, or {"buy_asset": {...}}
+    #[serde(default)]
+    pub in_progress: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1152,8 +1155,9 @@ pub struct OpenedLeaseInfo {
     pub overdue_collect_in: Option<u64>,
     #[serde(default)]
     pub close_policy: Option<LeaseClosePolicy>,
+    /// Chain returns: "idle", "slippage_protection_activated", or {"in_progress": {...}}
     #[serde(default)]
-    pub in_progress: Option<serde_json::Value>,
+    pub status: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1187,7 +1191,6 @@ pub struct LeasePaidOff {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaidOffInfo {
     pub amount: LeaseAmount,
-    pub in_progress: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

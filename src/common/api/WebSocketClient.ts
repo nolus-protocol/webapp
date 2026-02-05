@@ -81,7 +81,7 @@ interface BalanceUpdateMessage {
 
 interface LeaseUpdateMessage {
   type: "lease_update";
-  lease: LeaseInfo;
+  lease: Partial<LeaseInfo> & Pick<LeaseInfo, "address" | "status">;
 }
 
 interface TxStatusMessage {
@@ -139,7 +139,7 @@ type ServerMessage =
  */
 export type PriceCallback = (prices: PriceData) => void;
 export type BalanceCallback = (address: string, balances: BalanceInfo[]) => void;
-export type LeaseCallback = (lease: LeaseInfo) => void;
+export type LeaseCallback = (lease: Partial<LeaseInfo> & Pick<LeaseInfo, "address" | "status">) => void;
 export type TxStatusCallback = (txHash: string, status: "pending" | "success" | "failed", error?: string) => void;
 export type StakingCallback = (address: string, data: StakingPositionsResponse) => void;
 export type SkipTxCallback = (update: {
@@ -410,7 +410,7 @@ class WebSocketClientImpl {
           break;
 
         case "lease_update":
-          this.notifySubscribers(`leases:${message.lease.owner}`, message.lease);
+          this.notifyLeaseSubscribers(message.lease);
           break;
 
         case "tx_status":
@@ -453,6 +453,20 @@ class WebSocketClientImpl {
           console.error("[WebSocket] Callback error", error);
         }
       });
+    }
+  }
+
+  private notifyLeaseSubscribers(lease: Partial<LeaseInfo> & Pick<LeaseInfo, "address" | "status">): void {
+    for (const [key, subscription] of this.subscriptions) {
+      if (key.startsWith("leases:")) {
+        subscription.callbacks.forEach((callback) => {
+          try {
+            (callback as Function)(lease);
+          } catch (error) {
+            console.error("[WebSocket] Lease callback error", error);
+          }
+        });
+      }
     }
   }
 

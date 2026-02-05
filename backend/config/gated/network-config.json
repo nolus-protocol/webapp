@@ -7,7 +7,7 @@
     "lcd": "https://lcd.nolus.network",
     "fallback_rpc": ["https://pirin-cl.nolus.network:26657"],
     "fallback_lcd": ["https://pirin-cl.nolus.network:1317"],
-    "gas_price": "0.0025unls",
+    "gas_price": "0.025unls",
     "explorer": "https://explorer.nolus.io",
     "icon": "/assets/icons/networks/nolus.svg",
     "estimation": 6

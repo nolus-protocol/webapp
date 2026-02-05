@@ -19,6 +19,7 @@ use crate::middleware::{
     rate_limit_middleware, standard_rate_limit_config, strict_rate_limit_config,
 };
 
+pub mod chain_events;
 mod config;
 mod config_store;
 pub mod data_cache;
@@ -157,14 +158,32 @@ async fn main() -> anyhow::Result<()> {
     // Warm up essential caches before accepting requests (blocking)
     refresh::warm_essential_data(state.clone()).await;
 
-    // Start background refresh tasks
-    refresh::start_all(state.clone());
+    // Create event channels for CometBFT WebSocket events
+    let event_channels = chain_events::EventChannels::new();
 
-    // Start WebSocket background tasks
-    handlers::websocket::start_price_update_task(state.clone()).await;
-    handlers::websocket::start_lease_monitor_task(state.clone()).await;
+    // Start CometBFT WebSocket client (connects, subscribes, dispatches events)
+    chain_events::start(&state.config.external.nolus_rpc_url, event_channels.clone());
+
+    // Start background refresh tasks (prices: event-driven, others: timer-driven)
+    refresh::start_all(state.clone(), &event_channels);
+
+    // Start WebSocket background tasks (lease/earn/prices: event-driven, skip: timer)
+    handlers::websocket::start_price_update_task(
+        state.clone(),
+        event_channels.new_block.subscribe(),
+    )
+    .await;
+    handlers::websocket::start_lease_monitor_task(
+        state.clone(),
+        event_channels.contract_exec.subscribe(),
+    )
+    .await;
     handlers::websocket::start_skip_tracking_task(state.clone()).await;
-    handlers::websocket::start_earn_monitor_task(state.clone()).await;
+    handlers::websocket::start_earn_monitor_task(
+        state.clone(),
+        event_channels.contract_exec.subscribe(),
+    )
+    .await;
 
     // Build router
     let app = create_router(state);
