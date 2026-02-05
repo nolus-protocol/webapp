@@ -17,8 +17,7 @@ use crate::handlers::config::{
     AppConfigResponse, ContractsInfo, NativeAssetInfo, NetworkInfo, ProtocolInfo,
 };
 use crate::handlers::currencies::{
-    calculate_price, calculate_price_with_decimals, CurrenciesResponse, CurrencyInfo, PriceInfo,
-    PricesResponse,
+    calculate_price_with_decimals, CurrenciesResponse, CurrencyInfo, PriceInfo, PricesResponse,
 };
 use crate::handlers::earn::EarnPool;
 use crate::handlers::etl_proxy::{LoansStatsBatch, StatsOverviewBatch};
@@ -490,16 +489,30 @@ pub async fn refresh_prices(state: &Arc<AppState>) {
                         }
                     };
 
-                let lpn_price = calculate_price(
-                    &stable_price.amount_quote.amount,
-                    &stable_price.amount.amount,
-                );
-
                 let lpn_key = format!("{}@{}", base_currency, protocol_name);
                 let lpn_decimals = currencies_map
                     .get(&lpn_key)
                     .map(|c| c.decimal_digits)
                     .unwrap_or(6);
+
+                // Get stable currency decimals for proper price calculation
+                // The stable currency ticker is in amount_quote.ticker
+                let stable_ticker = &stable_price.amount_quote.ticker;
+                let stable_key = format!("{}@{}", stable_ticker, protocol_name);
+                let stable_decimals = currencies_map
+                    .get(&stable_key)
+                    .map(|c| c.decimal_digits)
+                    .unwrap_or(6);
+
+                // Calculate LPN price with decimal adjustment
+                // Formula: (quote_amount / amount) * 10^(lpn_decimals - stable_decimals)
+                let lpn_price = calculate_price_with_decimals(
+                    &stable_price.amount_quote.amount,
+                    &stable_price.amount.amount,
+                    "1.0", // lpn_price multiplier is 1.0 for the LPN itself
+                    lpn_decimals,
+                    stable_decimals,
+                );
 
                 protocol_prices.push((
                     lpn_key.clone(),
@@ -743,6 +756,7 @@ pub async fn refresh_gated_assets(state: &Arc<AppState>) {
 pub async fn refresh_gated_protocols(state: &Arc<AppState>) {
     use crate::handlers::common_types::{CurrencyDisplayInfo, ProtocolContracts};
     use crate::handlers::gated_protocols::ProtocolResponse;
+    use std::collections::HashSet;
 
     let gated = match state.data_cache.gated_config.load() {
         Some(g) => g,
@@ -763,12 +777,37 @@ pub async fn refresh_gated_protocols(state: &Arc<AppState>) {
         &gated.network_config,
     );
 
+    // Build ignore sets for protocol filtering
+    let ignore_short: HashSet<&str> = gated
+        .lease_rules
+        .asset_restrictions
+        .ignore_short
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+    let ignore_long: HashSet<&str> = gated
+        .lease_rules
+        .asset_restrictions
+        .ignore_long
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+
     let protocols: Vec<ProtocolResponse> = filtered_protocols
         .iter()
         .filter_map(|p| {
             let lpn_display = gated.currency_display.currencies.get(&p.lpn_symbol)?;
             if !lpn_display.is_configured() {
                 return None;
+            }
+
+            // Filter out protocols based on position type and ignore lists
+            // For short protocols: if LPN is in ignore_short, skip
+            // For long protocols: if LPN is in ignore_long, skip
+            match p.position_type.to_lowercase().as_str() {
+                "short" if ignore_short.contains(p.lpn_symbol.as_str()) => return None,
+                "long" if ignore_long.contains(p.lpn_symbol.as_str()) => return None,
+                _ => {}
             }
 
             Some(ProtocolResponse {

@@ -12,10 +12,10 @@
       :amount="{
         amount: sizeAmount,
         type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: assetLoan?.shortName,
+        denom: totalAsset?.shortName ?? downPaymentAsset?.shortName,
         maxDecimals: MAX_DECIMALS,
         minimalDenom: '',
-        decimals: assetLoan?.decimal_digits,
+        decimals: totalAsset?.decimal_digits ?? downPaymentAsset?.decimal_digits ?? 6,
         hasSpace: true,
         around: true,
         tooltip: true
@@ -24,8 +24,8 @@
         amount: totalLoan,
         type: CURRENCY_VIEW_TYPES.TOKEN,
         denom: asset?.shortName,
-        maxDecimals: assetLoan?.decimal_digits,
-        decimals: assetLoan?.decimal_digits,
+        maxDecimals: asset?.decimal_digits,
+        decimals: asset?.decimal_digits,
         hasSpace: true
       }"
     />
@@ -223,11 +223,20 @@ watch(
   }
 );
 
+/** The currency for lease.total (stable currency for shorts, e.g., USDC) */
+const totalAsset = computed(() => {
+  const ticker = props.lease?.total?.ticker;
+  if (!ticker) return null;
+  return getCurrencyByTicker(ticker);
+});
+
 const sizeAmount = computed(() => {
   if (!props.lease?.total?.amount) {
     return "0";
   }
-  const fee = new Dec(swapStableFee.value, asset.value.decimal_digits);
+  // For shorts, lease.total is in the stable currency (e.g., USDC)
+  const decimals = totalAsset.value?.decimal_digits ?? 6;
+  const fee = new Dec(swapStableFee.value, decimals);
   const total = new Dec(props.lease?.total.amount ?? "0").sub(fee);
   return total.truncate().toString();
 });
@@ -250,7 +259,7 @@ const totalLoan = computed(() => {
   const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
   const v = props.lease?.total?.amount ?? "0";
   const amount = new Dec(v).quo(price).sub(swapFeeAmount.value);
-  return amount.toString(assetLoan.value.decimal_digits);
+  return amount.toString(asset.value.decimal_digits);
 });
 
 const assetLoan = computed(() => {

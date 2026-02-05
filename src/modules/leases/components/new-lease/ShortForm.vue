@@ -442,13 +442,14 @@ async function validateMinMaxValues(): Promise<boolean> {
 
     if (currentBalance) {
       if (downPaymentAmount || downPaymentAmount !== "") {
-        const price = pricesStore.prices[selectedDownPaymentCurrency.key as string];
+        const priceData = pricesStore.prices[selectedDownPaymentCurrency.key as string];
+        const priceAmount = priceData?.price ?? "0";
 
         const max = new Dec(range?.max ?? 0);
         const min = new Dec(range?.min ?? 0);
 
-        const leaseMax = max.quo(new Dec(price.amount));
-        const leaseMin = min.quo(new Dec(price.amount));
+        const leaseMax = max.quo(new Dec(priceAmount));
+        const leaseMin = min.quo(new Dec(priceAmount));
 
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,
@@ -456,7 +457,7 @@ async function validateMinMaxValues(): Promise<boolean> {
           currentBalance.decimal_digits
         );
         const balance = CurrencyUtils.calculateBalance(
-          price.amount,
+          priceAmount,
           downPaymentAmountInMinimalDenom,
           currentBalance.decimal_digits
         ).toDec();
@@ -541,6 +542,9 @@ async function calculate() {
       const [_c, protocol] = loanCurrency.key.split("@");
 
       let [downPaymentTicker, _p] = currency.key.split("@");
+      // For shorts: leaseTicker is the stable currency (what position is denominated in)
+      // which is the same as the down payment ticker (e.g., USDC_NOBLE)
+      const leaseTicker = downPaymentTicker;
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
@@ -549,7 +553,7 @@ async function calculate() {
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
         downPaymentTicker,
-        configStore.lease?.[protocol][0] as string,
+        leaseTicker,
         ltd.value
       );
 
@@ -563,6 +567,7 @@ async function calculate() {
       leaseApply.value = null;
     }
   } catch (error) {
+    Logger.error("ShortForm calculate error:", error);
     amountErrorMsg.value = i18n.t("message.no-liquidity");
     leaseApply.value = null;
   }
@@ -602,13 +607,15 @@ async function openLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const configStore = useConfigStore();
 
-      let [_, protocol] = selectedCurrency.key.split("@");
+      let [_borrowedTicker, protocol] = selectedCurrency.key.split("@");
+      // For shorts: leaseTicker is the stable currency (what position is denominated in)
+      let [leaseTicker] = selectedDownPaymentCurrency.key.split("@");
 
       const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,
-        app.lease?.[protocol][0] as string,
+        leaseTicker,
         ltd.value,
         funds
       );

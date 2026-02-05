@@ -158,7 +158,7 @@
       "INJ",
       "AXL"
     ],
-    "ignore_short": ["NLS", "ST_ATOM", "AKT"],
+    "ignore_short": ["NLS", "ST_ATOM", "AKT", "ALL_SOL"],
     "free_interest": []
   }
 }

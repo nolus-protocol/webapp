@@ -330,7 +330,9 @@ const calculateLique = computed(() => {
 });
 
 const percentLique = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value?.ibcData as string]?.price ?? "0", asset.value?.decimal_digits ?? 0);
+  const a = asset.value;
+  // Use the currency key to get the price, not ibcData
+  const price = new Dec(pricesStore.prices[a?.key as string]?.price ?? "0", a?.decimal_digits ?? 0);
   const lprice = getLquidation();
 
   if (lprice.isZero() || price.isZero()) {
