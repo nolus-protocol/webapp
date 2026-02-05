@@ -58,8 +58,7 @@
         severity="primary"
         :label="$t('message.delegate')"
         @click="onNextClick"
-        :loading="loading"
-        :disabled="disabled"
+        :loading="disabled"
       />
       <p class="text-center text-12 text-typography-secondary">
         {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.delegateEstimation }}{{ $t("message.sec") }}
@@ -78,7 +77,6 @@ import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { useAsyncOperation } from "@/common/composables";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -92,7 +90,6 @@ const historyStore = useHistoryStore();
 const pricesStore = usePricesStore();
 const input = ref("0");
 const validationError = ref("");
-const { loading, run } = useAsyncOperation();
 const disabled = ref(false);
 const i18n = useI18n();
 const loadDelegated = inject("loadDelegated", () => false);
@@ -158,51 +155,49 @@ function validateInputs() {
 }
 
 async function delegate() {
-  await run(async () => {
-    if (!wallet.wallet || validationError.value.length > 0) return;
+  if (!wallet.wallet || validationError.value.length > 0) return;
 
-    let validators = await getValidators();
-    let division = STAKING.VALIDATORS_NUMBER;
+  let validators = await getValidators();
+  let division = STAKING.VALIDATORS_NUMBER;
 
-    if (validators?.length > 0) {
-      division = validators?.length;
-    }
+  if (validators?.length > 0) {
+    division = validators?.length;
+  }
 
-    const data = CurrencyUtils.convertNolusToUNolus(input.value);
-    const amount = Number(data.amount.toString());
-    const quotient = Math.floor(amount / division);
-    const remainder = amount % division;
-    const amounts = [];
+  const data = CurrencyUtils.convertNolusToUNolus(input.value);
+  const amount = Number(data.amount.toString());
+  const quotient = Math.floor(amount / division);
+  const remainder = amount % division;
+  const amounts = [];
 
-    validators = validators.sort((a: any, b: any) => {
-      return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
+  validators = validators.sort((a: any, b: any) => {
+    return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
+  });
+
+  for (const v of validators) {
+    amounts.push({
+      value: quotient,
+      validator: v.operator_address
     });
+  }
 
-    for (const v of validators) {
-      amounts.push({
-        value: quotient,
-        validator: v.operator_address
-      });
-    }
+  amounts[0].value += remainder;
 
-    amounts[0].value += remainder;
+  const delegations = amounts.map((item) => {
+    return {
+      validator: item.validator,
+      amount: coin(item.value, data.denom)
+    };
+  });
+  const { txBytes } = await wallet.wallet.simulateDelegateTx(delegations);
 
-    const delegations = amounts.map((item) => {
-      return {
-        validator: item.validator,
-        amount: coin(item.value, data.denom)
-      };
-    });
-    const { txBytes } = await wallet.wallet.simulateDelegateTx(delegations);
-
-    await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-    await Promise.all([loadDelegated(), balancesStore.fetchBalances()]);
-    historyStore.loadActivities();
-    onClose();
-    onShowToast({
-      type: ToastType.success,
-      message: i18n.t("message.delegate-successful")
-    });
+  await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+  await Promise.all([loadDelegated(), balancesStore.fetchBalances()]);
+  historyStore.loadActivities();
+  onClose();
+  onShowToast({
+    type: ToastType.success,
+    message: i18n.t("message.delegate-successful")
   });
 }
 

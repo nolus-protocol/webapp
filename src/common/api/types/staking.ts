@@ -15,6 +15,8 @@ export interface ValidatorInfo {
   max_change_rate: string;
   tokens: string;
   delegator_shares: string;
+  unbonding_height: string;
+  unbonding_time: string;
   status: ValidatorStatus;
   jailed: boolean;
 }

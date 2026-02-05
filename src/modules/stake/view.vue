@@ -177,7 +177,7 @@ const unboundingDelegations = computed<IObjectKeys[]>(() => {
 // Validator table rows
 const validatorRows = computed<TableRowItemProps[]>(() => {
   return stakingStore.delegations
-    .filter((position) => !new Dec(position.balance.amount).isZero())
+    .filter((position) => new Dec(position.balance.amount).gte(new Dec(1000)))
     .sort((a, b) => {
       const amountA = new Dec(a.balance.amount);
       const amountB = new Dec(b.balance.amount);

@@ -41,6 +41,7 @@ export class NetworkUtils {
         status: v.status === "bonded" ? "BOND_STATUS_BONDED" : v.status,
         tokens: v.tokens,
         delegator_shares: v.delegator_shares,
+        unbonding_time: v.unbonding_time,
         description: {
           moniker: v.moniker,
           identity: v.identity,

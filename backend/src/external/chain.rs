@@ -976,6 +976,8 @@ pub struct ValidatorInfo {
     pub tokens: String,
     pub delegator_shares: String,
     pub description: ValidatorDescription,
+    pub unbonding_height: String,
+    pub unbonding_time: String,
     pub commission: ValidatorCommission,
 }
 
@@ -1448,6 +1450,8 @@ mod tests {
                         "website": "https://test.com",
                         "details": "A test validator"
                     },
+                    "unbonding_height": "0",
+                    "unbonding_time": "1970-01-01T00:00:00Z",
                     "commission": {
                         "commission_rates": {
                             "rate": "0.100000000000000000",

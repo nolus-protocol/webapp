@@ -648,6 +648,8 @@ pub async fn refresh_validators(state: &Arc<AppState>) {
             max_commission_change_rate: v.commission.commission_rates.max_change_rate,
             tokens: v.tokens,
             delegator_shares: v.delegator_shares,
+            unbonding_height: v.unbonding_height,
+            unbonding_time: v.unbonding_time,
             status: crate::handlers::staking::parse_validator_status(&v.status),
             jailed: v.jailed,
         })

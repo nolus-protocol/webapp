@@ -76,7 +76,17 @@ fn determine_cache_duration(path: &str) -> u32 {
     }
 
     // User-specific data - no caching
-    if path.contains("/balances") || path.contains("/leases") {
+    if path.contains("/balances")
+        || path.contains("/leases")
+        || path.contains("/staking/positions")
+        || path.contains("/earn/positions")
+        || path.contains("/referral/")
+        || path.contains("/swap/status")
+        || path.contains("/swap/history")
+        || path.contains("/zero-interest/eligibility")
+        || path.contains("/zero-interest/payments")
+        || path.contains("/campaigns/eligibility")
+    {
         return 0;
     }
 
@@ -162,6 +172,36 @@ mod tests {
     #[test]
     fn test_cache_duration_no_cache_balances() {
         assert_eq!(determine_cache_duration("/api/balances"), 0);
+    }
+
+    #[test]
+    fn test_cache_duration_no_cache_staking_positions() {
+        assert_eq!(determine_cache_duration("/api/staking/positions"), 0);
+    }
+
+    #[test]
+    fn test_cache_duration_no_cache_earn_positions() {
+        assert_eq!(determine_cache_duration("/api/earn/positions"), 0);
+    }
+
+    #[test]
+    fn test_cache_duration_no_cache_referral() {
+        assert_eq!(determine_cache_duration("/api/referral/stats/nolus1abc"), 0);
+        assert_eq!(determine_cache_duration("/api/referral/rewards/nolus1abc"), 0);
+        assert_eq!(determine_cache_duration("/api/referral/referrals/nolus1abc"), 0);
+    }
+
+    #[test]
+    fn test_cache_duration_no_cache_swap_status() {
+        assert_eq!(determine_cache_duration("/api/swap/status/ABC123"), 0);
+        assert_eq!(determine_cache_duration("/api/swap/history"), 0);
+    }
+
+    #[test]
+    fn test_cache_duration_no_cache_zero_interest_user_data() {
+        assert_eq!(determine_cache_duration("/api/zero-interest/eligibility"), 0);
+        assert_eq!(determine_cache_duration("/api/zero-interest/payments/by-owner/nolus1abc"), 0);
+        assert_eq!(determine_cache_duration("/api/campaigns/eligibility"), 0);
     }
 
     #[test]

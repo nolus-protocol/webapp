@@ -38,6 +38,8 @@ pub struct Validator {
     pub max_commission_change_rate: String,
     pub tokens: String,
     pub delegator_shares: String,
+    pub unbonding_height: String,
+    pub unbonding_time: String,
     pub status: ValidatorStatus,
     pub jailed: bool,
 }
@@ -188,6 +190,8 @@ pub async fn get_validator(
         max_commission_change_rate: validator.commission.commission_rates.max_change_rate,
         tokens: validator.tokens,
         delegator_shares: validator.delegator_shares,
+        unbonding_height: validator.unbonding_height,
+        unbonding_time: validator.unbonding_time,
         status: parse_validator_status(&validator.status),
         jailed: validator.jailed,
     }))

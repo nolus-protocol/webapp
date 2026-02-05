@@ -67,7 +67,7 @@ The backend uses a **background-refresh** architecture (`data_cache.rs` + `refre
 ### Key Patterns
 
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests
-- **Browser HTTP caching**: Stores rely on browser HTTP cache (backed by backend `Cache-Control` headers) instead of manual localStorage caching. No localStorage data caches — only user preferences (`protocol_filter`, `selected_network`) persist in localStorage.
+- **Browser HTTP caching**: Global data (prices, config, currencies) uses backend `Cache-Control` headers for browser caching. User-specific endpoints (balances, leases, staking/earn positions, referrals, swap status, zero-interest) use `no-store` — never browser-cached. No localStorage data caches — only user preferences (`protocol_filter`, `selected_network`) persist in localStorage.
 - **Pinia stores**: Each domain (prices, leases, balances, etc.) has its own store with `initialize()` and `cleanup()` methods
 - **configStore as source of truth**: Protocol configuration, position types, and gated data come from `configStore` (fetched from backend), not hardcoded frontend config
 
@@ -188,7 +188,7 @@ cargo test -- --nocapture     # Show println! output
 ## Key Patterns
 
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests
-- **Browser HTTP caching**: Stores rely on browser HTTP cache (backed by backend `Cache-Control` headers) instead of manual localStorage caching. Only user preferences persist in localStorage.
+- **Browser HTTP caching**: Global data uses backend `Cache-Control` headers. User-specific endpoints use `no-store`. Only user preferences persist in localStorage.
 - **Pinia stores**: Each domain has its own store with `initialize()` and `cleanup()` methods
 - **WebSocket subscriptions**: Real-time updates for prices, balances, leases, staking, tx_status
 - **Transaction enrichment**: `/api/etl/txs` is a custom handler (not raw proxy) that decodes protobuf, filters system txs, adds `data` field, and detects swap vs transfer for IBC messages via `is_swap` field (bech32 address comparison). See `backend/src/handlers/transactions.rs`

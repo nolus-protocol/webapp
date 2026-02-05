@@ -551,17 +551,24 @@ Returns all validators.
 
 **Response:**
 ```json
-{
-  "validators": [
-    {
-      "operator_address": "nolusvaloper1...",
-      "moniker": "Validator Name",
-      "commission": "0.05",
-      "voting_power": "1000000",
-      "status": "BOND_STATUS_BONDED"
-    }
-  ]
-}
+[
+  {
+    "operator_address": "nolusvaloper1...",
+    "moniker": "Validator Name",
+    "identity": "ABCD1234",
+    "website": "https://example.com",
+    "description": "A validator",
+    "commission_rate": "0.050000000000000000",
+    "max_commission_rate": "0.200000000000000000",
+    "max_commission_change_rate": "0.010000000000000000",
+    "tokens": "1000000000",
+    "delegator_shares": "1000000000.000000000000000000",
+    "unbonding_height": "0",
+    "unbonding_time": "1970-01-01T00:00:00Z",
+    "status": "bonded",
+    "jailed": false
+  }
+]
 ```
 
 ### GET /api/staking/positions

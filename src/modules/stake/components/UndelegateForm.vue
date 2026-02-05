@@ -54,10 +54,9 @@
     <Button
       size="large"
       severity="primary"
-      :label="$t('message.delegate')"
+      :label="$t('message.undelegate')"
       @click="onNextClick"
-      :loading="loading"
-      :disabled="disabled"
+      :loading="disabled"
     />
     <p class="text-center text-12 text-typography-secondary">
       {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.delegateEstimation }}{{ $t("message.sec") }}
@@ -76,7 +75,6 @@ import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { useAsyncOperation } from "@/common/composables";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -93,7 +91,6 @@ const i18n = useI18n();
 
 const input = ref("0");
 const validationError = ref("");
-const { loading, run } = useAsyncOperation();
 const disabled = ref(false);
 const loadDelegated = inject("loadDelegated", () => false);
 const onClose = inject("close", () => {});
@@ -167,46 +164,44 @@ function validateInputs() {
 }
 
 async function undelegate() {
-  await run(async () => {
-    if (!wallet.wallet) return;
+  if (!wallet.wallet) return;
 
-    const amountToTransfer = CurrencyUtils.convertNolusToUNolus(input.value);
+  const amountToTransfer = CurrencyUtils.convertNolusToUNolus(input.value);
 
-    let amountToTransferDecimal = amountToTransfer.amount.toDec();
-    const transactions = [];
+  let amountToTransferDecimal = amountToTransfer.amount.toDec();
+  const transactions = [];
 
-    for (const delegation of stakingStore.delegations) {
-      const amount = new Dec(delegation.balance.amount);
-      const rest = amountToTransferDecimal.sub(amount);
+  for (const delegation of stakingStore.delegations) {
+    const amount = new Dec(delegation.balance.amount);
+    const rest = amountToTransferDecimal.sub(amount);
 
-      if (rest.isNegative() || rest.isZero()) {
-        const transfer = new Dec(amountToTransferDecimal.toString());
-        transactions.push({
-          validator: delegation.validator_address,
-          amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
-        });
-        break;
-      } else {
-        const transfer = new Dec(amount.toString());
-        transactions.push({
-          validator: delegation.validator_address,
-          amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
-        });
-      }
-
-      amountToTransferDecimal = rest;
+    if (rest.isNegative() || rest.isZero()) {
+      const transfer = new Dec(amountToTransferDecimal.toString());
+      transactions.push({
+        validator: delegation.validator_address,
+        amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
+      });
+      break;
+    } else {
+      const transfer = new Dec(amount.toString());
+      transactions.push({
+        validator: delegation.validator_address,
+        amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
+      });
     }
 
-    const { txBytes } = await wallet.wallet.simulateUndelegateTx(transactions);
+    amountToTransferDecimal = rest;
+  }
 
-    await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-    await Promise.all([loadDelegated(), balancesStore.fetchBalances(), stakingStore.fetchPositions()]);
-    historyStore.loadActivities();
-    onClose();
-    onShowToast({
-      type: ToastType.success,
-      message: i18n.t("message.undelegate-successful")
-    });
+  const { txBytes } = await wallet.wallet.simulateUndelegateTx(transactions);
+
+  await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+  await Promise.all([loadDelegated(), balancesStore.fetchBalances(), stakingStore.fetchPositions()]);
+  historyStore.loadActivities();
+  onClose();
+  onShowToast({
+    type: ToastType.success,
+    message: i18n.t("message.undelegate-successful")
   });
 }
 </script>

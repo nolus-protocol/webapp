@@ -17,6 +17,7 @@
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
+import { useStakingStore } from "@/common/stores/staking";
 import { Logger, NetworkUtils, Utils } from "@/common/utils";
 import { NATIVE_ASSET, STAKING } from "@/config/global";
 import { inject, ref } from "vue";
@@ -29,6 +30,7 @@ const loading = ref(false);
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
+const stakingStore = useStakingStore();
 const i18n = useI18n();
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -94,7 +96,7 @@ async function delegate() {
     const { txBytes } = await wallet.wallet.simulateRedelegateTx(delegations);
     await wallet.wallet.broadcastTx(txBytes as Uint8Array);
 
-    await Promise.all([loadDelegated(), balancesStore.fetchBalances()]);
+    await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
     historyStore.loadActivities();
 
     onShowToast({
@@ -148,7 +150,4 @@ async function getValidators() {
   return loadedValidators;
 }
 
-function loadDelegated(): any {
-  throw new Error("Function not implemented.");
-}
 </script>

@@ -39,7 +39,7 @@ export const useStakingStore = defineStore("staking", () => {
   let unsubscribe: Unsubscribe | null = null;
 
   // Computed
-  const hasPositions = computed(() => delegations.value.length > 0);
+  const hasPositions = computed(() => delegations.value.length > 0 || unbonding.value.length > 0);
   const validatorCount = computed(() => validators.value.length);
 
   const activeValidators = computed(() =>

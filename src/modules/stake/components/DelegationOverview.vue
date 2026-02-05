@@ -82,24 +82,28 @@
         />
       </template>
 
-      <div
-        v-if="!showEmpty"
-        class="flex items-center gap-2 text-18 font-semibold"
-      >
-        {{ $t("message.validator-distribution") }}
-        <Tooltip
-          position="top"
-          :content="$t('message.validator-distribution-tooltip')"
-        >
-          <SvgIcon
-            name="help"
-            class="rounded-full"
-            size="s"
-        /></Tooltip>
-      </div>
+      <template v-if="validators.length > 0">
+        <div class="flex items-center gap-2 text-18 font-semibold">
+          {{ $t("message.validator-distribution") }}
+          <Tooltip
+            position="top"
+            :content="$t('message.validator-distribution-tooltip')"
+          >
+            <SvgIcon
+              name="help"
+              class="rounded-full"
+              size="s"
+          /></Tooltip>
+        </div>
+        <DelegationTable
+          :showEmpty="false"
+          :validators="validators"
+        />
+      </template>
       <DelegationTable
-        :showEmpty="showEmpty"
-        :validators="validators"
+        v-if="showEmpty && validators.length === 0"
+        :showEmpty="true"
+        :validators="[]"
       />
     </div>
   </Widget>

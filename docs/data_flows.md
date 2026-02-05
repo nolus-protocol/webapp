@@ -1364,6 +1364,8 @@ Staking data comes from the Cosmos SDK staking and distribution modules.
         }
       },
       "tokens": "9806234167662",
+      "unbonding_height": "0",
+      "unbonding_time": "1970-01-01T00:00:00Z",
       "status": "BOND_STATUS_BONDED",
       "jailed": false
     }
@@ -1383,6 +1385,8 @@ Staking data comes from the Cosmos SDK staking and distribution modules.
     "website": "https://stakecito.com/",
     "commission_rate": "0.050000000000000000",
     "tokens": "9806234167662",
+    "unbonding_height": "0",
+    "unbonding_time": "1970-01-01T00:00:00Z",
     "status": "bonded",
     "jailed": false
   }
@@ -1393,6 +1397,7 @@ Staking data comes from the Cosmos SDK staking and distribution modules.
 1. Flattened nested `description` object
 2. Flattened `commission.commission_rates`
 3. Simplified status: `BOND_STATUS_BONDED` → `bonded`
+4. `unbonding_height` and `unbonding_time` passed through as-is
 
 ### Step 3: Staking Positions
 
@@ -2275,10 +2280,14 @@ VITE_APP_NETWORKS=mainnet
 | Validators | 5 minutes | None | On-demand |
 | User balances | None (real-time) | None (`no-store`) | WebSocket |
 | User leases | None (real-time) | None (`no-store`) | CometBFT Tx wasm event (500ms debounce) + WebSocket push |
+| Staking positions | None (real-time) | None (`no-store`) | WebSocket + fetch after tx |
+| Earn positions | None (real-time) | None (`no-store`) | Fetch after tx |
 | Earn pools | 5 minutes | None | CometBFT Tx wasm event (10s debounce) |
 | Stats (TVL, etc.) | 60-120 seconds | Browser HTTP cache (`max-age=60-120`) | On-demand |
 | Campaigns | 30 seconds | Browser HTTP cache (`max-age=30`) | On-demand |
-| Referrals | 30 seconds | Browser HTTP cache (`max-age=30`) | On-demand |
+| Referrals | None (user-specific) | None (`no-store`) | On-demand |
+| Swap status/history | None (user-specific) | None (`no-store`) | Polling / on-demand |
+| Zero-interest data | None (user-specific) | None (`no-store`) | On-demand |
 | User analytics | None | In-memory only | On wallet connect |
 
 ---
