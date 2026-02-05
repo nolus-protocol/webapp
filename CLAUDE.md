@@ -49,8 +49,20 @@ Browser → Rust Backend (port 3000) → External APIs (ETL, Skip, Chain RPC)
 
 1. **Frontend stores** (`src/common/stores/`) call **BackendApi** (`src/common/api/BackendApi.ts`)
 2. **BackendApi** makes HTTP requests to `/api/*` endpoints
-3. **Backend handlers** (`backend/src/handlers/`) fetch from external APIs with caching (Moka)
+3. **Backend handlers** (`backend/src/handlers/`) read from `AppDataCache` (lock-free `Cached<T>` values populated by background refresh tasks)
 4. **WebSocket** provides real-time updates for prices, balances, leases, and transaction status
+
+### Backend Cache Model
+
+The backend uses a **background-refresh** architecture (`data_cache.rs` + `refresh.rs`):
+
+- **`Cached<T>`** — lock-free cached value using `arc-swap`. One writer (background task), many readers (handlers). Methods: `load()`, `store()`, `age_secs()`.
+- **`AppDataCache`** — single struct holding all 15 `Cached<T>` fields (app_config, prices, currencies, pools, validators, etc.)
+- **Background refresh tasks** (`refresh.rs`) — one `tokio::spawn` per data type, refreshing on fixed intervals (15s–300s). All chain/ETL/disk fetching happens here.
+- **Handlers never fetch** — they read from cache via `data_cache.field.load()` and return 503 (`ServiceUnavailable`) if the cache isn't populated yet.
+- **Chain query semaphore** — `ChainClient` limits concurrent LCD requests (max 12) to prevent burst overload on cold start.
+- **Warm-up on startup** — `warm_essential_data()` runs before the server accepts requests, populating critical caches (gated config → filter context → protocol contracts → currencies → prices).
+- **Admin config writes** trigger immediate refresh of affected caches via `trigger_gated_refresh()` in `gated_admin.rs`.
 
 ### Key Patterns
 
@@ -66,8 +78,9 @@ src/
 ├── common/
 │   ├── api/              # BackendApi (REST), WebSocketClient (real-time)
 │   ├── stores/           # Pinia stores: prices, config, balances, leases, earn, staking, stats, analytics, etc.
+│   ├── composables/      # Vue composables (useNetworkCurrency, useValidation, useAsyncData)
 │   ├── components/       # Shared Vue components
-│   └── utils/            # Utilities (LeaseCalculator, PriceLookup, EtlApi, etc.)
+│   └── utils/            # Utilities (LeaseUtils, CurrencyLookup, PriceLookup, etc.)
 ├── modules/              # Feature modules (dashboard, leases, earn, stake, vote, etc.)
 │   └── <module>/view.vue # Layout wrapper with <router-view />, children in components/
 └── test/setup.ts         # Vitest setup (mocks fetch, WebSocket, Pinia)
@@ -78,11 +91,13 @@ backend/
 │   ├── handlers/         # HTTP handlers by domain (leases, earn, staking, swap, etc.)
 │   │   ├── gated_*.rs    # Gated propagation endpoints (assets, protocols, networks)
 │   │   ├── gated_admin.rs # Admin CRUD for gated config
+│   │   ├── locales.rs    # Translation locale serving
 │   │   └── transactions.rs # Transaction enrichment (protobuf decode, filtering)
 │   ├── propagation/      # Gated propagation module (filter, merge, validate)
 │   ├── external/         # API clients (etl, skip, chain, referral, zero_interest)
 │   ├── config_store/     # Config loading (gated_types.rs, storage.rs)
-│   ├── cache.rs          # Moka cache wrapper
+│   ├── data_cache.rs     # Cached<T>, AppDataCache (lock-free background-refresh cache)
+│   ├── refresh.rs        # Background refresh tasks (one per data type)
 │   └── middleware.rs     # Rate limiting, auth, cache-control
 └── config/
     ├── gated/            # Gated propagation config files
@@ -121,6 +136,18 @@ ETL_API_URL=https://etl-internal.nolus.network
 2. Add route in `backend/src/main.rs` (`create_router` function)
 3. Add method in `src/common/api/BackendApi.ts`
 4. Add types in `src/common/api/types/`
+
+### API Endpoint Taxonomy
+
+Domain-specific config lives next to its domain, not under a generic `/api/config/*` namespace:
+
+| Domain | Endpoint | Handler |
+|--------|----------|---------|
+| Leases | `/api/leases/config/{protocol}` | `handlers::leases::get_lease_config` |
+| Swap | `/api/swap/config` | `handlers::swap::get_swap_config` |
+| Governance | `/api/governance/hidden-proposals` | `handlers::governance::get_hidden_proposals` |
+| Locales | `/api/locales/{lang}` | `handlers::locales::get_locale` |
+| App config | `/api/config` | `handlers::config::get_config` |
 
 ### Add Pinia Store
 
@@ -173,7 +200,12 @@ cargo test -- --nocapture     # Show println! output
   - `configStore.getNetworkFilterOptions()` - returns network options for filter dropdowns
   - `configStore.assetIcons` - maps tickers to icon URLs from gated config
   - `getLpnByProtocol(protocol)` - gets the LPN (stable) currency for a protocol
-- **Swap routing**: Swaps use Skip API constrained to IBC-only bridges (`bridges: ["IBC"]`) and filtered to the user's selected network's venue. Only Cosmos wallets are supported for swaps (no EVM/CCTP paths). Config uses tickers in `swap-settings.json` (resolved to IBC denoms at runtime via ETL). Swap venues are defined per-network in `network-config.json` (Osmosis, Neutron). Cosmos transfers are built dynamically from ETL `bank_symbol`/`dex_symbol`. See `backend/src/handlers/config.rs:fetch_skip_route_config_internal()` and `src/modules/assets/components/SwapForm.vue`
+  - `configStore.getCurrencyByTickerForNetwork(ticker, network)` - resolves ticker preferring the selected network's protocols
+  - `configStore.getCurrencyByKey(key)` - looks up by full `TICKER@PROTOCOL` key
+- **Network-aware currency resolution**: The same ticker (e.g., `USDC_NOBLE`) can exist on multiple networks with different IBC denoms. Currency resolution is centralized in two layers:
+  - **CurrencyLookup utility** (`src/common/utils/CurrencyLookup.ts`): `getCurrencyByTickerForProtocol(ticker, protocol)` for protocol-context (leases, earn, history), `getCurrencyByTickerForNetwork(ticker)` for network-context (assets, dashboard, receive). **Never use `getCurrencyByTicker()` for cross-network currencies** — it returns the first match ignoring the selected network. Only safe for globally unique tickers like NLS.
+  - **`useNetworkCurrency` composable** (`src/common/composables/useNetworkCurrency.ts`): For Vue components needing enriched asset data. Returns `ResolvedAsset` with currency, price, balance, earn status, APR. Entry points: `resolveForNetwork(ticker)`, `resolveForProtocol(ticker, protocol)`, `getNetworkAssets()`. Used by `AssetsTable.vue` and `DashboardAssets.vue`.
+- **Swap routing**: Swaps use Skip API constrained to IBC-only bridges (`bridges: ["IBC"]`) and filtered to the user's selected network's venue. Only Cosmos wallets are supported for swaps (no EVM/CCTP paths). Config uses tickers in `swap-settings.json` (resolved to IBC denoms at runtime via ETL). Swap venues are defined per-network in `network-config.json` (Osmosis, Neutron). Cosmos transfers are built dynamically from ETL `bank_symbol`/`dex_symbol`. See `backend/src/refresh.rs:refresh_swap_config()` and `src/modules/assets/components/SwapForm.vue`
 - **Network-aware balance deduplication**: `filteredBalances` in `src/common/stores/balances/index.ts` deduplicates currencies by ticker, preferring the IBC denom whose protocol belongs to the user's selected network (via `configStore.protocolFilter`)
 - **Frontend PnL calculation**: `LeaseCalculator.calculatePnl()` computes PnL on the frontend from asset value, debt, and downpayment. The backend `lease.pnl` field is not used for display.
 - **ETL chart data**: Price series (`/api/etl/prices`) returns raw `[[timestamp, price], ...]` arrays; PnL over time (`/api/etl/pnl-over-time`) returns raw `[{amount, date}, ...]` arrays. Both are proxied as-is (not wrapped in response objects). Note: `pnl-over-time` expects a **lease contract address**, not a wallet address.
@@ -207,7 +239,7 @@ Navigation menus (`DesktopMenu.vue`, `MobileMenu.vue`) generate links from the e
 ## Tech Stack
 
 - **Frontend**: Vue 3.5, TypeScript 5.8, Pinia 3, Vite 7, Tailwind CSS, vue-i18n
-- **Backend**: Rust (Axum, Tokio, Moka cache, reqwest)
+- **Backend**: Rust (Axum, Tokio, arc-swap, reqwest)
 - **Blockchain**: CosmJS, @nolus/nolusjs, cosmrs
 - **Supported Networks**: Nolus, Osmosis, Neutron (configured via `src/networks/config.ts` and `src/config/global/networks.ts`)
 - **Supported Wallets**: Keplr, Leap, Ledger (USB + Bluetooth), Phantom (EVM via MetaMaskWallet class), Solflare (Solana)
@@ -242,6 +274,7 @@ Extended documentation is available in the `docs/` folder:
 - `backend api enrichments and proxy.md` - Gated propagation system + transaction enrichment details
 - `translations.md` - Translation management system
 - `protocol architecture.md` - Protocol and contract architecture
+- `websocket-subscriptions-proposal.md` - Future proposal: CometBFT WebSocket event subscriptions to replace timer-based polling in refresh tasks
 
 ## Network & Wallet Architecture
 

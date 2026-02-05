@@ -90,7 +90,8 @@ impl EtlClient {
         let url = self.url().endpoint("pools");
         debug!("Fetching pools from {}", url);
 
-        let response: EtlPoolsResponse = self.client
+        let response: EtlPoolsResponse = self
+            .client
             .get(&url)
             .send()
             .await
@@ -100,7 +101,7 @@ impl EtlClient {
             .await?
             .parse_json(API_NAME, "pools")
             .await?;
-        
+
         Ok(response.protocols)
     }
 

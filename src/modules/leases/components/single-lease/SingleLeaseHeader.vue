@@ -60,9 +60,14 @@
             </template>
           </div>
           <div class="hidden gap-1 text-14 text-typography-default md:flex">
-            {{ $t("message.opened-on") }}:<span class="font-semibold">{{
-              lease?.opened_at ? formatDate(lease.opened_at) : ""
-            }}</span>
+            {{ $t("message.opened-on") }}:<span class="font-semibold">
+              <div
+                v-if="loading"
+                class="skeleton-box rounded-[4px]"
+                :style="[{ width: '80px', height: '16px' }]"
+              ></div>
+              <template v-else>{{ lease?.opened_at ? formatDate(lease.opened_at) : "" }}</template>
+            </span>
           </div>
           <div class="hidden gap-1 text-14 text-typography-default md:flex">
             {{ $t("message.lease-size") }}:<span class="font-semibold">

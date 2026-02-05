@@ -21,12 +21,12 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::error::AppError;
-use crate::translations::{
-    extract_placeholders, MissingKey, PendingStatus,
-    PendingTranslation, TranslationSource, TranslationStorage,
-};
 use crate::translations::audit::AuditAction;
 use crate::translations::openai::{OpenAIClient, TranslationInput};
+use crate::translations::{
+    extract_placeholders, MissingKey, PendingStatus, PendingTranslation, TranslationSource,
+    TranslationStorage,
+};
 use crate::AppState;
 
 // =========================================================================
@@ -301,9 +301,7 @@ pub async fn list_pending(
         _ => None,
     });
 
-    let pending = storage
-        .list_pending(query.lang.as_deref(), status)
-        .await?;
+    let pending = storage.list_pending(query.lang.as_deref(), status).await?;
 
     // Filter by batch_id if specified
     let filtered: Vec<_> = if let Some(batch_id) = &query.batch_id {
@@ -380,7 +378,9 @@ pub async fn edit_pending(
         .edit_pending(&id, &request.value, admin_user)
         .await?;
 
-    Ok(Json(serde_json::json!({ "status": "edited_and_approved", "id": id })))
+    Ok(Json(
+        serde_json::json!({ "status": "edited_and_approved", "id": id }),
+    ))
 }
 
 /// POST /admin/translations/pending/approve-batch
@@ -511,7 +511,7 @@ pub async fn get_audit_log(
     let storage = get_translation_storage(&state)?;
 
     let limit = query.limit.unwrap_or(100);
-    
+
     // Parse action filter if provided
     let action = query.action.as_deref().and_then(|a| match a {
         "approve" => Some(AuditAction::Approve),
@@ -572,7 +572,8 @@ fn get_openai_client(state: &AppState) -> Result<&OpenAIClient, AppError> {
 /// Load translation context from config file
 async fn load_translation_context(_state: &AppState) -> Option<String> {
     // Default context for Nolus translations
-    Some(r#"Nolus is a DeFi money market protocol built on Cosmos SDK.
+    Some(
+        r#"Nolus is a DeFi money market protocol built on Cosmos SDK.
 
 Key concepts:
 - Lease: A leveraged position where users borrow to amplify exposure
@@ -582,7 +583,9 @@ Key concepts:
 - NLS: Native Nolus token used for governance and staking
 
 Financial terms should maintain technical accuracy.
-Keep translations concise and clear for UI elements."#.to_string())
+Keep translations concise and clear for UI elements."#
+            .to_string(),
+    )
 }
 
 /// Load glossary from config file

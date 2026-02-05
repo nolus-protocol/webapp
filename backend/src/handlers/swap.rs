@@ -177,10 +177,13 @@ pub async fn get_quote(
         field: Some("amount".to_string()),
         details: None,
     })?;
-    let amount_out: f64 = route.amount_out.parse().map_err(|_| AppError::ExternalApi {
-        api: "Skip".to_string(),
-        message: format!("Invalid amount_out from Skip API: {}", route.amount_out),
-    })?;
+    let amount_out: f64 = route
+        .amount_out
+        .parse()
+        .map_err(|_| AppError::ExternalApi {
+            api: "Skip".to_string(),
+            message: format!("Invalid amount_out from Skip API: {}", route.amount_out),
+        })?;
     let exchange_rate = if amount_in > 0.0 {
         format!("{:.8}", amount_out / amount_in)
     } else {
@@ -449,6 +452,23 @@ pub async fn track_transaction(
 }
 
 // ============================================================================
-// Helper Functions
+// Swap Configuration
 // ============================================================================
 
+/// GET /api/swap/config
+/// Returns Skip route configuration with dynamically generated transfers from ETL data.
+/// Reads from background-refreshed cache (zero latency).
+pub async fn get_swap_config(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let result =
+        state
+            .data_cache
+            .swap_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Swap config not yet available".to_string(),
+            })?;
+
+    Ok(Json(result))
+}

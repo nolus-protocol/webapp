@@ -177,8 +177,8 @@ import {
   Button,
   Dropdown,
   Radio,
-  Size,
   Slider,
+  Size,
   type AssetItemProps,
   AssetItem,
   ToastType,
@@ -187,7 +187,6 @@ import {
 } from "web-components";
 import { RouteNames } from "@/router";
 import { tabs } from "../types";
-
 import LongLeaseDetails from "@/modules/leases/components/new-lease/LongLeaseDetails.vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
@@ -523,7 +522,7 @@ function isDownPaymentAmountValid() {
     const isLowerThanOrEqualsToZero = new Dec(downPaymentAmountInMinimalDenom.amount || "0").lte(new Dec(0));
 
     const isGreaterThanWalletBalance = new Int(downPaymentAmountInMinimalDenom.amount.toString() || "0").gt(
-      selectedDownPaymentCurrency?.balance?.amount
+      new Int(selectedDownPaymentCurrency?.balance?.amount ?? "0")
     );
 
     if (isLowerThanOrEqualsToZero) {

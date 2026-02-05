@@ -101,7 +101,10 @@ export const usePricesStore = defineStore("prices", () => {
    * Fetch prices from backend
    */
   async function fetchPrices(): Promise<void> {
-    loading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      loading.value = true;
+    }
     error.value = null;
 
     try {
@@ -111,7 +114,9 @@ export const usePricesStore = defineStore("prices", () => {
       error.value = e instanceof Error ? e.message : "Failed to fetch prices";
       console.error("[PricesStore] Failed to fetch prices:", e);
     } finally {
-      loading.value = false;
+      if (isInitialLoad) {
+        loading.value = false;
+      }
     }
   }
 

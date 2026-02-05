@@ -21,5 +21,4 @@ pub mod validator;
 
 pub use filter::PropagationFilter;
 pub use merger::PropagationMerger;
-pub use user_data_filter::build_filter_context;
 pub use validator::PropagationValidator;

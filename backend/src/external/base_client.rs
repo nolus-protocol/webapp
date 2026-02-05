@@ -235,12 +235,7 @@ pub trait ExternalApiClient: Send + Sync {
 
     /// Create a request error
     fn request_error(&self, context: &str, error: reqwest::Error) -> AppError {
-        error!(
-            "{} {} request failed: {}",
-            self.api_name(),
-            context,
-            error
-        );
+        error!("{} {} request failed: {}", self.api_name(), context, error);
         AppError::ExternalApi {
             api: self.api_name().to_string(),
             message: format!("{}: {}", context, error),
@@ -313,10 +308,7 @@ mod tests {
             base_url: "https://api.example.com".to_string(),
             bearer_token: None,
         };
-        assert_eq!(
-            client.build_url("users"),
-            "https://api.example.com/users"
-        );
+        assert_eq!(client.build_url("users"), "https://api.example.com/users");
     }
 
     #[test]
@@ -325,10 +317,7 @@ mod tests {
             base_url: "https://api.example.com/".to_string(),
             bearer_token: None,
         };
-        assert_eq!(
-            client.build_url("users"),
-            "https://api.example.com/users"
-        );
+        assert_eq!(client.build_url("users"), "https://api.example.com/users");
     }
 
     #[test]

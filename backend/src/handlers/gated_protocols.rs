@@ -10,12 +10,9 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::debug;
 
-use crate::cache_keys;
 use crate::error::AppError;
 use crate::handlers::common_types::{CurrencyDisplayInfo, ProtocolContracts};
-use crate::handlers::currencies::get_prices;
 use crate::propagation::PropagationFilter;
 use crate::AppState;
 
@@ -78,88 +75,20 @@ pub struct ProtocolCurrenciesResponse {
 
 /// GET /api/protocols
 /// Returns all configured protocols
+/// Reads from background-refreshed cache (zero latency).
 pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
-    let result = state
-        .cache
-        .config
-        .get_or_fetch(cache_keys::gated::PROTOCOLS, || {
-            let state = state.clone();
-            async move { fetch_protocols_internal(state).await }
-        })
-        .await
-        .map_err(AppError::Internal)?;
-
-    let response: ProtocolsResponse = serde_json::from_value(result)
-        .map_err(|e| AppError::Internal(format!("Failed to deserialize protocols: {}", e)))?;
+    let response =
+        state
+            .data_cache
+            .gated_protocols
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Protocols not yet available".to_string(),
+            })?;
 
     Ok(Json(response))
-}
-
-/// Internal function to fetch and merge protocols
-async fn fetch_protocols_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching gated protocols");
-
-    // Load gated configs
-    let currency_config = state
-        .config_store
-        .load_currency_display()
-        .await
-        .map_err(|e| format!("Failed to load currency display config: {}", e))?;
-
-    let network_config = state
-        .config_store
-        .load_gated_network_config()
-        .await
-        .map_err(|e| format!("Failed to load network config: {}", e))?;
-
-    // Fetch ETL data
-    let etl_protocols = state
-        .etl_client
-        .fetch_protocols()
-        .await
-        .map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
-
-    // Filter and merge protocols
-    let filtered_protocols =
-        PropagationFilter::filter_protocols(&etl_protocols, &currency_config, &network_config);
-
-    let protocols: Vec<ProtocolResponse> = filtered_protocols
-        .iter()
-        .filter_map(|p| {
-            let lpn_display = currency_config.currencies.get(&p.lpn_symbol)?;
-            if !lpn_display.is_configured() {
-                return None;
-            }
-
-            Some(ProtocolResponse {
-                protocol: p.name.clone(),
-                network: p.network.clone().unwrap_or_default(),
-                dex: p.dex.clone().unwrap_or_default(),
-                position_type: p.position_type.clone(),
-                lpn: p.lpn_symbol.clone(),
-                lpn_display: CurrencyDisplayInfo {
-                    ticker: p.lpn_symbol.clone(),
-                    icon: lpn_display.icon.clone(),
-                    display_name: lpn_display.display_name.clone(),
-                    short_name: lpn_display
-                        .short_name
-                        .clone()
-                        .unwrap_or_else(|| p.lpn_symbol.clone()),
-                    color: lpn_display.color.clone(),
-                },
-                contracts: ProtocolContracts::from(&p.contracts),
-            })
-        })
-        .collect();
-
-    let response = ProtocolsResponse {
-        count: protocols.len(),
-        protocols,
-    };
-
-    serde_json::to_value(&response).map_err(|e| format!("Failed to serialize protocols: {}", e))
 }
 
 /// GET /api/protocols/:protocol/currencies
@@ -172,21 +101,32 @@ pub async fn get_protocol_currencies(
     State(state): State<Arc<AppState>>,
     Path(protocol): Path<String>,
 ) -> Result<Json<ProtocolCurrenciesResponse>, AppError> {
-    debug!("Fetching currencies for protocol: {}", protocol);
+    // Read gated config from cache
+    let gated =
+        state
+            .data_cache
+            .gated_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Gated config not yet available".to_string(),
+            })?;
+    let currency_config = gated.currency_display;
+    let network_config = gated.network_config;
+    let lease_rules = gated.lease_rules;
 
-    // Load gated configs
-    let currency_config = state.config_store.load_currency_display().await?;
-
-    let network_config = state.config_store.load_gated_network_config().await?;
-
-    let lease_rules = state.config_store.load_lease_rules().await?;
-
-    // Fetch ETL data
+    // Fetch ETL data (needed for per-protocol currency detail)
     let etl_currencies = state.etl_client.fetch_currencies().await?;
     let etl_protocols = state.etl_client.fetch_protocols().await?;
 
-    // Fetch Oracle prices (on-chain)
-    let prices_response = get_prices(State(state.clone())).await?;
+    // Read prices from cache
+    let prices_response =
+        state
+            .data_cache
+            .prices
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Prices not yet available".to_string(),
+            })?;
 
     // Verify protocol exists and is configured
     let configured_protocols =
@@ -263,7 +203,6 @@ pub async fn get_protocol_currencies(
             // Get protocol-specific price from Oracle
             let price_key = format!("{}@{}", c.ticker, protocol);
             let price = prices_response
-                .0
                 .prices
                 .get(&price_key)
                 .map(|p| p.price_usd.clone());
@@ -299,12 +238,17 @@ pub async fn get_network_protocols(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
-    debug!("Fetching protocols for network: {}", network);
-
-    // Load gated configs
-    let currency_config = state.config_store.load_currency_display().await?;
-
-    let network_config = state.config_store.load_gated_network_config().await?;
+    // Read gated config from cache
+    let gated =
+        state
+            .data_cache
+            .gated_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Gated config not yet available".to_string(),
+            })?;
+    let currency_config = gated.currency_display;
+    let network_config = gated.network_config;
 
     // Check network is configured
     if !network_config

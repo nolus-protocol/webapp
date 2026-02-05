@@ -17,7 +17,6 @@ use std::sync::Arc;
 use tracing::{debug, warn};
 
 use crate::error::AppError;
-use crate::propagation::build_filter_context;
 use crate::query_types::AddressQuery;
 use crate::AppState;
 
@@ -119,49 +118,44 @@ const INTEREST_DECIMALS: u32 = 7;
 
 /// GET /api/earn/pools
 /// Returns all earn pools with current APY and utilization
-/// Uses caching with request coalescing to prevent thundering herd
-///
-/// Pools are filtered based on gated configuration - only configured protocols are returned
+/// Reads from background-refreshed cache. Pools are filtered by gated configuration.
 pub async fn get_pools(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<EarnPool>>, AppError> {
     debug!("Getting all earn pools");
 
-    // Build filter context for gated filtering
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+    // Read filter context and pools from cache
+    let filter_ctx =
+        state
+            .data_cache
+            .filter_context
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Filter context not yet available".to_string(),
+            })?;
 
-    // Use get_or_fetch to coalesce concurrent requests
-    let result = state
-        .cache
-        .data
-        .get_or_fetch(crate::cache_keys::pools::ALL_POOLS, || {
-            let state = state.clone();
-            async move { fetch_all_pools_internal(state).await }
-        })
-        .await
-        .map_err(|e| AppError::ExternalApi {
-            api: "earn_pools".to_string(),
-            message: e,
+    let pools = state
+        .data_cache
+        .pools
+        .load()
+        .ok_or_else(|| AppError::ServiceUnavailable {
+            message: "Earn pools not yet available".to_string(),
         })?;
 
-    // Deserialize the cached JSON back to Vec<EarnPool>
-    let pools: Vec<EarnPool> = serde_json::from_value(result)
-        .map_err(|e| AppError::Internal(format!("Failed to deserialize pools: {}", e)))?;
-
-    // Load network config to get pool icons
-    let network_config = state.config_store.load_gated_network_config().await?;
+    // Load network config from cache for pool icons
+    let gated = state.data_cache.gated_config.load();
 
     // Filter pools to only configured protocols and enrich with icons
     let filtered_pools: Vec<EarnPool> = pools
         .into_iter()
         .filter(|pool| filter_ctx.is_earn_position_visible(&pool.protocol))
         .map(|mut pool| {
-            // Look up pool icon from network config
-            // Protocol format is "NETWORK-DEX-LPN", extract network part
-            if let Some(network_key) = pool.protocol.split('-').next() {
-                if let Some(network_settings) = network_config.networks.get(network_key) {
-                    if let Some(pool_config) = network_settings.pools.get(&pool.protocol) {
-                        pool.icon = Some(pool_config.icon.clone());
+            if let Some(ref gated) = gated {
+                if let Some(network_key) = pool.protocol.split('-').next() {
+                    if let Some(network_settings) = gated.network_config.networks.get(network_key) {
+                        if let Some(pool_config) = network_settings.pools.get(&pool.protocol) {
+                            pool.icon = Some(pool_config.icon.clone());
+                        }
                     }
                 }
             }
@@ -170,53 +164,6 @@ pub async fn get_pools(
         .collect();
 
     Ok(Json(filtered_pools))
-}
-
-/// Internal function to fetch all pools (called by cache)
-async fn fetch_all_pools_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    let admin_address = &state.config.protocols.admin_contract;
-
-    // Get all protocols
-    let protocols = state
-        .chain_client
-        .get_admin_protocols(admin_address)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Fetch ETL pool data for APY
-    let etl_pools = match state.etl_client.fetch_pools().await {
-        Ok(pools) => Some(pools),
-        Err(e) => {
-            warn!("Failed to fetch ETL pools for APY data: {}", e);
-            None
-        }
-    };
-
-    // Fetch all pools in parallel
-    let pool_futures: Vec<_> = protocols
-        .iter()
-        .map(|protocol| {
-            let state = state.clone();
-            let etl_pools = etl_pools.clone();
-            let protocol = protocol.clone();
-            async move { fetch_pool_info(&state, &protocol, &etl_pools).await }
-        })
-        .collect();
-
-    let pool_results = futures::future::join_all(pool_futures).await;
-
-    let pools: Vec<EarnPool> = pool_results
-        .into_iter()
-        .filter_map(|result| match result {
-            Ok(pool) => Some(pool),
-            Err(e) => {
-                tracing::error!("Failed to fetch pool: {}", e);
-                None
-            }
-        })
-        .collect();
-
-    serde_json::to_value(pools).map_err(|e| e.to_string())
 }
 
 /// GET /api/earn/pools/:protocol
@@ -229,8 +176,15 @@ pub async fn get_pool(
 ) -> Result<Json<EarnPool>, AppError> {
     debug!("Getting pool for protocol: {}", protocol);
 
-    // Build filter context and check if protocol is configured
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+    // Read filter context from cache and check if protocol is configured
+    let filter_ctx =
+        state
+            .data_cache
+            .filter_context
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Filter context not yet available".to_string(),
+            })?;
     if !filter_ctx.is_earn_position_visible(&protocol) {
         return Err(AppError::NotFound {
             resource: format!("Pool for protocol: {}", protocol),
@@ -260,8 +214,15 @@ pub async fn get_positions(
 ) -> Result<Json<EarnPositionsResponse>, AppError> {
     debug!("Getting earn positions for owner: {}", query.address);
 
-    // Build filter context for gated filtering
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+    // Read filter context from cache
+    let filter_ctx =
+        state
+            .data_cache
+            .filter_context
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Filter context not yet available".to_string(),
+            })?;
 
     let admin_address = &state.config.protocols.admin_contract;
 
@@ -462,7 +423,7 @@ pub async fn get_earn_stats(
 // Helper Functions
 // ============================================================================
 
-async fn fetch_pool_info(
+pub async fn fetch_pool_info(
     state: &AppState,
     protocol: &str,
     etl_pools: &Option<Vec<crate::external::etl::EtlPool>>,

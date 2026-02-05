@@ -19,8 +19,7 @@ use std::sync::Arc;
 use tracing::{debug, error, warn};
 
 use crate::error::AppError;
-use crate::external::chain::{ClosingLeaseInfo, LeaseStatusResponse, OpenedLeaseInfo};
-use crate::propagation::build_filter_context;
+use crate::external::chain::{AmountSpec, ClosingLeaseInfo, LeaseStatusResponse, OpenedLeaseInfo};
 use crate::query_types::{AddressWithProtocolQuery, OptionalProtocolQuery};
 use crate::AppState;
 
@@ -238,6 +237,48 @@ pub struct LeaseHistoryEntry {
 }
 
 // ============================================================================
+// Lease Configuration
+// ============================================================================
+
+/// Response for lease configuration per protocol
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LeaseConfigResponse {
+    pub protocol: String,
+    pub downpayment_ranges:
+        std::collections::HashMap<String, crate::config_store::gated_types::DownpaymentRange>,
+    pub min_asset: AmountSpec,
+    pub min_transaction: AmountSpec,
+}
+
+/// GET /api/leases/config/:protocol
+/// Returns lease validation configuration for a specific protocol.
+/// Reads from background-refreshed cache.
+pub async fn get_lease_config(
+    State(state): State<Arc<AppState>>,
+    Path(protocol): Path<String>,
+) -> Result<Json<LeaseConfigResponse>, AppError> {
+    debug!("Fetching lease config for protocol: {}", protocol);
+
+    let lease_configs =
+        state
+            .data_cache
+            .lease_configs
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Lease configs not yet available".to_string(),
+            })?;
+
+    let config = lease_configs
+        .get(&protocol)
+        .cloned()
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Lease config for protocol {}", protocol),
+        })?;
+
+    Ok(Json(config))
+}
+
+// ============================================================================
 // Constants
 // ============================================================================
 
@@ -260,8 +301,15 @@ pub async fn get_leases(
 ) -> Result<Json<LeasesResponse>, AppError> {
     debug!("Getting leases for owner: {}", query.address);
 
-    // Build filter context for gated filtering
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+    // Read filter context from cache
+    let filter_ctx =
+        state
+            .data_cache
+            .filter_context
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Filter context not yet available".to_string(),
+            })?;
 
     let admin_address = &state.config.protocols.admin_contract;
 

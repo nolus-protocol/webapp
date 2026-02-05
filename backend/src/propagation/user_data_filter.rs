@@ -414,39 +414,3 @@ mod tests {
         assert!(!ctx.is_balance_visible("DEPRECATED_TOKEN"));
     }
 }
-
-// ============================================================================
-// Helper functions for building filter context
-// ============================================================================
-
-use crate::config_store::ConfigStore;
-use crate::error::AppError;
-use crate::external::etl::EtlClient;
-
-/// Build a UserDataFilterContext from app components
-///
-/// This fetches all necessary config and ETL data to create the filter context.
-pub async fn build_filter_context(
-    config_store: &ConfigStore,
-    etl_client: &EtlClient,
-) -> Result<UserDataFilterContext, AppError> {
-    // Fetch all required data in parallel
-    let (currency_config, network_config, lease_rules, etl_protocols) = tokio::try_join!(
-        config_store.load_currency_display(),
-        config_store.load_gated_network_config(),
-        config_store.load_lease_rules(),
-        async {
-            etl_client
-                .fetch_protocols()
-                .await
-                .map_err(|e| AppError::Internal(format!("Failed to fetch ETL protocols: {}", e)))
-        }
-    )?;
-
-    Ok(UserDataFilterContext::from_config(
-        &etl_protocols,
-        &currency_config,
-        &network_config,
-        &lease_rules,
-    ))
-}

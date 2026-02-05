@@ -82,24 +82,31 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      label: i18n.t("message.days-unrealized-pnL"),
-      tickFormat: (d) => `${formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
+      label: null,
+      labelArrow: false,
+      tickFormat: (d) => `${formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`,
+      ticks: 5,
+      tickSize: 0
     },
-    x: { type: "time", label: i18n.t("message.date-capitalize") },
+    x: { type: "time", label: null },
     marks: [
       ruleY([0]),
       lineY(data_position.value, {
         x: "date",
         y: "position",
         stroke: "#3470E2",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom"
       }),
       lineY(data_position.value, {
         x: "date",
         y: "debt",
         stroke: "#FF5F3A",
-        strokeDasharray: "3, 3",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        strokeDasharray: "6, 4",
+        curve: "catmull-rom"
       })
     ]
   });

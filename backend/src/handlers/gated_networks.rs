@@ -9,12 +9,9 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tracing::debug;
 
-use crate::cache_keys;
 use crate::error::AppError;
 use crate::handlers::common_types::CurrencyDisplayInfo;
-use crate::propagation::PropagationMerger;
 use crate::AppState;
 
 /// Network response with config data
@@ -105,64 +102,20 @@ pub struct NetworkPoolsResponse {
 
 /// GET /api/networks
 /// Returns all configured networks
+/// Reads from background-refreshed cache (zero latency).
 pub async fn get_networks(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<NetworksResponse>, AppError> {
-    let result = state
-        .cache
-        .config
-        .get_or_fetch(cache_keys::gated::NETWORKS, || {
-            let state = state.clone();
-            async move { fetch_networks_internal(state).await }
-        })
-        .await
-        .map_err(AppError::Internal)?;
-
-    let response: NetworksResponse = serde_json::from_value(result)
-        .map_err(|e| AppError::Internal(format!("Failed to deserialize networks: {}", e)))?;
+    let response =
+        state
+            .data_cache
+            .gated_networks
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Networks not yet available".to_string(),
+            })?;
 
     Ok(Json(response))
-}
-
-/// Internal function to fetch and merge networks
-async fn fetch_networks_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching gated networks");
-
-    // Load gated config
-    let network_config = state
-        .config_store
-        .load_gated_network_config()
-        .await
-        .map_err(|e| format!("Failed to load network config: {}", e))?;
-
-    // Merge networks
-    let merged_networks = PropagationMerger::merge_networks(&network_config);
-
-    let networks: Vec<NetworkResponse> = merged_networks
-        .into_iter()
-        .map(|n| NetworkResponse {
-            network: n.network,
-            name: n.name,
-            chain_id: n.chain_id,
-            prefix: n.prefix,
-            rpc: n.rpc,
-            lcd: n.lcd,
-            fallback_rpc: n.fallback_rpc,
-            fallback_lcd: n.fallback_lcd,
-            gas_price: n.gas_price,
-            explorer: n.explorer,
-            icon: n.icon,
-            primary_protocol: n.primary_protocol,
-            estimation: n.estimation,
-        })
-        .collect();
-
-    let response = NetworksResponse {
-        count: networks.len(),
-        networks,
-    };
-
-    serde_json::to_value(&response).map_err(|e| format!("Failed to serialize networks: {}", e))
 }
 
 /// GET /api/networks/:network
@@ -171,10 +124,16 @@ pub async fn get_network(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,
 ) -> Result<Json<NetworkResponse>, AppError> {
-    debug!("Fetching network: {}", network);
-
-    // Load gated config
-    let network_config = state.config_store.load_gated_network_config().await?;
+    // Read gated config from cache
+    let gated =
+        state
+            .data_cache
+            .gated_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Gated config not yet available".to_string(),
+            })?;
+    let network_config = gated.network_config;
 
     let settings = network_config
         .networks
@@ -207,12 +166,17 @@ pub async fn get_network_pools(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,
 ) -> Result<Json<NetworkPoolsResponse>, AppError> {
-    debug!("Fetching pools for network: {}", network);
-
-    // Load gated configs
-    let currency_config = state.config_store.load_currency_display().await?;
-
-    let network_config = state.config_store.load_gated_network_config().await?;
+    // Read gated config from cache
+    let gated =
+        state
+            .data_cache
+            .gated_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Gated config not yet available".to_string(),
+            })?;
+    let currency_config = gated.currency_display;
+    let network_config = gated.network_config;
 
     // Check network is configured
     let network_settings = network_config

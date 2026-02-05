@@ -149,7 +149,7 @@ import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { getCurrencyByDenom, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { getCurrencyByDenom, getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { fetchEvmEndpoints } from "@/common/utils/EndpointService";
 import { coin } from "@cosmjs/stargate";
@@ -468,7 +468,7 @@ async function onSubmitCosmos() {
     if (isValid) {
       route = await getRoute();
       const networkdata = NETWORK_DATA?.supportedNetworks[network.value.key];
-      const currency = getCurrencyByTicker(networkdata.ticker);
+      const currency = getCurrencyByTickerForNetwork(networkdata.ticker);
       fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
     }
   } catch (e: Error | any) {

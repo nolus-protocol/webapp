@@ -6,16 +6,12 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use futures::future::join_all;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{debug, error, warn};
+use tracing::{debug, warn};
 
-use crate::cache_keys;
 use crate::error::AppError;
-use crate::handlers::config::get_config;
-use crate::propagation::build_filter_context;
 use crate::query_types::AddressQuery;
 use crate::AppState;
 
@@ -87,110 +83,20 @@ pub struct BalanceInfo {
 
 /// GET /api/currencies
 /// Returns full currencies data for frontend including metadata from gated config
-/// Uses request coalescing to deduplicate concurrent requests
+/// Reads from background-refreshed cache (zero latency).
 pub async fn get_currencies(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<CurrenciesResponse>, AppError> {
-    // Use get_or_fetch to coalesce concurrent requests
-    let result = state
-        .cache
-        .config
-        .get_or_fetch(cache_keys::config::CURRENCIES, || {
-            let state = state.clone();
-            async move { fetch_currencies_internal(state).await }
-        })
-        .await
-        .map_err(AppError::Internal)?;
-
-    let response: CurrenciesResponse = serde_json::from_value(result)
-        .map_err(|e| AppError::Internal(format!("Failed to deserialize currencies: {}", e)))?;
+    let response =
+        state
+            .data_cache
+            .currencies
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Currencies not yet available".to_string(),
+            })?;
 
     Ok(Json(response))
-}
-
-/// Internal function to fetch currencies from ETL
-/// Merges ETL data with display metadata from gated config
-async fn fetch_currencies_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching currencies from ETL");
-
-    // Fetch currencies from ETL (includes active and deprecated)
-    let etl_response = state
-        .etl_client
-        .fetch_currencies()
-        .await
-        .map_err(|e| format!("Failed to fetch currencies from ETL: {}", e))?;
-
-    // Load currency display config from gated config
-    let currency_config = state
-        .config_store
-        .load_currency_display()
-        .await
-        .map_err(|e| format!("Failed to load currency display config: {}", e))?;
-
-    let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
-    let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
-    let mut lease_currencies_set: std::collections::HashSet<String> =
-        std::collections::HashSet::new();
-
-    // Process ETL currencies
-    for etl_currency in etl_response.currencies {
-        // Get display metadata from gated config
-        let display = currency_config.currencies.get(&etl_currency.ticker);
-
-        // Each currency can belong to multiple protocols
-        for protocol_mapping in etl_currency.protocols {
-            let key = format!("{}@{}", etl_currency.ticker, protocol_mapping.protocol);
-            let is_native = protocol_mapping.bank_symbol == "unls";
-            let is_lpn = protocol_mapping.group == "lpn";
-
-            // Use icon from gated config or generate default
-            let icon = display
-                .map(|d| d.icon.clone())
-                .unwrap_or_else(|| format!("/assets/icons/currencies/{}.svg", etl_currency.ticker));
-
-            let currency_info = CurrencyInfo {
-                key: key.clone(),
-                ticker: etl_currency.ticker.clone(),
-                symbol: protocol_mapping.bank_symbol.clone(),
-                name: display
-                    .map(|d| d.display_name.clone())
-                    .unwrap_or_else(|| etl_currency.ticker.clone()),
-                short_name: display
-                    .and_then(|d| d.short_name.clone())
-                    .unwrap_or_else(|| etl_currency.ticker.clone()),
-                decimal_digits: etl_currency.decimal_digits,
-                bank_symbol: protocol_mapping.bank_symbol,
-                dex_symbol: protocol_mapping.dex_symbol,
-                icon,
-                native: is_native,
-                coingecko_id: display.and_then(|d| d.coingecko_id.clone()),
-                protocol: protocol_mapping.protocol.clone(),
-                group: protocol_mapping.group.clone(),
-                is_active: etl_currency.is_active,
-            };
-
-            // Track LPN currencies (only active ones)
-            if is_lpn && etl_currency.is_active {
-                lpn_currencies.push(currency_info.clone());
-            }
-
-            // Track lease currencies (only active ones)
-            if protocol_mapping.group == "lease" && etl_currency.is_active {
-                lease_currencies_set.insert(etl_currency.ticker.clone());
-            }
-
-            currencies_map.insert(key, currency_info);
-        }
-    }
-
-    let response = CurrenciesResponse {
-        currencies: currencies_map,
-        lpn: lpn_currencies,
-        lease_currencies: lease_currencies_set.into_iter().collect(),
-        map: HashMap::new(), // No longer using currency mapping
-    };
-
-    serde_json::to_value(&response).map_err(|e| format!("Failed to serialize currencies: {}", e))
 }
 
 /// GET /api/currencies/:key
@@ -220,166 +126,19 @@ pub async fn get_currency(
 
 /// GET /api/prices
 /// Returns current prices for all currencies from Oracle contracts
-/// Uses request coalescing to deduplicate concurrent requests
+/// Reads from background-refreshed cache (zero latency).
 pub async fn get_prices(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<PricesResponse>, AppError> {
-    // Use get_or_fetch to coalesce concurrent requests
-    let result = state
-        .cache
+    let response = state
+        .data_cache
         .prices
-        .get_or_fetch(cache_keys::prices::ALL_PRICES, || {
-            let state = state.clone();
-            async move { fetch_prices_internal(state).await }
-        })
-        .await
-        .map_err(AppError::Internal)?;
-
-    let response: PricesResponse = serde_json::from_value(result)
-        .map_err(|e| AppError::Internal(format!("Failed to deserialize prices: {}", e)))?;
+        .load()
+        .ok_or_else(|| AppError::ServiceUnavailable {
+            message: "Prices not yet available".to_string(),
+        })?;
 
     Ok(Json(response))
-}
-
-/// Internal function to fetch prices from all active protocols with oracle contracts
-async fn fetch_prices_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching prices from Oracle contracts");
-
-    // Get protocol config (this is also cached)
-    let config = get_config(State(state.clone()))
-        .await
-        .map_err(|e| format!("Failed to get config: {}", e))?;
-
-    // Get currencies to have decimal information for price calculations
-    let currencies = get_currencies(State(state.clone()))
-        .await
-        .map_err(|e| format!("Failed to get currencies: {}", e))?;
-    let currencies_map = currencies.0.currencies;
-
-    let mut prices = HashMap::new();
-
-    // Filter to active protocols with oracle contracts
-    let active_protocols: Vec<_> = config
-        .0
-        .protocols
-        .iter()
-        .filter(|(_, info)| info.is_active && info.contracts.oracle.is_some())
-        .collect();
-
-    // Fetch prices from all protocols in parallel
-    let price_futures: Vec<_> = active_protocols
-        .iter()
-        .map(|(protocol_name, protocol_info)| {
-            let chain_client = state.chain_client.clone();
-            let oracle = protocol_info.contracts.oracle.clone().unwrap();
-            let protocol_name = (*protocol_name).clone();
-            let currencies_map = currencies_map.clone();
-            async move {
-                let mut protocol_prices = Vec::new();
-
-                // Get base currency and stable price
-                let base_currency = match chain_client.get_base_currency(&oracle).await {
-                    Ok(bc) => bc,
-                    Err(e) => {
-                        error!(
-                            "Failed to fetch base currency from protocol {}: {}",
-                            protocol_name, e
-                        );
-                        return protocol_prices;
-                    }
-                };
-
-                let stable_price =
-                    match chain_client.get_stable_price(&oracle, &base_currency).await {
-                        Ok(sp) => sp,
-                        Err(e) => {
-                            error!(
-                                "Failed to fetch stable price from protocol {}: {}",
-                                protocol_name, e
-                            );
-                            return protocol_prices;
-                        }
-                    };
-
-                // Calculate LPN price in USD
-                let lpn_price = calculate_price(
-                    &stable_price.amount_quote.amount,
-                    &stable_price.amount.amount,
-                );
-
-                // Get LPN decimals
-                let lpn_key = format!("{}@{}", base_currency, protocol_name);
-                let lpn_decimals = currencies_map
-                    .get(&lpn_key)
-                    .map(|c| c.decimal_digits)
-                    .unwrap_or(6);
-
-                protocol_prices.push((
-                    lpn_key.clone(),
-                    PriceInfo {
-                        key: lpn_key,
-                        symbol: base_currency.clone(),
-                        price_usd: lpn_price.clone(),
-                    },
-                ));
-
-                // Get all other prices
-                match chain_client.get_oracle_prices(&oracle).await {
-                    Ok(oracle_prices) => {
-                        for price in oracle_prices.prices {
-                            let key = format!("{}@{}", price.amount.ticker, protocol_name);
-
-                            // Get asset decimals for proper price calculation
-                            let asset_decimals = currencies_map
-                                .get(&key)
-                                .map(|c| c.decimal_digits)
-                                .unwrap_or(6);
-
-                            let asset_price = calculate_price_with_decimals(
-                                &price.amount_quote.amount,
-                                &price.amount.amount,
-                                &lpn_price,
-                                asset_decimals,
-                                lpn_decimals,
-                            );
-                            protocol_prices.push((
-                                key.clone(),
-                                PriceInfo {
-                                    key,
-                                    symbol: price.amount.ticker,
-                                    price_usd: asset_price,
-                                },
-                            ));
-                        }
-                    }
-                    Err(e) => {
-                        error!(
-                            "Failed to fetch prices from protocol {}: {}",
-                            protocol_name, e
-                        );
-                    }
-                }
-
-                protocol_prices
-            }
-        })
-        .collect();
-
-    let price_results = join_all(price_futures).await;
-
-    // Merge all protocol prices into single map
-    for protocol_prices in price_results {
-        for (key, price_info) in protocol_prices {
-            prices.insert(key, price_info);
-        }
-    }
-
-    let response = PricesResponse {
-        prices,
-        updated_at: chrono::Utc::now().to_rfc3339(),
-    };
-
-    serde_json::to_value(&response).map_err(|e| format!("Failed to serialize prices: {}", e))
 }
 
 /// GET /api/balances?address=...
@@ -403,20 +162,37 @@ pub async fn get_balances(
         });
     }
 
-    // Build filter context for gated filtering
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client).await?;
+    // Read filter context from cache
+    let filter_ctx =
+        state
+            .data_cache
+            .filter_context
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Filter context not yet available".to_string(),
+            })?;
 
-    // Fetch balances, currencies, and prices in parallel
-    let (bank_balances_result, currencies_result, prices_result) = tokio::join!(
-        state.chain_client.get_all_balances(&query.address),
-        get_currencies(State(state.clone())),
-        get_prices(State(state.clone()))
-    );
+    // Read currencies and prices from cache, fetch balances from chain
+    let currencies_response =
+        state
+            .data_cache
+            .currencies
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Currencies not yet available".to_string(),
+            })?;
 
-    let bank_balances = bank_balances_result?;
-    let currencies_response = currencies_result?;
-    let prices_response = prices_result?;
-    let prices = &prices_response.0.prices;
+    let prices_response =
+        state
+            .data_cache
+            .prices
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Prices not yet available".to_string(),
+            })?;
+
+    let bank_balances = state.chain_client.get_all_balances(&query.address).await?;
+    let prices = &prices_response.prices;
 
     let mut balances = Vec::new();
     let mut total_usd = 0.0_f64;
@@ -424,7 +200,6 @@ pub async fn get_balances(
     for bank_balance in bank_balances {
         // Find currency info for this denom
         let currency = currencies_response
-            .0
             .currencies
             .values()
             .find(|c| c.bank_symbol == bank_balance.denom);

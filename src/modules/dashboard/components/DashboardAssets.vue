@@ -81,22 +81,18 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
-import { Coin, Dec } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
+import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { useConfigStore } from "@/common/stores/config";
-import { useEarnStore } from "@/common/stores/earn";
+import { useNetworkCurrency, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
-const configStore = useConfigStore();
-const earnStore = useEarnStore();
+const { getNetworkAssets } = useNetworkCurrency();
 const router = useRouter();
 const total = ref(new Dec(0));
 const hide = ref(WalletManager.getHideBalances());
@@ -115,23 +111,9 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const filteredAssets = computed(() => {
-  const balances = balancesStore.filteredBalances;
-  return balances
-    .sort((a, b) => {
-      const aAssetBalance = CurrencyUtils.calculateBalance(
-        pricesStore.prices[a.key]?.price,
-        new Coin(a.balance.denom, a.balance.amount.toString()),
-        a.decimal_digits as number
-      ).toDec();
-
-      const bAssetBalance = CurrencyUtils.calculateBalance(
-        pricesStore.prices[b.key]?.price,
-        new Coin(b.balance.denom, b.balance.amount.toString()),
-        b.decimal_digits as number
-      ).toDec();
-
-      return Number(bAssetBalance.sub(aAssetBalance).toString(8));
-    })
+  return getNetworkAssets()
+    .filter((a) => parseFloat(a.balance) > 0)
+    .sort((a, b) => b.balanceUsd - a.balanceUsd)
     .slice(0, 5);
 });
 
@@ -150,70 +132,34 @@ watch(
 );
 
 function setAvailableAssets() {
-  let totalAssets = new Dec(0);
-  balancesStore.filteredBalances.forEach((asset) => {
-    const currency = getCurrencyByDenom(asset.balance.denom);
-    const assetBalance = CurrencyUtils.calculateBalance(
-      pricesStore.prices[asset.key]?.price ?? "0",
-      new Coin(currency.ibcData, asset.balance.amount.toString()),
-      Number(currency.decimal_digits)
-    );
-    totalAssets = totalAssets.add(assetBalance.toDec());
-  });
-  total.value = totalAssets;
+  let totalAssets = 0;
+  for (const asset of getNetworkAssets()) {
+    totalAssets += asset.balanceUsd;
+  }
+  total.value = new Dec(totalAssets.toFixed(2));
 }
 
-function isEarn(denom: string) {
-  const currency = getCurrencyByDenom(denom);
-  const [_, protocol] = currency.key.split("@");
-  
-  // Check if protocol is active (gated protocols have rewards enabled)
-  const gatedProtocol = configStore.getGatedProtocol(protocol);
-  if (!gatedProtocol) {
-    return false;
+function getYield(asset: ResolvedAsset): string | undefined {
+  if (asset.isEarnable) {
+    return `${formatNumber(asset.apr, 2)}%`;
   }
-
-  const lpns = (configStore.lpn ?? []).map((item) => item.ticker);
-  return lpns.includes(currency.ticker);
-}
-
-function getApr(key: string) {
-  let [ticker] = key.split("@");
-  let asset = (configStore.lpn ?? []).find((item) => item.key == key);
-  if (!asset) {
-    asset = (configStore.lpn ?? []).find((item) => item.ticker == ticker);
-  }
-  const [_, protocol] = asset?.key.split("@") ?? [];
-  return formatNumber(earnStore.getProtocolApr(protocol) ?? 0, 2);
-}
-
-function apr(denom: string, key: string) {
-  if (isEarn(denom)) {
-    return `${getApr(key)}%`;
-  }
-
-  if (configStore.native?.ibcData == denom) {
-    return `${formatNumber(wallet.apr, 2)}%`;
+  if (asset.isNative) {
+    return `${formatNumber(asset.stakingApr, 2)}%`;
   }
 }
 
 const assets = computed<TableRowItemProps[]>(() => {
   return filteredAssets.value.map((item) => {
-    const stable_b = CurrencyUtils.calculateBalance(
-      pricesStore.prices[item.key]?.price,
-      new Coin(item.balance.denom, item.balance.amount.toString()),
-      item.decimal_digits
-    ).toDec();
-
-    const price = formatNumber(pricesStore.prices[item.key]?.price ?? "0", 4);
-    const balance = formatNumber(new Dec(item.balance.amount, item.decimal_digits).toString(3), 3);
-    const stable_balance = formatNumber(stable_b.toString(2), 2);
+    const c = item.currency;
+    const price = formatNumber(item.price, 4);
+    const balance = formatNumber(new Dec(item.balance, c.decimal_digits).toString(3), 3);
+    const stable_balance = formatNumber(item.balanceUsd.toFixed(2), 2);
     return {
       items: [
         {
-          value: item.shortName,
-          subValue: item.name,
-          image: item.icon,
+          value: c.shortName,
+          subValue: c.name,
+          image: c.icon,
           variant: "left",
           textClass: "line-clamp-1 [display:-webkit-box]"
         },
@@ -223,7 +169,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           subValue: hide.value ? "****" : `${NATIVE_CURRENCY.symbol}${stable_balance}`,
           variant: "right"
         },
-        { value: apr(item.ibcData, item.key), class: "text-typography-success md:flex hidden" }
+        { value: getYield(item), class: "text-typography-success md:flex hidden" }
       ]
     };
   });

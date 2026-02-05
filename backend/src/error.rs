@@ -34,6 +34,9 @@ pub enum AppError {
     #[error("Chain RPC error: {chain} - {message}")]
     ChainRpc { chain: String, message: String },
 
+    #[error("Service unavailable: {message}")]
+    ServiceUnavailable { message: String },
+
     #[error("Internal error: {0}")]
     Internal(String),
 }
@@ -115,6 +118,14 @@ impl IntoResponse for AppError {
                 StatusCode::BAD_GATEWAY,
                 "CHAIN_ERROR",
                 format!("{}: {}", chain, message),
+                None,
+                None,
+                None,
+            ),
+            AppError::ServiceUnavailable { message } => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "SERVICE_UNAVAILABLE",
+                message.clone(),
                 None,
                 None,
                 None,

@@ -6,9 +6,7 @@ use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::debug;
 
-use crate::cache_keys;
 use crate::error::AppError;
 use crate::external::etl::EtlProtocol;
 use crate::handlers::common_types::ProtocolContracts;
@@ -30,7 +28,7 @@ impl From<EtlProtocol> for Protocol {
     fn from(etl: EtlProtocol) -> Self {
         // Clean up dex field - ETL returns it with quotes like "\"Osmosis\""
         let dex = etl.dex.map(|d| d.trim_matches('"').to_string());
-        
+
         Self {
             name: etl.name,
             network: etl.network,
@@ -53,50 +51,53 @@ pub struct ProtocolsResponse {
 }
 
 /// GET /api/protocols
-/// Returns all protocols (active and deprecated) from ETL
+/// Returns all protocols (active and deprecated)
+/// Reads from background-refreshed app_config cache and converts to protocol view.
 pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
-    let result = state
-        .cache
-        .config
-        .get_or_fetch(cache_keys::config::PROTOCOLS, || {
-            let state = state.clone();
-            async move { fetch_protocols_internal(state).await }
-        })
-        .await
-        .map_err(AppError::Internal)?;
-
-    let response: ProtocolsResponse = serde_json::from_value(result)
-        .map_err(|e| AppError::Internal(format!("Failed to deserialize protocols: {}", e)))?;
-
-    Ok(Json(response))
-}
-
-/// Internal function to fetch protocols from ETL
-async fn fetch_protocols_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching protocols from ETL");
-
-    let etl_response = state
-        .etl_client
-        .fetch_protocols()
-        .await
-        .map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
+    // Read app_config from cache and convert to ProtocolsResponse
+    let app_config =
+        state
+            .data_cache
+            .app_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Protocols not yet available".to_string(),
+            })?;
 
     let mut protocols = HashMap::new();
-    for etl_protocol in etl_response.protocols {
-        let name = etl_protocol.name.clone();
-        protocols.insert(name, Protocol::from(etl_protocol));
+    let mut active_count = 0u32;
+    let mut deprecated_count = 0u32;
+
+    for (name, info) in &app_config.protocols {
+        if info.is_active {
+            active_count += 1;
+        } else {
+            deprecated_count += 1;
+        }
+        protocols.insert(
+            name.clone(),
+            Protocol {
+                name: info.name.clone(),
+                network: info.network.clone(),
+                dex: info.dex.clone(),
+                position_type: info.position_type.clone(),
+                lpn: info.lpn.clone(),
+                is_active: info.is_active,
+                contracts: info.contracts.clone(),
+            },
+        );
     }
 
-    let response = ProtocolsResponse {
-        protocols,
-        count: etl_response.count,
-        active_count: etl_response.active_count,
-        deprecated_count: etl_response.deprecated_count,
-    };
+    let count = active_count + deprecated_count;
 
-    serde_json::to_value(&response).map_err(|e| format!("Failed to serialize protocols: {}", e))
+    Ok(Json(ProtocolsResponse {
+        protocols,
+        count,
+        active_count,
+        deprecated_count,
+    }))
 }
 
 /// GET /api/protocols/active

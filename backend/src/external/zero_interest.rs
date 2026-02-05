@@ -352,8 +352,11 @@ impl ZeroInterestClient {
         protocol: Option<&str>,
         currency: Option<&str>,
     ) -> Result<CampaignEligibilityResponse, AppError> {
-        let mut url = format!("{}/api/v1/campaigns/check-eligibility?wallet={}", self.base_url, wallet);
-        
+        let mut url = format!(
+            "{}/api/v1/campaigns/check-eligibility?wallet={}",
+            self.base_url, wallet
+        );
+
         if let Some(p) = protocol {
             url.push_str(&format!("&protocol={}", p));
         }
@@ -375,10 +378,11 @@ impl ZeroInterestClient {
             return Err(api_error(format!("API error: {} - {}", status, body)));
         }
 
-        let wrapper: PaymentsManagerResponse<CampaignEligibilityResponse> = response
-            .json()
-            .await
-            .map_err(|e| api_error(format!("Failed to parse response: {}", e)))?;
+        let wrapper: PaymentsManagerResponse<CampaignEligibilityResponse> =
+            response
+                .json()
+                .await
+                .map_err(|e| api_error(format!("Failed to parse response: {}", e)))?;
 
         Ok(wrapper.data)
     }

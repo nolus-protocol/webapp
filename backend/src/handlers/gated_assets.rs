@@ -13,9 +13,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::debug;
 
-use crate::cache_keys;
 use crate::error::AppError;
-use crate::handlers::currencies::{get_prices, PriceInfo};
+use crate::handlers::currencies::PriceInfo;
 use crate::propagation::PropagationFilter;
 use crate::AppState;
 
@@ -90,138 +89,24 @@ pub struct ProtocolAssetDetail {
 
 /// GET /api/assets
 /// Returns deduplicated assets with display prices from primary protocol's Oracle
+/// Reads from background-refreshed cache (zero latency).
 pub async fn get_assets(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<AssetsResponse>, AppError> {
-    let result = state
-        .cache
-        .config
-        .get_or_fetch(cache_keys::gated::ASSETS, || {
-            let state = state.clone();
-            async move { fetch_assets_internal(state).await }
-        })
-        .await
-        .map_err(AppError::Internal)?;
-
-    let response: AssetsResponse = serde_json::from_value(result)
-        .map_err(|e| AppError::Internal(format!("Failed to deserialize assets: {}", e)))?;
+    let response =
+        state
+            .data_cache
+            .gated_assets
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Assets not yet available".to_string(),
+            })?;
 
     Ok(Json(response))
 }
 
-/// Internal function to fetch and merge assets
-async fn fetch_assets_internal(state: Arc<AppState>) -> Result<serde_json::Value, String> {
-    debug!("Fetching gated assets");
-
-    // Load gated configs
-    let currency_config = state
-        .config_store
-        .load_currency_display()
-        .await
-        .map_err(|e| format!("Failed to load currency display config: {}", e))?;
-
-    let network_config = state
-        .config_store
-        .load_gated_network_config()
-        .await
-        .map_err(|e| format!("Failed to load network config: {}", e))?;
-
-    // Fetch ETL data (currencies and protocols metadata)
-    let etl_currencies = state
-        .etl_client
-        .fetch_currencies()
-        .await
-        .map_err(|e| format!("Failed to fetch currencies from ETL: {}", e))?;
-
-    let etl_protocols = state
-        .etl_client
-        .fetch_protocols()
-        .await
-        .map_err(|e| format!("Failed to fetch protocols from ETL: {}", e))?;
-
-    // Fetch Oracle prices (on-chain)
-    let prices_response = get_prices(State(state.clone()))
-        .await
-        .map_err(|e| format!("Failed to fetch prices from Oracle: {}", e))?;
-
-    // Get filtered protocols
-    let configured_protocols =
-        PropagationFilter::filter_protocols(&etl_protocols, &currency_config, &network_config);
-
-    // Build assets with prices from primary protocol
-    let mut assets: Vec<AssetResponse> = Vec::new();
-
-    for currency in &etl_currencies.currencies {
-        if !currency.is_active {
-            continue;
-        }
-
-        // Check if currency is configured
-        let display = match currency_config.currencies.get(&currency.ticker) {
-            Some(d) if d.is_configured() => d,
-            _ => continue,
-        };
-
-        // Get protocols this currency belongs to
-        let currency_protocols: Vec<&str> = currency
-            .protocols
-            .iter()
-            .filter(|cp| configured_protocols.iter().any(|p| p.name == cp.protocol))
-            .map(|cp| cp.protocol.as_str())
-            .collect();
-
-        if currency_protocols.is_empty() {
-            continue;
-        }
-
-        // Get networks
-        let networks: Vec<String> = currency_protocols
-            .iter()
-            .filter_map(|protocol_name| {
-                configured_protocols
-                    .iter()
-                    .find(|p| p.name == *protocol_name)
-                    .and_then(|p| p.network.clone())
-            })
-            .collect::<std::collections::HashSet<_>>()
-            .into_iter()
-            .collect();
-
-        // Get price from primary protocol (first network's primary protocol)
-        let price = get_price_for_asset(
-            &currency.ticker,
-            &networks,
-            &network_config,
-            &prices_response.0.prices,
-        );
-
-        assets.push(AssetResponse {
-            ticker: currency.ticker.clone(),
-            decimals: currency.decimal_digits,
-            icon: display.icon.clone(),
-            display_name: display.display_name.clone(),
-            short_name: display
-                .short_name
-                .clone()
-                .unwrap_or_else(|| currency.ticker.clone()),
-            color: display.color.clone(),
-            coingecko_id: display.coingecko_id.clone(),
-            price,
-            networks,
-            protocols: currency_protocols.iter().map(|s| s.to_string()).collect(),
-        });
-    }
-
-    let response = AssetsResponse {
-        count: assets.len(),
-        assets,
-    };
-
-    serde_json::to_value(&response).map_err(|e| format!("Failed to serialize assets: {}", e))
-}
-
 /// Get price for an asset using the primary protocol for its network
-fn get_price_for_asset(
+pub fn get_price_for_asset(
     ticker: &str,
     networks: &[String],
     network_config: &crate::config_store::gated_types::GatedNetworkConfig,
@@ -257,16 +142,31 @@ pub async fn get_asset(
 ) -> Result<Json<AssetDetailResponse>, AppError> {
     debug!("Fetching asset: {}", ticker);
 
-    // Load gated configs
-    let currency_config = state.config_store.load_currency_display().await?;
-    let network_config = state.config_store.load_gated_network_config().await?;
+    // Load gated configs from cache
+    let gated =
+        state
+            .data_cache
+            .gated_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Gated config not yet available".to_string(),
+            })?;
+    let currency_config = gated.currency_display;
+    let network_config = gated.network_config;
 
-    // Fetch ETL data
+    // Fetch ETL data (still needed for per-ticker detail)
     let etl_currencies = state.etl_client.fetch_currencies().await?;
     let etl_protocols = state.etl_client.fetch_protocols().await?;
 
-    // Fetch Oracle prices
-    let prices_response = get_prices(State(state.clone())).await?;
+    // Read prices from cache
+    let prices_response =
+        state
+            .data_cache
+            .prices
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Prices not yet available".to_string(),
+            })?;
 
     // Find the currency
     let etl_currency = etl_currencies
@@ -302,7 +202,6 @@ pub async fn get_asset(
             // Get protocol-specific price
             let price_key = format!("{}@{}", ticker, cp.protocol);
             let price = prices_response
-                .0
                 .prices
                 .get(&price_key)
                 .map(|p| p.price_usd.clone());
@@ -333,17 +232,14 @@ pub async fn get_asset(
         .collect();
 
     // Get display price from primary protocol
-    let price = get_price_for_asset(&ticker, &networks, &network_config, &prices_response.0.prices);
+    let price = get_price_for_asset(&ticker, &networks, &network_config, &prices_response.prices);
 
     let response = AssetDetailResponse {
         ticker: etl_currency.ticker.clone(),
         decimals: etl_currency.decimal_digits,
         icon: display.icon.clone(),
         display_name: display.display_name.clone(),
-        short_name: display
-            .short_name
-            .clone()
-            .unwrap_or_else(|| ticker.clone()),
+        short_name: display.short_name.clone().unwrap_or_else(|| ticker.clone()),
         color: display.color.clone(),
         coingecko_id: display.coingecko_id.clone(),
         price,
@@ -360,11 +256,17 @@ pub async fn get_network_assets(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,
 ) -> Result<Json<AssetsResponse>, AppError> {
-    debug!("Fetching assets for network: {}", network);
-
-    // Load gated configs
-    let currency_config = state.config_store.load_currency_display().await?;
-    let network_config = state.config_store.load_gated_network_config().await?;
+    // Read gated config from cache
+    let gated =
+        state
+            .data_cache
+            .gated_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Gated config not yet available".to_string(),
+            })?;
+    let currency_config = gated.currency_display;
+    let network_config = gated.network_config;
 
     // Check network is configured
     let network_settings = network_config
@@ -375,12 +277,19 @@ pub async fn get_network_assets(
             resource: format!("Network {}", network),
         })?;
 
-    // Fetch ETL data
+    // Fetch ETL data (needed for per-network currency filtering)
     let etl_currencies = state.etl_client.fetch_currencies().await?;
     let etl_protocols = state.etl_client.fetch_protocols().await?;
 
-    // Fetch Oracle prices
-    let prices_response = get_prices(State(state.clone())).await?;
+    // Read prices from cache
+    let prices_response =
+        state
+            .data_cache
+            .prices
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Prices not yet available".to_string(),
+            })?;
 
     // Filter currencies for this network
     let filtered_currencies = PropagationFilter::filter_currencies_for_network(
@@ -425,12 +334,18 @@ pub async fn get_network_assets(
             // Get price from primary protocol or first available
             let price = if let Some(pp) = primary_protocol {
                 let price_key = format!("{}@{}", c.ticker, pp);
-                prices_response.0.prices.get(&price_key).map(|p| p.price_usd.clone())
+                prices_response
+                    .prices
+                    .get(&price_key)
+                    .map(|p| p.price_usd.clone())
             } else {
                 // Fallback to any protocol on this network
                 currency_protocols.iter().find_map(|protocol| {
                     let price_key = format!("{}@{}", c.ticker, protocol);
-                    prices_response.0.prices.get(&price_key).map(|p| p.price_usd.clone())
+                    prices_response
+                        .prices
+                        .get(&price_key)
+                        .map(|p| p.price_usd.clone())
                 })
             };
 

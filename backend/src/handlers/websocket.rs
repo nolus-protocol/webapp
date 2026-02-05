@@ -27,7 +27,6 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
 
-use crate::propagation::build_filter_context;
 use crate::AppState;
 
 // ============================================================================
@@ -413,7 +412,13 @@ impl WebSocketManager {
     }
 
     /// Send transaction status update to relevant subscribers
-    pub fn send_tx_status(&self, tx_hash: &str, chain_id: &str, status: TxStatusValue, error: Option<String>) {
+    pub fn send_tx_status(
+        &self,
+        tx_hash: &str,
+        chain_id: &str,
+        status: TxStatusValue,
+        error: Option<String>,
+    ) {
         let msg = ServerMessage::TxStatus {
             tx_hash: tx_hash.to_string(),
             status,
@@ -899,6 +904,7 @@ fn send_error(conn_id: &str, state: &Arc<AppState>, code: &str, message: &str) {
 // ============================================================================
 
 /// Start background task for price updates
+/// Reads from data_cache.prices (populated by background refresh) and broadcasts to subscribers.
 pub async fn start_price_update_task(state: Arc<AppState>) {
     tokio::spawn(async move {
         let mut interval = tokio::time::interval(Duration::from_secs(15));
@@ -906,84 +912,23 @@ pub async fn start_price_update_task(state: Arc<AppState>) {
         loop {
             interval.tick().await;
 
-            // Only fetch prices if there are subscribers
+            // Only broadcast if there are subscribers
             if state.ws_manager.connection_count() == 0 {
                 continue;
             }
 
-            // Fetch prices from chain
-            match fetch_prices(&state).await {
-                Ok(prices) => {
-                    state.ws_manager.broadcast_prices(prices);
-                }
-                Err(e) => {
-                    error!("Failed to fetch prices for WebSocket broadcast: {}", e);
-                }
+            // Read prices from cache (zero latency — no chain queries)
+            if let Some(prices_response) = state.data_cache.prices.load() {
+                let prices: HashMap<String, String> = prices_response
+                    .prices
+                    .iter()
+                    .map(|(key, info)| (key.clone(), info.price_usd.clone()))
+                    .collect();
+
+                state.ws_manager.broadcast_prices(prices);
             }
         }
     });
-}
-
-async fn fetch_prices(state: &AppState) -> Result<HashMap<String, String>, String> {
-    // Build filter context for gated filtering
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Get protocols and fetch prices from each oracle
-    let admin_address = &state.config.protocols.admin_contract;
-
-    let protocols = state
-        .chain_client
-        .get_admin_protocols(admin_address)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    let mut prices = HashMap::new();
-
-    for protocol in protocols.iter().take(1) {
-        // Start with first protocol
-        let protocol_info = state
-            .chain_client
-            .get_admin_protocol(admin_address, protocol)
-            .await
-            .map_err(|e| e.to_string())?;
-
-        let oracle_prices = state
-            .chain_client
-            .get_oracle_prices(&protocol_info.contracts.oracle)
-            .await
-            .map_err(|e| e.to_string())?;
-
-        for price in oracle_prices.prices {
-            // Filter by configured currencies
-            if !filter_ctx.is_price_visible(&price.amount.ticker) {
-                continue;
-            }
-
-            // Calculate price ratio
-            let amount: f64 = price.amount.amount.parse().unwrap_or_else(|_| {
-                warn!(
-                    "Failed to parse price amount for {}: {}",
-                    price.amount.ticker, price.amount.amount
-                );
-                1.0
-            });
-            let quote: f64 = price.amount_quote.amount.parse().unwrap_or_else(|_| {
-                warn!(
-                    "Failed to parse price quote for {}: {}",
-                    price.amount.ticker, price.amount_quote.amount
-                );
-                0.0
-            });
-            if amount > 0.0 {
-                let price_val = quote / amount;
-                prices.insert(price.amount.ticker, format!("{:.6}", price_val));
-            }
-        }
-    }
-
-    Ok(prices)
 }
 
 // ============================================================================
@@ -1029,10 +974,12 @@ pub async fn start_lease_monitor_task(state: Arc<AppState>) {
 async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String> {
     use super::leases::fetch_leases_for_monitoring;
 
-    // Build filter context for gated filtering
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client)
-        .await
-        .map_err(|e| e.to_string())?;
+    // Read filter context from cache
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load()
+        .ok_or_else(|| "Filter context not yet available".to_string())?;
 
     // Fetch current leases using the lease handler's function
     let leases = fetch_leases_for_monitoring(state, owner)
@@ -1232,7 +1179,10 @@ async fn check_skip_tx_status(
 
         // Extract error message if failed (status itself describes the failure)
         let error = if is_failed {
-            Some(format!("Transaction failed with status: {}", status_response.status))
+            Some(format!(
+                "Transaction failed with status: {}",
+                status_response.status
+            ))
         } else {
             None
         };
@@ -1303,10 +1253,12 @@ pub async fn start_earn_monitor_task(state: Arc<AppState>) {
 async fn check_earn_positions(state: &AppState, address: &str) -> Result<(), String> {
     use super::earn::fetch_earn_positions_for_monitoring;
 
-    // Build filter context for gated filtering
-    let filter_ctx = build_filter_context(&state.config_store, &state.etl_client)
-        .await
-        .map_err(|e| e.to_string())?;
+    // Read filter context from cache
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load()
+        .ok_or_else(|| "Filter context not yet available".to_string())?;
 
     // Fetch current positions using the earn handler's function
     let (all_positions, _) = fetch_earn_positions_for_monitoring(state, address)
@@ -1394,7 +1346,9 @@ mod tests {
             &serde_json::json!({"hash": "ABC123", "chain_id": "nolus-rila"}),
         )
         .unwrap();
-        assert!(matches!(sub, Subscription::TxStatus { hash, chain_id } if hash == "ABC123" && chain_id == "nolus-rila"));
+        assert!(
+            matches!(sub, Subscription::TxStatus { hash, chain_id } if hash == "ABC123" && chain_id == "nolus-rila")
+        );
     }
 
     #[test]

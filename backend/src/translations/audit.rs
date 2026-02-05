@@ -108,10 +108,7 @@ impl TranslationAuditLog {
                 Ok(entries) => {
                     let mut log = self.entries.write().await;
                     *log = entries;
-                    info!(
-                        "Loaded {} translation audit entries",
-                        log.len()
-                    );
+                    info!("Loaded {} translation audit entries", log.len());
                 }
                 Err(e) => {
                     warn!("Could not load translation audit log: {}", e);
@@ -141,9 +138,7 @@ impl TranslationAuditLog {
 
         info!(
             "Translation audit: {:?} - {} - {:?}",
-            entry.action,
-            entry.lang,
-            entry.key
+            entry.action, entry.lang, entry.key
         );
     }
 
@@ -459,7 +454,13 @@ mod tests {
             .await;
 
         audit_log
-            .record_edit(None, "ru", "message.hello", Some("Привет".to_string()), "Здравствуйте")
+            .record_edit(
+                None,
+                "ru",
+                "message.hello",
+                Some("Привет".to_string()),
+                "Здравствуйте",
+            )
             .await;
 
         let history = audit_log.get_key_history("ru", "message.hello").await;

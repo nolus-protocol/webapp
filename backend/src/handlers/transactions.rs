@@ -7,8 +7,8 @@ use std::sync::Arc;
 
 use axum::extract::{Query, State};
 use axum::Json;
-use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::Engine as _;
 use prost::Message;
 use tracing::debug;
 
@@ -289,15 +289,13 @@ fn decode_message(type_url: &str, value_b64: &str) -> Option<serde_json::Value> 
 
 /// Helper to convert a slice of proto Coin to JSON array
 fn coin_list(coins: &[cosmrs::proto::cosmos::base::v1beta1::Coin]) -> serde_json::Value {
-    serde_json::json!(
-        coins
-            .iter()
-            .map(|c| serde_json::json!({
-                "denom": c.denom,
-                "amount": c.amount
-            }))
-            .collect::<Vec<_>>()
-    )
+    serde_json::json!(coins
+        .iter()
+        .map(|c| serde_json::json!({
+            "denom": c.denom,
+            "amount": c.amount
+        }))
+        .collect::<Vec<_>>())
 }
 
 #[cfg(test)]

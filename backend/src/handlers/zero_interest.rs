@@ -7,8 +7,8 @@ use std::sync::Arc;
 
 use crate::error::AppError;
 use crate::external::zero_interest::{
-    ActiveCampaignsResponse, CampaignEligibilityResponse,
-    CreateZeroInterestPaymentRequest, PaymentStatus as ExternalPaymentStatus,
+    ActiveCampaignsResponse, CampaignEligibilityResponse, CreateZeroInterestPaymentRequest,
+    PaymentStatus as ExternalPaymentStatus,
 };
 use crate::AppState;
 
@@ -254,4 +254,3 @@ pub async fn check_campaign_eligibility(
         .await?;
     Ok(Json(eligibility))
 }
-

@@ -223,12 +223,11 @@ impl ReferralClient {
             });
         }
 
-        let wrapper: ApiWrapper<AssignReferralResponse> = response.json().await.map_err(|e| {
-            AppError::ExternalApi {
+        let wrapper: ApiWrapper<AssignReferralResponse> =
+            response.json().await.map_err(|e| AppError::ExternalApi {
                 api: self.api_name().to_string(),
                 message: format!("Failed to parse response: {}", e),
-            }
-        })?;
+            })?;
         wrapper.extract_data(self.api_name())
     }
 }
@@ -516,4 +515,3 @@ impl ReferralsQuery {
 // ============================================================================
 // Tests
 // ============================================================================
-

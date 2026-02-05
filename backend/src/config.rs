@@ -261,21 +261,31 @@ impl AppConfig {
 
         // Optional APIs - warn if not configured
         if self.external.referral_api_url.is_empty() {
-            warnings.push("Referral API not configured - referral features will be disabled".to_string());
+            warnings.push(
+                "Referral API not configured - referral features will be disabled".to_string(),
+            );
         } else if self.external.referral_api_token.is_empty() {
-            warnings.push("Referral API URL configured but no token - authentication will fail".to_string());
+            warnings.push(
+                "Referral API URL configured but no token - authentication will fail".to_string(),
+            );
         }
 
         if self.external.zero_interest_api_url.is_empty() {
-            warnings.push("Zero Interest API not configured - zero interest features will be disabled".to_string());
+            warnings.push(
+                "Zero Interest API not configured - zero interest features will be disabled"
+                    .to_string(),
+            );
         }
 
         if self.external.intercom_secret_key.is_empty() {
-            warnings.push("Intercom secret key not configured - identity verification disabled".to_string());
+            warnings.push(
+                "Intercom secret key not configured - identity verification disabled".to_string(),
+            );
         }
 
         if self.external.skip_api_key.is_none() {
-            warnings.push("Skip API key not configured - swap routing may be rate limited".to_string());
+            warnings
+                .push("Skip API key not configured - swap routing may be rate limited".to_string());
         }
 
         // Performance warnings
@@ -554,10 +564,7 @@ mod tests {
 
     #[test]
     fn test_get_required_env_fails_when_missing() {
-        let result = AppConfig::get_required_env(
-            "NONEXISTENT_ENV_VAR_12345",
-            "Test Endpoint",
-        );
+        let result = AppConfig::get_required_env("NONEXISTENT_ENV_VAR_12345", "Test Endpoint");
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(err.contains("Missing required configuration"));
@@ -655,7 +662,7 @@ mod tests {
         config.external.zero_interest_api_url = String::new();
         config.external.intercom_secret_key = String::new();
         config.external.skip_api_key = None;
-        
+
         let result = config.validate();
         // Warnings for optional features, but no errors
         assert!(result.has_warnings());
@@ -667,7 +674,10 @@ mod tests {
         let mut config = create_test_config();
         config.cache.prices_ttl_secs = 120; // 2 minutes
         let result = config.validate();
-        assert!(result.warnings.iter().any(|w| w.contains("Price cache TTL")));
+        assert!(result
+            .warnings
+            .iter()
+            .any(|w| w.contains("Price cache TTL")));
     }
 
     #[test]

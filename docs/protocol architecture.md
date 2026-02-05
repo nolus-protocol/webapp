@@ -483,6 +483,23 @@ const lpn = getLpnByProtocol("OSMOSIS-OSMOSIS-USDC_NOBLE");
 - `Contracts.protocolsFilter` - use `configStore.getActiveProtocolsForNetwork()` instead
 - `PositionTypes.long/short` - use `configStore.getPositionType(protocol)` instead
 
+### Currency Key Format and Resolution
+
+Every currency in the system is uniquely identified by its key: `TICKER@PROTOCOL` (e.g., `USDC_NOBLE@OSMOSIS-OSMOSIS-USDC_NOBLE`). The same ticker can exist in multiple protocols with different IBC denoms. For example, `USDC_NOBLE` on Osmosis and `USDC_NOBLE` on Neutron have different IBC routes and different on-chain denominations.
+
+**Resolution contexts:**
+
+| Context | Method | When to use |
+|---------|--------|-------------|
+| Protocol known | `getCurrencyByTickerForProtocol(ticker, protocol)` | Lease details, earn, history, PnL — the protocol comes from contract/position data |
+| Network context | `getCurrencyByTickerForNetwork(ticker)` | Assets page, dashboard, receive form — uses `configStore.protocolFilter` |
+| Full key known | `configStore.getCurrencyByKey(key)` | When you have the complete `TICKER@PROTOCOL` key |
+| IBC denom known | `getCurrencyByDenom(denom)` | Balance display, fee lookup — denom is globally unique |
+
+**Never use `getCurrencyByTicker()` for cross-network currencies.** It returns the first match and ignores which network the user has selected. Only safe for globally unique tickers like NLS.
+
+For Vue components that need enriched asset data (price, balance, earn status, APR), use the `useNetworkCurrency` composable from `src/common/composables/useNetworkCurrency.ts`. See `data_flows.md` for details.
+
 ---
 
 ## Query Patterns for ETL

@@ -97,25 +97,26 @@ pub struct CacheHealth {
     pub hit_rate: f64,
 }
 
+/// Cache stats response for the new background-refresh model.
+/// Each field shows whether it's populated and how stale it is.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CacheStatsResponse {
-    pub prices_cache_size: u64,
-    pub config_cache_size: u64,
-    pub apr_cache_size: u64,
-    pub data_cache_size: u64,
-    pub total_hit_rate: f64,
-    pub prices_hit_rate: f64,
-    pub config_hit_rate: f64,
-    pub apr_hit_rate: f64,
-    pub data_hit_rate: f64,
-    pub total_hits: u64,
-    pub total_misses: u64,
+    pub fields: Vec<CacheFieldInfo>,
+    pub populated_count: usize,
+    pub total_count: usize,
+}
+
+/// Info about a single cache field
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CacheFieldInfo {
+    pub name: String,
+    pub populated: bool,
+    pub age_secs: Option<u64>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct InvalidateCacheRequest {
     pub cache_type: Option<String>,
-    pub key: Option<String>,
 }
 
 /// Request for Intercom JWT token generation
@@ -153,7 +154,14 @@ pub async fn detailed_health_check(
     const CHECK_TIMEOUT: Duration = Duration::from_secs(5);
 
     // Check all services in parallel
-    let (etl_status, nolus_rpc_status, nolus_rest_status, skip_status, referral_status, zero_interest_status) = tokio::join!(
+    let (
+        etl_status,
+        nolus_rpc_status,
+        nolus_rest_status,
+        skip_status,
+        referral_status,
+        zero_interest_status,
+    ) = tokio::join!(
         check_etl_health(&state, CHECK_TIMEOUT),
         check_nolus_rpc_health(&state, CHECK_TIMEOUT),
         check_nolus_rest_health(&state, CHECK_TIMEOUT),
@@ -175,14 +183,35 @@ pub async fn detailed_health_check(
         "unhealthy"
     };
 
-    // Cache health
-    let stats = state.cache.total_stats();
-    let total_entries = state.cache.prices.entry_count()
-        + state.cache.config.entry_count()
-        + state.cache.apr.entry_count()
-        + state.cache.data.entry_count();
+    // Cache health — count populated fields from data_cache
+    let summary = state.data_cache.status_summary();
+    let all_fields = [
+        &summary.app_config,
+        &summary.protocol_contracts,
+        &summary.currencies,
+        &summary.prices,
+        &summary.gated_config,
+        &summary.filter_context,
+        &summary.pools,
+        &summary.validators,
+        &summary.gated_assets,
+        &summary.gated_protocols,
+        &summary.gated_networks,
+        &summary.stats_overview,
+        &summary.loans_stats,
+        &summary.swap_config,
+        &summary.lease_configs,
+    ];
+    let populated_count = all_fields.iter().filter(|f| f.populated).count();
+    let total_count = all_fields.len();
 
-    let cache_status = if total_entries > 0 { "healthy" } else { "empty" };
+    let cache_status = if populated_count == total_count {
+        "healthy"
+    } else if populated_count > 0 {
+        "warming"
+    } else {
+        "empty"
+    };
 
     Json(DetailedHealthResponse {
         status: overall_status.to_string(),
@@ -198,8 +227,12 @@ pub async fn detailed_health_check(
         },
         cache: CacheHealth {
             status: cache_status.to_string(),
-            total_entries,
-            hit_rate: stats.hit_rate,
+            total_entries: populated_count as u64,
+            hit_rate: if total_count > 0 {
+                populated_count as f64 / total_count as f64
+            } else {
+                0.0
+            },
         },
     })
 }
@@ -215,7 +248,12 @@ async fn check_etl_health(state: &AppState, timeout_duration: Duration) -> Servi
     debug!("Health check: ETL API at {}", check_url);
 
     let start = std::time::Instant::now();
-    match timeout(timeout_duration, state.etl_client.client.get(&check_url).send()).await {
+    match timeout(
+        timeout_duration,
+        state.etl_client.client.get(&check_url).send(),
+    )
+    .await
+    {
         Ok(Ok(response)) => {
             let latency = start.elapsed().as_millis() as u64;
             if response.status().is_success() {
@@ -407,75 +445,126 @@ async fn check_zero_interest_health(state: &AppState, timeout_duration: Duration
 
 /// GET /api/admin/cache/stats
 /// Get cache statistics (admin only)
+/// Returns population status and age of each background-refreshed cache field.
 /// Note: Authentication is handled by the admin_auth_middleware layer
 pub async fn get_cache_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<CacheStatsResponse>, AppError> {
-    let stats = state.cache.total_stats();
+    let summary = state.data_cache.status_summary();
+
+    let fields: Vec<CacheFieldInfo> = vec![
+        summary.app_config,
+        summary.protocol_contracts,
+        summary.currencies,
+        summary.prices,
+        summary.gated_config,
+        summary.filter_context,
+        summary.pools,
+        summary.validators,
+        summary.gated_assets,
+        summary.gated_protocols,
+        summary.gated_networks,
+        summary.stats_overview,
+        summary.loans_stats,
+        summary.swap_config,
+        summary.lease_configs,
+    ]
+    .into_iter()
+    .map(|f| CacheFieldInfo {
+        name: f.name,
+        populated: f.populated,
+        age_secs: f.age_secs,
+    })
+    .collect();
+
+    let populated_count = fields.iter().filter(|f| f.populated).count();
+    let total_count = fields.len();
 
     Ok(Json(CacheStatsResponse {
-        prices_cache_size: state.cache.prices.entry_count(),
-        config_cache_size: state.cache.config.entry_count(),
-        apr_cache_size: state.cache.apr.entry_count(),
-        data_cache_size: state.cache.data.entry_count(),
-        total_hit_rate: stats.hit_rate,
-        prices_hit_rate: stats.prices_hit_rate,
-        config_hit_rate: stats.config_hit_rate,
-        apr_hit_rate: stats.apr_hit_rate,
-        data_hit_rate: stats.data_hit_rate,
-        total_hits: stats.total_hits,
-        total_misses: stats.total_misses,
+        fields,
+        populated_count,
+        total_count,
     }))
 }
 
 /// POST /api/admin/cache/invalidate
-/// Invalidate cache entries (admin only)
+/// Trigger immediate refresh of cache entries (admin only)
+/// In the background-refresh model, "invalidation" means triggering an immediate
+/// re-fetch by the background task. The cache field name maps to a refresh function.
 /// Note: Authentication is handled by the admin_auth_middleware layer
 pub async fn invalidate_cache(
     State(state): State<Arc<AppState>>,
     Json(request): Json<InvalidateCacheRequest>,
 ) -> Result<StatusCode, AppError> {
+    // In the new model, we trigger immediate refresh of the specified cache
+    // by spawning refresh tasks directly
+
     match request.cache_type.as_deref() {
-        Some("prices") => {
-            if let Some(key) = &request.key {
-                state.cache.prices.invalidate(key).await;
-            } else {
-                state.cache.prices.invalidate_all();
-            }
-        }
-        Some("config") => {
-            if let Some(key) = &request.key {
-                state.cache.config.invalidate(key).await;
-            } else {
-                state.cache.config.invalidate_all();
-            }
-        }
-        Some("apr") => {
-            if let Some(key) = &request.key {
-                state.cache.apr.invalidate(key).await;
-            } else {
-                state.cache.apr.invalidate_all();
-            }
-        }
-        Some("data") => {
-            if let Some(key) = &request.key {
-                state.cache.data.invalidate(key).await;
-            } else {
-                state.cache.data.invalidate_all();
+        Some(cache_name) => {
+            // Spawn a refresh for the specified cache field
+            let s = state.clone();
+            match cache_name {
+                "gated_config" => {
+                    tokio::spawn(async move { crate::refresh::refresh_gated_config(&s).await });
+                }
+                "filter_context" => {
+                    tokio::spawn(async move { crate::refresh::refresh_filter_context(&s).await });
+                }
+                "app_config" => {
+                    tokio::spawn(async move { crate::refresh::refresh_app_config(&s).await });
+                }
+                "protocol_contracts" => {
+                    tokio::spawn(
+                        async move { crate::refresh::refresh_protocol_contracts(&s).await },
+                    );
+                }
+                "currencies" => {
+                    tokio::spawn(async move { crate::refresh::refresh_currencies(&s).await });
+                }
+                "prices" => {
+                    tokio::spawn(async move { crate::refresh::refresh_prices(&s).await });
+                }
+                "pools" => {
+                    tokio::spawn(async move { crate::refresh::refresh_pools(&s).await });
+                }
+                "validators" => {
+                    tokio::spawn(async move { crate::refresh::refresh_validators(&s).await });
+                }
+                "gated_assets" => {
+                    tokio::spawn(async move { crate::refresh::refresh_gated_assets(&s).await });
+                }
+                "gated_protocols" => {
+                    tokio::spawn(async move { crate::refresh::refresh_gated_protocols(&s).await });
+                }
+                "gated_networks" => {
+                    tokio::spawn(async move { crate::refresh::refresh_gated_networks(&s).await });
+                }
+                "stats_overview" => {
+                    tokio::spawn(async move { crate::refresh::refresh_stats_overview(&s).await });
+                }
+                "loans_stats" => {
+                    tokio::spawn(async move { crate::refresh::refresh_loans_stats(&s).await });
+                }
+                "swap_config" => {
+                    tokio::spawn(async move { crate::refresh::refresh_swap_config(&s).await });
+                }
+                "lease_configs" => {
+                    tokio::spawn(async move { crate::refresh::refresh_lease_configs(&s).await });
+                }
+                other => {
+                    return Err(AppError::Validation {
+                        message: format!("Unknown cache field: {}", other),
+                        field: Some("cache_type".to_string()),
+                        details: None,
+                    });
+                }
             }
         }
         None => {
-            // Invalidate all caches
-            state.cache.prices.invalidate_all();
-            state.cache.config.invalidate_all();
-            state.cache.apr.invalidate_all();
-            state.cache.data.invalidate_all();
-        }
-        Some(other) => {
-            return Err(AppError::Validation {
-                message: format!("Unknown cache type: {}", other),
-                field: Some("cache_type".to_string()),
-                details: None,
+            // Refresh all caches
+            let s = state.clone();
+            tokio::spawn(async move {
+                crate::refresh::warm_essential_data(s).await;
             });
         }
     }
@@ -491,8 +580,7 @@ pub async fn intercom_hash(
     Json(request): Json<IntercomTokenRequest>,
 ) -> Result<Json<IntercomTokenResponse>, AppError> {
     let intercom_client = crate::external::intercom::IntercomClient::new(&state.config);
-    let result =
-        intercom_client.generate_token(&request.wallet, request.wallet_type.as_deref())?;
+    let result = intercom_client.generate_token(&request.wallet, request.wallet_type.as_deref())?;
 
     Ok(Json(IntercomTokenResponse {
         token: result.token,

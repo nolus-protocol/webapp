@@ -355,24 +355,35 @@ impl ConfigStore {
     // =========================================================================
 
     /// Save currency display configuration
-    pub async fn save_currency_display(&self, config: &CurrencyDisplayConfig) -> Result<(), AppError> {
-        self.save_json_file("gated/currency-display.json", config).await?;
-        self.record_audit("update", "gated/currency-display", None).await;
+    pub async fn save_currency_display(
+        &self,
+        config: &CurrencyDisplayConfig,
+    ) -> Result<(), AppError> {
+        self.save_json_file("gated/currency-display.json", config)
+            .await?;
+        self.record_audit("update", "gated/currency-display", None)
+            .await;
         self.invalidate_cache().await;
         Ok(())
     }
 
     /// Save gated network configuration
-    pub async fn save_gated_network_config(&self, config: &GatedNetworkConfig) -> Result<(), AppError> {
-        self.save_json_file("gated/network-config.json", config).await?;
-        self.record_audit("update", "gated/network-config", None).await;
+    pub async fn save_gated_network_config(
+        &self,
+        config: &GatedNetworkConfig,
+    ) -> Result<(), AppError> {
+        self.save_json_file("gated/network-config.json", config)
+            .await?;
+        self.record_audit("update", "gated/network-config", None)
+            .await;
         self.invalidate_cache().await;
         Ok(())
     }
 
     /// Save lease rules configuration
     pub async fn save_lease_rules(&self, config: &LeaseRulesConfig) -> Result<(), AppError> {
-        self.save_json_file("gated/lease-rules.json", config).await?;
+        self.save_json_file("gated/lease-rules.json", config)
+            .await?;
         self.record_audit("update", "gated/lease-rules", None).await;
         self.invalidate_cache().await;
         Ok(())
@@ -380,15 +391,18 @@ impl ConfigStore {
 
     /// Save swap settings configuration
     pub async fn save_swap_settings(&self, config: &SwapSettingsConfig) -> Result<(), AppError> {
-        self.save_json_file("gated/swap-settings.json", config).await?;
-        self.record_audit("update", "gated/swap-settings", None).await;
+        self.save_json_file("gated/swap-settings.json", config)
+            .await?;
+        self.record_audit("update", "gated/swap-settings", None)
+            .await;
         self.invalidate_cache().await;
         Ok(())
     }
 
     /// Save UI settings configuration
     pub async fn save_ui_settings(&self, config: &UiSettingsConfig) -> Result<(), AppError> {
-        self.save_json_file("gated/ui-settings.json", config).await?;
+        self.save_json_file("gated/ui-settings.json", config)
+            .await?;
         self.record_audit("update", "gated/ui-settings", None).await;
         self.invalidate_cache().await;
         Ok(())
@@ -491,7 +505,9 @@ mod tests {
         let store = ConfigStore::new(temp_dir.path());
         store.init().await.unwrap();
 
-        store.record_audit("create", "test-resource", Some("test details".to_string())).await;
+        store
+            .record_audit("create", "test-resource", Some("test details".to_string()))
+            .await;
 
         let query = AuditLogQuery::default();
         let response = store.query_audit_log(query).await;

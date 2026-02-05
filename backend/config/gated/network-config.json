@@ -9,7 +9,7 @@
     "fallback_lcd": ["https://pirin-cl.nolus.network:1317"],
     "gas_price": "0.0025unls",
     "explorer": "https://explorer.nolus.io",
-    "icon": "/icons/networks/nolus.svg",
+    "icon": "/assets/icons/networks/nolus.svg",
     "estimation": 6
   },
   "OSMOSIS": {
@@ -22,7 +22,7 @@
     "fallback_lcd": ["https://lcd-osmosis.blockapsis.com", "https://osmosis-api.polkachu.com"],
     "gas_price": "0.025uosmo",
     "explorer": "https://www.mintscan.io/osmosis",
-    "icon": "/icons/networks/osmosis.svg",
+    "icon": "/assets/icons/networks/osmosis.svg",
     "primaryProtocol": "OSMOSIS-OSMOSIS-USDC_NOBLE",
     "estimation": 20,
     "swap_venue": { "name": "osmosis-poolmanager", "address": "osmo14p4cu64dlwavj7kga4s3mj6xglucj9t358r5mz" },
@@ -54,7 +54,7 @@
     "fallback_lcd": ["https://neutron-api.polkachu.com"],
     "gas_price": "0.025untrn",
     "explorer": "https://www.mintscan.io/neutron",
-    "icon": "/icons/networks/neutron.svg",
+    "icon": "/assets/icons/networks/neutron.svg",
     "primaryProtocol": "NEUTRON-ASTROPORT-USDC_NOBLE",
     "estimation": 20,
     "forward": false,

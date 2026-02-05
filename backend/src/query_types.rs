@@ -122,4 +122,3 @@ impl SearchQuery {
         self.limit.unwrap_or(default)
     }
 }
-

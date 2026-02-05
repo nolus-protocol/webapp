@@ -208,4 +208,3 @@ pub fn to_paginated_response<T: Serialize>(
 ) -> JsonResult<PaginatedResponse<T>> {
     Ok(Json(PaginatedResponse::new(items, total, skip, limit)))
 }
-

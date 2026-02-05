@@ -437,6 +437,59 @@ const isProtocolDisabled = configStore.isProtocolFilterDisabled(configStore.prot
 
 **Important:** The frontend no longer uses hardcoded `ProtocolsConfig`, `PositionTypes`, or `Contracts.protocolsFilter` from `src/config/global/contracts.ts`. These were removed in favor of dynamic `configStore` methods that fetch data from the backend's gated propagation system.
 
+### Centralized Currency Resolution
+
+Currency resolution — mapping a ticker to a fully-enriched asset with price, balance, earn status, and APR — is centralized in two layers:
+
+**Layer 1: CurrencyLookup utility functions** (`src/common/utils/CurrencyLookup.ts`)
+
+Thin wrappers around `configStore` methods. Used by non-component code (utilities, plain functions):
+
+| Function | Context | Usage |
+|----------|---------|-------|
+| `getCurrencyByTickerForProtocol(ticker, protocol)` | Protocol known | Leases, earn, history, PnL |
+| `getCurrencyByTickerForNetwork(ticker)` | Network context | Receive form, stats charts |
+| `getCurrencyByDenom(denom)` | IBC denom known | Balance display, fee calculation |
+| `getCurrencyByTicker(ticker)` | Globally unique ticker | NLS staking only (safe because NLS is unique) |
+
+**Layer 2: `useNetworkCurrency` composable** (`src/common/composables/useNetworkCurrency.ts`)
+
+Used by Vue components that need fully-enriched asset data (price, balance, earn, APR):
+
+```typescript
+interface ResolvedAsset {
+  currency: CurrencyInfo;
+  price: string;
+  priceAsNumber: number;
+  balance: string;
+  balanceUsd: number;
+  isEarnable: boolean;
+  apr: number;
+  isNative: boolean;
+  stakingApr: number;
+}
+```
+
+Two entry points:
+- `resolveForNetwork(ticker)` — resolves for current network filter. Used by assets page, dashboard.
+- `resolveForProtocol(ticker, protocol)` — resolves for a specific protocol. Used by lease/earn contexts.
+- `getNetworkAssets()` — builds the full enriched asset list for the current network. Replaces duplicated `filteredAssets` logic.
+
+**Why this exists:** The same ticker (e.g., `USDC_NOBLE`) can exist on multiple networks (Osmosis, Neutron) with different IBC denoms and protocol keys. The old `getCurrencyByTicker()` returned the first match, ignoring which network the user has selected. This caused incorrect prices, balances, and APR display when tickers were shared across networks.
+
+**Resolution rules:**
+1. Protocol context (known protocol) → construct key as `ticker@protocol`, look up by key. Always exact.
+2. Network context (current filter) → `getCurrencyByTickerForNetwork` prefers currencies whose protocol belongs to the selected network's active protocols.
+3. Earn/APR → match LPN by key first, then by ticker within network protocols. Check `getGatedProtocol` to confirm protocol is active.
+
+**Key files:**
+
+| File | Role |
+|------|------|
+| `src/common/composables/useNetworkCurrency.ts` | Composable with `resolveForNetwork`, `resolveForProtocol`, `getNetworkAssets` |
+| `src/common/utils/CurrencyLookup.ts` | Utility functions: `getCurrencyByTickerForProtocol`, `getCurrencyByTickerForNetwork` |
+| `src/common/stores/config/index.ts` | `getCurrencyByTickerForNetwork()`, `getCurrencyByKey()` on configStore |
+
 ---
 
 ## 3. Price Data Flow
@@ -773,9 +826,15 @@ let query_msg = format!(r#"{{"protocol":{{"protocol":"{}"}}}}"#, protocol_name);
 
 ### Webapp Configuration
 
-Separate from protocol config, webapp-specific settings are stored in JSON files and served via `/api/webapp/config/*`.
+Webapp-specific settings are served from domain-specific endpoints:
+- `/api/leases/config/{protocol}` — lease validation config (downpayment ranges + on-chain LeaserConfig)
+- `/api/swap/config` — Skip API swap routing config
+- `/api/governance/hidden-proposals` — hidden proposal IDs
+- `/api/locales/{lang}` — translation files
 
-**GET /api/webapp/config/currencies:**
+**Currency display config** (icons, names, colors) is managed via the gated propagation system (`currency-display.json`) and served through `/api/protocols/{protocol}/currencies`.
+
+**Previously at `/api/webapp/config/currencies`:**
 ```json
 {
   "icons": "/assets/icons/currencies",
@@ -1095,9 +1154,9 @@ LeaseInfo {
 
 ### Config Impact on Leases
 
-**Config file:** `backend/config/lease/downpayment-ranges.json`
+**Config file:** `backend/config/gated/lease-rules.json` (downpayment_ranges section)
 
-Controls min/max downpayment amounts per protocol and asset:
+Controls min/max downpayment amounts per protocol and asset. Served via `GET /api/leases/config/{protocol}` merged with on-chain LeaserConfig data (`min_asset`, `min_transaction`).
 
 ```json
 {
@@ -1391,7 +1450,7 @@ Swaps use the Skip API for cross-chain routing. The frontend constrains routes t
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                       RUST BACKEND                                           │
 │                                                                              │
-│  GET /api/webapp/config/swap/skip-route                                     │
+│  GET /api/swap/config                                                       │
 │    1. Load swap-settings.json (tickers, slippage, fees)                     │
 │    2. Load network-config.json (swap venues, chain IDs)                     │
 │    3. Load ETL currencies + protocols (cached)                              │
@@ -1428,7 +1487,7 @@ Swaps use the Skip API for cross-chain routing. The frontend constrains routes t
 
 ### Step 1: Skip Route Config
 
-The frontend fetches `GET /api/webapp/config/swap/skip-route` which returns swap settings with resolved denoms, venues, and transfer mappings. See [API.md](./API.md#get-apiwebappconfigswapskip-route) for the full response shape.
+The frontend fetches `GET /api/swap/config` which returns swap settings with resolved denoms, venues, and transfer mappings. See [API.md](./api.md#get-apiswapconfig) for the full response shape.
 
 **Key config sources:**
 
@@ -2059,8 +2118,7 @@ The translation system uses AI-powered generation with an approval workflow.
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
-| `/api/webapp/locales` | GET | List available languages |
-| `/api/webapp/locales/:lang` | GET | Get translations for language |
+| `/api/locales/:lang` | GET | Get translations for language |
 
 ### Data Transform Example
 
@@ -2127,7 +2185,7 @@ See [TRANSLATIONS.md](./TRANSLATIONS.md) for complete documentation.
 | `backend/config/networks.json` | Network definitions (chain_id, prefix, gas) | Config handler |
 | `backend/config/currencies.json` | Currency metadata (CoinGecko IDs, symbols) | Prices, balances |
 | `backend/config/chain-ids.json` | Chain ID mappings (OSMOSIS → osmosis-1) | Swap routing |
-| `backend/config/lease/downpayment-ranges.json` | Min/max downpayment per asset | Lease validation |
+| `backend/config/gated/lease-rules.json` | Downpayment ranges, asset restrictions | Lease validation |
 | `backend/config/lease/ignore-assets.json` | Assets excluded from all leases | Lease UI |
 | `backend/config/lease/ignore-lease-long-assets.json` | Assets excluded from long positions | Long form |
 | `backend/config/lease/ignore-lease-short-assets.json` | Assets excluded from short positions | Short form |

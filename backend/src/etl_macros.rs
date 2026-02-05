@@ -6,47 +6,44 @@
 //! - Response formatting
 //! - Type-safe deserialization
 
-/// Generate a typed cached ETL proxy handler
+/// Generate a typed ETL proxy handler (direct fetch, no caching).
 ///
-/// This version deserializes the response into a specific type and returns
-/// a proper typed JSON response with caching and request coalescing.
+/// These endpoints are low-frequency stats queries proxied through to ETL.
+/// High-frequency data is served from `AppDataCache` by dedicated handlers.
 ///
 /// Usage:
 /// ```ignore
-/// etl_proxy_typed!(proxy_tvl, "total-value-locked", TvlResponse, cache_keys::etl::TVL);
+/// etl_proxy_typed!(proxy_tvl, "total-value-locked", TvlResponse);
 /// ```
 #[macro_export]
 macro_rules! etl_proxy_typed {
-    ($fn_name:ident, $endpoint:expr, $response_type:ty, $cache_key:expr) => {
+    ($fn_name:ident, $endpoint:expr, $response_type:ty) => {
         pub async fn $fn_name(
             axum::extract::State(state): axum::extract::State<std::sync::Arc<$crate::AppState>>,
         ) -> Result<axum::Json<$response_type>, $crate::error::AppError> {
             let url = format!("{}/api/{}", state.config.external.etl_api_url, $endpoint);
-            let client = state.etl_client.client.clone();
 
-            // Use get_or_fetch for caching + request coalescing
-            let result = state
-                .cache
-                .data
-                .get_or_fetch($cache_key, || async move {
-                    match client.get(&url).send().await {
-                        Ok(response) => {
-                            match response.json::<serde_json::Value>().await {
-                                Ok(json) => Ok(json),
-                                Err(e) => Err(format!("Failed to parse response: {}", e)),
-                            }
-                        }
-                        Err(e) => Err(format!("ETL API request failed: {}", e)),
-                    }
-                })
+            let response = state
+                .etl_client
+                .client
+                .get(&url)
+                .send()
                 .await
-                .map_err(|e| $crate::error::AppError::Internal(e))?;
+                .map_err(|e| $crate::error::AppError::ExternalApi {
+                    api: "ETL".to_string(),
+                    message: format!("Request failed: {}", e),
+                })?;
 
-            // Deserialize into typed response
-            let typed: $response_type = serde_json::from_value(result)
-                .map_err(|e| $crate::error::AppError::Internal(
-                    format!("Failed to deserialize ETL response: {}", e)
-                ))?;
+            let json: serde_json::Value = response.json().await.map_err(|e| {
+                $crate::error::AppError::Internal(format!("Failed to parse ETL response: {}", e))
+            })?;
+
+            let typed: $response_type = serde_json::from_value(json).map_err(|e| {
+                $crate::error::AppError::Internal(format!(
+                    "Failed to deserialize ETL response: {}",
+                    e
+                ))
+            })?;
 
             Ok(axum::Json(typed))
         }
@@ -189,114 +186,38 @@ macro_rules! etl_proxy_typed_paginated {
     };
 }
 
-/// Generate a typed batch ETL handler with request coalescing
+/// Generate a raw JSON passthrough ETL proxy handler (direct fetch, no caching).
 ///
-/// Each field gets its own typed response, falling back to None on parse failure.
-///
-/// Usage:
-/// ```ignore
-/// etl_batch_handler_typed!(
-///     batch_stats_overview,
-///     StatsOverviewBatch,
-///     cache_keys::etl::STATS_OVERVIEW,
-///     [
-///         (tvl, "total-value-locked", TvlResponse),
-///         (tx_volume, "total-tx-value", TxVolumeResponse),
-///     ]
-/// );
-/// ```
-#[macro_export]
-macro_rules! etl_batch_handler_typed {
-    (
-        $fn_name:ident,
-        $response_type:ident,
-        $cache_key:expr,
-        [$(($field:ident, $endpoint:expr, $field_type:ty)),* $(,)?]
-    ) => {
-        pub async fn $fn_name(
-            axum::extract::State(state): axum::extract::State<std::sync::Arc<$crate::AppState>>,
-        ) -> Result<axum::Json<$response_type>, $crate::error::AppError> {
-            let base_url = state.config.external.etl_api_url.clone();
-            let client = state.etl_client.client.clone();
-
-            // Use get_or_fetch for caching + request coalescing
-            let result = state
-                .cache
-                .data
-                .get_or_fetch($cache_key, || async move {
-                    paste::paste! {
-                        $(
-                            let [<url_ $field>] = format!("{}/api/{}", base_url, $endpoint);
-                        )*
-
-                        // Fetch all in parallel
-                        let ($($field,)*) = tokio::join!(
-                            $(async {
-                                $crate::handlers::etl_proxy::fetch_json(&client, &[<url_ $field>])
-                                    .await
-                                    .ok()
-                                    .and_then(|v| serde_json::from_value::<$field_type>(v).ok())
-                            },)*
-                        );
-                    }
-
-                    let response = $response_type {
-                        $($field,)*
-                    };
-
-                    serde_json::to_value(response)
-                        .map_err(|e| format!("Failed to serialize batch response: {}", e))
-                })
-                .await
-                .map_err(|e| $crate::error::AppError::Internal(e))?;
-
-            let typed: $response_type = serde_json::from_value(result)
-                .map_err(|e| $crate::error::AppError::Internal(
-                    format!("Failed to deserialize cached response: {}", e)
-                ))?;
-
-            Ok(axum::Json(typed))
-        }
-    };
-}
-
-/// Generate a raw JSON passthrough ETL proxy handler (no deserialization)
-///
-/// This version passes through the JSON response directly without
-/// attempting to deserialize into a specific type.
+/// Passes through the JSON response directly without deserializing.
 ///
 /// Usage:
 /// ```ignore
-/// etl_proxy_raw!(proxy_leases_monthly, "leases-monthly", cache_keys::etl::LEASES_MONTHLY);
+/// etl_proxy_raw!(proxy_leases_monthly, "leases-monthly");
 /// ```
 #[macro_export]
 macro_rules! etl_proxy_raw {
-    ($fn_name:ident, $endpoint:expr, $cache_key:expr) => {
+    ($fn_name:ident, $endpoint:expr) => {
         pub async fn $fn_name(
             axum::extract::State(state): axum::extract::State<std::sync::Arc<$crate::AppState>>,
         ) -> Result<axum::Json<serde_json::Value>, $crate::error::AppError> {
             let url = format!("{}/api/{}", state.config.external.etl_api_url, $endpoint);
-            let client = state.etl_client.client.clone();
 
-            // Use get_or_fetch for caching + request coalescing
-            let result = state
-                .cache
-                .data
-                .get_or_fetch($cache_key, || async move {
-                    match client.get(&url).send().await {
-                        Ok(response) => {
-                            match response.json::<serde_json::Value>().await {
-                                Ok(json) => Ok(json),
-                                Err(e) => Err(format!("Failed to parse response: {}", e)),
-                            }
-                        }
-                        Err(e) => Err(format!("ETL API request failed: {}", e)),
-                    }
-                })
+            let response = state
+                .etl_client
+                .client
+                .get(&url)
+                .send()
                 .await
-                .map_err(|e| $crate::error::AppError::Internal(e))?;
+                .map_err(|e| $crate::error::AppError::ExternalApi {
+                    api: "ETL".to_string(),
+                    message: format!("Request failed: {}", e),
+                })?;
 
-            Ok(axum::Json(result))
+            let json: serde_json::Value = response.json().await.map_err(|e| {
+                $crate::error::AppError::Internal(format!("Failed to parse ETL response: {}", e))
+            })?;
+
+            Ok(axum::Json(json))
         }
     };
 }

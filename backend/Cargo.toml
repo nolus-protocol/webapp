@@ -42,7 +42,7 @@ anyhow = "1"
 async-trait = "0.1"
 
 # Caching
-moka = { version = "0.12", features = ["future"] }
+arc-swap = "1"
 
 # Concurrent HashMap for WebSocket connections
 dashmap = "6"

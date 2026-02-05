@@ -2,18 +2,26 @@
 //!
 //! Queries Oracle and LPP contracts for currency and price data.
 
+use std::sync::Arc;
+
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tokio::sync::Semaphore;
 use tracing::{debug, error};
 
 use crate::error::AppError;
+
+/// Maximum concurrent LCD/REST requests to the chain node.
+/// Prevents burst overload on cold start and during cache refresh cycles.
+const MAX_CONCURRENT_CHAIN_QUERIES: usize = 12;
 
 /// Client for querying Cosmos chains via RPC/REST
 #[derive(Clone)]
 pub struct ChainClient {
     rest_url: String,
     client: Client,
+    query_semaphore: Arc<Semaphore>,
 }
 
 /// Currency info from Oracle contract
@@ -63,7 +71,11 @@ pub struct ProtocolContracts {
 
 impl ChainClient {
     pub fn new(rest_url: String, client: Client) -> Self {
-        Self { rest_url, client }
+        Self {
+            rest_url,
+            client,
+            query_semaphore: Arc::new(Semaphore::new(MAX_CONCURRENT_CHAIN_QUERIES)),
+        }
     }
 
     /// Get a reference to the HTTP client for health checks
@@ -77,6 +89,13 @@ impl ChainClient {
         contract_address: &str,
         query_msg: serde_json::Value,
     ) -> Result<T, AppError> {
+        // Acquire semaphore permit to limit concurrent chain queries
+        let _permit = self
+            .query_semaphore
+            .acquire()
+            .await
+            .map_err(|e| AppError::Internal(format!("Semaphore closed: {}", e)))?;
+
         let query_b64 = base64::Engine::encode(
             &base64::engine::general_purpose::STANDARD,
             serde_json::to_vec(&query_msg).map_err(|e| AppError::Internal(e.to_string()))?,
@@ -396,11 +415,10 @@ impl ChainClient {
             unbonding_responses: Vec<UnbondingDelegation>,
         }
 
-        let result: UnbondingResponse =
-            response.json().await.map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Failed to parse unbonding delegations: {}", e),
-            })?;
+        let result: UnbondingResponse = response.json().await.map_err(|e| AppError::ChainRpc {
+            chain: "nolus".to_string(),
+            message: format!("Failed to parse unbonding delegations: {}", e),
+        })?;
 
         Ok(result.unbonding_responses)
     }
@@ -439,7 +457,8 @@ impl ChainClient {
     /// Get Leaser configuration
     pub async fn get_leaser_config(&self, leaser_address: &str) -> Result<LeaserConfig, AppError> {
         let query = json!({ "config": {} });
-        self.query_contract(leaser_address, query).await
+        let response: LeaserConfigResponse = self.query_contract(leaser_address, query).await?;
+        Ok(response.config)
     }
 
     /// Get lease quote from Leaser contract
@@ -1046,6 +1065,12 @@ pub struct ProtocolContractsInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CustomerLeasesResponse(pub Vec<String>);
 
+/// Wrapper for the chain's `{"config": {...}}` response
+#[derive(Debug, Clone, Deserialize)]
+pub struct LeaserConfigResponse {
+    pub config: LeaserConfig,
+}
+
 /// Leaser configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LeaserConfig {
@@ -1370,7 +1395,7 @@ mod tests {
     }
 
     fn create_test_client(base_url: &str) -> ChainClient {
-        ChainClient::new(base_url.to_string(), reqwest::Client::new())
+        ChainClient::new(base_url.to_string(), Client::new())
     }
 
     #[tokio::test]

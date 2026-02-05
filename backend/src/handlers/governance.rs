@@ -13,6 +13,40 @@ use tracing::debug;
 
 use crate::{error::AppError, external::chain, AppState};
 
+// ============================================================================
+// Hidden Proposals
+// ============================================================================
+
+/// Response for hidden proposals endpoint
+#[derive(Debug, Serialize)]
+pub struct HiddenProposalsResponse {
+    pub hidden_ids: Vec<String>,
+}
+
+/// GET /api/governance/hidden-proposals
+/// Returns list of proposal IDs that should be hidden in the UI
+pub async fn get_hidden_proposals(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<HiddenProposalsResponse>, AppError> {
+    let gated =
+        state
+            .data_cache
+            .gated_config
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Gated config not yet available".to_string(),
+            })?;
+    let ui_settings = gated.ui_settings;
+
+    Ok(Json(HiddenProposalsResponse {
+        hidden_ids: ui_settings.hidden_proposals,
+    }))
+}
+
+// ============================================================================
+// Proposals
+// ============================================================================
+
 /// Query params for proposals
 #[derive(Debug, Deserialize)]
 pub struct ProposalsQuery {

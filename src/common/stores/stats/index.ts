@@ -137,7 +137,10 @@ export const useStatsStore = defineStore("stats", () => {
    * Fetch overview stats (TVL, tx volume, buyback, realized PnL, revenue)
    */
   async function fetchOverview(): Promise<void> {
-    overviewLoading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      overviewLoading.value = true;
+    }
     error.value = null;
 
     try {
@@ -158,7 +161,9 @@ export const useStatsStore = defineStore("stats", () => {
       console.error("[StatsStore] Failed to fetch overview:", e);
       throw e;
     } finally {
-      overviewLoading.value = false;
+      if (isInitialLoad) {
+        overviewLoading.value = false;
+      }
     }
   }
 
@@ -166,7 +171,10 @@ export const useStatsStore = defineStore("stats", () => {
    * Fetch loans stats (open position value, open interest)
    */
   async function fetchLoansStats(): Promise<void> {
-    loansStatsLoading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      loansStatsLoading.value = true;
+    }
     error.value = null;
 
     try {
@@ -184,7 +192,9 @@ export const useStatsStore = defineStore("stats", () => {
       console.error("[StatsStore] Failed to fetch loans stats:", e);
       throw e;
     } finally {
-      loansStatsLoading.value = false;
+      if (isInitialLoad) {
+        loansStatsLoading.value = false;
+      }
     }
   }
 
@@ -192,7 +202,10 @@ export const useStatsStore = defineStore("stats", () => {
    * Fetch leased assets breakdown
    */
   async function fetchLeasedAssets(): Promise<void> {
-    leasedAssetsLoading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      leasedAssetsLoading.value = true;
+    }
     error.value = null;
 
     try {
@@ -204,7 +217,9 @@ export const useStatsStore = defineStore("stats", () => {
       console.error("[StatsStore] Failed to fetch leased assets:", e);
       throw e;
     } finally {
-      leasedAssetsLoading.value = false;
+      if (isInitialLoad) {
+        leasedAssetsLoading.value = false;
+      }
     }
   }
 
@@ -212,7 +227,10 @@ export const useStatsStore = defineStore("stats", () => {
    * Fetch monthly leases data
    */
   async function fetchMonthlyLeases(): Promise<void> {
-    monthlyLeasesLoading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      monthlyLeasesLoading.value = true;
+    }
     error.value = null;
 
     try {
@@ -224,7 +242,9 @@ export const useStatsStore = defineStore("stats", () => {
       console.error("[StatsStore] Failed to fetch monthly leases:", e);
       throw e;
     } finally {
-      monthlyLeasesLoading.value = false;
+      if (isInitialLoad) {
+        monthlyLeasesLoading.value = false;
+      }
     }
   }
 

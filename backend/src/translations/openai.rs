@@ -230,10 +230,7 @@ impl OpenAIClient {
                 message: format!("Failed to parse response: {}", e),
             })?;
 
-        let tokens_used = completion
-            .usage
-            .map(|u| u.total_tokens)
-            .unwrap_or(0);
+        let tokens_used = completion.usage.map(|u| u.total_tokens).unwrap_or(0);
 
         let content = completion
             .choices
@@ -318,10 +315,7 @@ Example:
         let mut prompt = String::from("Translate the following keys:\n\n");
 
         for input in inputs {
-            prompt.push_str(&format!(
-                "Key: {}\nText: {}\n",
-                input.key, input.value
-            ));
+            prompt.push_str(&format!("Key: {}\nText: {}\n", input.key, input.value));
             if !input.placeholders.is_empty() {
                 prompt.push_str(&format!(
                     "Placeholders to preserve: {}\n",
@@ -346,18 +340,18 @@ Example:
             inputs.iter().map(|i| (i.key.as_str(), i)).collect();
 
         // Parse JSON response
-        let response: TranslationResponse =
-            serde_json::from_str(content).map_err(|e| {
-                error!("Failed to parse OpenAI response: {}", e);
-                error!("Raw content: {}", content);
-                AppError::ExternalApi {
-                    api: "OpenAI".to_string(),
-                    message: format!("Invalid JSON response: {}", e),
-                }
-            })?;
+        let response: TranslationResponse = serde_json::from_str(content).map_err(|e| {
+            error!("Failed to parse OpenAI response: {}", e);
+            error!("Raw content: {}", content);
+            AppError::ExternalApi {
+                api: "OpenAI".to_string(),
+                message: format!("Invalid JSON response: {}", e),
+            }
+        })?;
 
         let mut translations = Vec::new();
-        let mut processed_keys: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut processed_keys: std::collections::HashSet<String> =
+            std::collections::HashSet::new();
 
         for item in response.translations {
             if let Some(input) = input_map.get(item.key.as_str()) {
@@ -498,9 +492,7 @@ mod tests {
     fn test_build_system_prompt_with_glossary() {
         let client = OpenAIClient::new(OpenAIConfig::default());
         let mut glossary = GlossaryConfig::default();
-        glossary
-            .terms
-            .insert("Nolus".to_string(), "".to_string());
+        glossary.terms.insert("Nolus".to_string(), "".to_string());
         glossary
             .terms
             .insert("NLS".to_string(), "Native token".to_string());
@@ -541,13 +533,11 @@ mod tests {
     #[test]
     fn test_parse_translations_success() {
         let client = OpenAIClient::new(OpenAIConfig::default());
-        let inputs = vec![
-            TranslationInput {
-                key: "message.hello".to_string(),
-                value: "Hello {name}!".to_string(),
-                placeholders: vec!["{name}".to_string()],
-            },
-        ];
+        let inputs = vec![TranslationInput {
+            key: "message.hello".to_string(),
+            value: "Hello {name}!".to_string(),
+            placeholders: vec!["{name}".to_string()],
+        }];
 
         let json_content = r#"{
             "translations": [
@@ -555,7 +545,9 @@ mod tests {
             ]
         }"#;
 
-        let result = client.parse_translations(json_content, &inputs, 100).unwrap();
+        let result = client
+            .parse_translations(json_content, &inputs, 100)
+            .unwrap();
 
         assert_eq!(result.translations.len(), 1);
         assert_eq!(result.translations[0].key, "message.hello");
@@ -580,7 +572,9 @@ mod tests {
             ]
         }"#;
 
-        let result = client.parse_translations(json_content, &inputs, 100).unwrap();
+        let result = client
+            .parse_translations(json_content, &inputs, 100)
+            .unwrap();
 
         assert_eq!(result.translations.len(), 1);
         assert!(!result.translations[0].placeholders_valid);
@@ -608,7 +602,9 @@ mod tests {
             ]
         }"#;
 
-        let result = client.parse_translations(json_content, &inputs, 100).unwrap();
+        let result = client
+            .parse_translations(json_content, &inputs, 100)
+            .unwrap();
 
         assert_eq!(result.translations.len(), 1);
         assert_eq!(result.failed_keys, vec!["message.goodbye"]);

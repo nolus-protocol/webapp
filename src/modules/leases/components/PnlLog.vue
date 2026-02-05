@@ -98,7 +98,7 @@ import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import type { ILoan } from "./types";
 import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { getCurrencyByTicker, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
+import { getCurrencyByTickerForProtocol, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useAnalyticsStore } from "@/common/stores";
 import { Dec } from "@keplr-wallet/unit";
@@ -193,12 +193,10 @@ const leasesHistory = computed(() => {
   return loans.value.map((item) => {
     const protocol = getProtocolByContract(item.LS_loan_pool_id);
     const ticker = item.LS_asset_symbol;
-    let currency = getCurrencyByTicker(ticker);
-
     const positionType = configStore.getPositionType(protocol);
-    if (positionType === "Short") {
-      currency = getLpnByProtocol(protocol);
-    }
+    let currency = positionType === "Short"
+      ? getLpnByProtocol(protocol)
+      : getCurrencyByTickerForProtocol(ticker, protocol);
 
     const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
     let pnl_amount = formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);

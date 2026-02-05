@@ -133,14 +133,7 @@
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: '%',
                 isDenomInfront: false,
-                fontSize: 16,
-                class: { 'line-through': isFreeLease },
-                additional: isFreeLease
-                  ? {
-                      text: '0%',
-                      class: 'text-typography-success'
-                    }
-                  : undefined
+                fontSize: 16
               }"
             />
           </div>
@@ -265,7 +258,7 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
 import { MAX_DECIMALS, MID_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
-import { computed, inject, onMounted, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
@@ -274,7 +267,6 @@ import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { datePraser, isMobile, Logger, walletOperation } from "@/common/utils";
-import { getFreeInterestAddress } from "@/common/utils/LeaseConfigService";
 import { useRoute, useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { TEMPLATES } from "../common";
@@ -302,7 +294,6 @@ const i18n = useI18n();
 const route = useRoute();
 const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
-const freeInterest = ref<string[]>([]);
 
 const pnl = computed(() => {
   if (!props.displayData) {
@@ -316,11 +307,6 @@ const pnl = computed(() => {
   };
 });
 
-onMounted(async () => {
-  const data = await getFreeInterestAddress();
-  freeInterest.value = data.interest_paid_to;
-});
-
 const status = computed(() => {
   if (!props.lease) return TEMPLATES.opening;
   switch (props.lease.status) {
@@ -332,13 +318,6 @@ const status = computed(() => {
     case "liquidated": return TEMPLATES.liquidated;
     default: return TEMPLATES.opening;
   }
-});
-
-const isFreeLease = computed(() => {
-  if (freeInterest.value.includes(props.lease?.address as string)) {
-    return true;
-  }
-  return false;
 });
 
 const amount_tooltip = computed(() => {

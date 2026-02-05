@@ -50,8 +50,6 @@ pub enum ValidatorStatus {
     Unbonded,
 }
 
-
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StakingPosition {
     pub validator_address: String,
@@ -144,63 +142,20 @@ pub struct StakingParams {
 
 /// GET /api/staking/validators
 /// Returns list of all bonded validators
-/// Uses caching with request coalescing to prevent thundering herd
+/// Reads from background-refreshed cache (zero latency).
 pub async fn get_validators(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<Validator>>, AppError> {
-    debug!("Getting validators");
-
-    // Use get_or_fetch to coalesce concurrent requests
-    let result = state
-        .cache
-        .data
-        .get_or_fetch(crate::cache_keys::validators::ALL_VALIDATORS, || {
-            let state = state.clone();
-            async move { fetch_validators_internal(state).await }
-        })
-        .await
-        .map_err(|e| AppError::ExternalApi {
-            api: "validators".to_string(),
-            message: e,
-        })?;
-
-    // Deserialize the cached JSON back to Vec<Validator>
-    let validators: Vec<Validator> = serde_json::from_value(result).map_err(|e| {
-        AppError::Internal(format!("Failed to deserialize validators: {}", e))
-    })?;
+    let validators =
+        state
+            .data_cache
+            .validators
+            .load()
+            .ok_or_else(|| AppError::ServiceUnavailable {
+                message: "Validators not yet available".to_string(),
+            })?;
 
     Ok(Json(validators))
-}
-
-/// Internal function to fetch validators (called by cache)
-async fn fetch_validators_internal(
-    state: Arc<AppState>,
-) -> Result<serde_json::Value, String> {
-    let validators = state
-        .chain_client
-        .get_validators()
-        .await
-        .map_err(|e| e.to_string())?;
-
-    let result: Vec<Validator> = validators
-        .into_iter()
-        .map(|v| Validator {
-            operator_address: v.operator_address,
-            moniker: v.description.moniker,
-            identity: v.description.identity,
-            website: v.description.website,
-            details: v.description.details,
-            commission_rate: v.commission.commission_rates.rate,
-            max_commission_rate: v.commission.commission_rates.max_rate,
-            max_commission_change_rate: v.commission.commission_rates.max_change_rate,
-            tokens: v.tokens,
-            delegator_shares: v.delegator_shares,
-            status: parse_validator_status(&v.status),
-            jailed: v.jailed,
-        })
-        .collect();
-
-    serde_json::to_value(result).map_err(|e| e.to_string())
 }
 
 /// GET /api/staking/validators/:address
@@ -540,7 +495,7 @@ pub async fn claim_rewards(
 // Helper Functions
 // ============================================================================
 
-fn parse_validator_status(status: &str) -> ValidatorStatus {
+pub fn parse_validator_status(status: &str) -> ValidatorStatus {
     match status {
         "BOND_STATUS_BONDED" => ValidatorStatus::Bonded,
         "BOND_STATUS_UNBONDING" => ValidatorStatus::Unbonding,
@@ -554,9 +509,21 @@ mod tests {
 
     #[test]
     fn test_parse_validator_status() {
-        assert!(matches!(parse_validator_status("BOND_STATUS_BONDED"), ValidatorStatus::Bonded));
-        assert!(matches!(parse_validator_status("BOND_STATUS_UNBONDING"), ValidatorStatus::Unbonding));
-        assert!(matches!(parse_validator_status("BOND_STATUS_UNBONDED"), ValidatorStatus::Unbonded));
-        assert!(matches!(parse_validator_status("unknown"), ValidatorStatus::Unbonded));
+        assert!(matches!(
+            parse_validator_status("BOND_STATUS_BONDED"),
+            ValidatorStatus::Bonded
+        ));
+        assert!(matches!(
+            parse_validator_status("BOND_STATUS_UNBONDING"),
+            ValidatorStatus::Unbonding
+        ));
+        assert!(matches!(
+            parse_validator_status("BOND_STATUS_UNBONDED"),
+            ValidatorStatus::Unbonded
+        ));
+        assert!(matches!(
+            parse_validator_status("unknown"),
+            ValidatorStatus::Unbonded
+        ));
     }
 }

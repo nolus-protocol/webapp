@@ -9,7 +9,11 @@ Complete reference for the backend REST API and WebSocket protocol.
 | Category | Endpoints | Description |
 |----------|-----------|-------------|
 | Health | 2 | Health check, detailed status |
-| Config | 4 | App config, protocols, networks, swap routing |
+| Config | 2 | App config |
+| Lease Config | 1 | Lease validation config (downpayment ranges, min_asset) |
+| Swap Config | 1 | Skip API swap routing config |
+| Governance Config | 1 | Hidden proposals |
+| Locales | 1 | Translation files |
 | Prices & Currencies | 4 | Prices, currencies, balances |
 | **Gated Assets** | 3 | Deduplicated assets with Oracle prices |
 | **Gated Networks** | 4 | Configured networks, pools |
@@ -97,7 +101,28 @@ Returns protocol configuration including contracts and network settings.
 
 **Cache-Control:** `max-age=3600`
 
-### GET /api/webapp/config/swap/skip-route
+### GET /api/leases/config/{protocol}
+
+Returns lease validation configuration for a protocol. Merges static downpayment ranges from `lease-rules.json` with on-chain LeaserConfig data (`min_asset`, `min_transaction`).
+
+**Response:**
+```json
+{
+  "protocol": "OSMOSIS-OSMOSIS-USDC_NOBLE",
+  "downpayment_ranges": {
+    "OSMO": { "min": 10, "max": 50000 },
+    "ATOM": { "min": 10, "max": 50000 }
+  },
+  "min_asset": { "amount": "15000000", "ticker": "USDC" },
+  "min_transaction": { "amount": "1000000", "ticker": "USDC" }
+}
+```
+
+**Data sources:**
+- `downpayment_ranges` — from gated config file (`lease-rules.json`)
+- `min_asset`, `min_transaction` — from on-chain LeaserConfig via `chain_client.get_leaser_config(leaser_address)`
+
+### GET /api/swap/config
 
 Returns Skip API swap routing configuration. Combines static swap settings with dynamic data from ETL (Cosmos network transfers) and gated network config (swap venues, chain IDs).
 
@@ -151,6 +176,23 @@ Returns Skip API swap routing configuration. Combines static swap settings with 
 | `<venue-name>` (top-level) | `network-config.json` | Venue contract address |
 | `swap_venues[]` | `network-config.json` | Venue name + chain_id (derived from network) |
 | `transfers` | Dynamic from ETL | Per-network currency mappings (bank_symbol → dex_symbol) |
+
+### GET /api/governance/hidden-proposals
+
+Returns list of governance proposal IDs that should be hidden from the UI.
+
+**Response:**
+```json
+{
+  "hidden_ids": ["1", "5", "12"]
+}
+```
+
+### GET /api/locales/{lang}
+
+Returns translation messages for a language. Validates the language code and loads from the active locale files.
+
+**Response:** Full locale JSON object with all translation keys.
 
 ---
 
@@ -1160,6 +1202,7 @@ All errors follow this format:
 | 429 | Rate limit exceeded |
 | 500 | Internal server error |
 | 502 | External API error |
+| 503 | Service unavailable (cache not ready) |
 
 ### Error Types
 
@@ -1168,7 +1211,35 @@ All errors follow this format:
 | `Validation` | Invalid input parameters |
 | `NotFound` | Resource doesn't exist |
 | `ExternalApi` | External API call failed |
+| `ServiceUnavailable` | Cache not yet populated (cold start or refresh failure) |
 | `Internal` | Server error |
+
+### Cold Start Behavior (HTTP 503)
+
+On server startup, the backend runs `warm_essential_data()` to populate critical caches before accepting requests. If warm-up partially fails (e.g., chain node is unreachable), the server starts anyway but affected endpoints return **HTTP 503** until the next background refresh succeeds.
+
+Endpoints that may return 503:
+- `GET /api/config` — requires `app_config` cache
+- `GET /api/prices` — requires `prices` cache
+- `GET /api/currencies` — requires `currencies` cache
+- `GET /api/assets` — requires `gated_assets` cache
+- `GET /api/protocols/gated` — requires `gated_protocols` cache
+- `GET /api/networks/gated` — requires `gated_networks` cache
+- `GET /api/staking/validators` — requires `validators` cache
+- `GET /api/earn/pools` — requires `pools` cache
+- `GET /api/swap/config` — requires `swap_config` cache
+- `GET /api/etl/batch/stats-overview` — requires `stats_overview` cache
+- `GET /api/etl/batch/loans-stats` — requires `loans_stats` cache
+
+The 503 response follows the standard error format:
+```json
+{
+  "error": "ServiceUnavailable",
+  "message": "Data not yet available, please retry shortly"
+}
+```
+
+Background refresh tasks run on fixed intervals (15s–300s depending on data type) and will populate the cache as soon as the upstream source becomes available. The frontend already handles transient errors with retry logic.
 
 ---
 

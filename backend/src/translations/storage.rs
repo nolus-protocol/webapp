@@ -50,10 +50,7 @@ impl TranslationStorage {
     /// Initialize storage, creating directories if needed
     pub async fn init(&self) -> Result<(), AppError> {
         // Create directories
-        let dirs = [
-            self.locales_dir.clone(),
-            self.locales_dir.join("active"),
-        ];
+        let dirs = [self.locales_dir.clone(), self.locales_dir.join("active")];
 
         for dir in &dirs {
             if !dir.exists() {
@@ -71,16 +68,66 @@ impl TranslationStorage {
         if !self.languages_path().exists() {
             let default_languages = LanguagesConfig {
                 languages: vec![
-                    Language { key: "en".to_string(), label: "English".to_string(), is_source: true, is_active: true },
-                    Language { key: "ru".to_string(), label: "Русский".to_string(), is_source: false, is_active: true },
-                    Language { key: "cn".to_string(), label: "中文".to_string(), is_source: false, is_active: true },
-                    Language { key: "fr".to_string(), label: "Français".to_string(), is_source: false, is_active: true },
-                    Language { key: "es".to_string(), label: "Español".to_string(), is_source: false, is_active: true },
-                    Language { key: "gr".to_string(), label: "Ελληνικά".to_string(), is_source: false, is_active: true },
-                    Language { key: "tr".to_string(), label: "Türkçe".to_string(), is_source: false, is_active: true },
-                    Language { key: "id".to_string(), label: "Bahasa Indo".to_string(), is_source: false, is_active: true },
-                    Language { key: "jp".to_string(), label: "日本語".to_string(), is_source: false, is_active: true },
-                    Language { key: "kr".to_string(), label: "한국어".to_string(), is_source: false, is_active: true },
+                    Language {
+                        key: "en".to_string(),
+                        label: "English".to_string(),
+                        is_source: true,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "ru".to_string(),
+                        label: "Русский".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "cn".to_string(),
+                        label: "中文".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "fr".to_string(),
+                        label: "Français".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "es".to_string(),
+                        label: "Español".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "gr".to_string(),
+                        label: "Ελληνικά".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "tr".to_string(),
+                        label: "Türkçe".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "id".to_string(),
+                        label: "Bahasa Indo".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "jp".to_string(),
+                        label: "日本語".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
+                    Language {
+                        key: "kr".to_string(),
+                        label: "한국어".to_string(),
+                        is_source: false,
+                        is_active: true,
+                    },
                 ],
             };
             self.save_languages(&default_languages).await?;
@@ -100,7 +147,9 @@ impl TranslationStorage {
     // =========================================================================
 
     fn active_path(&self, lang: &str) -> PathBuf {
-        self.locales_dir.join("active").join(format!("{}.json", lang))
+        self.locales_dir
+            .join("active")
+            .join(format!("{}.json", lang))
     }
 
     fn pending_path(&self) -> PathBuf {
@@ -199,7 +248,9 @@ impl TranslationStorage {
 
         // Create locale file
         let initial_content = if let Some(source_lang) = copy_from {
-            self.load_active(source_lang).await.unwrap_or_else(|_| serde_json::json!({}))
+            self.load_active(source_lang)
+                .await
+                .unwrap_or_else(|_| serde_json::json!({}))
         } else {
             serde_json::json!({})
         };
@@ -346,7 +397,10 @@ impl TranslationStorage {
         value: &str,
         admin_user: Option<String>,
     ) -> Result<(), AppError> {
-        let mut locale = self.load_active(lang).await.unwrap_or_else(|_| serde_json::json!({}));
+        let mut locale = self
+            .load_active(lang)
+            .await
+            .unwrap_or_else(|_| serde_json::json!({}));
 
         // Get old value for audit
         let old_value = get_nested_value(&locale, key).map(|v| v.to_string());
@@ -382,7 +436,10 @@ impl TranslationStorage {
             .ok_or_else(|| AppError::Internal("No source language configured".to_string()))?;
 
         let source_locale = self.load_active(&source_lang.key).await?;
-        let target_locale = self.load_active(lang).await.unwrap_or_else(|_| serde_json::json!({}));
+        let target_locale = self
+            .load_active(lang)
+            .await
+            .unwrap_or_else(|_| serde_json::json!({}));
 
         let source_keys = flatten_json(&source_locale, "");
         let target_keys = flatten_json(&target_locale, "");
@@ -442,12 +499,13 @@ impl TranslationStorage {
             return Ok(PendingTranslationsFile::default());
         }
 
-        let content = fs::read_to_string(&path)
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to read pending translations: {}", e)))?;
+        let content = fs::read_to_string(&path).await.map_err(|e| {
+            AppError::Internal(format!("Failed to read pending translations: {}", e))
+        })?;
 
-        let pending: PendingTranslationsFile = serde_json::from_str(&content)
-            .map_err(|e| AppError::Internal(format!("Failed to parse pending translations: {}", e)))?;
+        let pending: PendingTranslationsFile = serde_json::from_str(&content).map_err(|e| {
+            AppError::Internal(format!("Failed to parse pending translations: {}", e))
+        })?;
 
         // Update cache
         {
@@ -490,7 +548,10 @@ impl TranslationStorage {
     }
 
     /// Add multiple pending translations
-    pub async fn add_pending_batch(&self, translations: Vec<PendingTranslation>) -> Result<(), AppError> {
+    pub async fn add_pending_batch(
+        &self,
+        translations: Vec<PendingTranslation>,
+    ) -> Result<(), AppError> {
         let mut pending = self.load_pending().await?;
         pending.translations.extend(translations);
         self.save_pending(&pending).await
@@ -562,10 +623,14 @@ impl TranslationStorage {
         let mut translation = pending_file.translations.remove(idx);
 
         // Validate placeholders
-        let validation = validate_placeholders(&translation.source_value, &translation.proposed_value);
+        let validation =
+            validate_placeholders(&translation.source_value, &translation.proposed_value);
         if !validation.valid {
             return Err(AppError::Validation {
-                message: format!("Translation has invalid placeholders. Missing: {:?}", validation.missing),
+                message: format!(
+                    "Translation has invalid placeholders. Missing: {:?}",
+                    validation.missing
+                ),
                 field: Some("proposed_value".to_string()),
                 details: None,
             });
@@ -577,8 +642,12 @@ impl TranslationStorage {
         translation.reviewed_at = Some(chrono::Utc::now());
 
         // Apply to active locale
-        let value = translation.edited_value.as_ref().unwrap_or(&translation.proposed_value);
-        self.set_active_key_internal(&translation.target_lang, &translation.source_key, value).await?;
+        let value = translation
+            .edited_value
+            .as_ref()
+            .unwrap_or(&translation.proposed_value);
+        self.set_active_key_internal(&translation.target_lang, &translation.source_key, value)
+            .await?;
 
         // Save updated pending file
         self.save_pending(&pending_file).await?;
@@ -662,7 +731,10 @@ impl TranslationStorage {
         let validation = validate_placeholders(&translation.source_value, new_value);
         if !validation.valid {
             return Err(AppError::Validation {
-                message: format!("Edited translation has invalid placeholders. Missing: {:?}", validation.missing),
+                message: format!(
+                    "Edited translation has invalid placeholders. Missing: {:?}",
+                    validation.missing
+                ),
                 field: Some("value".to_string()),
                 details: None,
             });
@@ -675,7 +747,8 @@ impl TranslationStorage {
         translation.edited_value = Some(new_value.to_string());
 
         // Apply to active locale
-        self.set_active_key_internal(&translation.target_lang, &translation.source_key, new_value).await?;
+        self.set_active_key_internal(&translation.target_lang, &translation.source_key, new_value)
+            .await?;
 
         // Save updated pending file
         self.save_pending(&pending_file).await?;
@@ -713,9 +786,13 @@ impl TranslationStorage {
                 let translation = &pending_file.translations[idx];
 
                 // Validate
-                let validation = validate_placeholders(&translation.source_value, &translation.proposed_value);
+                let validation =
+                    validate_placeholders(&translation.source_value, &translation.proposed_value);
                 if validation.valid {
-                    let value = translation.edited_value.as_ref().unwrap_or(&translation.proposed_value);
+                    let value = translation
+                        .edited_value
+                        .as_ref()
+                        .unwrap_or(&translation.proposed_value);
                     to_apply.push((
                         translation.target_lang.clone(),
                         translation.source_key.clone(),
@@ -758,7 +835,10 @@ impl TranslationStorage {
         key: &str,
         value: &str,
     ) -> Result<(), AppError> {
-        let mut locale = self.load_active(lang).await.unwrap_or_else(|_| serde_json::json!({}));
+        let mut locale = self
+            .load_active(lang)
+            .await
+            .unwrap_or_else(|_| serde_json::json!({}));
         set_nested_value(&mut locale, key, Value::String(value.to_string()));
         self.save_active(lang, &locale).await
     }

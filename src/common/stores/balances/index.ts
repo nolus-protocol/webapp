@@ -164,7 +164,10 @@ export const useBalancesStore = defineStore("balances", () => {
       return;
     }
 
-    loading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      loading.value = true;
+    }
     error.value = null;
 
     try {
@@ -176,7 +179,9 @@ export const useBalancesStore = defineStore("balances", () => {
       error.value = e instanceof Error ? e.message : "Failed to fetch balances";
       console.error("[BalancesStore] Failed to fetch balances:", e);
     } finally {
-      loading.value = false;
+      if (isInitialLoad) {
+        loading.value = false;
+      }
     }
   }
 
@@ -220,6 +225,7 @@ export const useBalancesStore = defineStore("balances", () => {
     address.value = newAddress;
     balances.value = [];
     totalValueUsd.value = "0";
+    lastUpdated.value = null;
 
     if (newAddress) {
       await fetchBalances();

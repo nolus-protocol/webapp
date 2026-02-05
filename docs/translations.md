@@ -467,8 +467,7 @@ Keep translations concise and clear for UI elements.
 The frontend fetches translations from public endpoints:
 
 ```
-GET /api/webapp/locales        # List available languages
-GET /api/webapp/locales/{lang} # Get translations for a language
+GET /api/locales/{lang}        # Get translations for a language
 ```
 
 Example usage in Vue:
@@ -479,7 +478,7 @@ import { useI18n } from 'vue-i18n';
 const { locale, setLocaleMessage } = useI18n();
 
 // Load translations from backend
-const response = await fetch('/api/webapp/locales/ru');
+const response = await fetch('/api/locales/ru');
 const messages = await response.json();
 setLocaleMessage('ru', messages);
 locale.value = 'ru';

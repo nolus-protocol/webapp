@@ -13,7 +13,7 @@ import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { select, pointer, type Selection } from "d3";
 import { ref, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -52,7 +52,7 @@ function processLeasedAssets(items: { loan: string; asset: string }[]) {
       const [key, protocol] = item.asset.split(" ");
       let shortName = key;
       try {
-        const currency = getCurrencyByTicker(key);
+        const currency = getCurrencyByTickerForNetwork(key);
         shortName = currency?.shortName ?? key;
       } catch {
         // Currency not found in registry, use ticker as-is

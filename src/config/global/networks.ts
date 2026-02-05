@@ -2,7 +2,7 @@ import type { NetworkAddress } from "@/common/types";
 
 export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
-// Network endpoints are now fetched from the backend via BackendApi.getWebappNetworkEndpoints()
+// Network endpoints are fetched from the backend via the gated networks API
 // These static configs only contain metadata that doesn't change
 export const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {

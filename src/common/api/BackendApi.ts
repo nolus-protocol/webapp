@@ -25,6 +25,7 @@ import type {
   LeaseHistoryEntry,
   LeaseQuoteRequest,
   LeaseQuoteResponse,
+  LeaseConfigResponse,
   // Earn
   EarnPool,
   EarnPositionsResponse,
@@ -65,16 +66,9 @@ import type {
   NodeInfoResponse,
   NetworkStatusResponse,
   GatedNetworksResponse,
-  // Webapp
-  WebappCurrenciesConfig,
-  WebappChainIdsConfig,
-  WebappHistoryCurrenciesConfig,
-  WebappHistoryProtocolsConfig,
-  WebappDownpaymentRange,
-  WebappDueProjectionConfig,
-  WebappZeroInterestAddresses,
-  WebappSkipRouteConfig,
-  WebappProposalsConfig,
+  HiddenProposalsResponse,
+  // Swap
+  SwapConfigResponse,
   // ETL
   StatsOverviewBatchResponse,
   LoansStatsBatchResponse,
@@ -514,51 +508,35 @@ export class BackendApiClient {
   }
 
   // =========================================================================
-  // Webapp Configuration
+  // Lease Configuration
   // =========================================================================
 
-  async getWebappCurrencies(): Promise<WebappCurrenciesConfig> {
-    return this.request<WebappCurrenciesConfig>("GET", "/api/webapp/config/currencies");
+  async getLeaseConfig(protocol: string): Promise<LeaseConfigResponse> {
+    return this.request<LeaseConfigResponse>("GET", `/api/leases/config/${protocol}`);
   }
 
-  async getWebappChainIds(): Promise<WebappChainIdsConfig> {
-    return this.request<WebappChainIdsConfig>("GET", "/api/webapp/config/chain-ids");
+  // =========================================================================
+  // Swap Configuration
+  // =========================================================================
+
+  async getSwapConfig(): Promise<SwapConfigResponse> {
+    return this.request<SwapConfigResponse>("GET", "/api/swap/config");
   }
 
-  async getWebappHistoryCurrencies(): Promise<WebappHistoryCurrenciesConfig> {
-    return this.request<WebappHistoryCurrenciesConfig>("GET", "/api/webapp/config/history-currencies");
+  // =========================================================================
+  // Governance Configuration
+  // =========================================================================
+
+  async getHiddenProposals(): Promise<HiddenProposalsResponse> {
+    return this.request<HiddenProposalsResponse>("GET", "/api/governance/hidden-proposals");
   }
 
-  async getWebappHistoryProtocols(): Promise<WebappHistoryProtocolsConfig> {
-    return this.request<WebappHistoryProtocolsConfig>("GET", "/api/webapp/config/history-protocols");
-  }
+  // =========================================================================
+  // Locales
+  // =========================================================================
 
-  async getWebappDownpaymentRangeForProtocol(protocol: string): Promise<WebappDownpaymentRange> {
-    return this.request<WebappDownpaymentRange>("GET", `/api/webapp/config/lease/downpayment-ranges/${protocol}`);
-  }
-
-  // Note: Asset ignore lists (ignore_long, ignore_short, ignore_all) are now
-  // handled by the backend in /api/protocols/{protocol}/currencies endpoint.
-  // Free interest assets are handled by a 3rd party service.
-
-  async getWebappDueProjection(): Promise<WebappDueProjectionConfig> {
-    return this.request<WebappDueProjectionConfig>("GET", "/api/webapp/config/lease/due-projection");
-  }
-
-  async getWebappZeroInterestAddresses(): Promise<WebappZeroInterestAddresses> {
-    return this.request<WebappZeroInterestAddresses>("GET", "/api/webapp/config/zero-interest/addresses");
-  }
-
-  async getWebappSkipRouteConfig(): Promise<WebappSkipRouteConfig> {
-    return this.request<WebappSkipRouteConfig>("GET", "/api/webapp/config/swap/skip-route");
-  }
-
-  async getWebappHiddenProposals(): Promise<WebappProposalsConfig> {
-    return this.request<WebappProposalsConfig>("GET", "/api/webapp/config/governance/hidden-proposals");
-  }
-
-  async getWebappLocale(lang: string): Promise<Record<string, unknown>> {
-    return this.request<Record<string, unknown>>("GET", `/api/webapp/locales/${lang}`);
+  async getLocale(lang: string): Promise<Record<string, unknown>> {
+    return this.request<Record<string, unknown>>("GET", `/api/locales/${lang}`);
   }
 
   // =========================================================================

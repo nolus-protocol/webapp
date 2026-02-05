@@ -172,7 +172,10 @@ export const useLeasesStore = defineStore("leases", () => {
       return;
     }
 
-    loading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      loading.value = true;
+    }
     error.value = null;
 
     try {
@@ -187,7 +190,9 @@ export const useLeasesStore = defineStore("leases", () => {
       error.value = e instanceof Error ? e.message : "Failed to fetch leases";
       console.error("[LeasesStore] Failed to fetch leases:", e);
     } finally {
-      loading.value = false;
+      if (isInitialLoad) {
+        loading.value = false;
+      }
     }
   }
 
@@ -281,6 +286,7 @@ export const useLeasesStore = defineStore("leases", () => {
 
     owner.value = newOwner;
     leases.value = [];
+    lastUpdated.value = null;
 
     if (newOwner) {
       await fetchLeases();

@@ -12,12 +12,10 @@ use std::sync::Arc;
 use tracing::{debug, info, warn};
 
 use crate::config_store::gated_types::{
-    AdminCurrencyResponse, AdminNetworkResponse, AdminProtocolResponse,
-    CurrencyDisplayConfig, CurrencyDisplayInput, CurrencyEnrichmentStatus,
-    DownpaymentRangesInput, GatedNetworkConfig,
-    LeaseRulesConfig, NetworkConfigStatus, NetworkSettingsInput,
-    ProtocolReadinessStatus, SwapSettingsConfig, UiSettingsConfig,
-    UnconfiguredSummary,
+    AdminCurrencyResponse, AdminNetworkResponse, AdminProtocolResponse, CurrencyDisplayConfig,
+    CurrencyDisplayInput, CurrencyEnrichmentStatus, DownpaymentRangesInput, GatedNetworkConfig,
+    LeaseRulesConfig, NetworkConfigStatus, NetworkSettingsInput, ProtocolReadinessStatus,
+    SwapSettingsConfig, UiSettingsConfig, UnconfiguredSummary,
 };
 use crate::error::AppError;
 use crate::propagation::PropagationValidator;
@@ -110,16 +108,19 @@ pub async fn list_protocols(
             let network_configured = network_config
                 .as_ref()
                 .and_then(|config| {
-                    p.network.as_ref().and_then(|n| {
-                        config.networks.get(n).map(|s| s.is_configured())
-                    })
+                    p.network
+                        .as_ref()
+                        .and_then(|n| config.networks.get(n).map(|s| s.is_configured()))
                 })
                 .unwrap_or(false);
 
             let lpn_configured = currency_config
                 .as_ref()
                 .and_then(|config| {
-                    config.currencies.get(&p.lpn_symbol).map(|c| c.is_configured())
+                    config
+                        .currencies
+                        .get(&p.lpn_symbol)
+                        .map(|c| c.is_configured())
                 })
                 .unwrap_or(false);
 
@@ -138,7 +139,10 @@ pub async fn list_protocols(
                     !currency_config
                         .as_ref()
                         .and_then(|config| {
-                            config.currencies.get(&ticker.to_string()).map(|c| c.is_configured())
+                            config
+                                .currencies
+                                .get(&ticker.to_string())
+                                .map(|c| c.is_configured())
                         })
                         .unwrap_or(false)
                 })
@@ -278,6 +282,27 @@ pub async fn get_currency_display(
     Ok(Json(config))
 }
 
+/// Trigger async refresh of gated config and dependent caches after admin writes.
+/// This ensures changes propagate immediately instead of waiting for the next refresh interval.
+fn trigger_gated_refresh(state: &Arc<AppState>) {
+    let s = state.clone();
+    tokio::spawn(async move {
+        crate::refresh::refresh_gated_config(&s).await;
+        // Refresh dependents in parallel
+        let s2 = s.clone();
+        let s3 = s.clone();
+        let s4 = s.clone();
+        let s5 = s.clone();
+        tokio::join!(
+            crate::refresh::refresh_filter_context(&s),
+            crate::refresh::refresh_gated_assets(&s2),
+            crate::refresh::refresh_gated_protocols(&s3),
+            crate::refresh::refresh_gated_networks(&s4),
+            crate::refresh::refresh_swap_config(&s5),
+        );
+    });
+}
+
 /// PUT /api/admin/gated/currency-display
 /// Replace all currency display configs
 pub async fn replace_currency_display(
@@ -286,6 +311,7 @@ pub async fn replace_currency_display(
 ) -> Result<Json<CurrencyDisplayConfig>, AppError> {
     info!("Admin: replacing all currency display configs");
     state.config_store.save_currency_display(&config).await?;
+    trigger_gated_refresh(&state);
     Ok(Json(config))
 }
 
@@ -310,13 +336,14 @@ pub async fn upsert_currency_display(
     config.currencies.insert(ticker.clone(), display);
 
     state.config_store.save_currency_display(&config).await?;
+    trigger_gated_refresh(&state);
 
     // Return the updated entry
     let enrichment = config.currencies.get(&ticker).unwrap();
     Ok(Json(AdminCurrencyResponse {
         ticker: ticker.clone(),
         denom: String::new(), // Would need ETL lookup
-        decimals: 0,         // Would need ETL lookup
+        decimals: 0,          // Would need ETL lookup
         source: "config".to_string(),
         enrichment: CurrencyEnrichmentStatus {
             icon: Some(enrichment.icon.clone()),
@@ -346,6 +373,7 @@ pub async fn delete_currency_display(
     }
 
     state.config_store.save_currency_display(&config).await?;
+    trigger_gated_refresh(&state);
 
     Ok(Json(serde_json::json!({
         "deleted": ticker,
@@ -373,7 +401,10 @@ pub async fn replace_network_config(
     Json(config): Json<GatedNetworkConfig>,
 ) -> Result<Json<GatedNetworkConfig>, AppError> {
     info!("Admin: replacing all network configs");
-    state.config_store.save_gated_network_config(&config).await?;
+    state
+        .config_store
+        .save_gated_network_config(&config)
+        .await?;
     Ok(Json(config))
 }
 
@@ -397,7 +428,10 @@ pub async fn upsert_network_config(
     let settings = input.into();
     config.networks.insert(network.clone(), settings);
 
-    state.config_store.save_gated_network_config(&config).await?;
+    state
+        .config_store
+        .save_gated_network_config(&config)
+        .await?;
 
     let net_config = config.networks.get(&network).unwrap();
     Ok(Json(AdminNetworkResponse {
@@ -431,7 +465,10 @@ pub async fn delete_network_config(
         });
     }
 
-    state.config_store.save_gated_network_config(&config).await?;
+    state
+        .config_store
+        .save_gated_network_config(&config)
+        .await?;
 
     Ok(Json(serde_json::json!({
         "deleted": network,
@@ -460,6 +497,7 @@ pub async fn replace_lease_rules(
 ) -> Result<Json<LeaseRulesConfig>, AppError> {
     info!("Admin: replacing all lease rules");
     state.config_store.save_lease_rules(&config).await?;
+    trigger_gated_refresh(&state);
     Ok(Json(config))
 }
 
@@ -473,8 +511,11 @@ pub async fn upsert_downpayment_ranges(
     info!("Admin: upserting downpayment ranges for {}", protocol);
 
     let mut config = state.config_store.load_lease_rules().await?;
-    config.downpayment_ranges.insert(protocol.clone(), input.ranges);
+    config
+        .downpayment_ranges
+        .insert(protocol.clone(), input.ranges);
     state.config_store.save_lease_rules(&config).await?;
+    trigger_gated_refresh(&state);
 
     Ok(Json(serde_json::json!({
         "protocol": protocol,
@@ -503,6 +544,7 @@ pub async fn replace_swap_settings(
 ) -> Result<Json<SwapSettingsConfig>, AppError> {
     info!("Admin: replacing swap settings");
     state.config_store.save_swap_settings(&config).await?;
+    trigger_gated_refresh(&state);
     Ok(Json(config))
 }
 
@@ -527,6 +569,7 @@ pub async fn replace_ui_settings(
 ) -> Result<Json<UiSettingsConfig>, AppError> {
     info!("Admin: replacing UI settings");
     state.config_store.save_ui_settings(&config).await?;
+    trigger_gated_refresh(&state);
     Ok(Json(config))
 }
 
@@ -549,6 +592,7 @@ pub async fn add_hidden_proposal(
     if !config.hidden_proposals.contains(&proposal_id) {
         config.hidden_proposals.push(proposal_id.clone());
         state.config_store.save_ui_settings(&config).await?;
+        trigger_gated_refresh(&state);
     }
 
     Ok(Json(serde_json::json!({
@@ -577,6 +621,7 @@ pub async fn remove_hidden_proposal(
     }
 
     state.config_store.save_ui_settings(&config).await?;
+    trigger_gated_refresh(&state);
 
     Ok(Json(serde_json::json!({
         "removed": proposal_id,

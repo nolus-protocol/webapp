@@ -176,8 +176,8 @@ import {
   Button,
   Dropdown,
   Radio,
-  Size,
   Slider,
+  Size,
   type AssetItemProps,
   AssetItem,
   ToastType,
@@ -505,7 +505,7 @@ function isDownPaymentAmountValid() {
     const isLowerThanOrEqualsToZero = new Dec(downPaymentAmountInMinimalDenom.amount || "0").lte(new Dec(0));
 
     const isGreaterThanWalletBalance = new Int(downPaymentAmountInMinimalDenom.amount.toString() || "0").gt(
-      selectedDownPaymentCurrency?.balance?.amount
+      new Int(selectedDownPaymentCurrency?.balance?.amount ?? "0")
     );
 
     if (isLowerThanOrEqualsToZero) {

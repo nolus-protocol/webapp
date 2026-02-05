@@ -10,7 +10,12 @@
 
 use std::sync::Arc;
 
-use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+    Json,
+};
 use reqwest::Client;
 use serde::Deserialize;
 use tracing::{debug, warn};
@@ -18,7 +23,6 @@ use tracing::{debug, warn};
 use crate::AppState;
 
 // Re-export macros for use in this module
-use crate::cache_keys;
 use crate::{etl_proxy_raw, etl_proxy_raw_with_params, etl_proxy_typed};
 
 // Import typed response types (only for endpoints that match)
@@ -44,86 +48,35 @@ pub struct ProxyQuery {
 // ============================================================================
 
 // Raw passthrough handlers (ETL API returns arrays, not wrapped objects)
-etl_proxy_raw!(
-    proxy_pools,
-    "pools",
-    cache_keys::etl::POOLS
-);
-etl_proxy_raw!(
-    proxy_leases_monthly,
-    "leases-monthly",
-    cache_keys::etl::LEASES_MONTHLY
-);
-etl_proxy_raw!(
-    proxy_leased_assets,
-    "leased-assets",
-    cache_keys::etl::LEASED_ASSETS
-);
-etl_proxy_raw!(
-    proxy_supplied_funds,
-    "supplied-funds",
-    cache_keys::etl::SUPPLIED_FUNDS
-);
-etl_proxy_raw!(
-    proxy_unrealized_pnl,
-    "unrealized-pnl",
-    cache_keys::etl::UNREALIZED_PNL
-);
+etl_proxy_raw!(proxy_pools, "pools");
+etl_proxy_raw!(proxy_leases_monthly, "leases-monthly");
+etl_proxy_raw!(proxy_leased_assets, "leased-assets");
+etl_proxy_raw!(proxy_supplied_funds, "supplied-funds");
+etl_proxy_raw!(proxy_unrealized_pnl, "unrealized-pnl");
 
 // Typed handlers (ETL API returns objects matching our types)
-etl_proxy_typed!(
-    proxy_tvl,
-    "total-value-locked",
-    TvlResponse,
-    cache_keys::etl::TVL
-);
-etl_proxy_typed!(
-    proxy_tx_volume,
-    "total-tx-value",
-    TxVolumeResponse,
-    cache_keys::etl::TX_VOLUME
-);
+etl_proxy_typed!(proxy_tvl, "total-value-locked", TvlResponse);
+etl_proxy_typed!(proxy_tx_volume, "total-tx-value", TxVolumeResponse);
 etl_proxy_typed!(
     proxy_open_position_value,
     "open-position-value",
-    OpenPositionValueResponse,
-    cache_keys::etl::OPEN_POSITION_VALUE
+    OpenPositionValueResponse
 );
-etl_proxy_typed!(
-    proxy_open_interest,
-    "open-interest",
-    OpenInterestResponse,
-    cache_keys::etl::OPEN_INTEREST
-);
+etl_proxy_typed!(proxy_open_interest, "open-interest", OpenInterestResponse);
 etl_proxy_typed!(
     proxy_realized_pnl_stats,
     "realized-pnl-stats",
-    RealizedPnlStatsResponse,
-    cache_keys::etl::REALIZED_PNL_STATS
+    RealizedPnlStatsResponse
 );
-etl_proxy_typed!(
-    proxy_buyback_total,
-    "buyback-total",
-    BuybackTotalResponse,
-    cache_keys::etl::BUYBACK_TOTAL
-);
-etl_proxy_typed!(
-    proxy_revenue,
-    "revenue",
-    RevenueResponse,
-    cache_keys::etl::REVENUE
-);
+etl_proxy_typed!(proxy_buyback_total, "buyback-total", BuybackTotalResponse);
+etl_proxy_typed!(proxy_revenue, "revenue", RevenueResponse);
 
 // ============================================================================
 // Proxy Handlers with Query Parameters
 // ============================================================================
 
 // Raw passthrough handlers with params (ETL API returns arrays)
-etl_proxy_raw_with_params!(
-    proxy_lease_opening,
-    "ls-opening",
-    ["lease"]
-);
+etl_proxy_raw_with_params!(proxy_lease_opening, "ls-opening", ["lease"]);
 etl_proxy_raw_with_params!(
     proxy_price_series,
     "prices",
@@ -140,38 +93,18 @@ etl_proxy_raw_with_params!(
     "position-debt-value",
     ["address"]
 );
-etl_proxy_raw_with_params!(
-    proxy_realized_pnl,
-    "realized-pnl",
-    ["address"]
-);
-etl_proxy_raw_with_params!(
-    proxy_realized_pnl_data,
-    "realized-pnl-data",
-    ["address"]
-);
-etl_proxy_raw_with_params!(
-    proxy_time_series,
-    "supplied-borrowed-history",
-    ["period"]
-);
+etl_proxy_raw_with_params!(proxy_realized_pnl, "realized-pnl", ["address"]);
+etl_proxy_raw_with_params!(proxy_realized_pnl_data, "realized-pnl-data", ["address"]);
+etl_proxy_raw_with_params!(proxy_time_series, "supplied-borrowed-history", ["period"]);
 etl_proxy_raw_with_params!(proxy_earnings, "earnings", ["address"]);
 etl_proxy_raw_with_params!(proxy_lp_withdraw, "lp-withdraw", ["tx"]);
-etl_proxy_raw_with_params!(
-    proxy_history_stats,
-    "history-stats",
-    ["address"]
-);
+etl_proxy_raw_with_params!(proxy_history_stats, "history-stats", ["address"]);
 
 // ============================================================================
 // Proxy Handlers with Pagination (all use raw passthrough)
 // ============================================================================
 
-etl_proxy_raw_with_params!(
-    proxy_pnl,
-    "ls-loan-closing",
-    ["address", "skip", "limit"]
-);
+etl_proxy_raw_with_params!(proxy_pnl, "ls-loan-closing", ["address", "skip", "limit"]);
 
 // proxy_txs replaced by handlers::transactions::get_enriched_transactions
 
@@ -210,48 +143,17 @@ pub struct StatsOverviewBatch {
 }
 
 /// Batch handler for stats overview
+/// Reads from background-refreshed cache (zero latency).
 pub async fn batch_stats_overview(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<StatsOverviewBatch>, crate::error::AppError> {
-    let base_url = state.config.external.etl_api_url.clone();
-    let client = state.etl_client.client.clone();
+    let response = state.data_cache.stats_overview.load().ok_or_else(|| {
+        crate::error::AppError::ServiceUnavailable {
+            message: "Stats overview not yet available".to_string(),
+        }
+    })?;
 
-    let result = state
-        .cache
-        .data
-        .get_or_fetch(cache_keys::etl::STATS_OVERVIEW, || async move {
-            let url_tvl = format!("{}/api/total-value-locked", base_url);
-            let url_tx_volume = format!("{}/api/total-tx-value", base_url);
-            let url_buyback = format!("{}/api/buyback-total", base_url);
-            let url_realized_pnl = format!("{}/api/realized-pnl-stats", base_url);
-            let url_revenue = format!("{}/api/revenue", base_url);
-
-            let (tvl, tx_volume, buyback_total, realized_pnl_stats, revenue) = tokio::join!(
-                fetch_json(&client, &url_tvl),
-                fetch_json(&client, &url_tx_volume),
-                fetch_json(&client, &url_buyback),
-                fetch_json(&client, &url_realized_pnl),
-                fetch_json(&client, &url_revenue),
-            );
-
-            let response = StatsOverviewBatch {
-                tvl: ok_or_warn(tvl, "total-value-locked"),
-                tx_volume: ok_or_warn(tx_volume, "total-tx-value"),
-                buyback_total: ok_or_warn(buyback_total, "buyback-total"),
-                realized_pnl_stats: ok_or_warn(realized_pnl_stats, "realized-pnl-stats"),
-                revenue: ok_or_warn(revenue, "revenue"),
-            };
-
-            serde_json::to_value(response)
-                .map_err(|e| format!("Failed to serialize batch response: {}", e))
-        })
-        .await
-        .map_err(|e| crate::error::AppError::Internal(e))?;
-
-    let typed: StatsOverviewBatch = serde_json::from_value(result)
-        .map_err(|e| crate::error::AppError::Internal(format!("Failed to deserialize: {}", e)))?;
-
-    Ok(Json(typed))
+    Ok(Json(response))
 }
 
 /// Batch response for loans stats (raw JSON passthrough)
@@ -262,39 +164,17 @@ pub struct LoansStatsBatch {
 }
 
 /// Batch handler for loans stats
+/// Reads from background-refreshed cache (zero latency).
 pub async fn batch_loans_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<LoansStatsBatch>, crate::error::AppError> {
-    let base_url = state.config.external.etl_api_url.clone();
-    let client = state.etl_client.client.clone();
+    let response = state.data_cache.loans_stats.load().ok_or_else(|| {
+        crate::error::AppError::ServiceUnavailable {
+            message: "Loans stats not yet available".to_string(),
+        }
+    })?;
 
-    let result = state
-        .cache
-        .data
-        .get_or_fetch(cache_keys::etl::LOANS_STATS, || async move {
-            let url_open_position = format!("{}/api/open-position-value", base_url);
-            let url_open_interest = format!("{}/api/open-interest", base_url);
-
-            let (open_position_value, open_interest) = tokio::join!(
-                fetch_json(&client, &url_open_position),
-                fetch_json(&client, &url_open_interest),
-            );
-
-            let response = LoansStatsBatch {
-                open_position_value: ok_or_warn(open_position_value, "open-position-value"),
-                open_interest: ok_or_warn(open_interest, "open-interest"),
-            };
-
-            serde_json::to_value(response)
-                .map_err(|e| format!("Failed to serialize batch response: {}", e))
-        })
-        .await
-        .map_err(|e| crate::error::AppError::Internal(e))?;
-
-    let typed: LoansStatsBatch = serde_json::from_value(result)
-        .map_err(|e| crate::error::AppError::Internal(format!("Failed to deserialize: {}", e)))?;
-
-    Ok(Json(typed))
+    Ok(Json(response))
 }
 
 /// Batch response for user dashboard data (raw JSON passthrough)

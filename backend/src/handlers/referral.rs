@@ -23,9 +23,7 @@ use std::sync::Arc;
 use tracing::debug;
 
 use crate::error::AppError;
-use crate::external::referral::{
-    PayoutStatus, ReferralStatus, RewardStatus,
-};
+use crate::external::referral::{PayoutStatus, ReferralStatus, RewardStatus};
 use crate::AppState;
 
 // ============================================================================
@@ -505,4 +503,3 @@ pub async fn assign(
         }),
     ))
 }
-

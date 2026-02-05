@@ -196,7 +196,10 @@ export const useReferralsStore = defineStore("referrals", () => {
    * Fetch referrer stats for a wallet
    */
   async function fetchStats(wallet: string): Promise<void> {
-    loading.value = true;
+    const isInitialLoad = !lastUpdated.value;
+    if (isInitialLoad) {
+      loading.value = true;
+    }
     error.value = null;
 
     try {
@@ -216,7 +219,9 @@ export const useReferralsStore = defineStore("referrals", () => {
         console.error("[ReferralsStore] Failed to fetch stats:", e);
       }
     } finally {
-      loading.value = false;
+      if (isInitialLoad) {
+        loading.value = false;
+      }
     }
   }
 

@@ -138,12 +138,10 @@ mod tests {
     #[test]
     fn test_validate_complex_string() {
         let source = "Amount must be between {minAmount} {symbol} and {maxAmount} {symbol}";
-        let translation =
-            "Сумма должна быть между {minAmount} {symbol} и {maxAmount} {symbol}";
+        let translation = "Сумма должна быть между {minAmount} {symbol} и {maxAmount} {symbol}";
         let result = validate_placeholders(source, translation);
         assert!(result.valid);
         assert_eq!(result.source_placeholders.len(), 4);
         assert_eq!(result.translation_placeholders.len(), 4);
     }
-
 }

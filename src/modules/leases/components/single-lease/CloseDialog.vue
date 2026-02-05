@@ -277,6 +277,8 @@ import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useI18n } from "vue-i18n";
 import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
+import { getLeasePositionSpec } from "@/common/utils/LeaseConfigService";
+import type { AmountSpec } from "@/common/api/types/webapp";
 import type { LeaseInfo } from "@/common/api";
 
 const timeOut = 250;
@@ -305,6 +307,7 @@ const onShowToast = inject("onShowToast", (data: { type: ToastType; message: str
 const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
 const displayData = ref<LeaseDisplayData | null>(null);
+const minAsset = ref<AmountSpec | null>(null);
 
 async function fetchLease() {
   try {
@@ -315,16 +318,13 @@ async function fetchLease() {
       if (result.status === "closed") {
         router.push(`/${RouteNames.LEASES}`);
       }
+      const positionSpec = await getLeasePositionSpec(result.protocol);
+      minAsset.value = positionSpec.min_asset;
     }
   } catch (error) {
     Logger.error(error);
   }
 }
-
-const config = computed(() => {
-  if (!lease.value) return undefined;
-  return configStore.contracts[lease.value.protocol];
-});
 
 onMounted(() => {
   dialog?.value?.show();
@@ -649,12 +649,9 @@ function isAmountValid() {
     const a = amount.value;
     const currencyData = configStore.currenciesData![`${lease.value.amount.ticker}@${lease.value.protocol}`];
     const debtAmount = new Dec(lease.value.amount.amount, Number(currencyData.decimal_digits));
-    const minAssetTicker = config.value?.config.lease_position_spec.min_asset.ticker as string;
+    const minAssetTicker = minAsset.value!.ticker;
     const minAmountCurrency = getCurrencyByTicker(minAssetTicker)!;
-    let minAmont = new Dec(
-      config.value?.config.lease_position_spec.min_asset.amount ?? 0,
-      Number(minAmountCurrency.decimal_digits)
-    );
+    let minAmont = new Dec(minAsset.value!.amount, Number(minAmountCurrency.decimal_digits));
 
     const positionType = configStore.getPositionType(lease.value.protocol);
     if (positionType === "Short") {
@@ -758,6 +755,8 @@ async function onSendClick() {
     disabled.value = true;
     await walletOperation(marketCloseLease);
   } catch (e: Error | any) {
+    Logger.error(e);
+    amountErrorMsg.value = (e as Error).message;
   } finally {
     disabled.value = false;
   }

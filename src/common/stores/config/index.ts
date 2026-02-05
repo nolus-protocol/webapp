@@ -702,6 +702,23 @@ export const useConfigStore = defineStore("config", () => {
     return undefined;
   }
 
+  /** Get currency by ticker, preferring a protocol that belongs to the given network */
+  function getCurrencyByTickerForNetwork(ticker: string, networkFilter: string): CurrencyInfo | undefined {
+    const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
+    let fallback: CurrencyInfo | undefined;
+    for (const currency of Object.values(currenciesData.value)) {
+      if (currency.ticker === ticker) {
+        if (networkProtocols.includes(currency.protocol)) {
+          return currency;
+        }
+        if (!fallback) {
+          fallback = currency;
+        }
+      }
+    }
+    return fallback;
+  }
+
   /** Get currency by IBC denom */
   function getCurrencyByDenom(denom: string): CurrencyInfo | undefined {
     for (const currency of Object.values(currenciesData.value)) {
@@ -812,7 +829,10 @@ export const useConfigStore = defineStore("config", () => {
   // ==========================================================================
 
   async function fetchConfig(): Promise<void> {
-    loading.value = true;
+    const isInitialLoad = !initialized.value;
+    if (isInitialLoad) {
+      loading.value = true;
+    }
     error.value = null;
 
     try {
@@ -822,7 +842,9 @@ export const useConfigStore = defineStore("config", () => {
       console.error("[ConfigStore] Failed to fetch config:", e);
       throw e;
     } finally {
-      loading.value = false;
+      if (isInitialLoad) {
+        loading.value = false;
+      }
     }
   }
 
@@ -1057,6 +1079,7 @@ export const useConfigStore = defineStore("config", () => {
     // Getters - Currencies
     getCurrencyByKey,
     getCurrencyByTicker,
+    getCurrencyByTickerForNetwork,
     getCurrencyByDenom,
     getCurrencyBySymbol,
     getCurrency,

@@ -12,17 +12,16 @@ use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
-use tracing::{info, warn};
+use tracing::info;
 
 use crate::middleware::{
     admin_auth_middleware, cache_control_middleware, create_rate_limit_state,
     rate_limit_middleware, standard_rate_limit_config, strict_rate_limit_config,
 };
 
-mod cache;
-mod cache_keys;
 mod config;
 mod config_store;
+pub mod data_cache;
 mod error;
 mod etl_macros;
 mod external;
@@ -32,6 +31,7 @@ mod middleware;
 mod models;
 mod propagation;
 mod query_types;
+pub mod refresh;
 mod response_types;
 mod translations;
 
@@ -54,7 +54,7 @@ pub struct AppState {
     pub chain_client: external::chain::ChainClient,
     pub referral_client: external::referral::ReferralClient,
     pub zero_interest_client: external::zero_interest::ZeroInterestClient,
-    pub cache: cache::AppCache,
+    pub data_cache: data_cache::AppDataCache,
     pub ws_manager: WebSocketManager,
     pub config_store: ConfigStore,
     /// Translation storage for locale management
@@ -109,8 +109,8 @@ async fn main() -> anyhow::Result<()> {
         http_client.clone(),
     );
 
-    // Initialize cache
-    let cache = cache::AppCache::new(&config.cache);
+    // Initialize data cache (empty — populated by background refresh tasks)
+    let data_cache = data_cache::AppDataCache::new();
 
     // Initialize referral and zero interest clients
     let referral_client = external::referral::ReferralClient::new(&config);
@@ -146,7 +146,7 @@ async fn main() -> anyhow::Result<()> {
         chain_client,
         referral_client,
         zero_interest_client,
-        cache,
+        data_cache,
         ws_manager,
         config_store,
         translation_storage,
@@ -154,14 +154,17 @@ async fn main() -> anyhow::Result<()> {
         startup_time: Instant::now(),
     });
 
+    // Warm up essential caches before accepting requests (blocking)
+    refresh::warm_essential_data(state.clone()).await;
+
+    // Start background refresh tasks
+    refresh::start_all(state.clone());
+
     // Start WebSocket background tasks
     handlers::websocket::start_price_update_task(state.clone()).await;
     handlers::websocket::start_lease_monitor_task(state.clone()).await;
     handlers::websocket::start_skip_tracking_task(state.clone()).await;
     handlers::websocket::start_earn_monitor_task(state.clone()).await;
-
-    // Warm up caches in background (non-blocking)
-    warm_caches(state.clone());
 
     // Build router
     let app = create_router(state);
@@ -172,60 +175,6 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
-}
-
-/// Warm up caches in the background to reduce cold start latency
-fn warm_caches(state: Arc<AppState>) {
-    tokio::spawn(async move {
-        info!("Starting cache warm-up...");
-
-        let admin_address = &state.config.protocols.admin_contract;
-
-        // Warm up protocols/config cache
-        let protocols_result = state.chain_client.get_admin_protocols(admin_address).await;
-        match &protocols_result {
-            Ok(protocols) => {
-                info!("Cache warm-up: Loaded {} protocols", protocols.len());
-
-                // Warm up prices for first protocol (most common)
-                if let Some(protocol) = protocols.first() {
-                    if let Ok(protocol_info) = state
-                        .chain_client
-                        .get_admin_protocol(admin_address, protocol)
-                        .await
-                    {
-                        match state
-                            .chain_client
-                            .get_oracle_prices(&protocol_info.contracts.oracle)
-                            .await
-                        {
-                            Ok(prices) => {
-                                info!("Cache warm-up: Loaded {} prices", prices.prices.len());
-                            }
-                            Err(e) => {
-                                warn!("Cache warm-up: Failed to load prices: {}", e);
-                            }
-                        }
-                    }
-                }
-            }
-            Err(e) => {
-                warn!("Cache warm-up: Failed to load protocols: {}", e);
-            }
-        }
-
-        // Warm up earn pools from ETL
-        match state.etl_client.fetch_pools().await {
-            Ok(pools) => {
-                info!("Cache warm-up: Loaded {} earn pools", pools.len());
-            }
-            Err(e) => {
-                warn!("Cache warm-up: Failed to load earn pools: {}", e);
-            }
-        }
-
-        info!("Cache warm-up complete");
-    });
 }
 
 fn create_router(state: Arc<AppState>) -> Router {
@@ -345,21 +294,8 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/config", get(handlers::config::get_config))
         .route("/config/protocols", get(handlers::config::get_protocols))
         .route("/config/networks", get(handlers::config::get_networks))
-        // Webapp public endpoints
-        .route("/webapp/locales/{lang}", get(handlers::config::get_locale))
-        .route(
-            "/webapp/config/governance/hidden-proposals",
-            get(handlers::config::get_hidden_proposals),
-        )
-        .route(
-            "/webapp/config/swap/skip-route",
-            get(handlers::config::get_skip_route_config),
-        )
-        // Webapp lease configuration endpoints (needed by frontend for downpayment validation)
-        .route(
-            "/webapp/config/lease/downpayment-ranges/{protocol}",
-            get(handlers::config::get_downpayment_ranges),
-        )
+        // Locales
+        .route("/locales/{lang}", get(handlers::locales::get_locale))
         // Protocols (ETL-based, includes active and deprecated)
         .route("/protocols", get(handlers::protocols::get_protocols))
         .route(
@@ -373,6 +309,10 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/balances", get(handlers::currencies::get_balances))
         // Leases (read)
         .route("/leases", get(handlers::leases::get_leases))
+        .route(
+            "/leases/config/{protocol}",
+            get(handlers::leases::get_lease_config),
+        )
         .route("/leases/{address}", get(handlers::leases::get_lease))
         .route(
             "/leases/{address}/history",
@@ -398,6 +338,7 @@ fn create_router(state: Arc<AppState>) -> Router {
             get(handlers::staking::get_staking_params),
         )
         // Swap (read)
+        .route("/swap/config", get(handlers::swap::get_swap_config))
         .route("/swap/quote", get(handlers::swap::get_quote))
         .route("/swap/status/{tx_hash}", get(handlers::swap::get_status))
         .route("/swap/history", get(handlers::swap::get_history))
@@ -454,6 +395,10 @@ fn create_router(state: Arc<AppState>) -> Router {
             get(handlers::zero_interest::check_campaign_eligibility),
         )
         // Governance (read)
+        .route(
+            "/governance/hidden-proposals",
+            get(handlers::governance::get_hidden_proposals),
+        )
         .route(
             "/governance/proposals",
             get(handlers::governance::get_proposals),
