@@ -488,14 +488,14 @@ function isAmountValid() {
 
       const debt = getDebtValue();
       const lpn = getLpnByProtocol(lease.value!.protocol);
-      const debtInCurrencies = debt.quo(new Dec(price.amount));
+      const debtInCurrencies = debt.quo(new Dec(price.price));
       const minAmm = new Dec(minimumLeaseAmount).mul(new Dec(10 ** lpn.decimal_digits));
 
       const minAmountCurrency = minAmount.quo(p);
       const isLowerThanOrEqualsToZero = new Dec(amountInMinimalDenom.amount || "0").lte(new Dec(0));
 
       const isGreaterThanWalletBalance = new Int(amountInMinimalDenom.amount.toString() || "0").gt(
-        coinData?.balance?.amount
+        new Int(coinData?.balance?.amount ?? "0")
       );
 
       if (isLowerThanOrEqualsToZero) {
@@ -559,6 +559,8 @@ async function onSendClick() {
     disabled.value = true;
     await walletOperation(repayLease);
   } catch (e: Error | any) {
+    Logger.error(e);
+    amountErrorMsg.value = (e as Error).message;
   } finally {
     disabled.value = false;
   }

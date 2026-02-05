@@ -190,53 +190,55 @@ async function loadLoans() {
 }
 
 const leasesHistory = computed(() => {
-  return loans.value.map((item) => {
-    const protocol = getProtocolByContract(item.LS_loan_pool_id);
-    const ticker = item.LS_asset_symbol;
-    const positionType = configStore.getPositionType(protocol);
-    let currency = positionType === "Short"
-      ? getLpnByProtocol(protocol)
-      : getCurrencyByTickerForProtocol(ticker, protocol);
+  return loans.value
+    .filter((item) => configStore.getProtocolByContract(item.LS_loan_pool_id))
+    .map((item) => {
+      const protocol = getProtocolByContract(item.LS_loan_pool_id);
+      const ticker = item.LS_asset_symbol;
+      const positionType = configStore.getPositionType(protocol);
+      let currency = positionType === "Short"
+        ? getLpnByProtocol(protocol)
+        : getCurrencyByTickerForProtocol(ticker, protocol);
 
-    const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
-    let pnl_amount = formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
-    let pnl_status = pnl.isZero() || pnl.isPositive();
+      const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
+      let pnl_amount = formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
+      let pnl_status = pnl.isZero() || pnl.isPositive();
 
-    const raw = item.LS_timestamp;
-    const date = new Date(raw);
+      const raw = item.LS_timestamp;
+      const date = new Date(raw);
 
-    return {
-      items: [
-        {
-          value: `#${item.LS_contract_id.slice(-8)}`,
-          class: "text-typography-link cursor-pointer max-w-[120px]",
-          variant: "left"
-        },
-        {
-          component: getType(item),
-          class: "max-w-[200px] cursor-pointer",
-          variant: "left"
-        },
-        {
-          image: currency.icon,
-          value: currency.shortName,
-          subValue: currency.name,
-          variant: "left"
-        },
-        {
-          value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
-        },
-        {
-          value: pnl_amount,
-          class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
-        },
-        {
-          value: getCreatedAtForHuman(date) as string,
-          class: "max-w-[200px]"
-        }
-      ]
-    };
-  }) as TableRowItemProps[];
+      return {
+        items: [
+          {
+            value: `#${item.LS_contract_id.slice(-8)}`,
+            class: "text-typography-link cursor-pointer max-w-[120px]",
+            variant: "left"
+          },
+          {
+            component: getType(item),
+            class: "max-w-[200px] cursor-pointer",
+            variant: "left"
+          },
+          {
+            image: currency.icon,
+            value: currency.shortName,
+            subValue: currency.name,
+            variant: "left"
+          },
+          {
+            value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
+          },
+          {
+            value: pnl_amount,
+            class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
+          },
+          {
+            value: getCreatedAtForHuman(date) as string,
+            class: "max-w-[200px]"
+          }
+        ]
+      };
+    }) as TableRowItemProps[];
 });
 
 function getType(item: ILoan) {
