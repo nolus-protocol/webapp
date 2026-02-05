@@ -13,7 +13,7 @@
     v-if="leaseLoaded"
   >
     <EmptyState
-      v-if="leases.length == 0"
+      v-if="networkFilteredLeases.length == 0"
       :slider="[
         {
           image: { name: 'new-lease' },
@@ -139,6 +139,15 @@ const leasesStore = useLeasesStore();
 const pricesStore = usePricesStore();
 const leaseLoaded = computed(() => !leasesStore.loading || leasesStore.leases.length > 0);
 const leases = computed(() => leasesStore.leases);
+
+const networkFilteredLeases = computed(() => {
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+  return leases.value.filter((lease) => {
+    if (activeProtocols.includes(lease.protocol)) return true;
+    const protocol = configStore.protocols[lease.protocol];
+    return protocol?.network?.toUpperCase() === configStore.protocolFilter;
+  });
+});
 const activeLeases = ref(new Dec(0));
 const pnl = ref(new Dec(0));
 const debt = ref(new Dec(0));
@@ -170,7 +179,7 @@ const isProtocolDisabled = computed(() => {
 
 const leasesData = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
-  const items = leases.value
+  const items = networkFilteredLeases.value
     .filter((item) => {
       if (param.length == 0) {
         return true;
@@ -411,7 +420,7 @@ function isLeaseInProgress(lease: LeaseInfo): boolean {
 }
 
 watch(
-  [() => leases.value, () => pricesStore.prices],
+  [networkFilteredLeases, () => pricesStore.prices],
   () => {
     setLeases();
   },
@@ -430,7 +439,7 @@ function setLeases() {
     let dp = new Dec(0);
     let rp = new Dec(0);
 
-    for (const lease of leases.value) {
+    for (const lease of networkFilteredLeases.value) {
       const displayData = leasesStore.getLeaseDisplayData(lease);
       
       if (lease.status === "opened") {
@@ -454,7 +463,7 @@ function setLeases() {
       pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
     }
 
-    const openedCount = leases.value.filter((l) => l.status === "opened").length;
+    const openedCount = networkFilteredLeases.value.filter((l) => l.status === "opened").length;
     IntercomService.updatePositions({
       count: openedCount,
       valueUsd: ls.toString(),

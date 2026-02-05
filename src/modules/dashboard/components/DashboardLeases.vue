@@ -3,7 +3,7 @@
     <WidgetHeader
       :label="isVisible && !emptyState ? $t('message.dashboard-lease-title') : ''"
       :icon="isVisible && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
-      :badge="isVisible && !emptyState ? { content: leasesStore.openLeases.length.toString() } : undefined"
+      :badge="isVisible && !emptyState ? { content: networkFilteredLeases.length.toString() } : undefined"
     >
       <template v-if="isVisible && !emptyState">
         <Button
@@ -94,18 +94,27 @@ defineProps<{ isVisible: boolean }>();
 
 // Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
 
+const networkFilteredLeases = computed(() => {
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+  return leasesStore.openLeases.filter((lease) => {
+    if (activeProtocols.includes(lease.protocol)) return true;
+    const protocol = configStore.protocols[lease.protocol];
+    return protocol?.network?.toUpperCase() === configStore.protocolFilter;
+  });
+});
+
 const isProtocolDisabled = computed(() => {
   return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
 });
 
 const emptyState = computed(() => {
-  return !leasesStore.loading && leasesStore.openLeases.length === 0;
+  return !leasesStore.loading && networkFilteredLeases.value.length === 0;
 });
 
-// Calculate PnL from open leases
+// Calculate PnL from network-filtered open leases
 const pnl = computed(() => {
   let total = new Dec(0);
-  for (const lease of leasesStore.openLeases) {
+  for (const lease of networkFilteredLeases.value) {
     if (lease.pnl?.amount) {
       total = total.add(new Dec(lease.pnl.amount));
     }
@@ -118,7 +127,7 @@ const pnlPercent = computed(() => {
   let totalPnl = new Dec(0);
   let totalDownpayment = new Dec(0);
 
-  for (const lease of leasesStore.openLeases) {
+  for (const lease of networkFilteredLeases.value) {
     if (lease.pnl) {
       totalPnl = totalPnl.add(new Dec(lease.pnl.amount));
       totalDownpayment = totalDownpayment.add(new Dec(lease.pnl.downpayment || "0"));
@@ -132,28 +141,24 @@ const pnlPercent = computed(() => {
   return totalPnl.quo(totalDownpayment).mul(new Dec(100));
 });
 
-// Update Intercom with lease stats
+// Update Intercom with network-filtered lease stats
 watch(
-  () => [leasesStore.openLeases, pricesStore.prices],
+  [networkFilteredLeases, () => pricesStore.prices],
   () => {
     try {
-      const leasesData = leasesStore.getLeasesWithDisplayData();
-      const openLeasesData = leasesData.filter(
-        (d) => d.lease.status === "opened" || d.lease.status === "opening"
-      );
-
       let totalDebtUsd = new Dec(0);
       let totalValueUsd = new Dec(0);
       let totalPnl = new Dec(0);
 
-      for (const data of openLeasesData) {
-        totalDebtUsd = totalDebtUsd.add(data.totalDebtUsd);
-        totalValueUsd = totalValueUsd.add(data.assetValueUsd);
-        totalPnl = totalPnl.add(data.pnlAmount);
+      for (const lease of networkFilteredLeases.value) {
+        const displayData = leasesStore.getLeaseDisplayData(lease);
+        totalDebtUsd = totalDebtUsd.add(displayData.totalDebtUsd);
+        totalValueUsd = totalValueUsd.add(displayData.assetValueUsd);
+        totalPnl = totalPnl.add(displayData.pnlAmount);
       }
 
       IntercomService.updatePositions({
-        count: openLeasesData.length,
+        count: networkFilteredLeases.value.length,
         valueUsd: totalValueUsd.toString(),
         debtUsd: totalDebtUsd.toString(),
         unrealizedPnlUsd: totalPnl.toString()

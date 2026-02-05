@@ -55,7 +55,6 @@ import { APPEARANCE, languages } from "@/config/global";
 import { setTheme, getTheme, type Theme } from "@/common/utils/ThemeManager";
 import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
 import { useConfigStore } from "@/common/stores/config";
-import { useRouter } from "vue-router";
 
 import DarkIcon from "@/assets/icons/theme/dark.svg";
 import LightIcon from "@/assets/icons/theme/light.svg";
@@ -66,7 +65,6 @@ const lang = getLanguage();
 const themeData = getTheme();
 const configStore = useConfigStore();
 const pricesStore = usePricesStore();
-const router = useRouter();
 
 const selectedAppearance = ref({
   label: i18n.t(`message.${themeData}`),
@@ -137,7 +135,6 @@ async function setLanguage(item: DropdownOption) {
 async function onSelect(item: { value: string; label: string; icon: string }) {
   configStore.setProtocolFilter(item.value);
   await pricesStore.fetchPrices();
-  router.push("/");
 }
 </script>
 
