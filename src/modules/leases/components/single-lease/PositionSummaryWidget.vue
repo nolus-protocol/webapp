@@ -26,24 +26,21 @@
       class="!md:flex-col flex flex-col-reverse gap-6 md:flex-row md:gap-10"
     >
       <div class="flex flex-col gap-3">
-        <Tooltip :content="amount_tooltip">
-          <BigNumber
-            :loading="loading"
-            loadingWidth="200px"
-            :label="$t('message.lease-size')"
-            :amount="{
-              amount: amount,
-              type: CURRENCY_VIEW_TYPES.TOKEN,
-              denom: asset?.shortName ?? '',
-              decimals: assetLoan?.decimal_digits ?? 0,
-              hasSpace: true,
-              maxDecimals: amountMaxDecimals,
-              fontSize: isMobile() ? 20 : 32,
-              animatedReveal: true
-            }"
-            :secondary="stable"
-          />
-        </Tooltip>
+        <BigNumber
+          :loading="loading"
+          loadingWidth="200px"
+          :label="$t('message.lease-size')"
+          :amount="{
+            amount: amount,
+            type: CURRENCY_VIEW_TYPES.TOKEN,
+            denom: asset?.shortName ?? '',
+            decimals: assetLoan?.decimal_digits ?? 0,
+            hasSpace: true,
+            fontSize: isMobile() ? 20 : 32,
+            animatedReveal: true
+          }"
+          :secondary="stable"
+        />
         <div class="flex flex-col gap-8 md:flex-row">
           <div class="flex flex-col gap-4">
             <BigNumber
@@ -67,7 +64,7 @@
                 amount: openedPrice,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: NATIVE_CURRENCY.symbol,
-                decimals: MID_DECIMALS,
+                decimals: openedPriceDecimals,
                 fontSize: 16
               }"
             />
@@ -80,7 +77,7 @@
                 amount: liquidation,
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: `${NATIVE_CURRENCY.symbol}`,
-                decimals: 4,
+                decimals: liquidationDecimals,
                 fontSize: 16
               }"
             />
@@ -262,13 +259,13 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
-import { MID_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { computed, inject, ref, watch } from "vue";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { formatNumber, getDecimals } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatPriceDec, getAdaptivePriceDecimals } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { dateParser, isMobile, Logger, walletOperation } from "@/common/utils";
@@ -330,16 +327,6 @@ const status = computed(() => {
     default:
       return TEMPLATES.opening;
   }
-});
-
-const amount_tooltip = computed(() => {
-  const a = new Dec(amount.value.toString(), assetLoan.value?.decimal_digits ?? 0);
-  return `${formatNumber(a.toString(), assetLoan.value?.decimal_digits ?? 0)} ${asset.value?.shortName ?? ""}`;
-});
-
-const amountMaxDecimals = computed(() => {
-  const a = new Dec(amount.value.toString(), assetLoan.value?.decimal_digits ?? 0);
-  return getDecimals(a.abs());
 });
 
 const amount = computed(() => {
@@ -475,9 +462,13 @@ const fee = computed(() => {
 
 const openedPrice = computed(() => {
   if (props.displayData) {
-    return props.displayData.openingPrice.toString(MID_DECIMALS);
+    return formatPriceDec(props.displayData.openingPrice);
   }
   return "0";
+});
+
+const openedPriceDecimals = computed(() => {
+  return getAdaptivePriceDecimals(Number(props.displayData?.openingPrice.toString(8) ?? 0));
 });
 
 const interestDue = computed(() => {
@@ -500,9 +491,13 @@ const interest = computed(() => {
 
 const liquidation = computed(() => {
   if (props.displayData && props.lease?.status === "opened") {
-    return props.displayData.liquidationPrice.toString(MID_DECIMALS);
+    return formatPriceDec(props.displayData.liquidationPrice);
   }
   return "0";
+});
+
+const liquidationDecimals = computed(() => {
+  return getAdaptivePriceDecimals(Number(props.displayData?.liquidationPrice.toString(8) ?? 0));
 });
 
 const interestDueDate = computed(() => {

@@ -76,7 +76,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
-import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -109,7 +109,7 @@ const date = computed(() => {
 const assets = computed(() => {
   // Use staking store delegations
   const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
-  const balance = formatNumber(amount.toString(NATIVE_ASSET.decimal_digits), NATIVE_ASSET.decimal_digits);
+  const balance = formatTokenBalance(amount);
 
   return [
     {

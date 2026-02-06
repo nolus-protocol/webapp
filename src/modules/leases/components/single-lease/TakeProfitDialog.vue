@@ -110,7 +110,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { useConfigStore } from "@/common/stores/config";
 import { Logger, walletOperation } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
 });
 
 const price = computed(() => {
-  return formatNumber(amount.value.length == 0 ? 0 : amount.value, currency.value.decimal_digits);
+  return formatPrice(amount.value.length == 0 ? 0 : amount.value);
 });
 
 const currency = computed(() => {
@@ -190,7 +190,7 @@ const assets = computed(() => {
   if (lease.value) {
     const asset = getCurrency()!;
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
-    const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0).toString(asset.decimal_digits);
+    const priceVal = formatPrice(pricesStore.prices[asset.key]?.price ?? 0);
 
     data.push({
       name: asset.name,
@@ -203,9 +203,9 @@ const assets = computed(() => {
       key: asset.key,
       ticker: asset.ticker,
       balance: {
-        value: price,
+        value: priceVal,
         ticker: "",
-        customLabel: `${NATIVE_CURRENCY.symbol}${price}`,
+        customLabel: `${NATIVE_CURRENCY.symbol}${priceVal}`,
         denom: asset.ibcData
       }
     });

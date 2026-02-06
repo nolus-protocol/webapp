@@ -138,7 +138,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -231,7 +231,7 @@ const assets = computed(() => {
   const data = [];
   for (const asset of (balances.value as ExternalCurrency[]) ?? []) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = formatNumber(value.toString(), asset.decimal_digits);
+    const balance = formatTokenBalance(value);
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
     const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
     const stable = price.mul(value);
@@ -518,7 +518,7 @@ function isAmountValid() {
         if (debt.gt(minAmm) && amountInStable.gt(minAmount)) {
           const n = new Dec(debtInCurrencies.truncate().toString(), coinData.decimal_digits);
           amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-            maxAmount: n.toString(coinData.decimal_digits),
+            maxAmount: formatTokenBalance(n),
             symbol: coinData.shortName
           });
         }
@@ -631,14 +631,14 @@ const detbPartial = computed(() => {
 
     if (positionType === "Short") {
       return {
-        payment: `${formatNumber(d.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`,
-        rest: `${formatNumber(rest.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`
+        payment: `${formatTokenBalance(d)} ${currecy?.shortName ?? ""}`,
+        rest: `${formatTokenBalance(rest)} ${currecy?.shortName ?? ""}`
       };
     } else {
       let lpn = getLpnByProtocol(lease.value.protocol);
       return {
-        payment: `${formatNumber(d.toString(), lpn.decimal_digits)} ${lpn.shortName}`,
-        rest: `${formatNumber(rest.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`
+        payment: `${formatTokenBalance(d)} ${lpn.shortName}`,
+        rest: `${formatTokenBalance(rest)} ${lpn.shortName}`
       };
     }
   }
@@ -657,10 +657,10 @@ const debtData = computed(() => {
 
     const positionType = configStore.getPositionType(lease.value.protocol);
     if (positionType === "Short") {
-      return `${formatNumber(d.toString(), currecy?.decimal_digits ?? 6)} ${currecy?.shortName ?? ""}`;
+      return `${formatTokenBalance(d)} ${currecy?.shortName ?? ""}`;
     } else {
       let lpn = getLpnByProtocol(lease.value.protocol);
-      return `${formatNumber(d.toString(), lpn.decimal_digits)} ${lpn.shortName}`;
+      return `${formatTokenBalance(d)} ${lpn.shortName}`;
     }
   }
 

@@ -10,22 +10,22 @@
         cx="7"
         cy="17"
         r="5"
-        class="stroke fill-neutral-bg-2 transition group-[.router-link-exact-active]:translate-x-[45%] group-[.router-link-exact-active]:translate-y-[-45%] group-[.router-link-exact-active]:fill-icon-link"
+        class="stroke fill-neutral-bg-2 transition group-[.router-link-active]:translate-x-[45%] group-[.router-link-active]:translate-y-[-45%] group-[.router-link-active]:fill-icon-link"
       />
       <g
-        class="transition group-[.router-link-exact-active]:translate-x-[-25%] group-[.router-link-exact-active]:translate-y-[25%]"
+        class="transition group-[.router-link-active]:translate-x-[-25%] group-[.router-link-active]:translate-y-[25%]"
       >
         <circle
           cx="12"
           cy="12"
           r="7"
-          class="stroke-neutral-bg-2 stroke-[3px] opacity-0 group-[.router-link-exact-active]:opacity-100"
+          class="stroke-neutral-bg-2 stroke-[3px] opacity-0 group-[.router-link-active]:opacity-100"
         />
         <circle
           cx="12"
           cy="12"
           r="5"
-          class="stroke fill-neutral-bg-2 group-[.router-link-exact-active]:fill-icon-link"
+          class="stroke fill-neutral-bg-2 group-[.router-link-active]:fill-icon-link"
         />
       </g>
       <path
@@ -38,9 +38,9 @@
         cx="8"
         cy="12"
         r="7"
-        class="stroke translate-x-0 fill-neutral-bg-2 transition group-[.router-link-exact-active]:translate-x-2/4 group-[.router-link-exact-active]:fill-icon-link"
+        class="stroke translate-x-0 fill-neutral-bg-2 transition group-[.router-link-active]:translate-x-2/4 group-[.router-link-active]:fill-icon-link"
       />
-      <g class="translate-x-0 transition group-[.router-link-exact-active]:translate-x-[calc(-50%+2px)]">
+      <g class="translate-x-0 transition group-[.router-link-active]:translate-x-[calc(-50%+2px)]">
         <circle
           cx="16"
           cy="12"
@@ -51,14 +51,14 @@
           cx="16"
           cy="12"
           r="7"
-          class="stroke fill-neutral-bg-2 group-[.router-link-exact-active]:fill-icon-link"
+          class="stroke fill-neutral-bg-2 group-[.router-link-active]:fill-icon-link"
         />
       </g>
     </g>
     <g v-else-if="icon === 'earn'">
-      <g class="transition group-[.router-link-exact-active]:rotate-[360deg]">
+      <g class="transition group-[.router-link-active]:rotate-[360deg]">
         <circle
-          class="stroke fill-transparent group-[.router-link-exact-active]:fill-icon-link"
+          class="stroke fill-transparent group-[.router-link-active]:fill-icon-link"
           cx="11"
           cy="9"
           r="8"
@@ -69,14 +69,14 @@
         />
       </g>
       <line
-        class="stroke scale-x-100 stroke-icon-default opacity-100 transition group-[.router-link-exact-active]:scale-0 group-[.router-link-exact-active]:opacity-0"
+        class="stroke scale-x-100 stroke-icon-default opacity-100 transition group-[.router-link-active]:scale-0 group-[.router-link-active]:opacity-0"
         x1="2"
         x2="20"
         y1="21"
         y2="21"
       />
       <line
-        class="stroke scale-x-0 stroke-icon-link opacity-0 transition group-[.router-link-exact-active]:scale-100 group-[.router-link-exact-active]:opacity-100"
+        class="stroke scale-x-0 stroke-icon-link opacity-0 transition group-[.router-link-active]:scale-100 group-[.router-link-active]:opacity-100"
         x1="2"
         x2="20"
         y1="21"
@@ -88,7 +88,7 @@
       class="animate-shake"
     >
       <path
-        class="stroke fill-transparent group-[.router-link-exact-active]:fill-icon-link"
+        class="stroke fill-transparent group-[.router-link-active]:fill-icon-link"
         d="M9 15.68v1a1 1 0 0 1-1 1H5.977A.977.977 0 0 1 5 16.703v-.61c0-.905-.36-1.773-1-2.413l-.046-.047a3.256 3.256 0 0 0-2.303-.953.651.651 0 0 1-.651-.652V8.256c0-.318.258-.576.576-.576.873 0 1.67-.493 2.06-1.274l.131-.261A6.94 6.94 0 0 0 4.5 3.041V1.975c0-.655.623-1.14 1.239-.914 1.297.476 1.979 1.035 2.645 1.83.405.482.987.789 1.617.789H13c2 0 6 1.5 6 6 0 3-2 4-2 5v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1Z"
       />
       <path
@@ -97,7 +97,7 @@
         fill="none"
       />
       <circle
-        class="animate-blink fill-icon-default group-[.router-link-exact-active]:fill-neutral-bg-2"
+        class="animate-blink fill-icon-default group-[.router-link-active]:fill-neutral-bg-2"
         cx="8.25"
         cy="8.25"
         r="1.5"
@@ -110,10 +110,10 @@
       />
       <path
         d="M12 12L15 15"
-        class="stroke transition-long transition group-[.router-link-exact-active]:rotate-[-360deg]"
+        class="stroke transition-long transition group-[.router-link-active]:rotate-[-360deg]"
         style="transform-origin: 0 0; transform-box: fill-box"
       />
-      <g class="transition-long transition group-[.router-link-exact-active]:-rotate-[360deg]">
+      <g class="transition-long transition group-[.router-link-active]:-rotate-[360deg]">
         <path
           d="M3.51213 9C4.74764 5.50442 8.08135 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.97415 21 4.56567 18.3567 3.41547 14.7109"
           class="stroke fill-transparent"
@@ -137,9 +137,9 @@ defineProps<{
 <style scoped lang="scss">
 .sidebar-icon {
   @apply transform-gpu;
-  --sidebar-icon-transition-duration-short: 0.25s;
-  --sidebar-icon-transition-duration-base: 0.5s;
-  --sidebar-icon-transition-duration-long: 0.75s;
+  --sidebar-icon-transition-duration-short: 0.2s;
+  --sidebar-icon-transition-duration-base: 0.35s;
+  --sidebar-icon-transition-duration-long: 0.55s;
   --sidebar-icon-transition-timing-default: cubic-bezier(0, 0.39, 0.32, 0.97);
   --sidebar-icon-transition-timing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
@@ -184,7 +184,7 @@ defineProps<{
   }
 }
 
-.router-link-exact-active .sidebar-icon {
+.router-link-active .sidebar-icon {
   .stroke {
     @apply stroke-icon-link;
   }

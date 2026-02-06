@@ -169,7 +169,7 @@ import {
 } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { fetchEvmEndpoints } from "@/common/utils/EndpointService";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
@@ -346,7 +346,7 @@ const steps = computed(() => {
       label: i18n.t("message.send-stepper"),
       icon: NATIVE_NETWORK.icon,
       token: {
-        balance: formatNumber(amount.value, currency.value?.decimal_digits),
+        balance: formatTokenBalance(new Dec(amount.value || 0)),
         symbol: currency.value?.shortName
       },
       meta: () => h("div", `${NATIVE_NETWORK.label} > ${network.value.label}`)
@@ -355,7 +355,7 @@ const steps = computed(() => {
       label: i18n.t("message.receive-stepper"),
       icon: network.value.icon,
       token: {
-        balance: formatNumber(amount.value, currency.value?.decimal_digits),
+        balance: formatTokenBalance(new Dec(amount.value || 0)),
         symbol: currency.value?.shortName
       },
       meta: () => h("div", `${network.value.label}`)

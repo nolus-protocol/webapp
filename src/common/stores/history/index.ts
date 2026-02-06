@@ -13,7 +13,7 @@ import { h } from "vue";
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import { useConfigStore } from "@/common/stores/config";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance, formatCoinPretty } from "@/common/utils/NumberFormatUtils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { BackendApi } from "@/common/api";
 import { getCreatedAtForHuman, StringUtils } from "@/common/utils";
@@ -97,7 +97,7 @@ export const useHistoryStore = defineStore("history", () => {
           Number(currency?.decimal_digits)
         );
         historyData.msg = i18nInstance.t("message.receive-action", {
-          amount: token.toString(),
+          amount: formatCoinPretty(token),
           address: StringUtils.truncateString(historyData.fromAddress, 6, 6)
         });
         historyData.coin = token;
@@ -111,7 +111,7 @@ export const useHistoryStore = defineStore("history", () => {
           Number(currency?.decimal_digits)
         );
         historyData.msg = i18nInstance.t("message.send-action", {
-          amount: token.toString(),
+          amount: formatCoinPretty(token),
           address: StringUtils.truncateString(historyData.receiverAddress, 6, 6)
         });
         historyData.coin = token;
@@ -425,11 +425,8 @@ export const useHistoryStore = defineStore("history", () => {
           label,
           icon: from.icon,
           token: {
-            balance: formatNumber(
-              new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency?.decimal_digits).toString(
-                currency?.decimal_digits
-              ),
-              currency?.decimal_digits
+            balance: formatTokenBalance(
+              new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency?.decimal_digits)
             ),
             symbol: currency?.shortName
           },
@@ -441,10 +438,7 @@ export const useHistoryStore = defineStore("history", () => {
             label: i18nInstance.t("message.receive-stepper"),
             icon: to.icon,
             token: {
-              balance: formatNumber(
-                new Dec(operation.amount_out, currency?.decimal_digits).toString(currency?.decimal_digits),
-                currency?.decimal_digits
-              ),
+              balance: formatTokenBalance(new Dec(operation.amount_out, currency?.decimal_digits)),
               symbol: currency?.shortName
             },
             meta: () => h("div", `${to.label}`)

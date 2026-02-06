@@ -29,7 +29,7 @@
         <template v-if="animatedReveal && !hide">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
-            :format="currencyFormatOptions(maxDecimals)"
+            :format="tokenFormatOptions(tokenMaxDecimals)"
           />
         </template>
         <template v-else>
@@ -43,7 +43,6 @@
 
 <script lang="ts" setup>
 import { computed, ref, onMounted } from "vue";
-import { CurrencyUtils } from "@nolus/nolusjs";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { AnimateNumber } from "motion-plus-vue";
@@ -52,7 +51,9 @@ import {
   formatNumber,
   formatCompact,
   currencyFormatOptions,
-  compactFormatOptions
+  tokenFormatOptions,
+  compactFormatOptions,
+  getDecimals
 } from "@/common/utils/NumberFormatUtils";
 
 export interface CurrencyComponentProps {
@@ -94,6 +95,12 @@ const isMounted = ref(false);
 
 const numberAmount = computed(() => {
   return new Dec(props.amount, props.decimals).abs().toString(props.decimals);
+});
+
+const tokenMaxDecimals = computed(() => {
+  if (props.type !== CURRENCY_VIEW_TYPES.TOKEN) return props.maxDecimals;
+  const dec = new Dec(props.amount, props.decimals).abs();
+  return getDecimals(dec);
 });
 
 const amount = computed(() => {
@@ -161,50 +168,24 @@ const amount = computed(() => {
       };
     }
     case CURRENCY_VIEW_TYPES.TOKEN: {
-      const token = CurrencyUtils.convertMinimalDenomToDenom(
-        props.amount as string,
-        props.minimalDenom as string,
-        props.denom as string,
-        props.decimals as number
-      );
-      let denom = token.denom;
-      const amount = token.hideDenom(true).toString();
-      let [beforeDecimal, afterDecimal] = amount.split(".");
-      if (props.maxDecimals > 0 && afterDecimal?.length > props.maxDecimals) {
-        const pow = 10 ** props.maxDecimals;
-        const after = Number(`0.${afterDecimal}`);
-        const decimals = (Math.round(after * pow) / pow).toString();
-        let [_value, afterParsed] = decimals.split(".");
+      const dec = new Dec(props.amount, props.decimals).abs();
+      const numValue = Number(dec.toString(props.decimals));
+      const maxDec = tokenMaxDecimals.value;
+      const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, tokenFormatOptions(maxDec)).format(numValue);
+      let [beforeDecimal, afterDecimal] = formatted.split(".");
 
-        if (afterParsed == null) {
-          afterParsed = "0".repeat(props.maxDecimals);
-        }
-
-        afterDecimal = afterParsed;
-
-        if (afterDecimal.length < props.maxDecimals) {
-          const d = "0".repeat(props.maxDecimals - afterDecimal.length);
-          afterDecimal = `${afterDecimal}${d}`;
-        }
-      }
-
-      if (afterDecimal?.length > 0) {
-        afterDecimal = `.${afterDecimal}`;
-      } else {
-        afterDecimal = ".00";
-      }
+      afterDecimal = afterDecimal ? `.${afterDecimal}` : ".00";
 
       if (props.hide) {
-        beforeDecimal = "**";
-        afterDecimal = "**";
-        denom = "";
+        return { denom: "", beforeDecimal: "**", afterDecimal: "**" };
       }
 
       if (props.decimals == 0) {
         afterDecimal = "";
       }
+
       return {
-        denom,
+        denom: props.denom,
         beforeDecimal,
         afterDecimal
       };

@@ -118,7 +118,7 @@ import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 
 import { Dec } from "@keplr-wallet/unit";
@@ -127,7 +127,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
-import { MID_DECIMALS, NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
+import { NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
 import { formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
@@ -208,7 +208,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         const liquidation = loading
           ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
           : {
-              value: formatNumber(displayData.liquidationPrice.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
+              value: NATIVE_CURRENCY.symbol + formatPrice(displayData.liquidationPrice.toString()),
               class: "max-w-[200px]"
             };
 

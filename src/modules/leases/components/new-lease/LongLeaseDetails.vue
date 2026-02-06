@@ -97,8 +97,8 @@
                 amount: swapStableFee.toString(),
                 type: CURRENCY_VIEW_TYPES.CURRENCY,
                 denom: NATIVE_CURRENCY.symbol,
-                maxDecimals: 4,
-                decimals: 4,
+                maxDecimals: 2,
+                decimals: 2,
                 minimalDenom: ''
               }"
             />
@@ -160,7 +160,7 @@
           amount: pricesStore.prices[loanCurrency]?.price ?? '0',
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 3,
+          decimals: currentPriceDecimals,
           fontSize: 16
         }"
       />
@@ -189,6 +189,7 @@ import { Button, SvgIcon } from "web-components";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { LeaseUtils } from "@/common/utils";
@@ -321,12 +322,16 @@ const borrowStableMinimal = computed(() => {
   return stable;
 });
 
+const currentPriceDecimals = computed(() => {
+  return getAdaptivePriceDecimals(Number(pricesStore.prices[props.loanCurrency]?.price ?? 0));
+});
+
 const calculateLique = computed(() => {
   const d = getLquidation();
   if (d.isZero()) {
     return `${d.toString(2)}`;
   }
-  return `${d.toString(4)}`;
+  return formatPrice(d.toString(8));
 });
 
 const percentLique = computed(() => {

@@ -34,9 +34,9 @@ import { Tooltip } from "web-components";
 
 import type { LeaseInfo } from "@/common/api";
 import { isMobile, LeaseUtils } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-import { MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { plot, lineY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
@@ -83,8 +83,8 @@ const currency = computed(() => {
   const price = pricesStore.prices[`${ticker}@${props.lease?.protocol}`];
   return {
     name: c?.shortName,
-    price: price?.price ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, c?.decimal_digits)}` : "",
-    pretty_price: price?.price ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, MAX_DECIMALS)}` : ""
+    price: price?.price ? `${NATIVE_CURRENCY.symbol}${formatPrice(price?.price ?? 0)}` : "",
+    pretty_price: price?.price ? `${NATIVE_CURRENCY.symbol}${formatPrice(price?.price ?? 0)}` : ""
   };
 });
 

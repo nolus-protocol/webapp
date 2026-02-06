@@ -93,7 +93,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
@@ -127,7 +127,7 @@ const assets = computed(() => {
       const amount = balancesStore.getBalance(lpn.ibcData);
       const value = new Dec(amount, lpn.decimal_digits);
 
-      const balance = formatNumber(value.toString(), lpn.decimal_digits);
+      const balance = formatTokenBalance(value);
       const price = new Dec(pricesStore.prices?.[lpn.key]?.price ?? "0");
       const stable = price.mul(value);
       data.push({
@@ -230,7 +230,7 @@ const decAmount = computed(() => {
 
 const amountStr = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  return `${formatNumber(decAmount.value.toString(), currency.decimal_digits)} ${currency.label} (${stable.value})`;
+  return `${formatTokenBalance(decAmount.value)} ${currency.label} (${stable.value})`;
 });
 
 async function onNextClick() {

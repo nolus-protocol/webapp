@@ -77,7 +77,7 @@ src/
 ├── common/
 │   ├── api/              # BackendApi (REST), WebSocketClient (real-time)
 │   ├── stores/           # Pinia stores: prices, config, balances, leases, earn, staking, etc.
-│   ├── composables/      # Vue composables (useNetworkCurrency, useValidation, useAsyncOperation)
+│   ├── composables/      # Vue composables (useNetworkCurrency, useValidation, useAsyncOperation, useBlockInfo)
 │   ├── components/       # Shared Vue components
 │   └── utils/            # Utilities (LeaseUtils, CurrencyLookup, PriceLookup, etc.)
 ├── modules/              # Feature modules (dashboard, leases, earn, stake, vote, etc.)
@@ -210,7 +210,12 @@ All `Intl.NumberFormat` calls live exclusively in `src/common/utils/NumberFormat
 - `formatDecAsUsd(dec)` — format a `Dec` as USD in one call (replaces the `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(2), 2)}` boilerplate)
 - `formatCompact(amount)` — compact notation (1K, 1M, etc.)
 - `formatTokenBalance(dec)` — adaptive decimals based on amount size, trailing zeros trimmed
+- `formatPrice(amount, decimals?)` — format a price with adaptive decimals (2-6 based on magnitude)
+- `formatPriceDec(dec)` — format a `Dec` as a price string with adaptive decimals
+- `formatCoinPretty(coin)` — format a `CoinPretty` as `"1,234.56 USDC"` (replaces `coin.toString()` which uses no locale formatting)
+- `getAdaptivePriceDecimals(price)` — returns 2-6 decimals based on price magnitude (used by chart tooltips, lease details)
 - `currencyFormatOptions(decimals)` / `compactFormatOptions` — `Intl.NumberFormatOptions` objects for `AnimateNumber` `:format` prop (keeps animated and static formatting in sync)
+- `tokenFormatOptions(maxDecimals)` / `priceFormatOptions(decimals)` — format option objects for AnimateNumber in TOKEN and price contexts
 
 `CurrencyComponent.vue` delegates all formatting to these utilities. `AnimateNumber` receives shared format option objects rather than inline literals.
 

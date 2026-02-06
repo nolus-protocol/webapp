@@ -148,7 +148,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByDenom, getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { fetchEvmEndpoints } from "@/common/utils/EndpointService";
@@ -358,7 +358,7 @@ const steps = computed(() => {
       label: i18n.t("message.send-stepper"),
       icon: network.value.icon,
       token: {
-        balance: formatNumber(amount.value, currency.value?.decimal_digits),
+        balance: formatTokenBalance(new Dec(amount.value || 0)),
         symbol: currency.value?.shortName
       },
       meta: () => h("div", `${network.value.label} > ${NATIVE_NETWORK.label}`)
@@ -367,7 +367,7 @@ const steps = computed(() => {
       label: i18n.t("message.receive-stepper"),
       icon: NATIVE_NETWORK.icon,
       token: {
-        balance: formatNumber(amount.value, currency.value?.decimal_digits),
+        balance: formatTokenBalance(new Dec(amount.value || 0)),
         symbol: currency.value?.shortName
       },
       meta: () => h("div", `${NATIVE_NETWORK.label}`)

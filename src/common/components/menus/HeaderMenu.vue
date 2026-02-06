@@ -1,7 +1,6 @@
 <template>
   <div class="flex items-center gap-3 p-2 lg:rounded-full lg:bg-neutral-bg-3">
     <div class="flex gap-1">
-      <Activities />
       <Settings />
       <i class="block border-r border-border-default" />
     </div>
@@ -21,7 +20,6 @@ import WalletInfo from "../WalletInfo.vue";
 import AuthDialog from "../dialogs/AuthDialog.vue";
 import Disconnect from "../auth/Disconnect.vue";
 
-import Activities from "@/common/components/activities/Activities.vue";
 import Settings from "@/common/components/settings/Settings.vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { ref } from "vue";

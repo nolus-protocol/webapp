@@ -47,7 +47,6 @@ export const DECIMALS_AMOUNT = [
 
 export const INTERCOM_API = "hbjifswh";
 export const MAX_DECIMALS = 8;
-export const MID_DECIMALS = 4;
 export const NORMAL_DECIMALS = 2;
 
 export const LedgerName = "Ledger";

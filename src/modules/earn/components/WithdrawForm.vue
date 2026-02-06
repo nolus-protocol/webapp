@@ -93,7 +93,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
@@ -118,7 +118,7 @@ const assets = computed(() => {
   for (const lpn of lpns ?? []) {
     const asset = lpnBalances.value.find((item) => item.key == lpn.key);
     const value = new Dec(asset?.coin?.amount.toString() ?? 0, lpn.decimal_digits);
-    const balance = formatNumber(value.toString(), lpn.decimal_digits);
+    const balance = formatTokenBalance(value);
 
     const price = new Dec(pricesStore.prices[lpn.key]?.price ?? 0);
     const stable = price.mul(value);
@@ -249,7 +249,7 @@ async function onValidateAmount() {
   if (amount.amount.gt(balance)) {
     const total = new Dec(data.balance.amount, currency.decimal_digits);
     error.value = i18n.t("message.withdraw-lpp-balance-error", {
-      balance: `${total.toString(currency.decimal_digits)} ${currency.shortName}`
+      balance: `${formatTokenBalance(total)} ${currency.shortName}`
     });
   }
 }

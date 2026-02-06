@@ -46,7 +46,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { Logger, WalletManager } from "@/common/utils";
-import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, type ResolvedAsset } from "@/common/composables";
 import { isMobile } from "@/common/utils";
@@ -145,7 +145,7 @@ const assets = computed<TableRowItemProps[]>(() => {
     })
     .map((item) => {
       const c = item.currency;
-      const price = formatNumber(item.price, 4);
+      const price = formatPrice(item.price);
       const balance = formatTokenBalance(new Dec(item.balance, c.decimal_digits));
       const stable_balance = formatNumber(item.balanceUsd.toFixed(2), 2);
 

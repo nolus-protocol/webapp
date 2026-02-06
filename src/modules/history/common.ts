@@ -18,6 +18,7 @@ import { bech32 } from "bech32";
 import { useConfigStore } from "@/common/stores/config";
 import { h } from "vue";
 import { BackendApi } from "@/common/api";
+import { formatCoinPretty } from "@/common/utils/NumberFormatUtils";
 
 const currency_mapper: { [key: string]: string } = {
   "transfer/channel-0/transfer/channel-783/unls": "unls"
@@ -46,7 +47,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         return [
           i18n.t("message.send-action", {
             address: truncateString(msg.data?.toAddress),
-            amount: token.toString()
+            amount: formatCoinPretty(token)
           }),
           token,
           {
@@ -64,7 +65,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         return [
           i18n.t("message.receive-action", {
             address: truncateString(msg.data.fromAddress),
-            amount: token.toString()
+            amount: formatCoinPretty(token)
           }),
           token,
           {
@@ -115,7 +116,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         return [
           i18n.t("message.send-action", {
             address: truncateString(msg.data.receiver),
-            amount: token.toString()
+            amount: formatCoinPretty(token)
           }),
           token,
           {
@@ -134,7 +135,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         return [
           i18n.t("message.receive-action", {
             address: truncateString(msg.data.sender),
-            amount: token.toString()
+            amount: formatCoinPretty(token)
           }),
           token
         ];
@@ -181,7 +182,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         return [
           i18n.t("message.receive-action", {
             address: truncateString(data.sender),
-            amount: token.toString()
+            amount: formatCoinPretty(token)
           }),
           token,
           {
@@ -224,7 +225,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
                 ticker: cr?.shortName,
                 LPN_ticker: lpn?.shortName ?? "",
                 position: i18n.t(`message.${positionType.toLowerCase()}`).toLowerCase(),
-                amount: token.toString()
+                amount: formatCoinPretty(token)
               }),
               token,
               {
@@ -238,7 +239,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
             i18n.t("message.open-position-action", {
               ticker: cr?.shortName,
               position: i18n.t(`message.${positionType.toLowerCase()}`).toLowerCase(),
-              amount: token.toString()
+              amount: formatCoinPretty(token)
             }),
             token,
             {
@@ -253,7 +254,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           return [
             i18n.t("message.repay-position-action", {
               contract: truncateString(msg.data.contract),
-              amount: token.toString()
+              amount: formatCoinPretty(token)
             }),
             token
           ];
@@ -284,7 +285,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           const token = getCurrency(msg.data.funds[0]);
           return [
             i18n.t("message.supply-position-action", {
-              amount: token.toString()
+              amount: formatCoinPretty(token)
             }),
             token
           ];
@@ -305,7 +306,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           );
           return [
             i18n.t("message.withdraw-position-action", {
-              amount: token.toString()
+              amount: formatCoinPretty(token)
             }),
             token
           ];
@@ -344,7 +345,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           return [
             i18n.t("message.partial-close-action", {
               ticker: data.close_position.currency,
-              amount: token.toString(),
+              amount: formatCoinPretty(token),
               contract: truncateString(msg.data.contract)
             }),
             token
@@ -372,7 +373,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       return [
         i18n.t("message.delegate-position-action", {
           validator: truncateString(msg.data.validatorAddress),
-          amount: token.toString()
+          amount: formatCoinPretty(token)
         }),
         token
       ];
@@ -382,7 +383,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       return [
         i18n.t("message.undelegate-position-action", {
           validator: truncateString(msg.data?.validatorAddress),
-          amount: token.toString()
+          amount: formatCoinPretty(token)
         }),
         token
       ];
@@ -402,7 +403,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       const token = getCurrency(msg.data?.amount);
       return [
         i18n.t("message.redelegate-action", {
-          amount: token.toString(),
+          amount: formatCoinPretty(token),
           address: truncateString(msg.data?.validatorDstAddress)
         }),
         token

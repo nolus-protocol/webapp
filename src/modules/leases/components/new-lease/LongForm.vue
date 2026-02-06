@@ -132,7 +132,7 @@
             label: $t('message.stepper-transfer-position'),
             icon: getIconByProtocol()!,
             token: {
-              balance: formatNumber(stepperTransfer.toString(), assets[selectedCurrency]?.decimal_digits),
+              balance: formatTokenBalance(stepperTransfer),
               symbol: assets[selectedCurrency]?.label
             },
             meta: () => h('div', `${NATIVE_NETWORK.label} > ${protocolName}`)
@@ -194,7 +194,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
@@ -320,7 +320,7 @@ const assets = computed(() => {
 
   for (const asset of b) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = formatNumber(value.toString(), asset.decimal_digits);
+    const balance = formatTokenBalance(value);
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
     const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
     const stable = price.mul(value);
@@ -425,7 +425,7 @@ const swapAmount = computed(() => {
   const currency = coinList.value[selectedLoanCurrency.value];
   const a = new Dec(total?.amount ?? 0, currency.decimal_digits);
 
-  return `${formatNumber(a.toString(), currency.decimal_digits)} ${currency.label}`;
+  return `${formatTokenBalance(a)} ${currency.label}`;
 });
 
 function handleAmountChange(event: string) {
@@ -477,8 +477,8 @@ async function validateMinMaxValues(): Promise<boolean> {
 
         if (balance.lt(min)) {
           amountErrorMsg.value = i18n.t("message.lease-min-error", {
-            minAmount: leaseMin.toString(selectedDownPaymentCurrency.decimal_digits),
-            maxAmount: leaseMax.toString(selectedDownPaymentCurrency.decimal_digits),
+            minAmount: formatTokenBalance(leaseMin),
+            maxAmount: formatTokenBalance(leaseMax),
             symbol: selectedDownPaymentCurrency.shortName
           });
           isValid = false;
@@ -486,8 +486,8 @@ async function validateMinMaxValues(): Promise<boolean> {
 
         if (balance.gt(max)) {
           amountErrorMsg.value = i18n.t("message.lease-max-error", {
-            minAmount: leaseMin.toString(selectedDownPaymentCurrency.decimal_digits),
-            maxAmount: leaseMax.toString(selectedDownPaymentCurrency.decimal_digits),
+            minAmount: formatTokenBalance(leaseMin),
+            maxAmount: formatTokenBalance(leaseMax),
             symbol: selectedDownPaymentCurrency.shortName
           });
           isValid = false;

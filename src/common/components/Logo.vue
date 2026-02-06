@@ -45,7 +45,7 @@ html {
 
   .logotype {
     transform-style: preserve-3d;
-    transition: transform 0.3s ease-out;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: grid;
 
     .frontface,

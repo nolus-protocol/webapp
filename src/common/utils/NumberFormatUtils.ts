@@ -4,7 +4,7 @@
  * Handles number formatting for display in the UI.
  */
 
-import { Dec } from "@keplr-wallet/unit";
+import { Dec, CoinPretty } from "@keplr-wallet/unit";
 import { DECIMALS_AMOUNT, MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
 
 /**
@@ -30,6 +30,15 @@ export function formatNumber(amount: number | string, decimals: number, symbol?:
  */
 export function currencyFormatOptions(decimals: number): Intl.NumberFormatOptions {
   return { minimumFractionDigits: decimals, maximumFractionDigits: decimals };
+}
+
+/**
+ * Intl.NumberFormatOptions for token balance display (adaptive max, min 2).
+ * Trims trailing zeros unlike currencyFormatOptions which pads to exact decimals.
+ * Use with AnimateNumber :format prop for TOKEN type displays.
+ */
+export function tokenFormatOptions(maxDecimals: number): Intl.NumberFormatOptions {
+  return { minimumFractionDigits: 2, maximumFractionDigits: maxDecimals };
 }
 
 /**
@@ -144,6 +153,61 @@ function formatNumberTrimmed(amount: string, minDecimals: number, maxDecimals: n
 export function formatPercent(value: number | string, decimals: number = 2): string {
   const numValue = Number(value);
   return `${formatNumber(numValue, decimals)}%`;
+}
+
+/**
+ * Get adaptive decimal places for a price value.
+ * Prices >= 1 get 4 max decimals; prices >= 10K get 2.
+ * Prices < 1 use first-significant-digit logic (same as formatTokenBalance).
+ */
+export function getAdaptivePriceDecimals(amount: number): number {
+  const abs = Math.abs(amount);
+  if (abs === 0) return 2;
+  if (abs >= 10000) return 2;
+  if (abs >= 1) return 4;
+  // < 1: find first significant digit
+  const str = abs.toFixed(MAX_DECIMALS);
+  const afterDot = str.split(".")[1] ?? "";
+  const firstSigIdx = afterDot.search(/[1-9]/);
+  if (firstSigIdx === -1) return 2;
+  return Math.min(firstSigIdx + 2, MAX_DECIMALS);
+}
+
+/**
+ * Format a price with adaptive decimals. No currency symbol.
+ * - >= 10K: 2 decimals
+ * - >= 1: up to 4 decimals (trailing zeros trimmed, min 2)
+ * - < 1: up to first significant digit + 1 (max 8, trailing zeros trimmed, min 2)
+ * - zero: "0.00"
+ */
+export function formatPrice(amount: number | string): string {
+  const num = Number(amount);
+  if (num === 0 || isNaN(num)) return formatNumber("0", 2);
+  const maxDec = getAdaptivePriceDecimals(num);
+  return formatNumberTrimmed(num.toFixed(maxDec), 2, maxDec);
+}
+
+/**
+ * Format a Dec value as an adaptive price string. No currency symbol.
+ */
+export function formatPriceDec(amount: Dec): string {
+  return formatPrice(amount.toString(MAX_DECIMALS));
+}
+
+/**
+ * Intl.NumberFormatOptions for adaptive price display.
+ * Use with AnimateNumber :format prop for price BigNumber components.
+ */
+export function priceFormatOptions(amount: number): Intl.NumberFormatOptions {
+  const maxDec = getAdaptivePriceDecimals(amount);
+  return { minimumFractionDigits: 2, maximumFractionDigits: maxDec };
+}
+
+/**
+ * Format a CoinPretty with adaptive decimals: "40 USDC" instead of "40.000000 USDC"
+ */
+export function formatCoinPretty(coin: CoinPretty): string {
+  return `${formatTokenBalance(coin.toDec())} ${coin.denom}`;
 }
 
 /**

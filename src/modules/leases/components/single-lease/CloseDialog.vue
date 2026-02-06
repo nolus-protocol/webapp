@@ -265,7 +265,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatPrice, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -383,9 +383,9 @@ const remaining = computed(() => {
   if (positionType === "Short") {
     const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
     const stable = data.amount.toDec().quo(price);
-    return `${formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    return `${formatTokenBalance(stable)} ${lpn.shortName}`;
   } else {
-    return `${formatNumber(data.amountInStable.toDec().toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    return `${formatTokenBalance(data.amountInStable.toDec())} ${lpn.shortName}`;
   }
 });
 
@@ -397,7 +397,7 @@ const paidDebt = computed(() => {
     const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
     const v = amount?.value?.length ? amount?.value : "0";
     const stable = new Dec(v).quo(price);
-    return `${formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    return `${formatTokenBalance(stable)} ${lpn.shortName}`;
   } else {
     const asset = assets.value[selectedCurrency.value];
     if (!asset) {
@@ -406,7 +406,7 @@ const paidDebt = computed(() => {
     const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
     const v = amount?.value?.length ? amount?.value : "0";
     const stable = price.mul(new Dec(v));
-    return `${formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+    return `${formatTokenBalance(stable)} ${lpn.shortName}`;
   }
 });
 
@@ -425,8 +425,8 @@ const debtData = computed(() => {
       return {
         fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
         asset: currecy.shortName,
-        price: `${NATIVE_CURRENCY.symbol}${formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
-        debt: `${formatNumber(asset.toString(), currecy.decimal_digits)} ${currecy.shortName}`
+        price: `${NATIVE_CURRENCY.symbol}${formatPrice(price.toString(MAX_DECIMALS))}`,
+        debt: `${formatTokenBalance(asset)} ${currecy.shortName}`
       };
     } else {
       const asset = d.mul(price);
@@ -435,8 +435,8 @@ const debtData = computed(() => {
       return {
         fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
         asset: currecy.shortName,
-        price: `${NATIVE_CURRENCY.symbol}${formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
-        debt: ` ${formatNumber(asset.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`
+        price: `${NATIVE_CURRENCY.symbol}${formatPrice(price.toString(MAX_DECIMALS))}`,
+        debt: ` ${formatTokenBalance(asset)} ${lpn.shortName}`
       };
     }
   }
