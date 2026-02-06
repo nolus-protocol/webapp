@@ -194,10 +194,10 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
-import { NATIVE_NETWORK } from "../../../../config/global/network";
+import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
   INTEREST_DECIMALS,
@@ -338,7 +338,7 @@ const assets = computed(() => {
       ticker: asset.ticker!,
       key: asset.key,
       stable,
-      price: formatDecAsUsd(stable)
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
 
@@ -381,13 +381,13 @@ const coinList = computed(() => {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return formatUsd(0);
+    return `${NATIVE_CURRENCY.symbol}${formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
   }
 
   const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return formatDecAsUsd(stable);
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const swapAmount = computed(() => {

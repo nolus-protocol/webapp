@@ -138,7 +138,7 @@ import { SwapStatus } from "../enums";
 import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type AssetItemProps } from "web-components";
 import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA } from "@/networks/config";
-import { NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
 
 import { type BaseWallet, Wallet } from "@/networks";
@@ -148,7 +148,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByDenom, getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { fetchEvmEndpoints } from "@/common/utils/EndpointService";
@@ -195,7 +195,7 @@ const assets = computed(() => {
       sybmol: asset.symbol,
       ticker: asset.ticker,
       stable,
-      price: formatDecAsUsd(stable)
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
   return data.sort((a, b) => {
@@ -378,14 +378,14 @@ const steps = computed(() => {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return formatUsd(0);
+    return `${NATIVE_CURRENCY.symbol}${formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
   }
 
   const currency = getCurrencyByDenom(asset.from!);
   const price = new Dec(pricesStore.prices[currency.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return formatDecAsUsd(stable);
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 function destroyClient() {

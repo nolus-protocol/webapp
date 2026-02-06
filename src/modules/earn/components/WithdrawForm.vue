@@ -88,12 +88,12 @@ import {
   SvgIcon
 } from "web-components";
 import { computed, inject, ref, watch } from "vue";
-import { NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
@@ -131,7 +131,7 @@ const assets = computed(() => {
       balance: { value: balance, ticker: lpn.shortName },
       stable,
       decimal_digits: lpn.decimal_digits,
-      price: formatDecAsUsd(stable)
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
 
@@ -168,7 +168,7 @@ const stable = computed(() => {
   const price = new Dec(pricesStore.prices[asset?.key]?.price ?? 0);
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
-  return formatDecAsUsd(stable);
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const isEmpty = computed(() => {

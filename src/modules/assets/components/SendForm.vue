@@ -143,7 +143,7 @@ import { SwapStatus } from "../enums";
 import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type AssetItemProps } from "web-components";
 import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA } from "@/networks/config";
-import { NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
 
 import { type BaseWallet, Wallet } from "@/networks";
@@ -169,7 +169,7 @@ import {
 } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { fetchEvmEndpoints } from "@/common/utils/EndpointService";
-import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
@@ -215,7 +215,7 @@ const assets = computed(() => {
       sybmol: asset.symbol!,
       ticker: asset.ticker!,
       stable,
-      price: formatDecAsUsd(stable)
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
 
@@ -411,7 +411,7 @@ onUnmounted(() => {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return formatUsd(0);
+    return `${NATIVE_CURRENCY.symbol}${formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
   }
   const denom = asset.ibcData ?? asset.from;
   const currency = getCurrencyByDenom(denom);
@@ -419,7 +419,7 @@ const calculatedBalance = computed(() => {
   const price = new Dec(pricesStore.prices[currency.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return formatDecAsUsd(stable);
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 function destroyClient() {

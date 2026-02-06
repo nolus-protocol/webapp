@@ -132,7 +132,7 @@ import {
   WalletUtils
 } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
-import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { h } from "vue";
@@ -210,7 +210,7 @@ const assets = computed(() => {
       decimal_digits: asset.decimal_digits,
       balance: { value: balance, ticker: asset.shortName },
       stable,
-      price: formatDecAsUsd(stable)
+      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
     });
   }
 
@@ -223,14 +223,14 @@ const firstCalculatedBalance = computed(() => {
   const price = new Dec(pricesStore.prices[selectedFirstCurrencyOption.value?.value!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return formatDecAsUsd(stable);
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const secondCalculatedBalance = computed(() => {
   const price = new Dec(pricesStore.prices[selectedSecondCurrencyOption.value?.value!]?.price ?? 0);
   const v = swapToAmount?.value?.length ? swapToAmount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return formatDecAsUsd(stable);
+  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
 });
 
 const selectedAsset = computed(() => {

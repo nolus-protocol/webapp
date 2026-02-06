@@ -25,8 +25,8 @@ import { lineY, plot, ruleY } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { isMobile } from "@/common/utils";
-import { formatUsd } from "@/common/utils/NumberFormatUtils";
-
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore, useAnalyticsStore } from "@/common/stores";
 import { ref, watch } from "vue";
 
@@ -84,7 +84,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => formatUsd(d),
+      tickFormat: (d) => `${formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`,
       ticks: 5,
       tickSize: 0
     },
@@ -133,9 +133,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         crosshair.attr("x1", x).attr("x2", x).style("display", null);
 
         tooltip.html(
-          `<strong>${i18n.t("message.value-label")}</strong> ${formatUsd(closestData?.position ?? 0)}
+          `<strong>${i18n.t("message.value-label")}</strong> ${formatNumber(closestData?.position ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}
           <br>
-          <strong>${i18n.t("message.debt-label")}</strong> ${formatUsd(closestData?.debt ?? 0)}`
+          <strong>${i18n.t("message.debt-label")}</strong> ${formatNumber(closestData?.debt ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

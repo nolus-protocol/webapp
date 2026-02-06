@@ -71,7 +71,7 @@
 import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
 import { computed, inject, ref } from "vue";
 
-import { NATIVE_ASSET, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
+import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
@@ -80,7 +80,7 @@ import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "
 import { useStakingStore } from "@/common/stores/staking";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
-import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -121,7 +121,7 @@ const stable = computed(() => {
     const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
-    return formatDecAsUsd(stable);
+    return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
   } catch (e) {
     return "";
   }

@@ -29,36 +29,6 @@ export function formatNumber(
 }
 
 /**
- * Intl.NumberFormatOptions for standard currency display.
- * Use with AnimateNumber :format prop to keep animated and static formatting in sync.
- */
-export function currencyFormatOptions(decimals: number): Intl.NumberFormatOptions {
-  return { minimumFractionDigits: decimals, maximumFractionDigits: decimals };
-}
-
-/**
- * Intl.NumberFormatOptions for compact currency display (K, M, B).
- * Use with AnimateNumber :format prop.
- */
-export const compactFormatOptions: Intl.NumberFormatOptions = {
-  notation: "compact",
-  compactDisplay: "short",
-  maximumFractionDigits: 1,
-};
-
-/**
- * Format a Dec value as USD: "$1,234.56"
- * Replaces the common pattern: `${NATIVE_CURRENCY.symbol}${formatNumber(dec.toString(2), 2)}`
- */
-export function formatDecAsUsd(amount: Dec): string {
-  return formatNumber(
-    amount.toString(NATIVE_CURRENCY.maximumFractionDigits),
-    NATIVE_CURRENCY.maximumFractionDigits,
-    NATIVE_CURRENCY.symbol
-  );
-}
-
-/**
  * Format a number with compact notation (1K, 1M, etc.)
  */
 export function formatCompact(
@@ -68,7 +38,6 @@ export function formatCompact(
   return new Intl.NumberFormat(locale, {
     notation: "compact",
     compactDisplay: "short",
-    maximumFractionDigits: 1,
   }).format(Number(amount));
 }
 

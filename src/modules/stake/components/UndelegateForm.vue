@@ -67,7 +67,7 @@
 <script lang="ts" setup>
 import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
 import { computed, inject, ref } from "vue";
-import { NATIVE_ASSET, NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useStakingStore } from "@/common/stores/staking";
@@ -76,7 +76,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
-import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -127,7 +127,7 @@ const stable = computed(() => {
     const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
-    return formatDecAsUsd(stable);
+    return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
   } catch (e) {
     return "";
   }
