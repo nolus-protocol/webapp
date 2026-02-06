@@ -1,11 +1,11 @@
 <template>
   <Widget class="overflow-auto">
     <WidgetHeader
-      :label="isVisible && !emptyState ? $t('message.dashboard-lease-title') : ''"
-      :icon="isVisible && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
-      :badge="isVisible && !emptyState ? { content: networkFilteredLeases.length.toString() } : undefined"
+      :label="walletConnected && !emptyState ? $t('message.dashboard-lease-title') : ''"
+      :icon="walletConnected && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
+      :badge="walletConnected && !emptyState ? { content: networkFilteredLeases.length.toString() } : undefined"
     >
-      <template v-if="isVisible && !emptyState">
+      <template v-if="walletConnected && !emptyState">
         <Button
           v-if="wallet.wallet"
           :label="$t('message.view-details')"
@@ -16,7 +16,7 @@
       </template>
     </WidgetHeader>
     <div>
-      <template v-if="isVisible && !emptyState">
+      <template v-if="walletConnected && !emptyState">
         <div class="mb-6 flex gap-8">
           <BigNumber
             :label="$t('message.unrealized-pnl')"
@@ -78,6 +78,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { useWalletConnected } from "@/common/composables";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
@@ -87,10 +88,9 @@ const wallet = useWalletStore();
 const leasesStore = useLeasesStore();
 const pricesStore = usePricesStore();
 const configStore = useConfigStore();
+const walletConnected = useWalletConnected();
 
 const hide = ref(WalletManager.getHideBalances());
-
-defineProps<{ isVisible: boolean }>();
 
 // Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
 

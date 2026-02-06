@@ -1,59 +1,75 @@
 <template>
   <Widget class="!p-0">
     <WidgetHeader
-      :label="$t('message.assets')"
-      :icon="{ name: 'assets', class: 'fill-icon-link' }"
-      :badge="{ content: filteredAssets.length.toString() }"
+      :label="walletConnected && !isEmpty ? $t('message.assets') : ''"
+      :icon="walletConnected && !isEmpty ? { name: 'assets', class: 'fill-icon-link' } : undefined"
+      :badge="walletConnected && !isEmpty ? { content: filteredAssets.length.toString() } : undefined"
       class="px-6 pt-6"
     >
-      <div class="flex flex-wrap gap-2">
-        <Button
-          v-if="isVisible"
-          :label="$t('message.swap')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${AssetsDialog.SWAP}`)"
-        />
-        <Button
-          :label="$t('message.receive')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${AssetsDialog.RECEIVE}`)"
-        />
-        <Button
-          v-if="isVisible"
-          :label="$t('message.send')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${AssetsDialog.SEND}`)"
-        />
-      </div>
-    </WidgetHeader>
-    <BigNumber
-      :label="$t('message.total-value')"
-      class="px-6"
-      :amount="{
-        amount: total.toString(2),
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
-        denom: NATIVE_CURRENCY.symbol,
-        fontSize: isMobile() ? 20 : 32,
-        animatedReveal: true
-      }"
-    />
-    <Table
-      :columns="columns"
-      class="px-6"
-      :scrollable="false"
-    >
-      <template v-slot:body>
-        <TableRow
-          v-for="(row, index) in assets"
-          :key="index"
-          :items="row.items"
-          :scrollable="false"
-        />
+      <template v-if="walletConnected && !isEmpty">
+        <div class="flex flex-wrap gap-2">
+          <Button
+            :label="$t('message.swap')"
+            severity="secondary"
+            size="large"
+            @click="() => router.push(`/${AssetsDialog.SWAP}`)"
+          />
+          <Button
+            :label="$t('message.receive')"
+            severity="secondary"
+            size="large"
+            @click="() => router.push(`/${AssetsDialog.RECEIVE}`)"
+          />
+          <Button
+            :label="$t('message.send')"
+            severity="secondary"
+            size="large"
+            @click="() => router.push(`/${AssetsDialog.SEND}`)"
+          />
+        </div>
       </template>
-    </Table>
+    </WidgetHeader>
+    <template v-if="walletConnected && !isEmpty">
+      <BigNumber
+        :label="$t('message.total-value')"
+        class="px-6"
+        :amount="{
+          amount: total.toString(2),
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: isMobile() ? 20 : 32,
+          animatedReveal: true
+        }"
+      />
+      <Table
+        :columns="columns"
+        class="px-6"
+        :scrollable="false"
+      >
+        <template v-slot:body>
+          <TableRow
+            v-for="(row, index) in assets"
+            :key="index"
+            :items="row.items"
+            :scrollable="false"
+          />
+        </template>
+      </Table>
+    </template>
+    <template v-else>
+      <EmptyState
+        :slider="[
+          {
+            image: { name: 'deposit-assets' },
+            title: $t('message.assets'),
+            description: $t('message.deposit-assets'),
+            button: wallet.wallet
+              ? { name: $t('message.receive'), icon: 'plus', url: `/${AssetsDialog.RECEIVE}` }
+              : undefined
+          }
+        ]"
+      />
+    </template>
     <div class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3">
       <Button
         :label="$t('message.view-all-assets')"
@@ -74,6 +90,7 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 import { AssetsDialog } from "@/modules/assets/enums";
 import { useI18n } from "vue-i18n";
@@ -85,7 +102,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { useNetworkCurrency, type ResolvedAsset } from "@/common/composables";
+import { useNetworkCurrency, useWalletConnected, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
 
 const i18n = useI18n();
@@ -93,11 +110,10 @@ const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const { getNetworkAssets } = useNetworkCurrency();
+const walletConnected = useWalletConnected();
 const router = useRouter();
 const total = ref(new Dec(0));
 const hide = ref(WalletManager.getHideBalances());
-
-defineProps<{ isVisible: boolean }>();
 
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.assets"), variant: "left" },
@@ -116,6 +132,8 @@ const filteredAssets = computed(() => {
     .sort((a, b) => b.balanceUsd - a.balanceUsd)
     .slice(0, 5);
 });
+
+const isEmpty = computed(() => filteredAssets.value.length === 0);
 
 watch(
   () => [wallet.wallet, pricesStore.prices, balancesStore.balances],

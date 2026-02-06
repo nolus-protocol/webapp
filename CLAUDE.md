@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |------|---------|
 | Build frontend | `npm run build -- --mode spa` |
 | Build backend | `cd backend && cargo build --release` |
-| Run server | `cd backend && STATIC_DIR=../dist ./target/release/nolus-backend` |
+| Run server | `cd backend && nohup env STATIC_DIR=../dist ./target/release/nolus-backend > /tmp/nolus-backend.log 2>&1 &` — must use `nohup` or the process dies when the shell session ends, producing `ERR_EMPTY_RESPONSE` on all API calls. Logs go to `/tmp/nolus-backend.log`. |
 | Dev server (Vite) | `npm run serve` (requires backend running separately) |
 | Frontend tests | `npm test` |
 | Single test file | `npx vitest run src/path/to/file.test.ts` |
@@ -139,6 +139,16 @@ The same ticker (e.g., `USDC_NOBLE`) can exist on multiple networks with differe
 ### Wallet Connection Centralization
 
 All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard).
+
+### Wallet-Aware Empty States
+
+Components that show different content based on wallet connection use the `useWalletConnected()` composable (`src/common/composables/useWalletConnected.ts`) — a single `computed(() => !!wallet.wallet)`. **Do not** pass wallet state as props (`isVisible`, `showEmpty`), and **do not** check `wallet.wallet` directly in templates for visibility logic. Each widget calls the composable directly.
+
+Dashboard widgets (`DashboardAssets`, `DashboardLeases`, `DashboardRewards`) and the stake page use this to distinguish two empty state reasons:
+1. **No wallet connected** — show EmptyState without action buttons
+2. **Wallet connected but no data** — show EmptyState with action buttons (Receive, Open Position, Delegate, etc.)
+
+The `EmptyState` component itself stays dumb/presentational — it receives slider content via props and has no wallet awareness. The calling component decides what to show based on `walletConnected` and data state.
 
 ### Ref-Based Summary Pattern (Common Bug Source)
 

@@ -67,11 +67,8 @@ import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useWalletStore, useBalancesStore, useStakingStore, usePricesStore, useAnalyticsStore, useHistoryStore } from "@/common/stores";
+import { useWalletConnected } from "@/common/composables";
 import { computed, ref } from "vue";
-
-const props = defineProps<{
-  showEmpty: boolean;
-}>();
 
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
@@ -80,6 +77,7 @@ const pricesStore = usePricesStore();
 const analyticsStore = useAnalyticsStore();
 const historyStore = useHistoryStore();
 
+const walletConnected = useWalletConnected();
 const loadingStaking = ref(false);
 const disabled = ref(false);
 
@@ -91,7 +89,7 @@ const earningsAmount = computed(() =>
 // Staking and analytics stores are initialized by connectionStore.connectWallet()
 
 const isEmpty = computed(() => {
-  return props.showEmpty || !stakingStore.hasPositions;
+  return !walletConnected.value || !stakingStore.hasPositions;
 });
 
 // Calculate staking rewards in USD

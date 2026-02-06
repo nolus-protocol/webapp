@@ -153,6 +153,7 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 - **Disconnect flow**: `Disconnect.vue` calls both `wallet[WalletActions.DISCONNECT]()` (clears wallet state) and `connectionStore.disconnectWallet()` (clears all user-specific stores: balances, leases, staking, earn, analytics, history).
 - **Price polling ownership**: Price polling is handled exclusively by `pricesStore.startPolling()` (called during `pricesStore.initialize()`). `view.vue` does NOT have its own price polling interval — it only manages balance polling. This avoids duplicate price fetches.
 - **Balance polling**: `view.vue` manages a balance polling interval via `startBalancePolling()`, called when `configStore.initialized` becomes true.
+- **Wallet-aware empty states**: Components use the `useWalletConnected()` composable (`src/common/composables/useWalletConnected.ts`) to determine wallet connection state for showing empty states. Wallet state is NOT passed as props (`isVisible`, `showEmpty`) — each widget calls the composable directly. This distinguishes "no wallet" (EmptyState without action buttons) from "wallet connected, no data" (EmptyState with action buttons like Receive, Open Position, etc.). The `EmptyState` component itself is purely presentational with no wallet awareness.
 
 ### Key Files
 

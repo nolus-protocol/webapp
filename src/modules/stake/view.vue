@@ -3,7 +3,7 @@
     <ListHeader :title="$t('message.stake')">
       <div
         class="flex gap-2"
-        v-if="wallet.wallet"
+        v-if="walletConnected"
       >
         <Button
           :label="$t('message.delegate')"
@@ -67,6 +67,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import { useWalletConnected } from "@/common/composables";
 import RedelegateButton from "./components/RedelegateButton.vue";
 
 const wallet = useWalletStore();
@@ -76,6 +77,7 @@ const configStore = useConfigStore();
 
 const i18n = useI18n();
 const router = useRouter();
+const walletConnected = useWalletConnected();
 
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
@@ -128,7 +130,7 @@ const stableDelegated = computed(() => {
 
 // Show empty state
 const showEmpty = computed(() => {
-  return !stakingStore.hasPositions;
+  return !walletConnected.value || !stakingStore.hasPositions;
 });
 
 // Total rewards

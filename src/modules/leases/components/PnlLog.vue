@@ -25,7 +25,7 @@
           description: $t('message.start-lease-description'),
           link: {
             label: $t('message.learn-new-leases'),
-            url: '#',
+            url: `/${RouteNames.LEASES}/learn-leases`,
             tooltip: { content: $t('message.learn-new-leases') }
           }
         }

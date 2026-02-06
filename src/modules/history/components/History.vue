@@ -35,7 +35,7 @@
               :key="`${transaction.tx_hash}_${transaction.index}`"
             />
           </template>
-          <template v-if="!wallet.wallet || (loaded && transactions.length == 0)">
+          <template v-if="!walletConnected || (loaded && transactions.length == 0)">
             <EmptyState
               :slider="[
                 {
@@ -51,7 +51,7 @@
     </Widget>
     <div class="my-4 flex justify-center">
       <Button
-        v-if="!loaded && wallet.wallet"
+        v-if="!loaded && walletConnected"
         :label="$t('message.load-more')"
         :loading="loading"
         class="mx-auto"
@@ -78,6 +78,7 @@ import ListHeader from "@/common/components/ListHeader.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 import type { IObjectKeys } from "@/common/types";
 import { useRouter } from "vue-router";
+import { useWalletConnected } from "@/common/composables";
 import { useConfigStore } from "@/common/stores/config";
 import type { TransactionFilters } from "@/common/api/types";
 
@@ -86,6 +87,7 @@ const wallet = useWalletStore();
 const historyStore = useHistoryStore();
 const search = ref("");
 const router = useRouter();
+const walletConnected = useWalletConnected();
 const configStore = useConfigStore();
 const filters = ref<TransactionFilters>({});
 
