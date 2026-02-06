@@ -164,7 +164,7 @@ watch(
   () => {
     skip = 0;
     historyStore.resetTransactions();
-    
+
     if (wallet.wallet?.address) {
       historyStore.setAddress(wallet.wallet.address);
       loadTransactions(true);

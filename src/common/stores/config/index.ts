@@ -750,7 +750,13 @@ export const useConfigStore = defineStore("config", () => {
 
     const networkToFetch = protocolFilter.value || "OSMOSIS";
 
-    await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols(), fetchGasFeeConfig()]);
+    await Promise.all([
+      fetchConfig(),
+      fetchCurrencies(),
+      fetchNetworkAssets(networkToFetch),
+      fetchGatedProtocols(),
+      fetchGasFeeConfig()
+    ]);
     ensureDefaultProtocolFilter();
     await prefetchProtocolCurrenciesForNetwork(networkToFetch);
     initialized.value = true;

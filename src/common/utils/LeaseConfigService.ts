@@ -41,5 +41,3 @@ export async function getLeasePositionSpec(
   const config = await getLeaseConfig(protocol);
   return { min_asset: config.min_asset, min_transaction: config.min_transaction };
 }
-
-

@@ -237,13 +237,13 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const entries = await BackendApi.getPnlLog(address.value, skip, limit);
-      
+
       if (skip === 0) {
         realizedPnlList.value = entries;
       } else {
         realizedPnlList.value = [...realizedPnlList.value, ...entries];
       }
-      
+
       return entries;
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch PnL list:", e);
@@ -283,11 +283,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
    * Fetch price series for a specific asset
    * Results are cached by key:protocol:interval
    */
-  async function fetchPriceSeries(
-    key: string,
-    protocol: string,
-    interval: string
-  ): Promise<PriceSeriesDataPoint[]> {
+  async function fetchPriceSeries(key: string, protocol: string, interval: string): Promise<PriceSeriesDataPoint[]> {
     const cacheKey = `${key}:${protocol}:${interval}`;
 
     // Check cache first
@@ -325,10 +321,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     address.value = newAddress;
 
     // Fetch dashboard and history data in parallel
-    await Promise.all([
-      fetchDashboardData(),
-      fetchHistoryData()
-    ]);
+    await Promise.all([fetchDashboardData(), fetchHistoryData()]);
 
     initialized.value = true;
   }
@@ -380,10 +373,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
   async function refresh(): Promise<void> {
     if (!address.value) return;
 
-    await Promise.all([
-      fetchDashboardData(),
-      fetchHistoryData()
-    ]);
+    await Promise.all([fetchDashboardData(), fetchHistoryData()]);
   }
 
   // ==========================================================================

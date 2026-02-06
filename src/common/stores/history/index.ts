@@ -28,18 +28,18 @@ export const useHistoryStore = defineStore("history", () => {
   // ==========================================================================
   // State
   // ==========================================================================
-  
+
   /** Pending transfers indexed by ID */
   const pendingTransfers = ref<{ [key: string]: IObjectKeys }>({});
-  
+
   /** Historical activities from ETL */
   const activities = ref<{ data: IObjectKeys[]; loaded: boolean }>({ data: [], loaded: false });
-  
+
   /** Full transaction history (paginated) */
   const transactions = ref<IObjectKeys[]>([]);
   const transactionsLoading = ref(false);
   const transactionsLoaded = ref(false);
-  
+
   /** Current wallet address */
   const address = ref<string | null>(null);
 
@@ -181,7 +181,7 @@ export const useHistoryStore = defineStore("history", () => {
     if (pendingTransfers.value[id]) {
       const transfer = pendingTransfers.value[id];
       transfer.historyData.errorMsg = errorMsg;
-      
+
       // Mark current step as failed
       const activeStep = transfer.historyData.route.activeStep;
       if (transfer.historyData.route.steps[activeStep]) {
@@ -190,7 +190,7 @@ export const useHistoryStore = defineStore("history", () => {
       if (transfer.historyData.routeDetails.steps[activeStep]) {
         transfer.historyData.routeDetails.steps[activeStep].status = "failed";
       }
-      
+
       transfer.historyData.status = CONFIRM_STEP.ERROR;
     }
   }
@@ -265,7 +265,7 @@ export const useHistoryStore = defineStore("history", () => {
     try {
       const rawTxs = await BackendApi.getTransactions(address.value, skip, limit, filters);
       const transformedTxs = transformTransactions(rawTxs, address.value);
-      
+
       // Process each transaction with message formatting
       const promises = transformedTxs.map(async (d) => {
         const [msg, coin, route, routeDetails] = await message(d, address.value!, i18n.global, voteMessages);
@@ -383,7 +383,7 @@ export const useHistoryStore = defineStore("history", () => {
    */
   function setAddress(newAddress: string | null): void {
     address.value = newAddress;
-    
+
     if (!newAddress) {
       cleanup();
     }
@@ -408,12 +408,7 @@ export const useHistoryStore = defineStore("history", () => {
   // Helper Functions
   // ==========================================================================
 
-  function getRouteSteps(
-    route: IObjectKeys,
-    i18nInstance: IObjectKeys,
-    currency: IObjectKeys,
-    chains: IObjectKeys[]
-  ) {
+  function getRouteSteps(route: IObjectKeys, i18nInstance: IObjectKeys, currency: IObjectKeys, chains: IObjectKeys[]) {
     const steps = [];
     for (const [index, operation] of (route?.operations ?? []).entries()) {
       if (operation.transfer || operation.cctp_transfer) {
@@ -503,6 +498,6 @@ export const useHistoryStore = defineStore("history", () => {
     initialize,
     setAddress,
     cleanup,
-    clear, // Alias for backwards compatibility
+    clear // Alias for backwards compatibility
   };
 });

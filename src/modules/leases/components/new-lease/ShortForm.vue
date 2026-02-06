@@ -228,8 +228,6 @@ const router = useRouter();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 const reload = inject("reload", () => {});
 
-
-
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
@@ -295,7 +293,10 @@ const totalBalances = computed(() => {
           currencies.push({ ...currencyInfo, balance: balance } as ExternalCurrency);
         } else if (!balance && !seenDenoms.has(currencyInfo.ibcData)) {
           seenDenoms.add(currencyInfo.ibcData);
-          currencies.push({ ...currencyInfo, balance: { denom: currencyInfo.ibcData, amount: "0" } } as ExternalCurrency);
+          currencies.push({
+            ...currencyInfo,
+            balance: { denom: currencyInfo.ibcData, amount: "0" }
+          } as ExternalCurrency);
         }
       }
     }
@@ -353,18 +354,17 @@ const coinList = computed(() => {
   // Backend already filters out ignored assets based on lease-rules.json
   const shortProtocols = configStore.shortProtocolsForCurrentNetwork;
 
-  const list = shortProtocols
-    .map((protocol) => {
-      // Get the LPN info from the protocol's lpn_display
-      return {
-        key: `${protocol.lpn}@${protocol.protocol}`,
-        ticker: protocol.lpn,
-        label: protocol.lpn_display?.shortName || protocol.lpn,
-        value: protocol.lpn, // This will be used to find the currency
-        icon: protocol.lpn_display?.icon || "",
-        protocol: protocol.protocol
-      };
-    });
+  const list = shortProtocols.map((protocol) => {
+    // Get the LPN info from the protocol's lpn_display
+    return {
+      key: `${protocol.lpn}@${protocol.protocol}`,
+      ticker: protocol.lpn,
+      label: protocol.lpn_display?.shortName || protocol.lpn,
+      value: protocol.lpn, // This will be used to find the currency
+      icon: protocol.lpn_display?.icon || "",
+      protocol: protocol.protocol
+    };
+  });
 
   const sortOrder = new Map(SORT_LEASE.map((t, i) => [t, i]));
 

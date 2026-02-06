@@ -36,7 +36,7 @@ export function setTheme(theme: Theme): void {
  */
 export function applyTheme(theme: Theme): void {
   const resolvedTheme = resolveTheme(theme);
-  
+
   if (resolvedTheme === "dark") {
     document.documentElement.classList.add("dark");
   } else {
@@ -87,5 +87,3 @@ export function toggleTheme(): void {
 function isValidTheme(value: string): value is Theme {
   return value === "light" || value === "dark" || value === "sync";
 }
-
-

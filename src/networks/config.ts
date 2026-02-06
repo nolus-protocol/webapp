@@ -1,6 +1,6 @@
 /**
  * Network Configuration
- * 
+ *
  * All network data is fetched from the backend via the config store.
  * This file only provides helper functions and legacy exports for backward compatibility.
  */
@@ -27,14 +27,16 @@ export function getNetworkData() {
   const configStore = useConfigStore();
   const networks = configStore.networks;
   const currentNetwork = localStorage.getItem(CURRENT_NETWORK_KEY) || DEFAULT_PRIMARY_NETWORK;
-  
+
   // Build list from backend networks - filter based on current environment
-  const list = networks.map(n => ({
+  const list = networks.map((n) => ({
     prefix: n.prefix,
     value: n.value,
     label: n.name,
     native: n.native,
-    estimation: n.estimation ?? (n.estimation_duration ? { duration: n.estimation_duration, type: n.estimation_type || "min" } : 20),
+    estimation:
+      n.estimation ??
+      (n.estimation_duration ? { duration: n.estimation_duration, type: n.estimation_type || "min" } : 20),
     key: n.key,
     symbol: n.symbol,
     chain_type: n.chain_type,
@@ -85,5 +87,3 @@ export const NETWORK_DATA = {
     return getNetworkData().supportedNetworks;
   }
 };
-
-

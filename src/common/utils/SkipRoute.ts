@@ -121,11 +121,7 @@ export class SkipRouter {
     return route;
   }
 
-  static async submitRoute(
-    route: RouteResponse,
-    wallets: { [key: string]: BaseWallet },
-    callback: Function
-  ) {
+  static async submitRoute(route: RouteResponse, wallets: { [key: string]: BaseWallet }, callback: Function) {
     try {
       return await SkipRouter.transaction(route, wallets, callback);
     } catch (error) {
@@ -133,11 +129,7 @@ export class SkipRouter {
     }
   }
 
-  private static async transaction(
-    route: RouteResponse,
-    wallets: { [key: string]: BaseWallet },
-    callback: Function
-  ) {
+  private static async transaction(route: RouteResponse, wallets: { [key: string]: BaseWallet }, callback: Function) {
     try {
       const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
       const addressList = [];

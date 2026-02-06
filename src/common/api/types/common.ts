@@ -2,7 +2,6 @@
  * Common types used across all API domains
  */
 
-
 /**
  * Generic API error with status code and message
  */

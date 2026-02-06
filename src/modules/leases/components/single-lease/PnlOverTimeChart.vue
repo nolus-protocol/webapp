@@ -155,9 +155,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       if (closestData) {
         crosshair.attr("x1", x).attr("x2", x).style("display", null);
 
-        tooltip.html(
-          `<strong>${i18n.t("message.amount")}:</strong> ${formatUsd(closestData.amount)}`
-        );
+        tooltip.html(`<strong>${i18n.t("message.amount")}:</strong> ${formatUsd(closestData.amount)}`);
 
         const node = tooltip.node()!.getBoundingClientRect();
         const height = node.height;

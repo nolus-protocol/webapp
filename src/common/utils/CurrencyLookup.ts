@@ -127,4 +127,3 @@ export function getCurrencyByTickerForNetwork(ticker: string): CurrencyInfo {
 
   return currency;
 }
-

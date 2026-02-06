@@ -130,6 +130,6 @@ export const usePricesStore = defineStore("prices", () => {
     startPolling,
     stopPolling,
     initialize,
-    cleanup,
+    cleanup
   };
 });

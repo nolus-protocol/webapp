@@ -101,7 +101,9 @@ const i18n = useI18n();
 
 const assets = computed(() => {
   const balance = formatNumber(
-    new Dec(balancesStore.nativeBalance?.amount ?? "0", NATIVE_ASSET.decimal_digits).toString(NATIVE_ASSET.decimal_digits),
+    new Dec(balancesStore.nativeBalance?.amount ?? "0", NATIVE_ASSET.decimal_digits).toString(
+      NATIVE_ASSET.decimal_digits
+    ),
     NATIVE_ASSET.decimal_digits
   );
 

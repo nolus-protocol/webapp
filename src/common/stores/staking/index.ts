@@ -16,7 +16,7 @@ import {
   type UnbondingPosition,
   type ValidatorReward,
   type StakingParams,
-  type Unsubscribe,
+  type Unsubscribe
 } from "@/common/api";
 
 export const useStakingStore = defineStore("staking", () => {
@@ -29,7 +29,7 @@ export const useStakingStore = defineStore("staking", () => {
   const address = ref<string | null>(null);
   const totalStaked = ref<string>("0");
   const totalRewards = ref<string>("0");
-  
+
   const validatorsLoading = ref(false);
   const positionsLoading = ref(false);
   const error = ref<string | null>(null);
@@ -42,9 +42,7 @@ export const useStakingStore = defineStore("staking", () => {
   const hasPositions = computed(() => delegations.value.length > 0 || unbonding.value.length > 0);
   const validatorCount = computed(() => validators.value.length);
 
-  const activeValidators = computed(() =>
-    validators.value.filter((v) => v.status === "bonded" && !v.jailed)
-  );
+  const activeValidators = computed(() => validators.value.filter((v) => v.status === "bonded" && !v.jailed));
 
   const totalDelegatedAmount = computed(() => {
     return delegations.value.reduce((sum, d) => {
@@ -253,6 +251,6 @@ export const useStakingStore = defineStore("staking", () => {
     setAddress,
     initialize,
     cleanup,
-    clear, // Alias for backwards compatibility
+    clear // Alias for backwards compatibility
   };
 });

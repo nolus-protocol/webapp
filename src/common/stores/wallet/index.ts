@@ -7,7 +7,7 @@ import { actions } from "./actions";
 const state = (): State => ({
   // Vesting tokens
   vest: [],
-  
+
   // Staking APR
   apr: 0
 });

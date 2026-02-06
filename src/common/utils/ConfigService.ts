@@ -71,9 +71,9 @@ export async function fetchNetworkStatus(): Promise<{
   return {
     result: {
       node_info: {
-        network: status.network,
-      },
-    },
+        network: status.network
+      }
+    }
   };
 }
 
@@ -89,6 +89,6 @@ async function fetchSkipRouteConfig(): Promise<SkipRouteConfigType> {
 async function fetchProposalsConfig(): Promise<ProposalsConfigType> {
   const response = await BackendApi.getHiddenProposals();
   return {
-    hide: response.hidden_ids,
+    hide: response.hidden_ids
   };
 }

@@ -45,4 +45,3 @@ export const STAKING = {
   PERCENT: 0.05,
   SLICE: 3
 };
-

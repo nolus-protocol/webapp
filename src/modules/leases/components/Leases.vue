@@ -198,98 +198,99 @@ const leasesData = computed<TableRowItemProps[]>(() => {
     })
     .map((item) => {
       try {
-      const displayData = leasesStore.getLeaseDisplayData(item);
-      const pnlData = {
-        percent: displayData.pnlPercent.toString(2),
-        amount: formatUsd(displayData.pnlAmount.toString(2)),
-        status: displayData.pnlPositive
-      };
-      const loading = isLeaseInProgress(item);
-      const liquidation = loading
-        ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
-        : {
-            value: formatNumber(displayData.liquidationPrice.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
-            class: "max-w-[200px]"
-          };
+        const displayData = leasesStore.getLeaseDisplayData(item);
+        const pnlData = {
+          percent: displayData.pnlPercent.toString(2),
+          amount: formatUsd(displayData.pnlAmount.toString(2)),
+          status: displayData.pnlPositive
+        };
+        const loading = isLeaseInProgress(item);
+        const liquidation = loading
+          ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
+          : {
+              value: formatNumber(displayData.liquidationPrice.toString(), MID_DECIMALS, NATIVE_CURRENCY.symbol),
+              class: "max-w-[200px]"
+            };
 
-      const asset = getAsset(item);
-      const amount = displayData.unitAsset;
-      const stable = displayData.assetValueUsd;
-      const actions: Component[] = getActions(item, displayData);
-      const value = {
-        subValue: `${NATIVE_CURRENCY.symbol}${stable.toString(2)}`,
-        value: formatTokenBalance(amount),
-        tooltip: `${amount.toString(asset?.decimal_digits ?? 6)}`
-      };
+        const asset = getAsset(item);
+        const amount = displayData.unitAsset;
+        const stable = displayData.assetValueUsd;
+        const actions: Component[] = getActions(item, displayData);
+        const value = {
+          subValue: `${NATIVE_CURRENCY.symbol}${stable.toString(2)}`,
+          value: formatTokenBalance(amount),
+          tooltip: `${amount.toString(asset?.decimal_digits ?? 6)}`
+        };
 
-      if (hide.value) {
-        value.value = "****";
-        value.subValue = "****";
-      }
+        if (hide.value) {
+          value.value = "****";
+          value.subValue = "****";
+        }
 
-      return {
-        items: [
-          {
-            value: getTitle(item),
-            subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start",
-            variant: "left",
-            click: () => {
-              router.push(`/${RouteNames.LEASES}/${item.address}`);
+        return {
+          items: [
+            {
+              value: getTitle(item),
+              subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start",
+              variant: "left",
+              click: () => {
+                router.push(`/${RouteNames.LEASES}/${item.address}`);
+              },
+              class: "text-typography-link font-semibold max-w-[150px] cursor-pointer"
             },
-            class: "text-typography-link font-semibold max-w-[150px] cursor-pointer"
-          },
-          {
-            image: getAssetIcon(item),
-            imageClass: "w-[32px] h-[32px]",
-            value: asset?.shortName ?? "",
-            subValue: asset?.name ?? "",
-            variant: "left",
-            textClass: "line-clamp-1 [display:-webkit-box]"
-          },
-          {
-            value: `${i18n.t(`message.${configStore.getPositionType(item.protocol).toLowerCase()}`)}`,
-            variant: "left",
-            class: "max-w-[45px]"
-          },
-          {
-            component: () =>
-              loading
-                ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
-                : h<IBigNumber>(BigNumber, {
-                    pnlStatus: {
-                      positive: pnlData.status,
-                      value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${hide.value ? "****" : pnlData.amount})`,
-                      badge: {
-                        content: pnlData.percent,
-                        base: false
+            {
+              image: getAssetIcon(item),
+              imageClass: "w-[32px] h-[32px]",
+              value: asset?.shortName ?? "",
+              subValue: asset?.name ?? "",
+              variant: "left",
+              textClass: "line-clamp-1 [display:-webkit-box]"
+            },
+            {
+              value: `${i18n.t(`message.${configStore.getPositionType(item.protocol).toLowerCase()}`)}`,
+              variant: "left",
+              class: "max-w-[45px]"
+            },
+            {
+              component: () =>
+                loading
+                  ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                  : h<IBigNumber>(BigNumber, {
+                      pnlStatus: {
+                        positive: pnlData.status,
+                        value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${hide.value ? "****" : pnlData.amount})`,
+                        badge: {
+                          content: pnlData.percent,
+                          base: false
+                        }
                       }
-                    }
-                  }),
-            class: "max-w-[200px]"
-          },
-          {
-            component: () =>
-              loading
-                ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
-                : h(TableNumber, {
-                    value: value.value,
-                    subValue: value.subValue,
-                    tooltip: value.tooltip
-                  }),
-            class: "font-semibold break-all"
-          },
-          liquidation,
-          {
-            component: () => [...actions],
-            class: "max-w-[220px] pr-4 cursor-pointer"
-          }
-        ]
-      };
+                    }),
+              class: "max-w-[200px]"
+            },
+            {
+              component: () =>
+                loading
+                  ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                  : h(TableNumber, {
+                      value: value.value,
+                      subValue: value.subValue,
+                      tooltip: value.tooltip
+                    }),
+              class: "font-semibold break-all"
+            },
+            liquidation,
+            {
+              component: () => [...actions],
+              class: "max-w-[220px] pr-4 cursor-pointer"
+            }
+          ]
+        };
       } catch (e) {
         Logger.error("[Leases] Error processing lease:", item.address, e);
         return null;
       }
-    }).filter((item): item is TableRowItemProps => item !== null);
+    })
+    .filter((item): item is TableRowItemProps => item !== null);
   return items;
 });
 
@@ -445,18 +446,18 @@ function setLeases() {
 
     for (const lease of networkFilteredLeases.value) {
       const displayData = leasesStore.getLeaseDisplayData(lease);
-      
+
       if (lease.status === "opened") {
         ls = ls.add(displayData.assetValueUsd);
         am = am.add(displayData.pnlAmount);
         dp = dp.add(displayData.downPayment);
         rp = rp.add(displayData.repaymentValue);
       }
-      
+
       db = db.add(displayData.totalDebtUsd);
       pl = pl.add(displayData.pnlAmount);
     }
-    
+
     pnl.value = pl;
     activeLeases.value = ls;
     debt.value = db;

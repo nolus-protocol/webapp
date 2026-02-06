@@ -227,7 +227,6 @@ const i18n = useI18n();
 const router = useRouter();
 const showDetails = ref(false);
 
-
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
@@ -365,17 +364,16 @@ const coinList = computed(() => {
   const leaseCurrencies = protocolCurrencies.filter((c) => c.group === "lease");
 
   // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
-  const list = leaseCurrencies
-    .map((item) => {
-      return {
-        decimal_digits: item.decimals,
-        key: `${item.ticker}@${downPaymentProtocol}`,
-        ticker: item.ticker,
-        label: item.shortName,
-        value: item.bank_symbol,
-        icon: item.icon
-      };
-    });
+  const list = leaseCurrencies.map((item) => {
+    return {
+      decimal_digits: item.decimals,
+      key: `${item.ticker}@${downPaymentProtocol}`,
+      ticker: item.ticker,
+      label: item.shortName,
+      value: item.bank_symbol,
+      icon: item.icon
+    };
+  });
 
   const sortOrder = new Map(SORT_LEASE.map((t, i) => [t, i]));
 

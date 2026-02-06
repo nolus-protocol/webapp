@@ -128,14 +128,7 @@
 <script lang="ts" setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  AdvancedFormControl,
-  Button,
-  Dialog,
-  Slider,
-  SvgIcon,
-  ToastType
-} from "web-components";
+import { AdvancedFormControl, Button, Dialog, Slider, SvgIcon, ToastType } from "web-components";
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
@@ -429,7 +422,7 @@ const setSwapFee = async () => {
   clearTimeout(time);
   time = setTimeout(async () => {
     if (!lease.value) return;
-    
+
     const lease_currency = currency.value;
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
     const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];

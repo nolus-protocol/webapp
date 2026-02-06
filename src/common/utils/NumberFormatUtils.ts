@@ -10,17 +10,13 @@ import { DECIMALS_AMOUNT, MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global"
 /**
  * Format a number with specified decimals and optional symbol
  */
-export function formatNumber(
-  amount: number | string,
-  decimals: number,
-  symbol?: string
-): string {
+export function formatNumber(amount: number | string, decimals: number, symbol?: string): string {
   const numValue = Number(amount);
   const sign = numValue < 0 ? "-" : "";
 
   const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
     maximumFractionDigits: decimals,
-    minimumFractionDigits: decimals,
+    minimumFractionDigits: decimals
   })
     .format(Math.abs(numValue))
     .toString();
@@ -43,7 +39,7 @@ export function currencyFormatOptions(decimals: number): Intl.NumberFormatOption
 export const compactFormatOptions: Intl.NumberFormatOptions = {
   notation: "compact",
   compactDisplay: "short",
-  maximumFractionDigits: 1,
+  maximumFractionDigits: 1
 };
 
 /**
@@ -61,14 +57,11 @@ export function formatDecAsUsd(amount: Dec): string {
 /**
  * Format a number with compact notation (1K, 1M, etc.)
  */
-export function formatCompact(
-  amount: number | string,
-  locale: string = NATIVE_CURRENCY.locale
-): string {
+export function formatCompact(amount: number | string, locale: string = NATIVE_CURRENCY.locale): string {
   return new Intl.NumberFormat(locale, {
     notation: "compact",
     compactDisplay: "short",
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 1
   }).format(Number(amount));
 }
 
@@ -139,7 +132,7 @@ function formatNumberTrimmed(amount: string, minDecimals: number, maxDecimals: n
 
   const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
     minimumFractionDigits: minDecimals,
-    maximumFractionDigits: maxDecimals,
+    maximumFractionDigits: maxDecimals
   }).format(Math.abs(numValue));
 
   return `${sign}${formatted}`;
@@ -148,10 +141,7 @@ function formatNumberTrimmed(amount: string, minDecimals: number, maxDecimals: n
 /**
  * Format percentage value
  */
-export function formatPercent(
-  value: number | string,
-  decimals: number = 2
-): string {
+export function formatPercent(value: number | string, decimals: number = 2): string {
   const numValue = Number(value);
   return `${formatNumber(numValue, decimals)}%`;
 }
@@ -164,5 +154,3 @@ export function parseNumericString(value: string): number {
   const cleaned = value.replace(/[^\d.-]/g, "");
   return parseFloat(cleaned) || 0;
 }
-
-

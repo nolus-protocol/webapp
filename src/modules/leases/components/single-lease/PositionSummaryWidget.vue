@@ -315,13 +315,20 @@ const pnl = computed(() => {
 const status = computed(() => {
   if (!props.lease) return TEMPLATES.opening;
   switch (props.lease.status) {
-    case "opening": return TEMPLATES.opening;
-    case "opened": return TEMPLATES.opened;
-    case "paid_off": return TEMPLATES.paid;
-    case "closing": return TEMPLATES.paid;
-    case "closed": return TEMPLATES.closed;
-    case "liquidated": return TEMPLATES.liquidated;
-    default: return TEMPLATES.opening;
+    case "opening":
+      return TEMPLATES.opening;
+    case "opened":
+      return TEMPLATES.opened;
+    case "paid_off":
+      return TEMPLATES.paid;
+    case "closing":
+      return TEMPLATES.paid;
+    case "closed":
+      return TEMPLATES.closed;
+    case "liquidated":
+      return TEMPLATES.liquidated;
+    default:
+      return TEMPLATES.opening;
   }
 });
 
@@ -366,13 +373,19 @@ const pricerPerAsset = computed(() => {
 
 const stopLoss = computed(() => {
   return props.displayData?.stopLoss
-    ? { percent: props.displayData.stopLoss.percent, amount: props.displayData.stopLoss.price.toString(asset.value?.decimal_digits) }
+    ? {
+        percent: props.displayData.stopLoss.percent,
+        amount: props.displayData.stopLoss.price.toString(asset.value?.decimal_digits)
+      }
     : null;
 });
 
 const takeProfit = computed(() => {
   return props.displayData?.takeProfit
-    ? { percent: props.displayData.takeProfit.percent, amount: props.displayData.takeProfit.price.toString(asset.value?.decimal_digits) }
+    ? {
+        percent: props.displayData.takeProfit.percent,
+        amount: props.displayData.takeProfit.price.toString(asset.value?.decimal_digits)
+      }
     : null;
 });
 

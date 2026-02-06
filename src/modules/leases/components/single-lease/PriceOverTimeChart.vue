@@ -83,12 +83,8 @@ const currency = computed(() => {
   const price = pricesStore.prices[`${ticker}@${props.lease?.protocol}`];
   return {
     name: c?.shortName,
-    price: price?.price
-      ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, c?.decimal_digits)}`
-      : "",
-    pretty_price: price?.price
-      ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, MAX_DECIMALS)}`
-      : ""
+    price: price?.price ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, c?.decimal_digits)}` : "",
+    pretty_price: price?.price ? `${NATIVE_CURRENCY.symbol}${formatNumber(price?.price ?? 0, MAX_DECIMALS)}` : ""
   };
 });
 
@@ -164,10 +160,10 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
     const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
     const lpn = getLpnByProtocol(protocolKey);
     const stableAssetInfo = lpn ? configStore.currenciesData?.[lpn.key] : null;
-    
+
     const unitAsset = new Dec(props.lease.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
     const stableAsset = new Dec(props.lease.debt.principal, Number(stableAssetInfo?.decimal_digits ?? 0));
-    
+
     const positionType = configStore.getPositionType(protocolKey);
     if (positionType === "Long") {
       liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
@@ -182,7 +178,7 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
 async function loadData(intetval: string) {
   const positionType = configStore.getPositionType(props.lease?.protocol!);
   const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
-  
+
   if (positionType === "Long") {
     let [key, protocol]: string[] = ticker?.includes("@")
       ? ticker.split("@")

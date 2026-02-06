@@ -16,7 +16,6 @@
       /></Tooltip>
     </div>
     <div class="flex items-center gap-2">
-      
       <template v-if="!loading">
         <Tooltip
           v-if="amount?.tooltip"

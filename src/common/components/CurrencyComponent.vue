@@ -48,7 +48,12 @@ import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { AnimateNumber } from "motion-plus-vue";
 import { Dec } from "@keplr-wallet/unit";
-import { formatNumber, formatCompact, currencyFormatOptions, compactFormatOptions } from "@/common/utils/NumberFormatUtils";
+import {
+  formatNumber,
+  formatCompact,
+  currencyFormatOptions,
+  compactFormatOptions
+} from "@/common/utils/NumberFormatUtils";
 
 export interface CurrencyComponentProps {
   type: string;

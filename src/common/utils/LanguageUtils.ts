@@ -60,5 +60,3 @@ export function isLanguageSupported(lang: string): boolean {
 export function getAvailableLanguages(): string[] {
   return Object.keys(languages);
 }
-
-

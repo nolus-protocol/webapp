@@ -21,7 +21,7 @@ export async function loadLocaleMessages(locale: string) {
   if (!loaded[locale]) {
     // Validate locale
     const lang = supportedLanguages.includes(locale) ? locale : "en";
-    
+
     // Fetch from backend API instead of GitHub
     const data = await fetch(`${BACKEND_URL}/api/locales/${lang}`);
     const messages = await data.json();

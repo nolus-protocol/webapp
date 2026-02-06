@@ -199,13 +199,20 @@ function goBack() {
 const status = computed(() => {
   if (!props.lease) return TEMPLATES.opening;
   switch (props.lease.status) {
-    case "opening": return TEMPLATES.opening;
-    case "opened": return TEMPLATES.opened;
-    case "paid_off": return TEMPLATES.paid;
-    case "closing": return TEMPLATES.paid;
-    case "closed": return TEMPLATES.closed;
-    case "liquidated": return TEMPLATES.liquidated;
-    default: return TEMPLATES.opening;
+    case "opening":
+      return TEMPLATES.opening;
+    case "opened":
+      return TEMPLATES.opened;
+    case "paid_off":
+      return TEMPLATES.paid;
+    case "closing":
+      return TEMPLATES.paid;
+    case "closed":
+      return TEMPLATES.closed;
+    case "liquidated":
+      return TEMPLATES.liquidated;
+    default:
+      return TEMPLATES.opening;
   }
 });
 </script>

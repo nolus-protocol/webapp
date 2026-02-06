@@ -66,7 +66,14 @@ import { isMobile, Logger, walletOperation } from "@/common/utils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
-import { useWalletStore, useBalancesStore, useStakingStore, usePricesStore, useAnalyticsStore, useHistoryStore } from "@/common/stores";
+import {
+  useWalletStore,
+  useBalancesStore,
+  useStakingStore,
+  usePricesStore,
+  useAnalyticsStore,
+  useHistoryStore
+} from "@/common/stores";
 import { useWalletConnected } from "@/common/composables";
 import { computed, ref } from "vue";
 
@@ -82,9 +89,7 @@ const loadingStaking = ref(false);
 const disabled = ref(false);
 
 // Earnings from analytics store
-const earningsAmount = computed(() => 
-  analyticsStore.earnings?.earnings ?? "0.00"
-);
+const earningsAmount = computed(() => analyticsStore.earnings?.earnings ?? "0.00");
 
 // Staking and analytics stores are initialized by connectionStore.connectWallet()
 

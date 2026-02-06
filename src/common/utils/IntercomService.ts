@@ -143,12 +143,7 @@ class IntercomServiceClass {
   /**
    * Update positions data (leases)
    */
-  updatePositions(data: {
-    count: number;
-    valueUsd: string;
-    debtUsd: string;
-    unrealizedPnlUsd: string;
-  }): void {
+  updatePositions(data: { count: number; valueUsd: string; debtUsd: string; unrealizedPnlUsd: string }): void {
     this.queueUpdate({
       positions_count: data.count,
       positions_value_usd: data.valueUsd,
@@ -172,11 +167,7 @@ class IntercomServiceClass {
   /**
    * Update staking data
    */
-  updateStaking(data: {
-    delegatedNls: string;
-    delegatedUsd: string;
-    validatorsCount: number;
-  }): void {
+  updateStaking(data: { delegatedNls: string; delegatedUsd: string; validatorsCount: number }): void {
     this.queueUpdate({
       staking_delegated_nls: data.delegatedNls,
       staking_delegated_usd: data.delegatedUsd,
@@ -253,5 +244,3 @@ class IntercomServiceClass {
 
 // Export singleton instance
 export const IntercomService = new IntercomServiceClass();
-
-

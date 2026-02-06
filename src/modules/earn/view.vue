@@ -159,7 +159,8 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       // Check if pool is accepting deposits
       // deposit_capacity is null (unlimited) or a string amount from the LPP contract
       // When deposit_capacity is "0", the pool is full and cannot accept new deposits
-      const isOpen = pool.deposit_capacity === null || pool.deposit_capacity === undefined || Number(pool.deposit_capacity) > 0;
+      const isOpen =
+        pool.deposit_capacity === null || pool.deposit_capacity === undefined || Number(pool.deposit_capacity) > 0;
 
       return {
         protocol: pool.protocol,

@@ -147,5 +147,4 @@ async function getValidators() {
 
   return loadedValidators;
 }
-
 </script>

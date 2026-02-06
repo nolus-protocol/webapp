@@ -71,12 +71,13 @@ export const useStatsStore = defineStore("stats", () => {
   // Computed
   // ==========================================================================
 
-  const isLoading = computed(() => 
-    overviewLoading.value || 
-    loansStatsLoading.value || 
-    leasedAssetsLoading.value ||
-    monthlyLeasesLoading.value ||
-    supplyBorrowLoading.value
+  const isLoading = computed(
+    () =>
+      overviewLoading.value ||
+      loansStatsLoading.value ||
+      leasedAssetsLoading.value ||
+      monthlyLeasesLoading.value ||
+      supplyBorrowLoading.value
   );
 
   const hasOverviewData = computed(() => overview.value.tvl !== "0");
@@ -224,12 +225,7 @@ export const useStatsStore = defineStore("stats", () => {
       return;
     }
 
-    await Promise.all([
-      fetchOverview(),
-      fetchLoansStats(),
-      fetchLeasedAssets(),
-      fetchMonthlyLeases()
-    ]);
+    await Promise.all([fetchOverview(), fetchLoansStats(), fetchLeasedAssets(), fetchMonthlyLeases()]);
     initialized.value = true;
   }
 
@@ -237,12 +233,7 @@ export const useStatsStore = defineStore("stats", () => {
    * Refresh all stats data
    */
   async function refresh(): Promise<void> {
-    await Promise.all([
-      fetchOverview(),
-      fetchLoansStats(),
-      fetchLeasedAssets(),
-      fetchMonthlyLeases()
-    ]);
+    await Promise.all([fetchOverview(), fetchLoansStats(), fetchLeasedAssets(), fetchMonthlyLeases()]);
   }
 
   /**

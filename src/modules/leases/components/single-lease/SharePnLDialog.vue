@@ -96,7 +96,7 @@ let leaseDisplayData: LeaseDisplayData | null;
 
 const asset = () => {
   if (!leaseData) return undefined;
-  
+
   // For opening status with ETL data
   if (leaseData.status === "opening" && leaseData.etl_data?.lease_position_ticker) {
     const item = configStore.currenciesData?.[`${leaseData.etl_data.lease_position_ticker}@${leaseData.protocol}`];
@@ -120,7 +120,7 @@ const asset = () => {
 
 const currentPrice = () => {
   if (!leaseData) return "0";
-  
+
   const positionType = configStore.getPositionType(leaseData.protocol);
 
   if (positionType === "Long") {
@@ -381,20 +381,14 @@ async function setArrow(ctx: CanvasRenderingContext2D) {
 async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
   ctx.font = "600 30px 'Garet'";
   const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
-  return ctx.measureText(
-    `${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase()
-  ).width;
+  return ctx.measureText(`${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase()).width;
 }
 
 async function setBuyText(ctx: CanvasRenderingContext2D) {
   ctx.font = "600 30px 'Garet'";
   ctx.fillStyle = "white";
   const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
-  ctx.fillText(
-    `${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
-    150,
-    270
-  );
+  ctx.fillText(`${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(), 150, 270);
 }
 
 async function setAsset(ctx: CanvasRenderingContext2D) {

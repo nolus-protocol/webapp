@@ -14,7 +14,7 @@ export enum TEMPLATES {
  */
 export function getLeaseStatus(lease: LeaseInfo | null | undefined): TEMPLATES {
   if (!lease) return TEMPLATES.opening;
-  
+
   switch (lease.status) {
     case "opening":
       return TEMPLATES.opening;

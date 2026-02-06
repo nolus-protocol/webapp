@@ -19,7 +19,7 @@ import {
   type LeaseInProgress,
   type LeaseOpeningStateInfo,
   type LeaseEtlData,
-  type Unsubscribe,
+  type Unsubscribe
 } from "@/common/api";
 import { usePricesStore } from "../prices";
 import { useConfigStore } from "../config";
@@ -51,17 +51,11 @@ export const useLeasesStore = defineStore("leases", () => {
   const hasLeases = computed(() => leases.value.length > 0);
   const leaseCount = computed(() => leases.value.length);
 
-  const openLeases = computed(() =>
-    leases.value.filter((l) => l.status === "opened" || l.status === "opening")
-  );
+  const openLeases = computed(() => leases.value.filter((l) => l.status === "opened" || l.status === "opening"));
 
   const closedLeases = computed(() =>
     leases.value.filter(
-      (l) =>
-        l.status === "closed" ||
-        l.status === "closing" ||
-        l.status === "liquidated" ||
-        l.status === "paid_off"
+      (l) => l.status === "closed" || l.status === "closing" || l.status === "liquidated" || l.status === "paid_off"
     )
   );
 
@@ -103,10 +97,7 @@ export const useLeasesStore = defineStore("leases", () => {
    * Get a lease by address
    */
   function getLease(address: string): LeaseInfo | undefined {
-    return (
-      leases.value.find((l) => l.address === address) ??
-      leaseDetails.value.get(address)
-    );
+    return leases.value.find((l) => l.address === address) ?? leaseDetails.value.get(address);
   }
 
   /**
@@ -126,7 +117,7 @@ export const useLeasesStore = defineStore("leases", () => {
     return new LeaseCalculator(
       // Price provider
       {
-        getPriceAsNumber: (key: string) => pricesStore.getPriceAsNumber(key),
+        getPriceAsNumber: (key: string) => pricesStore.getPriceAsNumber(key)
       },
       // Currency provider
       {
@@ -139,7 +130,7 @@ export const useLeasesStore = defineStore("leases", () => {
           const lpnCurrency = lpn?.key ? configStore.currenciesData[lpn.key] : null;
           return lpnCurrency ? { key: lpnCurrency.key, decimal_digits: lpnCurrency.decimal_digits } : undefined;
         },
-        getPositionType: (protocol: string) => configStore.getPositionType(protocol),
+        getPositionType: (protocol: string) => configStore.getPositionType(protocol)
       }
     );
   }
@@ -220,11 +211,7 @@ export const useLeasesStore = defineStore("leases", () => {
   /**
    * Fetch history for a specific lease
    */
-  async function fetchLeaseHistory(
-    address: string,
-    skip?: number,
-    limit?: number
-  ): Promise<LeaseHistoryEntry[]> {
+  async function fetchLeaseHistory(address: string, skip?: number, limit?: number): Promise<LeaseHistoryEntry[]> {
     try {
       const history = await BackendApi.getLeaseHistory(address, skip, limit);
       leaseHistories.value.set(address, history);
@@ -238,9 +225,7 @@ export const useLeasesStore = defineStore("leases", () => {
   /**
    * Get a lease quote
    */
-  async function getQuote(
-    request: LeaseQuoteRequest
-  ): Promise<LeaseQuoteResponse> {
+  async function getQuote(request: LeaseQuoteRequest): Promise<LeaseQuoteResponse> {
     return BackendApi.getLeaseQuote(request);
   }
 
@@ -255,7 +240,7 @@ export const useLeasesStore = defineStore("leases", () => {
     unsubscribe = WebSocketClient.subscribeLeases(owner.value, (wsLease) => {
       // Merge with existing data (WebSocket sends partial data, no ETL)
       const existing = leaseDetails.value.get(wsLease.address);
-      const merged = existing ? { ...existing, ...wsLease } : wsLease as LeaseInfo;
+      const merged = existing ? { ...existing, ...wsLease } : (wsLease as LeaseInfo);
 
       // Update in main list
       const index = leases.value.findIndex((l) => l.address === merged.address);
@@ -352,6 +337,6 @@ export const useLeasesStore = defineStore("leases", () => {
     setOwner,
     cleanup,
     clear, // Alias for backwards compatibility
-    refresh,
+    refresh
   };
 });

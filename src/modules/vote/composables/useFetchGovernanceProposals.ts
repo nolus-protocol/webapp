@@ -23,16 +23,14 @@ export const useFetchGovernanceProposals = () => {
     showSkeleton: Ref<boolean>;
   }) => {
     const address = WalletManager.getWalletAddress();
-    
+
     const [proposalsResponse, proposalsConfig] = await Promise.all([
       BackendApi.getProposals(limit.value, address || undefined),
       getProposalsConfig()
     ]);
 
     // Filter out hidden proposals
-    const filteredProposals = proposalsResponse.proposals.filter(
-      (item) => !proposalsConfig.hide.includes(item.id)
-    );
+    const filteredProposals = proposalsResponse.proposals.filter((item) => !proposalsConfig.hide.includes(item.id));
 
     // Map to the expected Proposal type
     const mappedProposals: Proposal[] = filteredProposals.map((p) => ({
@@ -70,9 +68,7 @@ export const useFetchGovernanceProposals = () => {
         getProposalsConfig()
       ]);
 
-      const filteredProposals = proposalsResponse.proposals.filter(
-        (item) => !reqConfig.hide.includes(item.id)
-      );
+      const filteredProposals = proposalsResponse.proposals.filter((item) => !reqConfig.hide.includes(item.id));
 
       return {
         proposals: filteredProposals,

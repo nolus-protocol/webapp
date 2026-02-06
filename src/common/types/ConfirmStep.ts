@@ -4,5 +4,5 @@ export enum CONFIRM_STEP {
   SUCCESS = "Success",
   ERROR = "Error",
   GasError = "GasError",
-  GasErrorExternal = "GasErrorExternal",
+  GasErrorExternal = "GasErrorExternal"
 }

@@ -31,5 +31,5 @@ export type {
   SkipTxCallback,
   Unsubscribe,
   ConnectionState,
-  ConnectionStateCallback,
+  ConnectionStateCallback
 } from "./WebSocketClient";

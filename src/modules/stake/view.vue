@@ -117,14 +117,14 @@ const delegated = computed(() => {
 const stableDelegated = computed(() => {
   const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
   const stable = amount.mul(new Dec(nativePrice.value));
-  
+
   // Update Intercom
   IntercomService.updateStaking({
     delegatedNls: amount.toString(),
     delegatedUsd: stable.toString(),
     validatorsCount: stakingStore.delegations.length
   });
-  
+
   return stable.toString(2);
 });
 
@@ -136,16 +136,18 @@ const showEmpty = computed(() => {
 // Total rewards
 const rewards = computed(() => {
   if (!stakingStore.hasPositions) return [];
-  
+
   // Use totalRewards from store (already aggregated by backend)
   const rewardsAmount = new Dec(stakingStore.totalRewards, NATIVE_ASSET.decimal_digits);
   const stableAmount = rewardsAmount.mul(new Dec(nativePrice.value));
-  
-  return [{
-    amount: `${formatTokenBalance(rewardsAmount)} ${NATIVE_ASSET.label}`,
-    stableAmount: `${NATIVE_CURRENCY.symbol}${formatNumber(stableAmount.toString(2), 2)}`,
-    icon: NATIVE_ASSET.icon
-  }];
+
+  return [
+    {
+      amount: `${formatTokenBalance(rewardsAmount)} ${NATIVE_ASSET.label}`,
+      stableAmount: `${NATIVE_CURRENCY.symbol}${formatNumber(stableAmount.toString(2), 2)}`,
+      icon: NATIVE_ASSET.icon
+    }
+  ];
 });
 
 // Total rewards in USD
@@ -182,14 +184,12 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       const stable = amount.mul(new Dec(nativePrice.value));
       const amountLabel = formatTokenBalance(amount);
       const stableLabel = formatNumber(stable.toString(), 2);
-      
+
       // Commission rate as percentage
-      const rate = validator 
-        ? new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2)
-        : "0.00";
-      
+      const rate = validator ? new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2) : "0.00";
+
       const isJailed = validator?.jailed ?? false;
-      
+
       return {
         items: [
           {
@@ -216,5 +216,4 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       };
     });
 });
-
 </script>

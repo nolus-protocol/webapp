@@ -9,10 +9,7 @@ import { WalletManager } from ".";
 import { getCurrencyByDenom } from "./CurrencyLookup";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
-import {
-  authenticateEvmPhantom,
-  authenticateSolFlare
-} from "@/networks/cosm/WalletFactory";
+import { authenticateEvmPhantom, authenticateSolFlare } from "@/networks/cosm/WalletFactory";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {

@@ -21,7 +21,7 @@ import {
   type ReferralPayout,
   type ValidateCodeResponse,
   type RegisterReferrerResponse,
-  type AssignReferralResponse,
+  type AssignReferralResponse
 } from "@/common/api";
 
 export const useReferralsStore = defineStore("referrals", () => {
@@ -218,16 +218,16 @@ export const useReferralsStore = defineStore("referrals", () => {
 
     try {
       const response = await BackendApi.registerAsReferrer(wallet);
-      
+
       // Update local state
       referrer.value = {
         wallet_address: response.wallet_address,
         referral_code: response.referral_code,
         tier: response.tier,
         status: "active",
-        created_at: response.created_at,
+        created_at: response.created_at
       };
-      
+
       // Initialize empty stats for new referrer
       if (!response.already_registered) {
         stats.value = {
@@ -240,7 +240,7 @@ export const useReferralsStore = defineStore("referrals", () => {
           bonus_rewards_earned: 0,
           bonus_rewards_paid: 0,
           total_bonus_amount_earned: "0",
-          total_bonus_amount_paid: "0",
+          total_bonus_amount_paid: "0"
         };
       }
 
@@ -260,10 +260,7 @@ export const useReferralsStore = defineStore("referrals", () => {
   /**
    * Assign a referral (link referred wallet to referrer via code)
    */
-  async function assignReferral(
-    referralCode: string,
-    referredWallet: string
-  ): Promise<AssignReferralResponse | null> {
+  async function assignReferral(referralCode: string, referredWallet: string): Promise<AssignReferralResponse | null> {
     try {
       const response = await BackendApi.assignReferral(referralCode, referredWallet);
       return response;
@@ -314,9 +311,9 @@ export const useReferralsStore = defineStore("referrals", () => {
    */
   async function refresh(): Promise<void> {
     if (!currentWallet.value) return;
-    
+
     await fetchStats(currentWallet.value);
-    
+
     if (referrer.value) {
       await fetchReferrals(currentWallet.value);
     }
@@ -361,6 +358,6 @@ export const useReferralsStore = defineStore("referrals", () => {
     assignReferral,
     initialize,
     cleanup,
-    refresh,
+    refresh
   };
 });

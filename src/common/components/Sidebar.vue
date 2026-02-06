@@ -87,8 +87,6 @@ async function setVersion() {
 .router-link:not(.router-link-exact-active) {
   &:hover {
     @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
-
-   
   }
 }
 </style>

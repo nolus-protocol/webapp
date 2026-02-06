@@ -1342,7 +1342,10 @@ mod tests {
     fn test_parse_opened_status_slippage_protection() {
         let status = Some(serde_json::json!("slippage_protection_activated"));
         let result = parse_opened_status(&status);
-        assert!(matches!(result, Some(LeaseInProgress::SlippageProtection {})));
+        assert!(matches!(
+            result,
+            Some(LeaseInProgress::SlippageProtection {})
+        ));
     }
 
     #[test]

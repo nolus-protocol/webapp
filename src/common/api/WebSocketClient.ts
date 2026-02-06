@@ -16,14 +16,7 @@ if (!WS_URL) {
 /**
  * Subscription topics supported by the backend
  */
-export type SubscriptionTopic =
-  | "prices"
-  | "balances"
-  | "leases"
-  | "tx_status"
-  | "staking"
-  | "skip_tx"
-  | "earn";
+export type SubscriptionTopic = "prices" | "balances" | "leases" | "tx_status" | "staking" | "skip_tx" | "earn";
 
 /**
  * Client -> Server messages
@@ -215,7 +208,7 @@ class WebSocketClientImpl {
       maxReconnectInterval: config.maxReconnectInterval || 30000,
       reconnectDecay: config.reconnectDecay || 1.5,
       pingInterval: config.pingInterval || 30000,
-      pongTimeout: config.pongTimeout || 10000,
+      pongTimeout: config.pongTimeout || 10000
     };
   }
 
@@ -427,12 +420,17 @@ class WebSocketClientImpl {
             status: message.status,
             steps_completed: message.steps_completed,
             total_steps: message.total_steps,
-            error: message.error,
+            error: message.error
           });
           break;
 
         case "earn_update":
-          this.notifySubscribers(`earn:${message.address}`, message.address, message.positions, message.total_deposited_usd);
+          this.notifySubscribers(
+            `earn:${message.address}`,
+            message.address,
+            message.positions,
+            message.total_deposited_usd
+          );
           break;
       }
     } catch (error) {
@@ -479,7 +477,7 @@ class WebSocketClientImpl {
       this.send({
         type: "subscribe",
         topic: subscription.topic,
-        ...subscription.params,
+        ...subscription.params
       });
     });
   }

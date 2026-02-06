@@ -655,9 +655,7 @@ function isAmountValid() {
 
     const positionType = configStore.getPositionType(lease.value.protocol);
     if (positionType === "Short") {
-      const p = new Dec(
-        pricesStore.prices[`${minAssetTicker}@${lease.value.protocol}`].price
-      );
+      const p = new Dec(pricesStore.prices[`${minAssetTicker}@${lease.value.protocol}`].price);
       minAmont = minAmont.mul(p);
     }
     const price = new Dec(pricesStore.prices[currencyData.key as string].price);
@@ -792,7 +790,7 @@ async function marketCloseLease() {
 
 function getCurrency() {
   if (!lease.value || lease.value.status !== "opened") return undefined;
-  
+
   const microAmount = getMicroAmount(currency.value.ibcData, amount.value);
   const a = new Int(lease.value.amount.amount ?? 0);
 

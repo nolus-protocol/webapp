@@ -55,7 +55,9 @@ export function applyNolusWalletOverrides(wallet: any): void {
     const pubkey = encodeSecp256k1Pubkey(wallet.pubKey);
     const msgAny = { typeUrl: msgTypeUrl, value: msg };
     const { sequence } = await wallet.sequence();
-    const { gasInfo } = await wallet.forceGetQueryClient().tx.simulate([wallet.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
+    const { gasInfo } = await wallet
+      .forceGetQueryClient()
+      .tx.simulate([wallet.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
     const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * gasMultiplier);
     const usedFee = await wallet.selectDynamicFee(gas, [{ msg, msgTypeUrl }]);
     const txRaw = await wallet.sign(wallet.address, [msgAny], usedFee, memo);

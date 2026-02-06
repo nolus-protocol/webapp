@@ -397,7 +397,9 @@ export class LeaseCalculator {
   /**
    * Parse in progress type from lease
    */
-  parseInProgressType(lease: LeaseInfo): "opening" | "repayment" | "close" | "liquidation" | "slippage_protection" | null {
+  parseInProgressType(
+    lease: LeaseInfo
+  ): "opening" | "repayment" | "close" | "liquidation" | "slippage_protection" | null {
     if (!lease.in_progress) {
       return null;
     }

@@ -70,7 +70,7 @@ export const useConnectionStore = defineStore("connection", () => {
         pricesStore.initialize(),
         stakingStore.initialize(),
         earnStore.initialize(),
-        statsStore.initialize(),
+        statsStore.initialize()
       ]);
 
       appInitialized.value = true;
@@ -105,7 +105,7 @@ export const useConnectionStore = defineStore("connection", () => {
       leasesStore.setOwner(address),
       stakingStore.setAddress(address),
       earnStore.setAddress(address),
-      analyticsStore.setAddress(address),
+      analyticsStore.setAddress(address)
     ]);
 
     historyStore.setAddress(address);
@@ -147,7 +147,7 @@ export const useConnectionStore = defineStore("connection", () => {
       pricesStore.fetchPrices(),
       earnStore.refresh(),
       stakingStore.fetchValidators(),
-      statsStore.refresh(),
+      statsStore.refresh()
     ];
 
     if (walletAddress.value) {
@@ -208,6 +208,6 @@ export const useConnectionStore = defineStore("connection", () => {
     connectWallet,
     disconnectWallet,
     refreshAll,
-    cleanup,
+    cleanup
   };
 });

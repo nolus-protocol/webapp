@@ -3,7 +3,7 @@ import type { NolusWallet } from "@nolus/nolusjs";
 export type State = {
   wallet?: NolusWallet | any;
   walletName?: string;
-  
+
   // Vesting tokens
   vest: {
     start: Date;
@@ -13,7 +13,7 @@ export type State = {
       amount: string;
     };
   }[];
-  
+
   // Staking APR
   apr: number;
 };

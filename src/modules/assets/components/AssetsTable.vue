@@ -83,9 +83,7 @@ const filteredAssets = computed(() => {
   const allAssets = getNetworkAssets();
 
   // Filter small balances if setting is off
-  const filtered = showSmallBalances.value
-    ? allAssets
-    : allAssets.filter((a) => parseFloat(a.balance) > 1);
+  const filtered = showSmallBalances.value ? allAssets : allAssets.filter((a) => parseFloat(a.balance) > 1);
 
   // Sort by USD balance value (descending)
   return filtered.sort((a, b) => b.balanceUsd - a.balanceUsd);

@@ -3,7 +3,13 @@ import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 
 import { Messages } from "./types";
 import { Logger, StringUtils } from "@/common/utils";
-import { getCurrencyByDenom, getCurrencyByTickerForProtocol, getCurrencyBySymbol, getProtocolByContract, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import {
+  getCurrencyByDenom,
+  getCurrencyByTickerForProtocol,
+  getCurrencyBySymbol,
+  getProtocolByContract,
+  getLpnByProtocol
+} from "@/common/utils/CurrencyLookup";
 import { getIbc } from "@/common/utils/IbcUtils";
 import { NATIVE_NETWORK } from "@/config/global";
 import { Buffer } from "buffer";
@@ -324,7 +330,10 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
         if (data.close_position?.partial_close) {
           const partialProtocol = getProtocolByContract(msg.data.contract);
-          const currency = getCurrencyByTickerForProtocol(data.close_position?.partial_close.amount.ticker, partialProtocol);
+          const currency = getCurrencyByTickerForProtocol(
+            data.close_position?.partial_close.amount.ticker,
+            partialProtocol
+          );
           const token = CurrencyUtils.convertMinimalDenomToDenom(
             data.close_position?.partial_close.amount.amount,
             currency?.ibcData!,

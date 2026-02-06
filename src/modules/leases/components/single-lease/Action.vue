@@ -90,9 +90,7 @@ function repay() {
 }
 
 function onClose() {
-  router.push(
-    `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.address}`
-  );
+  router.push(`/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.address}`);
   close();
 }
 

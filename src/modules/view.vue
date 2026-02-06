@@ -113,8 +113,9 @@ function startBalancePolling() {
 .fade-enter-from,
 .fade-leave-active {
   transition: opacity 250ms ease;
-  transition: opacity 200ms cubic-bezier(0.3, 0, 0.1, 1),
-              transform 200ms cubic-bezier(0.3, 0, 0.1, 1);
+  transition:
+    opacity 200ms cubic-bezier(0.3, 0, 0.1, 1),
+    transform 200ms cubic-bezier(0.3, 0, 0.1, 1);
 }
 .fade-enter,
 .fade-leave-to {

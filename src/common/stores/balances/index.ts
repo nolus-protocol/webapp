@@ -51,7 +51,7 @@ export const useBalancesStore = defineStore("balances", () => {
    */
   const filteredBalances = computed((): ExternalCurrency[] => {
     const configStore = useConfigStore();
-    
+
     // Validate that the protocol filter is valid
     if (!configStore.isValidNetworkFilter(configStore.protocolFilter)) {
       return [];

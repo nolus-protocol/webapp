@@ -8,7 +8,6 @@
       {{ toast.message }}
     </Toast>
   </div>
-
 </template>
 
 <script lang="ts" setup>

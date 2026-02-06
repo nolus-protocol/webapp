@@ -6,70 +6,73 @@
     </div>
   </template>
   <template v-else>
-  <SingleLeaseHeader
-    :lease="lease"
-    :display-data="displayData"
-    :loading="status == TEMPLATES.opening || isInProgress"
-  />
-  <div class="flex flex-col gap-8">
-    <Alert
-      v-if="status == TEMPLATES.opening"
-      :title="$t('message.opening-title')"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t("message.opening-description") }}
-        </p>
-        <Stepper
-          :activeStep="openingSubState"
-          :steps="steps"
-          :variant="StepperVariant.SMALL"
-        />
-      </template>
-    </Alert>
-
-    <Alert
-      v-if="inProgressBanner"
-      :title="$t(inProgressBanner.titleKey)"
-      :type="AlertType.info"
-    >
-      <template v-slot:content>
-        <p class="my-1 text-14 font-normal text-typography-secondary">
-          {{ $t(inProgressBanner.descriptionKey) }}
-          <a
-            v-if="inProgressBanner.link"
-            @click="router.push(inProgressBanner.link)"
-            class="cursor-pointer font-normal text-typography-link"
-          >
-            {{ $t(inProgressBanner.linkKey!) }}
-          </a>
-        </p>
-      </template>
-    </Alert>
-
-    <PriceWidget :lease="lease" :display-data="displayData" />
-    <PositionSummaryWidget
+    <SingleLeaseHeader
       :lease="lease"
       :display-data="displayData"
-      :loading="isInProgress"
+      :loading="status == TEMPLATES.opening || isInProgress"
     />
-    <div class="flex flex-col gap-8 md:flex-row">
-      <PositionHealthWidget
+    <div class="flex flex-col gap-8">
+      <Alert
+        v-if="status == TEMPLATES.opening"
+        :title="$t('message.opening-title')"
+        :type="AlertType.info"
+      >
+        <template v-slot:content>
+          <p class="my-1 text-14 font-normal text-typography-secondary">
+            {{ $t("message.opening-description") }}
+          </p>
+          <Stepper
+            :activeStep="openingSubState"
+            :steps="steps"
+            :variant="StepperVariant.SMALL"
+          />
+        </template>
+      </Alert>
+
+      <Alert
+        v-if="inProgressBanner"
+        :title="$t(inProgressBanner.titleKey)"
+        :type="AlertType.info"
+      >
+        <template v-slot:content>
+          <p class="my-1 text-14 font-normal text-typography-secondary">
+            {{ $t(inProgressBanner.descriptionKey) }}
+            <a
+              v-if="inProgressBanner.link"
+              @click="router.push(inProgressBanner.link)"
+              class="cursor-pointer font-normal text-typography-link"
+            >
+              {{ $t(inProgressBanner.linkKey!) }}
+            </a>
+          </p>
+        </template>
+      </Alert>
+
+      <PriceWidget
         :lease="lease"
         :display-data="displayData"
-        :loading="status == TEMPLATES.opening || isInProgress"
       />
+      <PositionSummaryWidget
+        :lease="lease"
+        :display-data="displayData"
+        :loading="isInProgress"
+      />
+      <div class="flex flex-col gap-8 md:flex-row">
+        <PositionHealthWidget
+          :lease="lease"
+          :display-data="displayData"
+          :loading="status == TEMPLATES.opening || isInProgress"
+        />
+      </div>
+      <template v-if="lease?.etl_data">
+        <LeaseLogWidget :lease="lease" />
+      </template>
     </div>
-    <template v-if="lease?.etl_data">
-      <LeaseLogWidget :lease="lease" />
-    </template>
-  </div>
-  <router-view></router-view>
-  <div
-    id="history"
-    class="mt-[50px]"
-  ></div>
+    <router-view></router-view>
+    <div
+      id="history"
+      class="mt-[50px]"
+    ></div>
   </template>
 </template>
 
@@ -145,13 +148,20 @@ const steps = computed(() => {
 const status = computed(() => {
   if (!lease.value) return TEMPLATES.opening;
   switch (lease.value.status) {
-    case "opening": return TEMPLATES.opening;
-    case "opened": return TEMPLATES.opened;
-    case "paid_off": return TEMPLATES.paid;
-    case "closing": return TEMPLATES.paid; // closing shows as paid template
-    case "closed": return TEMPLATES.closed;
-    case "liquidated": return TEMPLATES.liquidated;
-    default: return TEMPLATES.opening;
+    case "opening":
+      return TEMPLATES.opening;
+    case "opened":
+      return TEMPLATES.opened;
+    case "paid_off":
+      return TEMPLATES.paid;
+    case "closing":
+      return TEMPLATES.paid; // closing shows as paid template
+    case "closed":
+      return TEMPLATES.closed;
+    case "liquidated":
+      return TEMPLATES.liquidated;
+    default:
+      return TEMPLATES.opening;
   }
 });
 
@@ -159,16 +169,16 @@ const openingSubState = computed(() => {
   if (!lease.value || lease.value.status !== "opening") {
     return 1;
   }
-  
+
   const inProgress = lease.value.in_progress;
   if (!inProgress) return 1;
-  
+
   if ("opening" in inProgress) {
     const stage = inProgress.opening.stage;
     if (stage === "open_ica_account") return 1;
     if (stage === "transfer_out" || stage === "buy_asset") return 2;
   }
-  
+
   return 3;
 });
 

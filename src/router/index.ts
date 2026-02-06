@@ -1,9 +1,4 @@
-import {
-  createRouter,
-  createWebHistory,
-  type NavigationGuardNext,
-  type RouteLocationNormalized
-} from "vue-router";
+import { createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized } from "vue-router";
 import { DashboardRouter } from "@/modules/dashboard/router";
 import { EarnRouter } from "@/modules/earn/router";
 import { getLanguage } from "@/common/utils/LanguageUtils";

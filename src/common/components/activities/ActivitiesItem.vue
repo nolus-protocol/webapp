@@ -12,7 +12,6 @@
         <span class="text-16 font-semibold text-typography-default">{{ title }}</span>
         <span class="text-xs font-normal text-typography-secondary">{{ time }}</span>
       </div>
-
     </div>
   </div>
 </template>

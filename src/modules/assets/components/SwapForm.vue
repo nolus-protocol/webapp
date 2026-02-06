@@ -124,13 +124,7 @@ import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network"
 import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
-import {
-  externalWallet,
-  Logger,
-  validateAmountV2,
-  walletOperation,
-  WalletUtils
-} from "@/common/utils";
+import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";

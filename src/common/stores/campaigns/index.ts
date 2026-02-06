@@ -8,11 +8,7 @@
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import {
-  BackendApi,
-  type ZeroInterestCampaign,
-  type CampaignEligibilityResponse,
-} from "@/common/api";
+import { BackendApi, type ZeroInterestCampaign, type CampaignEligibilityResponse } from "@/common/api";
 
 export const useCampaignsStore = defineStore("campaigns", () => {
   // State
@@ -104,14 +100,11 @@ export const useCampaignsStore = defineStore("campaigns", () => {
     return campaigns.value.some((campaign) => {
       // Check currency eligibility
       const currencyMatch =
-        campaign.eligible_currencies.length === 0 ||
-        campaign.eligible_currencies.includes(currency);
+        campaign.eligible_currencies.length === 0 || campaign.eligible_currencies.includes(currency);
 
       // Check protocol eligibility (if protocol provided)
       const protocolMatch =
-        !protocol ||
-        campaign.eligible_protocols.length === 0 ||
-        campaign.eligible_protocols.includes(protocol);
+        !protocol || campaign.eligible_protocols.length === 0 || campaign.eligible_protocols.includes(protocol);
 
       return currencyMatch && protocolMatch;
     });
@@ -120,19 +113,13 @@ export const useCampaignsStore = defineStore("campaigns", () => {
   /**
    * Get campaigns that match a currency/protocol
    */
-  function getMatchingCampaigns(
-    currency: string,
-    protocol?: string
-  ): ZeroInterestCampaign[] {
+  function getMatchingCampaigns(currency: string, protocol?: string): ZeroInterestCampaign[] {
     return campaigns.value.filter((campaign) => {
       const currencyMatch =
-        campaign.eligible_currencies.length === 0 ||
-        campaign.eligible_currencies.includes(currency);
+        campaign.eligible_currencies.length === 0 || campaign.eligible_currencies.includes(currency);
 
       const protocolMatch =
-        !protocol ||
-        campaign.eligible_protocols.length === 0 ||
-        campaign.eligible_protocols.includes(protocol);
+        !protocol || campaign.eligible_protocols.length === 0 || campaign.eligible_protocols.includes(protocol);
 
       return currencyMatch && protocolMatch;
     });
@@ -154,7 +141,7 @@ export const useCampaignsStore = defineStore("campaigns", () => {
       return {
         eligible: false,
         matching_campaigns: [],
-        reason: e instanceof Error ? e.message : "Failed to check eligibility",
+        reason: e instanceof Error ? e.message : "Failed to check eligibility"
       };
     }
   }
@@ -204,6 +191,6 @@ export const useCampaignsStore = defineStore("campaigns", () => {
 
     // Lifecycle
     initialize,
-    cleanup,
+    cleanup
   };
 });
