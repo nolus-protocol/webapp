@@ -21,7 +21,7 @@
 
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
-import { lineY, plot, ruleY } from "@observablehq/plot";
+import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { isMobile } from "@/common/utils";
@@ -71,6 +71,15 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+
+  // Compute Y domain from data to show volatility clearly
+  const allValues = data_position.value.flatMap((d) => [d.position ?? 0, d.debt ?? 0]);
+  const minVal = Math.min(...allValues);
+  const maxVal = Math.max(...allValues);
+  const valRange = maxVal - minVal;
+  const valPadding = valRange * 0.2 || maxVal * 0.05;
+  const yDomain = [Math.max(0, minVal - valPadding), maxVal + valPadding];
+
   const plotChart = plot({
     color: { legend: true },
     style: { width: "100%" },
@@ -81,6 +90,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginBottom: marginBottom,
     y: {
       type: "linear",
+      domain: yDomain,
+      clamp: true,
       grid: true,
       label: null,
       labelArrow: false,
@@ -90,7 +101,6 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     },
     x: { type: "time", label: null },
     marks: [
-      ruleY([0]),
       lineY(data_position.value, {
         x: "date",
         y: "position",

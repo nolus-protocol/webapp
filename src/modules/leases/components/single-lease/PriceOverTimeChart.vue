@@ -211,11 +211,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
 
-  // Include liquidation in domain only if it's close to price range
+  // Include liquidation in domain only if it's within 15% of the price range
   const firstLiquidation = Number(chartData[0]?.Liquidation ?? 0);
-  const domainMin = firstLiquidation > 0 && firstLiquidation > minPrice * 0.7 ? firstLiquidation : minPrice;
+  const domainMin = firstLiquidation > 0 && firstLiquidation > minPrice * 0.85 ? firstLiquidation : minPrice;
   const range = maxPrice - domainMin;
-  const padding = range * 0.15 || maxPrice * 0.05;
+  const padding = range * 0.2 || maxPrice * 0.05;
   const yDomain = [Math.max(0, domainMin - padding), maxPrice + padding];
 
   const plotChart = plot({
