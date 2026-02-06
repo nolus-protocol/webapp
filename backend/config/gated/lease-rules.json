@@ -157,7 +157,6 @@
       "AKT",
       "INJ",
       "AXL",
-      "ALL_BTC",
       "NLS"
     ],
     "ignore_short": ["NLS", "ST_ATOM", "AKT", "ALL_SOL", "ALL_BTC"],

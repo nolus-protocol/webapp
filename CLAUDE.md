@@ -197,6 +197,23 @@ Staking forms (`DelegateForm`, `UndelegateForm`) call `stakingStore.fetchPositio
 
 **Note:** The backend has no cache for staking positions — `GET /api/staking/positions` queries the chain directly. There is also no WebSocket staking monitor task, so real-time push updates are not available for staking data.
 
+### Centralized Number Formatting
+
+All `Intl.NumberFormat` calls live exclusively in `src/common/utils/NumberFormatUtils.ts`. No other file should use `new Intl.NumberFormat()` directly. Key exports:
+
+- `formatNumber(amount, decimals, symbol?)` — standard locale-aware formatting
+- `formatUsd(amount)` — shorthand for `formatNumber(amount, 2, "$")`
+- `formatDecAsUsd(dec)` — format a `Dec` as USD in one call (replaces the `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(2), 2)}` boilerplate)
+- `formatCompact(amount)` — compact notation (1K, 1M, etc.)
+- `formatTokenBalance(dec)` — adaptive decimals based on amount size, trailing zeros trimmed
+- `currencyFormatOptions(decimals)` / `compactFormatOptions` — `Intl.NumberFormatOptions` objects for `AnimateNumber` `:format` prop (keeps animated and static formatting in sync)
+
+`CurrencyComponent.vue` delegates all formatting to these utilities. `AnimateNumber` receives shared format option objects rather than inline literals.
+
+### Gated Asset Restrictions
+
+`lease-rules.json` controls which assets are visible via `ignore_all`, `ignore_long`, `ignore_short` lists. **These restrictions apply to existing leases too**, not just new position creation. Adding an asset to `ignore_long` hides all existing long positions with that asset from the dashboard and positions page. See `docs/data_flows.md` for details.
+
 ### Other Patterns
 
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests

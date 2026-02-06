@@ -369,6 +369,8 @@ pub struct UserDataFilterContext {
 - `ignore_long`: Asset hidden only from long position leases
 - `ignore_short`: Asset hidden only from short position leases
 
+**Caveat:** These restrictions apply to **existing** leases too, not just new position creation. Adding an asset to `ignore_long` will hide all existing long positions with that asset from the user's dashboard and positions page. Use caution when editing these lists.
+
 Position type comes from `EtlProtocol.position_type` (per-protocol), not individual leases.
 
 #### REST Handlers Using Filter
