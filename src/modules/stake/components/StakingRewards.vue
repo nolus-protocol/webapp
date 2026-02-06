@@ -81,7 +81,6 @@ defineProps<{
 
 const i18n = useI18n();
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
-const loadRewards = inject("loadRewards", async () => {});
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
@@ -127,9 +126,7 @@ async function requestClaim() {
     const { txBytes } = await wallet.wallet.simulateWithdrawRewardTx(data);
     await wallet.wallet.broadcastTx(txBytes as Uint8Array);
 
-    await stakingStore.fetchPositions();
-    loadRewards();
-    await balancesStore.fetchBalances();
+    await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
     historyStore.loadActivities();
     onShowToast({
       type: ToastType.success,

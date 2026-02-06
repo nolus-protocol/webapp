@@ -74,6 +74,8 @@ import { useStakingStore } from "@/common/stores/staking";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
+import { useRouter } from "vue-router";
+import { RouteNames } from "@/router";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
@@ -89,11 +91,10 @@ const historyStore = useHistoryStore();
 const pricesStore = usePricesStore();
 const i18n = useI18n();
 
+const router = useRouter();
 const input = ref("0");
 const validationError = ref("");
 const disabled = ref(false);
-const loadDelegated = inject("loadDelegated", () => false);
-const onClose = inject("close", () => {});
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
@@ -196,9 +197,9 @@ async function undelegate() {
   const { txBytes } = await wallet.wallet.simulateUndelegateTx(transactions);
 
   await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-  await Promise.all([loadDelegated(), balancesStore.fetchBalances(), stakingStore.fetchPositions()]);
+  await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
   historyStore.loadActivities();
-  onClose();
+  router.push(`/${RouteNames.STAKE}`);
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.undelegate-successful")

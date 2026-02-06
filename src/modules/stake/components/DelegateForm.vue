@@ -70,12 +70,16 @@
 <script lang="ts" setup>
 import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
 import { computed, inject, ref } from "vue";
+
 import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
+import { useStakingStore } from "@/common/stores/staking";
+import { useRouter } from "vue-router";
+import { RouteNames } from "@/router";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
@@ -87,13 +91,13 @@ const onShowToast = inject("onShowToast", (data: { type: ToastType; message: str
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
+const stakingStore = useStakingStore();
 const pricesStore = usePricesStore();
+const router = useRouter();
 const input = ref("0");
 const validationError = ref("");
 const disabled = ref(false);
 const i18n = useI18n();
-const loadDelegated = inject("loadDelegated", () => false);
-const onClose = inject("close", () => {});
 
 const assets = computed(() => {
   const balance = formatNumber(
@@ -192,9 +196,9 @@ async function delegate() {
   const { txBytes } = await wallet.wallet.simulateDelegateTx(delegations);
 
   await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-  await Promise.all([loadDelegated(), balancesStore.fetchBalances()]);
+  await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
   historyStore.loadActivities();
-  onClose();
+  router.push(`/${RouteNames.STAKE}`);
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.delegate-successful")

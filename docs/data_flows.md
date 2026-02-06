@@ -1477,6 +1477,22 @@ Staking data comes from the Cosmos SDK staking and distribution modules.
 }
 ```
 
+### Post-Transaction Refresh
+
+Staking forms handle their own data refresh after broadcasting — no provide/inject chains are used.
+
+| Component | After Transaction | Dialog Close |
+|-----------|-------------------|--------------|
+| `DelegateForm.vue` | `stakingStore.fetchPositions()` + `balancesStore.fetchBalances()` | `router.push(/stake)` |
+| `UndelegateForm.vue` | Same as delegate | `router.push(/stake)` |
+| `StakingRewards.vue` | `stakingStore.fetchPositions()` + `balancesStore.fetchBalances()` | N/A (inline widget) |
+| `RedelegateButton.vue` | `stakingStore.fetchPositions()` + `balancesStore.fetchBalances()` | N/A (inline button) |
+
+**Key architectural notes:**
+- **No caching** — `GET /api/staking/positions` queries the chain directly on every request
+- **No WebSocket monitor** — unlike leases/earn, there is no `start_staking_monitor_task()`. The `StakingUpdate` message type exists in the WebSocket protocol but is never sent by the backend.
+- **`total_rewards` precision** — chain returns reward amounts as decimal strings (e.g., `"1234.890000000000000000"`). The backend extracts the integer part and sums as `u128`, matching the `total_staked` calculation pattern.
+
 ---
 
 ## 7. Swap Data Flow

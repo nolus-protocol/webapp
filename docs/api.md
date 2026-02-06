@@ -624,6 +624,11 @@ Returns staking positions for a delegator.
 }
 ```
 
+**Implementation notes:**
+- **No caching** — every request queries the chain directly (staking/delegations, distribution/rewards, staking/unbonding)
+- **No WebSocket updates** — although the frontend subscribes to staking updates, no backend monitor task broadcasts them. The frontend refreshes staking data via explicit `fetchPositions()` calls after transactions.
+- `total_staked` and `total_rewards` are calculated as `u128` sums in base units (uNLS). Chain reward amounts are decimal strings (e.g., `"1234.890000000000000000"`); the integer part is extracted before summing.
+
 ---
 
 ## Governance

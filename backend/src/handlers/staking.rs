@@ -285,15 +285,20 @@ pub async fn get_positions(
         .unwrap_or_default();
 
     // Calculate total rewards
-    let total_rewards: f64 = rewards_response
+    // Chain returns decimal strings like "1234567.890000000000000000"
+    // Extract integer part to avoid f64 precision issues
+    let total_rewards: u128 = rewards_response
         .as_ref()
         .map(|r| {
             r.total
                 .iter()
-                .filter_map(|b| b.amount.parse::<f64>().ok())
+                .filter_map(|b| {
+                    let integer_part = b.amount.split('.').next().unwrap_or("0");
+                    integer_part.parse::<u128>().ok()
+                })
                 .sum()
         })
-        .unwrap_or(0.0);
+        .unwrap_or(0);
 
     // Build unbonding positions
     let unbonding_positions: Vec<UnbondingPosition> = unbonding_delegations
@@ -327,7 +332,7 @@ pub async fn get_positions(
         unbonding: unbonding_positions,
         rewards,
         total_staked: total_staked.to_string(),
-        total_rewards: format!("{:.0}", total_rewards),
+        total_rewards: total_rewards.to_string(),
     }))
 }
 

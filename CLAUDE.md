@@ -166,6 +166,12 @@ Opened leases have a `status` sub-field from the chain contract that maps to an 
 - `SingleLease.vue`: `isInProgress` returns `true` for any non-opening type (shows loading skeletons on widgets)
 - `Leases.vue`: Shows status text in title, Details button always visible, Action menu hidden
 
+### Staking Post-Transaction Refresh
+
+Staking forms (`DelegateForm`, `UndelegateForm`) call `stakingStore.fetchPositions()` + `balancesStore.fetchBalances()` directly after broadcasting, then close the dialog via `router.push(/stake)`. There are no provide/inject chains for data refresh or dialog closing — each form owns its own post-tx logic. `StakingRewards` and `RedelegateButton` follow the same pattern: call store methods directly, no injected callbacks.
+
+**Note:** The backend has no cache for staking positions — `GET /api/staking/positions` queries the chain directly. There is also no WebSocket staking monitor task, so real-time push updates are not available for staking data.
+
 ### Other Patterns
 
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests

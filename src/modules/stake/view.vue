@@ -56,7 +56,7 @@ import VestedOverview from "./components/VestedOverview.vue";
 
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
-import { computed, h, provide, ref, watch } from "vue";
+import { computed, h, ref, watch } from "vue";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -91,15 +91,6 @@ watch(
   },
   { immediate: true }
 );
-
-// Provide reload function for child components
-provide("onReload", async () => {
-  await Promise.all([
-    stakingStore.fetchPositions(),
-    stakingStore.fetchValidators(),
-    loadVested()
-  ]);
-});
 
 async function loadVested() {
   vestedTokens.value = await wallet.LOAD_VESTED_TOKENS();
@@ -224,6 +215,4 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
     });
 });
 
-// Provide reload function for rewards
-provide("loadRewards", () => stakingStore.fetchPositions());
 </script>

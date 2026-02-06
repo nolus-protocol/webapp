@@ -34,7 +34,6 @@ const stakingStore = useStakingStore();
 const i18n = useI18n();
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
-const onReload = inject("onReload", () => {});
 
 const props = defineProps<{
   src: string;
@@ -107,7 +106,6 @@ async function delegate() {
     Logger.error(err);
   } finally {
     loading.value = false;
-    onReload();
   }
 }
 
