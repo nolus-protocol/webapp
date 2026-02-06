@@ -26,7 +26,7 @@
           </div>
         </div>
 
-        <ProposalVotingLine
+        <VotingLine
           v-if="
             isVotingPeriod && proposal.tally && Object.values(proposal.tally).filter((res) => !!Number(res)).length > 0
           "
@@ -98,7 +98,8 @@ import { marked } from "marked";
 import type { FinalTallyResult, Proposal } from "@/modules/vote/types";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
-import { Button, Dialog, ProposalStatus, ProposalVotingLine, ToastType } from "web-components";
+import { Button, Dialog, ProposalStatus, ToastType } from "web-components";
+import VotingLine from "./VotingLine.vue";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 
 import { formatDateTime, Logger, walletOperation } from "@/common/utils";
@@ -267,45 +268,55 @@ defineExpose({ show, hide });
 
 <style lang="scss">
 .proposal-modal {
-  ul {
-    padding-left: 32px;
-  }
+  @apply leading-loose;
+
   strong {
     @apply font-semibold;
   }
 
   p {
     @apply mb-4 text-left text-16;
-
-    &.strong {
-      @apply font-semibold;
-    }
-  }
-
-  ul {
-    margin-bottom: 18px;
-    list-style: unset;
   }
 
   h1 {
-    @apply mb-3 text-left text-24 font-semibold;
+    @apply mb-3 mt-6 text-left text-24 font-semibold first:mt-0;
   }
 
   h2 {
-    @apply mb-3 text-left text-18 font-semibold;
+    @apply mb-3 mt-5 text-left text-18 font-semibold first:mt-0;
   }
 
-  a {
-    transition: ease 200ms;
-    @apply text-primary-default;
+  h3 {
+    @apply mb-2 mt-4 text-left text-16 font-semibold first:mt-0;
+  }
 
-    &.link {
-      @apply text-primary-default;
+  ul,
+  ol {
+    @apply mb-4 pl-8;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  li {
+    @apply mb-2 text-16;
+
+    &:last-child {
+      @apply mb-0;
     }
   }
 
-  a:hover {
-    @apply text-primary-default;
+  a {
+    @apply text-primary-default transition-colors duration-200;
+
+    &:hover {
+      @apply underline;
+    }
   }
 }
 </style>
