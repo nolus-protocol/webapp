@@ -111,12 +111,13 @@ const emptyState = computed(() => {
   return !leasesStore.loading && networkFilteredLeases.value.length === 0;
 });
 
-// Calculate PnL from network-filtered open leases
+// Calculate PnL from network-filtered open leases using LeaseCalculator
 const pnl = computed(() => {
   let total = new Dec(0);
   for (const lease of networkFilteredLeases.value) {
-    if (lease.pnl?.amount) {
-      total = total.add(new Dec(lease.pnl.amount));
+    if (lease.status === "opened") {
+      const displayData = leasesStore.getLeaseDisplayData(lease);
+      total = total.add(displayData.pnlAmount);
     }
   }
   return total;
@@ -128,9 +129,10 @@ const pnlPercent = computed(() => {
   let totalDownpayment = new Dec(0);
 
   for (const lease of networkFilteredLeases.value) {
-    if (lease.pnl) {
-      totalPnl = totalPnl.add(new Dec(lease.pnl.amount));
-      totalDownpayment = totalDownpayment.add(new Dec(lease.pnl.downpayment || "0"));
+    if (lease.status === "opened") {
+      const displayData = leasesStore.getLeaseDisplayData(lease);
+      totalPnl = totalPnl.add(displayData.pnlAmount);
+      totalDownpayment = totalDownpayment.add(displayData.downPayment).add(displayData.repaymentValue);
     }
   }
 
