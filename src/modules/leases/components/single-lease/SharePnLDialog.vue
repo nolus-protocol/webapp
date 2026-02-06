@@ -442,7 +442,7 @@ function setPosition(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = colors.green;
   }
 
-  const amount = `${symbol}${new Intl.NumberFormat().format(Number(a))}`;
+  const amount = `${symbol}${formatNumber(a, 0)}`;
 
   ctx.font = "600 72px 'Garet'";
   ctx.fillText(amount, 90, 545);

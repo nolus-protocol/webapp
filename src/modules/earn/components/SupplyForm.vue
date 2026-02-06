@@ -88,12 +88,12 @@ import {
   ToastType
 } from "web-components";
 import { computed, inject, ref, watch } from "vue";
-import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
@@ -141,7 +141,7 @@ const assets = computed(() => {
         balance: { value: balance, ticker: lpn.shortName },
         stable,
         decimal_digits: lpn.decimal_digits,
-        price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+        price: formatDecAsUsd(stable)
       });
     }
     let items = [];
@@ -193,7 +193,7 @@ const stable = computed(() => {
   const price = new Dec(pricesStore.prices?.[asset?.key]?.price ?? "0");
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 
 watch(
