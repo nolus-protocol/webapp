@@ -77,14 +77,6 @@ export async function fetchNetworkStatus(): Promise<{
   };
 }
 
-/**
- * Clear all configuration caches
- */
-export function clearConfigCaches(): void {
-  skipRouteConfigCache = null;
-  proposalsConfigCache = null;
-}
-
 // =============================================================================
 // Private Implementation
 // =============================================================================

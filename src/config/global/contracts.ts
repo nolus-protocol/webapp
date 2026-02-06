@@ -1,8 +1,4 @@
-import { NATIVE_ASSET } from "./network";
 import { ProtocolsPirin, ProtocolsRila } from "@nolus/nolusjs/build/types/Networks";
-import { EnvNetworkUtils } from "@/common/utils";
-
-const network = EnvNetworkUtils.getStoredNetworkName();
 
 interface ContractsConfig {
   dispatcher: { instance: string };
@@ -29,13 +25,6 @@ export const CONTRACTS: Record<string, ContractsConfig> = {
     },
     protocols: ProtocolsPirin
   }
-};
-
-export const Contracts = CONTRACTS[network];
-
-export const TIP = {
-  amount: 0,
-  denom: NATIVE_ASSET.denom
 };
 
 export const DefaultProtocolFilter = "OSMOSIS";

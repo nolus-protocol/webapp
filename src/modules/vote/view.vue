@@ -49,7 +49,7 @@ import { ChainConstants } from "@nolus/nolusjs";
 import { Button } from "web-components";
 import { type Proposal } from "@/modules/vote/types";
 import { ProposalItemWrapper, ProposalSkeleton, VoteDialog } from "@/modules/vote/components";
-import { useFetchGovernanceProposals, useLoadBondedTokens, useLoadTallying } from "./composable";
+import { useFetchGovernanceProposals, useLoadBondedTokens, useLoadTallying } from "./composables";
 import { useConfigStore } from "@/common/stores/config";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 

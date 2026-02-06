@@ -28,7 +28,7 @@
 
 <script lang="ts" setup>
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
-import ChartUtilizaiton from "./ChartUtilizaiton.vue";
+import ChartUtilization from "./ChartUtilization.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
@@ -72,7 +72,7 @@ const tableRows = computed<TableRowItemProps[]>(() => {
         },
         {
           component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
+            h<UtilizationProps>(ChartUtilization, {
               value: utilizationLevelOsmosis.value,
               icon: iconOsmosis.value,
               deposit: depositOsmosis.value
@@ -98,7 +98,7 @@ const tableRows = computed<TableRowItemProps[]>(() => {
         },
         {
           component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
+            h<UtilizationProps>(ChartUtilization, {
               value: utilizationLevelNeutron.value,
               icon: iconNeutron.value,
               deposit: depositNeutron.value
@@ -124,7 +124,7 @@ const tableRows = computed<TableRowItemProps[]>(() => {
         },
         {
           component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
+            h<UtilizationProps>(ChartUtilization, {
               value: utilizationLevelOsmosisAllSol.value,
               icon: iconAllSol.value,
               deposit: depositAllSol.value
@@ -150,7 +150,7 @@ const tableRows = computed<TableRowItemProps[]>(() => {
         },
         {
           component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
+            h<UtilizationProps>(ChartUtilization, {
               value: utilizationLevelOsmosisAllBtc.value,
               icon: iconAllBtc.value,
               deposit: depositAllBtc.value
@@ -176,7 +176,7 @@ const tableRows = computed<TableRowItemProps[]>(() => {
         },
         {
           component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
+            h<UtilizationProps>(ChartUtilization, {
               value: utilizationLevelOsmosisAkt.value,
               icon: iconAkt.value,
               deposit: depositAkt.value
@@ -202,7 +202,7 @@ const tableRows = computed<TableRowItemProps[]>(() => {
         },
         {
           component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
+            h<UtilizationProps>(ChartUtilization, {
               value: utilizationLevelOsmosisAtom.value,
               icon: iconAtom.value,
               deposit: depositAtom.value

@@ -160,4 +160,4 @@ async function getLedgerTransport() {
   return await TransportWebUSB.create();
 }
 
-export { aminoTypes, authenticateLedger, authenticateKeplr, authenticateLeap, createWallet };
+export { authenticateLedger, authenticateKeplr, authenticateLeap };

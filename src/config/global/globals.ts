@@ -1,11 +1,3 @@
-export const TWITTER_ACCOUNT = "https://twitter.com/NolusPlatform";
-export const TELEGRAM_ACCOUNT = "https://t.me/NolusPlatform";
-export const MEDIUM_ACCOUNT = "https://medium.com/nolusplatform";
-export const REDDIT_ACCOUNT = "https://www.reddit.com/r/NolusPlatform";
-export const LINKEDIN_ACCOUNT = "https://www.linkedin.com/company/nolus-platform";
-export const DISCORD_ACCOUNT = "https://discord.com/invite/Rmwz8S6ZJP";
-export const SUPPORT_URL = "https://hub.nolus.io";
-
 export enum APPEARANCE {
   light = "light",
   dark = "dark",
@@ -32,12 +24,9 @@ export const PERMILLE = 1000;
 export const PERCENT = 100;
 
 export const UPDATE_BLOCK_INTERVAL = 1 * 60 * 1000;
-export const UPDATE_REWARDS_INTERVAL = 60 * 1000;
-export const SESSION_TIME = 25 * 60 * 1000;
 export const UPDATE_LEASES = 10000;
 
 export const UPDATE_BALANCE_INTERVAL = 8 * 1000;
-export const UPDATE_PRICES_INTERVAL = 15 * 1000;
 
 export const MONTHS = 12;
 
@@ -57,7 +46,6 @@ export const DECIMALS_AMOUNT = [
 ];
 
 export const INTERCOM_API = "hbjifswh";
-export const ZERO_DECIMALS = 6;
 export const MAX_DECIMALS = 8;
 export const MID_DECIMALS = 4;
 export const NORMAL_DECIMALS = 2;

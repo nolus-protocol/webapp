@@ -65,20 +65,6 @@ export function getCurrencyByDenom(denom: string): CurrencyInfo {
 }
 
 /**
- * Get native currency
- */
-export function getNativeCurrency(): CurrencyInfo {
-  const configStore = useConfigStore();
-  const currency = configStore.getNativeCurrency();
-
-  if (!currency) {
-    throw new Error(`Native currency not found`);
-  }
-
-  return currency;
-}
-
-/**
  * Get LPN (Liquidity Pool Native) currency by protocol
  * Returns null if not found (caller should handle)
  */
@@ -107,14 +93,6 @@ export function getProtocolByContract(contract: string): string {
 export function tryGetCurrencyByDenom(denom: string): CurrencyInfo | null {
   const configStore = useConfigStore();
   return configStore.tryGetCurrencyByDenom(denom);
-}
-
-/**
- * Try to get currency by ticker, returns null instead of throwing
- */
-export function tryGetCurrencyByTicker(ticker: string): CurrencyInfo | null {
-  const configStore = useConfigStore();
-  return configStore.tryGetCurrencyByTicker(ticker);
 }
 
 /**
@@ -150,18 +128,3 @@ export function getCurrencyByTickerForNetwork(ticker: string): CurrencyInfo {
   return currency;
 }
 
-/**
- * Get all currencies as an array
- */
-export function getAllCurrencies(): CurrencyInfo[] {
-  const configStore = useConfigStore();
-  return configStore.getAllCurrencies();
-}
-
-/**
- * Get currencies for a specific protocol
- */
-export function getCurrenciesByProtocol(protocol: string): CurrencyInfo[] {
-  const configStore = useConfigStore();
-  return configStore.getCurrenciesByProtocol(protocol);
-}

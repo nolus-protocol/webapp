@@ -2,7 +2,6 @@
  * Common types used across all API domains
  */
 
-import type { IObjectKeys } from "@/common/types";
 
 /**
  * Generic API error with status code and message
@@ -19,14 +18,6 @@ export class ApiError extends Error {
 }
 
 /**
- * Coin amount (denom + amount)
- */
-export interface CoinAmount {
-  denom: string;
-  amount: string;
-}
-
-/**
  * Simple balance info
  */
 export interface BalanceInfoSimple {
@@ -35,23 +26,11 @@ export interface BalanceInfoSimple {
 }
 
 /**
- * Transaction message structure
+ * Coin amount with denom
  */
-export interface TransactionMessage {
-  type: string;
-  data: IObjectKeys;
-}
-
-/**
- * Transaction history entry
- */
-export interface TransactionHistoryEntry {
-  tx_hash: string;
-  timestamp: string;
-  type: string;
-  status: "success" | "failed";
-  fee: CoinAmount;
-  messages: TransactionMessage[];
+export interface CoinAmount {
+  denom: string;
+  amount: string;
 }
 
 /**

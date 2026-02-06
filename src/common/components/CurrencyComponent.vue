@@ -11,7 +11,9 @@
         <template v-if="animatedReveal && !hide">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
-            :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
+            :format="compact
+              ? { notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1 }
+              : { minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
           />
         </template>
         <template v-else>
@@ -65,6 +67,7 @@ export interface CurrencyComponentProps {
   hide?: boolean;
   tooltip?: boolean;
   animatedReveal?: boolean;
+  compact?: boolean;
   additional?: {
     text: string;
     class: string;
@@ -79,7 +82,8 @@ const props = withDefaults(defineProps<CurrencyComponentProps>(), {
   hasSpace: false,
   isDenomInfront: true,
   prettyZeros: false,
-  animatedReveal: false
+  animatedReveal: false,
+  compact: false
 });
 
 const isMounted = ref(false);
@@ -102,6 +106,25 @@ const amount = computed(() => {
         return {
           denom: props.defaultZeroValue,
           beforeDecimal: "",
+          afterDecimal: ""
+        };
+      }
+
+      if (props.compact) {
+        const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
+          notation: "compact",
+          compactDisplay: "short",
+          maximumFractionDigits: 1
+        }).format(Math.abs(numberAmount));
+
+        if (props.hide) {
+          return { symbol: "", denom: "", beforeDecimal: "**", afterDecimal: "**" };
+        }
+
+        return {
+          symbol,
+          denom: props.hide ? "" : props.denom,
+          beforeDecimal: formatted,
           afterDecimal: ""
         };
       }

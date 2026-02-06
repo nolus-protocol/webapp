@@ -31,14 +31,6 @@ export async function fetchEndpoints(network: string): Promise<API> {
   return endpointPromise;
 }
 
-/**
- * Clear endpoint cache
- */
-export function clearEndpointCaches(): void {
-  networksCache = null;
-  Object.keys(endpointCache).forEach((key) => delete endpointCache[key]);
-}
-
 // =============================================================================
 // Private Implementation
 // =============================================================================

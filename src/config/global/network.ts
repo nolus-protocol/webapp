@@ -46,4 +46,3 @@ export const STAKING = {
   SLICE: 3
 };
 
-export const LTV = 0.9;

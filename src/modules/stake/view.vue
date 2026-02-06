@@ -57,7 +57,7 @@ import VestedOverview from "./components/VestedOverview.vue";
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
 import { computed, h, ref, watch } from "vue";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useStakingStore } from "@/common/stores/staking";
@@ -142,7 +142,7 @@ const rewards = computed(() => {
   const stableAmount = rewardsAmount.mul(new Dec(nativePrice.value));
   
   return [{
-    amount: `${formatNumber(rewardsAmount.toString(), NATIVE_ASSET.decimal_digits)} ${NATIVE_ASSET.label}`,
+    amount: `${formatTokenBalance(rewardsAmount)} ${NATIVE_ASSET.label}`,
     stableAmount: `${NATIVE_CURRENCY.symbol}${formatNumber(stableAmount.toString(2), 2)}`,
     icon: NATIVE_ASSET.icon
   }];
@@ -152,7 +152,7 @@ const rewards = computed(() => {
 const stableRewards = computed(() => {
   const rewardsAmount = new Dec(stakingStore.totalRewards, NATIVE_ASSET.decimal_digits);
   const total = rewardsAmount.mul(new Dec(nativePrice.value));
-  return total.toString(NATIVE_CURRENCY.maximumFractionDigits);
+  return total.toString(2);
 });
 
 // Unbonding delegations
@@ -180,13 +180,13 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       const validator = stakingStore.getValidator(position.validator_address);
       const amount = new Dec(position.balance.amount, NATIVE_ASSET.decimal_digits);
       const stable = amount.mul(new Dec(nativePrice.value));
-      const amountLabel = formatNumber(amount.toString(), 3);
+      const amountLabel = formatTokenBalance(amount);
       const stableLabel = formatNumber(stable.toString(), 2);
       
       // Commission rate as percentage
       const rate = validator 
-        ? new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(0)
-        : "0";
+        ? new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2)
+        : "0.00";
       
       const isJailed = validator?.jailed ?? false;
       

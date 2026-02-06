@@ -43,7 +43,7 @@
           <BigNumber
             :label="$t('message.unrealized-pnl')"
             :amount="{
-              amount: pnl.toString(),
+              amount: pnl.toString(2),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: isMobile() ? 20 : 32,
@@ -63,7 +63,7 @@
           <BigNumber
             :label="$t('message.leases-table')"
             :amount="{
-              amount: activeLeases.toString(),
+              amount: activeLeases.toString(2),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
@@ -73,7 +73,7 @@
           <BigNumber
             :label="$t('message.debt')"
             :amount="{
-              amount: debt.toString(),
+              amount: debt.toString(2),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
@@ -126,9 +126,9 @@ import { IntercomService } from "@/common/utils/IntercomService";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
-import { CurrencyUtils } from "@nolus/nolusjs";
 import { useConfigStore } from "@/common/stores/config";
-import { MAX_DECIMALS, MID_DECIMALS, NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
+import { MID_DECIMALS, NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
+import { formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
@@ -201,7 +201,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       const displayData = leasesStore.getLeaseDisplayData(item);
       const pnlData = {
         percent: displayData.pnlPercent.toString(2),
-        amount: CurrencyUtils.formatPrice(displayData.pnlAmount.toString()),
+        amount: formatUsd(displayData.pnlAmount.toString(2)),
         status: displayData.pnlPositive
       };
       const loading = isLeaseInProgress(item);
@@ -217,8 +217,8 @@ const leasesData = computed<TableRowItemProps[]>(() => {
       const stable = displayData.assetValueUsd;
       const actions: Component[] = getActions(item, displayData);
       const value = {
-        subValue: `${NATIVE_CURRENCY.symbol}${stable.toString(MAX_DECIMALS)}`,
-        value: `${amount.toString(MAX_DECIMALS)}`,
+        subValue: `${NATIVE_CURRENCY.symbol}${stable.toString(2)}`,
+        value: formatTokenBalance(amount),
         tooltip: `${amount.toString(asset?.decimal_digits ?? 6)}`
       };
 

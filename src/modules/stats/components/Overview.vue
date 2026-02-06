@@ -8,7 +8,7 @@
           amount: tvl,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0,
+          compact: true,
           fontSize: isMobile() ? 20 : 32,
           animatedReveal: true
         }"
@@ -20,7 +20,7 @@
           amount: txVolume,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0,
+          compact: true,
           fontSize: 20,
           animatedReveal: true
         }"
@@ -32,7 +32,7 @@
           amount: realized_pnl,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0,
+          compact: true,
           fontSize: 20,
           animatedReveal: true
         }"
@@ -45,7 +45,7 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
-          decimals: 0,
+          compact: true,
           animatedReveal: true
         }"
         :loading="loading"
@@ -56,7 +56,7 @@
           amount: buybackTotal,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_ASSET.label,
-          decimals: 0,
+          compact: true,
           hasSpace: true,
           isDenomInfront: false,
           fontSize: 20,

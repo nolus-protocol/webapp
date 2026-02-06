@@ -68,7 +68,7 @@ function getParams() {
   };
 }
 
-export function datePraser(dateTime: string, future = false) {
+export function dateParser(dateTime: string, future = false) {
   const {
     months,
     sec,

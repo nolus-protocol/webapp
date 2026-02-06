@@ -1,12 +1,7 @@
-export const DEFAULT_LEASE_UP_PERCENT = "150.00";
-export const LEASE_UP_COEFICIENT = 1.5;
-export const DEFAULT_APR = "24.34";
-
 export const minimumLeaseAmount = 1;
 export const POSITIONS = 5;
 export const MIN_POSITION = 25;
 export const MAX_POSITION = 150;
-export const DEFAULT_LTD = 1.5;
 
 export const LEASE_DUE = 3 * 24 * 60 * 60 * 1000 * 1000 * 1000;
 

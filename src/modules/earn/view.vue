@@ -45,7 +45,7 @@ import { EarnAssetsDialog } from "./enums";
 import { computed, h, provide, ref, watch } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
 
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useEarnStore } from "@/common/stores/earn";
@@ -163,7 +163,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
 
       return {
         protocol: pool.protocol,
-        balance: formatNumber(depositedAmount.toString(3), 3),
+        balance: formatTokenBalance(depositedAmount),
         stable_balance: formatNumber(stableBalance.toString(2), 2),
         stable_balance_number: parseFloat(stableBalance.toString(2)),
         // pool.apy is already in percentage format from backend (e.g., 5.25 for 5.25%)

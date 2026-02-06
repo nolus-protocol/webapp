@@ -8,7 +8,7 @@
           amount: openPositionValue,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0,
+          compact: true,
           fontSize: isMobile() ? 20 : 32
         }"
         :loading="loading"
@@ -23,7 +23,7 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
-          decimals: 0
+          compact: true
         }"
         :loading="loading"
       />

@@ -42,9 +42,4 @@ export async function getLeasePositionSpec(
   return { min_asset: config.min_asset, min_transaction: config.min_transaction };
 }
 
-/**
- * Clear all lease config caches
- */
-export function clearLeaseConfigCaches(): void {
-  Object.keys(leaseConfigCache).forEach((key) => delete leaseConfigCache[key]);
-}
+

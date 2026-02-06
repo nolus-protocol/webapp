@@ -16,7 +16,7 @@ export * from "./ThemeManager";
 export * from "./WalletManager";
 export * from "./WalletUtils";
 export * from "./StringUtils";
-export * from "./datePraser";
+export * from "./dateParser";
 export * from "./Utils";
 export * from "./Logger";
 export * from "./LeaseUtils";

@@ -22,8 +22,8 @@ import type { IObjectKeys } from "@/common/types";
 import { computed } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
-import { datePraser } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { dateParser } from "@/common/utils";
+import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -49,7 +49,7 @@ const assets = computed(() => {
 
   for (const validator of props.unboundingDelegations) {
     for (const item of validator.entries) {
-      const balance = formatNumber(new Dec(item.balance, asset.decimal_digits).toString(3), 3);
+      const balance = formatTokenBalance(new Dec(item.balance, asset.decimal_digits));
 
       const stable_b = CurrencyUtils.calculateBalance(
         price,
@@ -73,7 +73,7 @@ const assets = computed(() => {
             variant: "right",
             class: " max-w-[200px]"
           },
-          { value: datePraser(item.completion_time, true), class: "hidden md:flex max-w-[120px]" }
+          { value: dateParser(item.completion_time, true), class: "hidden md:flex max-w-[120px]" }
         ]
       });
     }

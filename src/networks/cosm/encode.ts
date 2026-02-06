@@ -13,16 +13,6 @@ import { LegacyAminoPubKey } from "cosmjs-types/cosmos/crypto/multisig/keys";
 import { PubKey as CosmosCryptoSecp256k1Pubkey } from "cosmjs-types-legacy/cosmos/crypto/secp256k1/keys";
 import { Any } from "cosmjs-types/google/protobuf/any";
 
-export const pubkeyType = {
-  /** @see https://github.com/tendermint/tendermint/blob/v0.33.0/crypto/secp256k1/secp256k1.go#L23 */
-  secp256k1: "tendermint/PubKeySecp256k1" as const,
-  /** @see https://github.com/tendermint/tendermint/blob/v0.33.0/crypto/ed25519/ed25519.go#L22 */
-  ed25519: "tendermint/PubKeyEd25519" as const,
-  /** @see https://github.com/tendermint/tendermint/blob/v0.33.0/crypto/sr25519/codec.go#L12 */
-  sr25519: "tendermint/PubKeySr25519" as const,
-  multisigThreshold: "tendermint/PubKeyMultisigThreshold" as const
-};
-
 export function encodePubkey(pubkey: Pubkey): Any {
   if (isSecp256k1Pubkey(pubkey)) {
     const pubkeyProto = CosmosCryptoSecp256k1Pubkey.fromPartial({
@@ -79,7 +69,7 @@ export function decodePubkey(pubkey?: Any | null): Pubkey | null {
   }
 }
 
-export function anyToSinglePubkey(pubkey: Any): SinglePubkey {
+function anyToSinglePubkey(pubkey: Any): SinglePubkey {
   switch (pubkey.typeUrl) {
     case "/cosmos.crypto.ed25519.PubKey": {
       const { key } = CosmosCryptoEd25519Pubkey.decode(pubkey.value);

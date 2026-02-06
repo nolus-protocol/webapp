@@ -7,61 +7,18 @@
 
 import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK } from "@/config/global/networks";
 
-import { embedChainInfo as nolusChainInfo } from "./list/nolus/contants";
-import { embedChainInfo as osmoChainInfo } from "./list/osmosis/contants";
-import { embedChainInfo as neutronChainInfo } from "./list/neutron/contants";
+import { embedChainInfo as nolusChainInfo } from "./list/nolus/constants";
+import { embedChainInfo as osmoChainInfo } from "./list/osmosis/constants";
+import { embedChainInfo as neutronChainInfo } from "./list/neutron/constants";
 
 import { useConfigStore } from "@/common/stores/config";
 import type { ExternalCurrencies } from "@/common/types";
 
-/**
- * Chain info embedders indexed by network key
- * These are used for wallet integration
- */
 const CHAIN_INFO_EMBEDDERS: { [key: string]: Function } = {
   NOLUS: nolusChainInfo,
   OSMOSIS: osmoChainInfo,
   NEUTRON: neutronChainInfo
 };
-
-/**
- * Get chain info embedder for a network
- */
-export function getChainInfoEmbedder(networkKey: string): Function | undefined {
-  return CHAIN_INFO_EMBEDDERS[networkKey];
-}
-
-/**
- * Get network data for supported networks from the config store
- * This function provides the NetworkData format expected by wallet code
- */
-export function getSupportedNetworkData(networkKey: string) {
-  const configStore = useConfigStore();
-  const network = configStore.getNetwork(networkKey);
-  
-  if (!network) {
-    return undefined;
-  }
-
-  return {
-    prefix: network.prefix,
-    key: network.key,
-    name: network.name,
-    gasPrice: network.gas_price,
-    explorer: network.explorer,
-    gasMultiplier: network.gas_multiplier,
-    bip44Path: "44'/118'/0'/0/0",
-    ibcTransferTimeout: 60,
-    ticker: network.symbol,
-    fees: {
-      transfer_amount: network.fees_transfer ?? 500
-    },
-    currencies: () => {
-      return configStore.getCurrenciesForNetwork(networkKey) as ExternalCurrencies;
-    },
-    embedChainInfo: CHAIN_INFO_EMBEDDERS[networkKey] ?? (() => {})
-  };
-}
 
 /**
  * Get NETWORK_DATA dynamically from config store
@@ -117,15 +74,6 @@ export function getNetworkData() {
 }
 
 /**
- * Legacy export - use configStore.supportedNetworksData instead
- * @deprecated Access network data through useConfigStore().supportedNetworksData
- */
-export function getSupportedNetworksData() {
-  const configStore = useConfigStore();
-  return configStore.supportedNetworksData;
-}
-
-/**
  * Legacy export for NETWORK_DATA
  * @deprecated Use getNetworkData() instead
  */
@@ -138,15 +86,4 @@ export const NETWORK_DATA = {
   }
 };
 
-/**
- * Legacy export for NETWORKS_DATA
- * @deprecated Use getNetworkData() instead
- */
-export const NETWORKS_DATA = {
-  get mainnet() {
-    return getNetworkData();
-  },
-  get testnet() {
-    return getNetworkData();
-  }
-};
+

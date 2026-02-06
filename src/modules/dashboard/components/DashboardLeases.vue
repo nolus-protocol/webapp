@@ -22,7 +22,7 @@
             :label="$t('message.unrealized-pnl')"
             :amount="{
               hide: hide,
-              amount: pnl.toString(),
+              amount: pnl.toString(2),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               animatedReveal: true,

@@ -37,7 +37,7 @@
               denom: asset?.shortName ?? '',
               decimals: assetLoan?.decimal_digits ?? 0,
               hasSpace: true,
-              maxDecimals: MAX_DECIMALS,
+              maxDecimals: amountMaxDecimals,
               fontSize: isMobile() ? 20 : 32,
               animatedReveal: true
             }"
@@ -147,7 +147,7 @@
           :loading-width="'120px'"
           :label="$t('message.unrealized-pnl')"
           :amount="{
-            amount: pnl.amount.toString(),
+            amount: pnl.amount.toString(2),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: '$',
             class: pnl.status ? 'text-typography-success' : 'text-typography-error',
@@ -262,16 +262,16 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
-import { MAX_DECIMALS, MID_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
+import { MID_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
 import { computed, inject, ref, watch } from "vue";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, getDecimals } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { datePraser, isMobile, Logger, walletOperation } from "@/common/utils";
+import { dateParser, isMobile, Logger, walletOperation } from "@/common/utils";
 import { useRoute, useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { TEMPLATES } from "../common";
@@ -306,7 +306,7 @@ const pnl = computed(() => {
   }
   return {
     percent: props.displayData.pnlPercent.toString(2),
-    amount: props.displayData.pnlAmount.toString(),
+    amount: props.displayData.pnlAmount.toString(2),
     status: props.displayData.pnlPositive,
     neutral: false
   };
@@ -328,6 +328,11 @@ const status = computed(() => {
 const amount_tooltip = computed(() => {
   const a = new Dec(amount.value.toString(), assetLoan.value?.decimal_digits ?? 0);
   return `${formatNumber(a.toString(), assetLoan.value?.decimal_digits ?? 0)} ${asset.value?.shortName ?? ""}`;
+});
+
+const amountMaxDecimals = computed(() => {
+  const a = new Dec(amount.value.toString(), assetLoan.value?.decimal_digits ?? 0);
+  return getDecimals(a.abs());
 });
 
 const amount = computed(() => {
@@ -434,10 +439,8 @@ const lpn = computed(() => {
 
 const debt = computed(() => {
   if (props.lease && lpn.value) {
-    // totalDebt is already in minimal denom (raw units), just return as-is for display
-    // The BigNumber component will handle formatting based on the lpn.decimal_digits
     const totalDebt = props.displayData?.totalDebt ?? new Dec(0);
-    return totalDebt.toString();
+    return totalDebt.toString(lpn.value.decimal_digits);
   }
   return "0";
 });
@@ -459,14 +462,14 @@ const fee = computed(() => {
 
 const openedPrice = computed(() => {
   if (props.displayData) {
-    return props.displayData.openingPrice.toString();
+    return props.displayData.openingPrice.toString(MID_DECIMALS);
   }
   return "0";
 });
 
 const interestDue = computed(() => {
   if (props.displayData && props.lease?.status === "opened") {
-    return props.displayData.interestDue.toString();
+    return props.displayData.interestDue.toString(lpn.value?.decimal_digits ?? 6);
   }
   return "0";
 });
@@ -491,9 +494,9 @@ const liquidation = computed(() => {
 
 const interestDueDate = computed(() => {
   if (props.displayData?.interestDueDate) {
-    return datePraser(props.displayData.interestDueDate.toISOString(), true);
+    return dateParser(props.displayData.interestDueDate.toISOString(), true);
   }
-  return datePraser(new Date().toISOString(), true);
+  return dateParser(new Date().toISOString(), true);
 });
 
 async function onRemoveStopLoss() {

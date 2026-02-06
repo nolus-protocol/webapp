@@ -28,10 +28,4 @@ export const NETWORKS: { [key: string]: NetworkAddress } = {
 export const CURRENT_NETWORK_KEY = "currentNetwork";
 export const NETWORK = NETWORKS[localStorage.getItem(CURRENT_NETWORK_KEY) || DEFAULT_PRIMARY_NETWORK];
 
-export const SUPPORTED_NETWORKS = [
-  "NOLUS",
-  "OSMOSIS",
-  "NEUTRON"
-];
-
 export const IGNORED_NETWORKS = ["NOLUS"];

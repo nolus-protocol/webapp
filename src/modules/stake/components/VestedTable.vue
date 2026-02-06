@@ -21,7 +21,7 @@ import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "
 import { computed } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -51,7 +51,7 @@ const assets = computed(() => {
   const price = pricesStore.prices[asset.key]?.price;
 
   for (const item of props.vestedTokens) {
-    const balance = formatNumber(new Dec(wallet.vestTokens.amount, asset.decimal_digits).toString(3), 3);
+    const balance = formatTokenBalance(new Dec(wallet.vestTokens.amount, asset.decimal_digits));
     const stable_b = CurrencyUtils.calculateBalance(
       price,
       new Coin(asset.ibcData, wallet.vestTokens.amount),

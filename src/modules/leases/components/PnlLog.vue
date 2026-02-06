@@ -36,7 +36,7 @@
         <BigNumber
           :label="$t('message.realized-pnl')"
           :amount="{
-            amount: pnl.toString(),
+            amount: pnl.toString(2),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
             fontSize: isMobile() ? 20 : 32
@@ -94,10 +94,10 @@ import {
 import { computed, h, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
-import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
+import { NATIVE_CURRENCY } from "@/config/global";
 import type { ILoan } from "./types";
 import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTickerForProtocol, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useAnalyticsStore } from "@/common/stores";
@@ -201,7 +201,7 @@ const leasesHistory = computed(() => {
         : getCurrencyByTickerForProtocol(ticker, protocol);
 
       const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
-      let pnl_amount = formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
+      let pnl_amount = formatUsd(pnl.toString(2));
       let pnl_status = pnl.isZero() || pnl.isPositive();
 
       const raw = item.LS_timestamp;
