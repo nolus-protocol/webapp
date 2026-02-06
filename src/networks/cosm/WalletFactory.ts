@@ -1,6 +1,6 @@
 import { type OfflineDirectSigner } from "@cosmjs/proto-signing";
+import type { Keplr } from "@keplr-wallet/types";
 import type { Wallet } from "..";
-import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
@@ -48,29 +48,34 @@ async function createWallet(
   return baseWallet;
 }
 
-async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
-  await WalletUtils.getKeplr();
-  const keplrWindow = window as KeplrWindow;
+async function authenticateKeplrLike(
+  wallet: Wallet,
+  network: NetworkData,
+  getExtension: () => Promise<Keplr | undefined>,
+  label: string
+) {
+  const extension = await getExtension();
 
-  if (!keplrWindow.getOfflineSignerAuto || !keplrWindow.keplr) {
-    throw new Error("Keplr wallet is not installed.");
-  } else if (!keplrWindow.keplr.experimentalSuggestChain) {
-    throw new Error("Keplr version is not latest. Please upgrade your Keplr wallet");
+  if (!extension?.getOfflineSignerAuto || !extension) {
+    throw new Error(`${label} wallet is not installed.`);
+  } else if (!extension.experimentalSuggestChain) {
+    throw new Error(`${label} version is not latest. Please upgrade your ${label} wallet`);
   } else {
     let chainId = "";
 
     try {
       chainId = await wallet.getChainId();
       const node = await fetchEndpoints(network.key);
-      await keplrWindow.keplr?.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
+      await extension.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
     } catch (e) {
+      Logger.error(e);
       throw new Error("Failed to fetch suggest chain.");
     }
 
-    await keplrWindow.keplr?.enable(chainId);
+    await extension.enable(chainId);
 
-    if (keplrWindow.getOfflineSignerAuto) {
-      const offlineSigner = await keplrWindow.getOfflineSignerAuto(chainId);
+    if (extension.getOfflineSignerAuto) {
+      const offlineSigner = await extension.getOfflineSignerAuto(chainId);
 
       return await createWallet(
         wallet,
@@ -86,83 +91,44 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
   throw new Error("Failed to fetch wallet.");
 }
 
+async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
+  return authenticateKeplrLike(wallet, network, WalletUtils.getKeplr, "Keplr");
+}
+
 async function authenticateLeap(wallet: Wallet, network: NetworkData) {
-  await WalletUtils.getLeap();
-  const leapWindow = window as any;
-
-  if (!leapWindow.leap.getOfflineSignerAuto || !leapWindow.leap) {
-    throw new Error("Leap wallet is not installed.");
-  } else if (!leapWindow.leap.experimentalSuggestChain) {
-    throw new Error("Leap version is not latest. Please upgrade your Leap wallet");
-  } else {
-    let chainId = "";
-
-    try {
-      chainId = await wallet.getChainId();
-      const node = await fetchEndpoints(network.key);
-      await leapWindow.leap?.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
-    } catch (e) {
-      Logger.error(e);
-      throw new Error("Failed to fetch suggest chain.");
-    }
-
-    await leapWindow.leap?.enable(chainId);
-
-    if (leapWindow.leap.getOfflineSignerAuto) {
-      const offlineSigner = await leapWindow.leap.getOfflineSignerAuto(chainId);
-
-      return await createWallet(
-        wallet,
-        offlineSigner,
-        network.prefix,
-        network.gasMultiplier,
-        network.gasPrice,
-        network.explorer
-      );
-    }
-  }
-
-  throw new Error("Failed to fetch wallet.");
+  return authenticateKeplrLike(wallet, network, WalletUtils.getLeap, "Leap");
 }
 
 export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkData) {
-  try {
-    const node = await fetchEndpoints(network.key);
-    const metamask = new MetaMaskWallet();
-    await metamask.connectCustom(node, network);
-    const signer = metamask.makeWCOfflineSigner();
+  const node = await fetchEndpoints(network.key);
+  const metamask = new MetaMaskWallet();
+  await metamask.connectCustom(node, network);
+  const signer = metamask.makeWCOfflineSigner();
 
-    return await createWallet(
-      wallet,
-      signer as any,
-      network.prefix,
-      network.gasMultiplier,
-      network.gasPrice,
-      network.explorer
-    );
-  } catch (e) {
-    throw e;
-  }
+  return await createWallet(
+    wallet,
+    signer as any,
+    network.prefix,
+    network.gasMultiplier,
+    network.gasPrice,
+    network.explorer
+  );
 }
 
 export async function authenticateSolFlare(wallet: Wallet, network: NetworkData) {
-  try {
-    const node = await fetchEndpoints(network.key);
-    const sol = new SolanaWallet();
-    await sol.connectCustom(node, network);
-    const signer = sol.makeWCOfflineSigner();
+  const node = await fetchEndpoints(network.key);
+  const sol = new SolanaWallet();
+  await sol.connectCustom(node, network);
+  const signer = sol.makeWCOfflineSigner();
 
-    return await createWallet(
-      wallet,
-      signer as any,
-      network.prefix,
-      network.gasMultiplier,
-      network.gasPrice,
-      network.explorer
-    );
-  } catch (e) {
-    throw e;
-  }
+  return await createWallet(
+    wallet,
+    signer as any,
+    network.prefix,
+    network.gasMultiplier,
+    network.gasPrice,
+    network.explorer
+  );
 }
 
 async function authenticateLedger(wallet: Wallet, network: NetworkData) {

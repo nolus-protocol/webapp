@@ -925,6 +925,37 @@ impl ChainClient {
             catching_up: result.result.sync_info.catching_up,
         })
     }
+
+    // ========================================================================
+    // Tax Module Queries
+    // ========================================================================
+
+    /// Get tax module params (gas fee denoms and min prices)
+    pub async fn get_tax_params(&self) -> Result<TaxParamsResponse, AppError> {
+        let url = format!("{}/nolus/tax/v2/params", self.rest_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| AppError::ChainRpc {
+                chain: "nolus".to_string(),
+                message: format!("Tax params query failed: {}", e),
+            })?;
+
+        if !response.status().is_success() {
+            return Err(AppError::ChainRpc {
+                chain: "nolus".to_string(),
+                message: format!("HTTP {}", response.status()),
+            });
+        }
+
+        response.json().await.map_err(|e| AppError::ChainRpc {
+            chain: "nolus".to_string(),
+            message: format!("Failed to parse tax params: {}", e),
+        })
+    }
 }
 
 // Additional response types
@@ -1387,6 +1418,39 @@ pub struct DenomUnit {
     pub exponent: u32,
     #[serde(default)]
     pub aliases: Vec<String>,
+}
+
+// ============================================================================
+// Tax Module Types
+// ============================================================================
+
+/// Tax module params response from `/nolus/tax/v2/params`
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaxParamsResponse {
+    pub params: TaxParams,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaxParams {
+    pub fee_rate: u32,
+    pub base_denom: String,
+    #[serde(default)]
+    pub dex_fee_params: Vec<TaxDexFeeParams>,
+    pub treasury_address: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaxDexFeeParams {
+    pub profit_address: String,
+    #[serde(default)]
+    pub accepted_denoms_min_prices: Vec<TaxDenomPrice>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TaxDenomPrice {
+    pub denom: String,
+    pub ticker: String,
+    pub min_price: String,
 }
 
 #[cfg(test)]

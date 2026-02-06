@@ -28,7 +28,8 @@ import {
   type GatedProtocolsResponse,
   type GatedProtocolInfo,
   type ProtocolCurrenciesResponse,
-  type ProtocolCurrencyInfo
+  type ProtocolCurrencyInfo,
+  type GasFeeConfigResponse
 } from "@/common/api";
 
 const PROTOCOL_FILTER_KEY = "protocol_filter";
@@ -53,6 +54,9 @@ export const useConfigStore = defineStore("config", () => {
 
   // Protocol currencies cache - keyed by protocol name
   const protocolCurrenciesCache = ref<{ [protocol: string]: ProtocolCurrenciesResponse }>({});
+
+  // Gas fee config from /api/fees/gas-config
+  const gasFeeConfig = ref<GasFeeConfigResponse | null>(null);
 
   // Loading states
   const loading = ref(false);
@@ -722,6 +726,13 @@ export const useConfigStore = defineStore("config", () => {
   }
 
   /**
+   * Fetch gas fee config from backend
+   */
+  async function fetchGasFeeConfig(): Promise<void> {
+    gasFeeConfig.value = await BackendApi.getGasFeeConfig();
+  }
+
+  /**
    * Prefetch currencies for all protocols of a network
    */
   async function prefetchProtocolCurrenciesForNetwork(network: string): Promise<void> {
@@ -739,7 +750,7 @@ export const useConfigStore = defineStore("config", () => {
 
     const networkToFetch = protocolFilter.value || "OSMOSIS";
 
-    await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols()]);
+    await Promise.all([fetchConfig(), fetchCurrencies(), fetchNetworkAssets(networkToFetch), fetchGatedProtocols(), fetchGasFeeConfig()]);
     ensureDefaultProtocolFilter();
     await prefetchProtocolCurrenciesForNetwork(networkToFetch);
     initialized.value = true;
@@ -782,6 +793,7 @@ export const useConfigStore = defineStore("config", () => {
     assetsResponse,
     gatedProtocolsResponse,
     protocolCurrenciesCache,
+    gasFeeConfig,
     loading,
     currenciesLoading,
     assetsLoading,
@@ -893,6 +905,7 @@ export const useConfigStore = defineStore("config", () => {
     fetchAssets,
     fetchNetworkAssets,
     fetchGatedProtocols,
+    fetchGasFeeConfig,
     prefetchProtocolCurrenciesForNetwork,
     initialize,
     refresh

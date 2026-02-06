@@ -87,7 +87,7 @@ src/
 backend/
 ├── src/
 │   ├── main.rs           # Server entry, all routes defined here
-│   ├── handlers/         # HTTP handlers by domain (leases, earn, staking, swap, etc.)
+│   ├── handlers/         # HTTP handlers by domain (leases, earn, staking, swap, fees, etc.)
 │   ├── propagation/      # Gated propagation module (filter, merge, validate)
 │   ├── external/         # API clients (etl, skip, chain, referral, zero_interest, base_client)
 │   ├── config_store/     # Config loading (gated_types.rs, storage.rs)
@@ -136,6 +136,19 @@ The same ticker (e.g., `USDC_NOBLE`) can exist on multiple networks with differe
 - **CurrencyLookup utility** (`src/common/utils/CurrencyLookup.ts`): `getCurrencyByTickerForProtocol(ticker, protocol)` for protocol-context; `getCurrencyByTickerForNetwork(ticker)` for network-context. **Never use `getCurrencyByTicker()` for cross-network currencies** — it returns the first match ignoring the selected network. Only safe for globally unique tickers like NLS.
 - **`useNetworkCurrency` composable** (`src/common/composables/useNetworkCurrency.ts`): For Vue components needing enriched asset data (price, balance, earn status, APR). Entry points: `resolveForNetwork(ticker)`, `resolveForProtocol(ticker, protocol)`, `getNetworkAssets()`.
 
+### Gas Fee BFF Pattern
+
+Gas prices and gas multiplier are served from the backend (`/api/fees/gas-config`) instead of the browser querying the chain's tax module directly. `NolusWalletOverride.ts` patches `gasPrices()`, `simulateTx()`, `simulateMultiTx()`, and `getGasInfo()` on each NolusWallet instance to use the backend-cached data. The gas multiplier is configured per network in `backend/config/gated/network-config.json` (NOLUS: 3.5, OSMOSIS: 3.5, NEUTRON: 2.5). All wallet connect actions (`connectKeplr`, `connectLeap`, `connectLedger`, `connectPhantom`, `connectSolflare`) call `applyNolusWalletOverrides(wallet)` after creating the wallet.
+
+### Wallet Connection Architecture
+
+Keplr and Leap share identical connection patterns. Shared logic is extracted into:
+- `connectKeplrLike.ts` — shared connect action; `connectKeplr.ts`/`connectLeap.ts` are thin wrappers
+- `WalletFactory.authenticateKeplrLike()` — shared external wallet authentication; `authenticateKeplr`/`authenticateLeap` are one-liners
+- `WalletUtils.getExtension("keplr" | "leap")` — shared extension getter
+
+`WalletConnect.ts` uses `Record<WalletConnectMechanism, ...>` maps for dispatching instead of switch statements. Adding/removing a wallet type is a one-line change.
+
 ### Wallet Connection Centralization
 
 All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard).
@@ -157,6 +170,8 @@ When aggregating store data into `ref` values (e.g., summary totals in `Leases.v
 ### Frontend PnL Calculation
 
 `LeaseCalculator.calculatePnl()` computes PnL on the frontend from asset value, debt, and downpayment. The backend `lease.pnl` field is not used for display.
+
+**PnL arrow direction:** All PnL displays use `pnlPositive` (from `LeaseCalculator`) as the single source of truth for arrow direction and color. `BigNumber.vue` renders the arrow directly (SvgIcon + CSS classes) based on `pnlStatus.positive`, bypassing the `Badge` component's independent `Number(content)` parsing which can disagree for near-zero values like `-0.00%`. The `SingleLeaseHeader.vue` uses the same `pnl.status` boolean for its inline arrow rendering.
 
 ### Lease In-Progress States
 
@@ -210,6 +225,7 @@ Domain-specific config lives next to its domain, not under a generic `/api/confi
 |--------|----------|---------|
 | Leases | `/api/leases/config/{protocol}` | `handlers::leases::get_lease_config` |
 | Swap | `/api/swap/config` | `handlers::swap::get_swap_config` |
+| Fees | `/api/fees/gas-config` | `handlers::fees::get_gas_fee_config` |
 | Governance | `/api/governance/hidden-proposals` | `handlers::governance::get_hidden_proposals` |
 | Locales | `/api/locales/{lang}` | `handlers::locales::get_locale` |
 | App config | `/api/config` | `handlers::config::get_config` |
@@ -256,6 +272,7 @@ Key sub-routes: `/positions/open/long`, `/positions/open/short`, `/positions/:id
 2. **No Dead Code** - Remove unused code immediately
 3. **No Backwards Compatibility Hacks** - Clean breaks, no aliases
 4. **Hybrid Refresh** - Chain events for chain data, timers for ETL/disk data
+5. **Single Source of Truth** - Arrow/icon direction in PnL displays is driven by `pnlStatus.positive` boolean, never by re-parsing formatted strings
 
 ## Code Quality Rules
 

@@ -7,6 +7,7 @@ import { Buffer } from "buffer";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { MetaMaskWallet } from "@/networks/evm";
 import { PhantomName } from "@/config/global";
+import { applyNolusWalletOverrides } from "@/networks/cosm/NolusWalletOverride";
 
 export async function connectPhantom(this: Store) {
   const metamask = new MetaMaskWallet();
@@ -20,6 +21,7 @@ export async function connectPhantom(this: Store) {
   WalletManager.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
 
   this.wallet = nolusWalletOfflineSigner;
+  applyNolusWalletOverrides(this.wallet);
   this.walletName = PhantomName;
 
   IntercomService.load(this.wallet.address, "phantom");

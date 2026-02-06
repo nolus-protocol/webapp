@@ -532,6 +532,14 @@ export class BackendApiClient {
   }
 
   // =========================================================================
+  // Fees
+  // =========================================================================
+
+  async getGasFeeConfig(): Promise<import("./types").GasFeeConfigResponse> {
+    return this.request<import("./types").GasFeeConfigResponse>("GET", "/api/fees/gas-config");
+  }
+
+  // =========================================================================
   // Locales
   // =========================================================================
 

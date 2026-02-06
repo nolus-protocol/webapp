@@ -4,6 +4,7 @@ pub mod config;
 pub mod currencies;
 pub mod earn;
 pub mod etl_proxy;
+pub mod fees;
 pub mod etl_types;
 pub mod gated_admin;
 pub mod gated_assets;

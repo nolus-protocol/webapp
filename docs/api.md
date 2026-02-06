@@ -14,6 +14,7 @@ Complete reference for the backend REST API and WebSocket protocol.
 | Swap Config | 1 | Skip API swap routing config |
 | Governance Config | 1 | Hidden proposals |
 | Locales | 1 | Translation files |
+| Fees | 1 | Gas fee config (gas prices + multiplier) |
 | Prices & Currencies | 4 | Prices, currencies, balances |
 | **Gated Assets** | 3 | Deduplicated assets with Oracle prices |
 | **Gated Networks** | 4 | Configured networks, pools |
@@ -198,6 +199,34 @@ Returns list of governance proposal IDs that should be hidden from the UI.
 Returns translation messages for a language. Validates the language code and loads from the active locale files.
 
 **Response:** Full locale JSON object with all translation keys.
+
+---
+
+## Fees
+
+### GET /api/fees/gas-config
+
+Returns cached gas prices (from the Nolus chain's tax module) and gas multiplier for fee estimation. The frontend uses this to override `NolusWallet.gasPrices()` and gas multiplier instead of querying the chain directly.
+
+**Response:**
+```json
+{
+  "gas_prices": {
+    "unls": "0.0025",
+    "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518": "0.088",
+    "ibc/6CDD4663F2F09CD62285E2D45891FC149A3568E316CE3EBBE201A71A78A69388": "0.0058"
+  },
+  "gas_multiplier": 3.5
+}
+```
+
+**Data sources:**
+- `gas_prices` — from Nolus chain LCD `/nolus/tax/v2/params`, flattened from `dex_fee_params[].accepted_denoms_min_prices[]`, plus `unls` at `0.0025`
+- `gas_multiplier` — from `backend/config/gated/network-config.json` NOLUS network settings
+
+**Cache refresh:** 60 seconds. Warmed on startup via `warm_essential_data()`.
+
+**Cache-Control:** `max-age=30`
 
 ---
 
@@ -1257,6 +1286,7 @@ Endpoints that may return 503:
 - `GET /api/staking/validators` — requires `validators` cache
 - `GET /api/earn/pools` — requires `pools` cache
 - `GET /api/swap/config` — requires `swap_config` cache
+- `GET /api/fees/gas-config` — requires `gas_fee_config` cache
 - `GET /api/etl/batch/stats-overview` — requires `stats_overview` cache
 - `GET /api/etl/batch/loans-stats` — requires `loans_stats` cache
 

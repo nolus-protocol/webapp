@@ -120,6 +120,8 @@ pub struct NetworkSettings {
     /// Swap venue (DEX) for this network (optional — only networks with a DEX have this)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub swap_venue: Option<NetworkSwapVenue>,
+    /// Gas multiplier for fee estimation (e.g., 3.5 for Nolus, 2.5 for Neutron)
+    pub gas_multiplier: f64,
     /// Pool-specific configurations keyed by protocol (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE")
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
     pub pools: HashMap<String, PoolConfig>,
@@ -461,6 +463,8 @@ pub struct NetworkSettingsInput {
     /// Whether to use packet forwarding
     #[serde(skip_serializing_if = "Option::is_none")]
     pub forward: Option<bool>,
+    /// Gas multiplier for fee estimation
+    pub gas_multiplier: f64,
 }
 
 impl From<NetworkSettingsInput> for NetworkSettings {
@@ -479,6 +483,7 @@ impl From<NetworkSettingsInput> for NetworkSettings {
             primary_protocol: input.primary_protocol,
             estimation: input.estimation,
             forward: input.forward,
+            gas_multiplier: input.gas_multiplier,
             swap_venue: None,
             pools: HashMap::new(),
         }
@@ -550,6 +555,7 @@ mod tests {
             primary_protocol: Some("OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()),
             estimation: Some(20),
             forward: None,
+            gas_multiplier: 3.5,
             swap_venue: None,
             pools: HashMap::new(),
         };
@@ -569,6 +575,7 @@ mod tests {
             primary_protocol: None,
             estimation: None,
             forward: None,
+            gas_multiplier: 3.5,
             swap_venue: None,
             pools: HashMap::new(),
         };

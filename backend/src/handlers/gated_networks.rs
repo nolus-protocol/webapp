@@ -49,6 +49,8 @@ pub struct NetworkResponse {
     /// Transaction estimation time
     #[serde(skip_serializing_if = "Option::is_none")]
     pub estimation: Option<u32>,
+    /// Gas multiplier for fee estimation
+    pub gas_multiplier: f64,
 }
 
 /// Response for all networks
@@ -157,6 +159,7 @@ pub async fn get_network(
         icon: settings.icon.clone(),
         primary_protocol: settings.primary_protocol.clone(),
         estimation: settings.estimation,
+        gas_multiplier: settings.gas_multiplier,
     }))
 }
 

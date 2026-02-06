@@ -20,6 +20,7 @@ use crate::handlers::config::AppConfigResponse;
 use crate::handlers::currencies::{CurrenciesResponse, PricesResponse};
 use crate::handlers::earn::EarnPool;
 use crate::handlers::etl_proxy::{LoansStatsBatch, StatsOverviewBatch};
+use crate::handlers::fees::GasFeeConfigResponse;
 use crate::handlers::gated_assets::AssetsResponse;
 use crate::handlers::gated_networks::NetworksResponse;
 use crate::handlers::leases::LeaseConfigResponse;
@@ -157,6 +158,10 @@ pub struct AppDataCache {
     // ── Lease configs ────────────────────────────────────────────
     /// Lease configs per protocol (downpayment ranges + leaser on-chain config)
     pub lease_configs: Cached<HashMap<String, LeaseConfigResponse>>,
+
+    // ── Fees ─────────────────────────────────────────────────────
+    /// Gas fee config (accepted denoms with min prices + gas multiplier)
+    pub gas_fee_config: Cached<GasFeeConfigResponse>,
 }
 
 impl AppDataCache {
@@ -179,6 +184,7 @@ impl AppDataCache {
             loans_stats: Cached::new(),
             swap_config: Cached::new(),
             lease_configs: Cached::new(),
+            gas_fee_config: Cached::new(),
         }
     }
 
@@ -200,6 +206,7 @@ impl AppDataCache {
             loans_stats: self.field_status("loans_stats", &self.loans_stats),
             swap_config: self.field_status("swap_config", &self.swap_config),
             lease_configs: self.field_status("lease_configs", &self.lease_configs),
+            gas_fee_config: self.field_status("gas_fee_config", &self.gas_fee_config),
         }
     }
 
@@ -244,4 +251,5 @@ pub struct CacheStatusSummary {
     pub loans_stats: CacheFieldStatus,
     pub swap_config: CacheFieldStatus,
     pub lease_configs: CacheFieldStatus,
+    pub gas_fee_config: CacheFieldStatus,
 }

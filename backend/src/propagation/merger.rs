@@ -42,6 +42,8 @@ pub struct MergedNetwork {
     /// Transaction estimation time
     #[serde(skip_serializing_if = "Option::is_none")]
     pub estimation: Option<u32>,
+    /// Gas multiplier for fee estimation
+    pub gas_multiplier: f64,
 }
 
 /// Merges ETL data with enrichment configuration
@@ -68,6 +70,7 @@ impl PropagationMerger {
                 icon: settings.icon.clone(),
                 primary_protocol: settings.primary_protocol.clone(),
                 estimation: settings.estimation,
+                gas_multiplier: settings.gas_multiplier,
             })
             .collect()
     }
@@ -98,6 +101,7 @@ mod tests {
                     primary_protocol: Some("OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()),
                     estimation: Some(6),
                     forward: None,
+                    gas_multiplier: 3.5,
                     swap_venue: None,
                     pools: HashMap::new(),
                 },

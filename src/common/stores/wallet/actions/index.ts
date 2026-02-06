@@ -6,7 +6,6 @@ import { connectLedger } from "./connectLedger";
 import { disconnect } from "./disconnect";
 import { loadApr } from "./loadApr";
 import { loadVestedTokens } from "./loadVestedTokens";
-import { loadWalletName } from "./loadWalletName";
 import { ignoreAssets } from "./ignoreAssets";
 import { connectPhantom } from "./connectPhantom";
 import { connectSolflare } from "./connectSolflare";
@@ -19,7 +18,6 @@ export const actions = {
   [WalletActions.CONNECT_EVM_PHANTOM]: connectPhantom,
   [WalletActions.CONNECT_SOL_SOLFLARE]: connectSolflare,
   [WalletActions.LOAD_VESTED_TOKENS]: loadVestedTokens,
-  [WalletActions.LOAD_WALLET_NAME]: loadWalletName,
   [WalletActions.LOAD_APR]: loadApr,
   ignoreAssets
 };

@@ -138,7 +138,7 @@ When a user connects or switches wallets, all user-specific stores must be re-in
 
 | Source | When | Handler |
 |--------|------|---------|
-| `view.vue` event listeners | User switches wallet in browser extension (Keplr/Leap) | `updateKeplr()` / `updateLeap()` → `wallet.CONNECT_KEPLR()` → `connectionStore.connectWallet()` |
+| `view.vue` event listeners | User switches wallet in browser extension (Keplr/Leap) | `createKeystoreHandler()` factory → `wallet.CONNECT_KEPLR()`/`CONNECT_LEAP()` → `connectionStore.connectWallet()` |
 | `entry-client.ts` watcher | Initial page load auto-reconnect (walletOperation restores session) | Watches `walletStore.wallet?.address` → `connectionStore.connectWallet()` |
 
 ### Deduplication
@@ -149,7 +149,8 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 
 - **Event listener registration**: The `configStore.initialized` watcher in `view.vue` uses `{ immediate: true }` — critical because `initialized` may already be `true` when the component mounts. Without `immediate`, the watcher callback never fires and event listeners are never registered.
 - **No component-level wallet watchers**: Individual page components (`Leases.vue`, `DashboardLeases.vue`, etc.) do NOT watch wallet changes. All store coordination happens exclusively through `connectionStore.connectWallet()`. Components like `DashboardRewards.vue`, `UndelegateForm.vue`, and `stake/view.vue` rely on `connectionStore` — they do NOT have their own wallet watchers to call `stakingStore.setAddress()` or `stakingStore.fetchPositions()`.
-- **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts`, `connectPhantom.ts`, `connectSolFlare.ts`) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly — that's `connectionStore`'s responsibility.
+- **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts`, `connectPhantom.ts`, `connectSolflare.ts`) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly — that's `connectionStore`'s responsibility. Keplr and Leap share logic via `connectKeplrLike.ts`; each is a thin wrapper passing the extension getter and mechanism.
+- **NolusWallet overrides**: All connect actions call `applyNolusWalletOverrides(wallet)` after creating the wallet instance, which patches `gasPrices()`, `simulateTx()`, `simulateMultiTx()`, and `getGasInfo()` to use backend-cached gas config instead of querying the chain directly.
 - **Disconnect flow**: `Disconnect.vue` calls both `wallet[WalletActions.DISCONNECT]()` (clears wallet state) and `connectionStore.disconnectWallet()` (clears all user-specific stores: balances, leases, staking, earn, analytics, history).
 - **Price polling ownership**: Price polling is handled exclusively by `pricesStore.startPolling()` (called during `pricesStore.initialize()`). `view.vue` does NOT have its own price polling interval — it only manages balance polling. This avoids duplicate price fetches.
 - **Balance polling**: `view.vue` manages a balance polling interval via `startBalancePolling()`, called when `configStore.initialized` becomes true.
@@ -162,7 +163,9 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 | `src/modules/view.vue` | Registers `keplr_keystorechange` / `leap_keystorechange` event listeners, manages balance polling |
 | `src/entry-client.ts` | Watches `walletStore.wallet?.address` for initial page load reconnect |
 | `src/common/stores/connection/index.ts` | `connectWallet()` / `disconnectWallet()` — coordinates all user-specific stores |
-| `src/common/stores/wallet/actions/connect*.ts` | Set wallet state only (no direct store calls) |
+| `src/common/stores/wallet/actions/connectKeplrLike.ts` | Shared Keplr/Leap connect logic |
+| `src/common/stores/wallet/actions/connect*.ts` | Set wallet state + apply NolusWallet overrides (no direct store calls) |
+| `src/networks/cosm/NolusWalletOverride.ts` | Patches NolusWallet to use backend-cached gas config |
 | `src/common/components/auth/Disconnect.vue` | Calls `connectionStore.disconnectWallet()` on user disconnect |
 
 ---
@@ -1186,21 +1189,7 @@ Controls min/max downpayment amounts per protocol and asset. Served via `GET /ap
 }
 ```
 
-**Config file:** `backend/config/lease/ignore-lease-long-assets.json`
-
-Assets that cannot be used for long positions:
-
-```json
-["USDC", "USDC_AXELAR", "ST_ATOM", "TIA"]
-```
-
-**Config file:** `backend/config/lease/free-interest-assets.json`
-
-Assets with zero interest promotions:
-
-```json
-["ALL_BTC@OSMOSIS-OSMOSIS-USDC_NOBLE", "USDC_NOBLE@OSMOSIS-OSMOSIS-ALL_BTC"]
-```
+Asset restrictions (ignore_long, ignore_short, free_interest) are configured in `backend/config/gated/lease-rules.json` under the `asset_restrictions` section. See [Gated Propagation Data Flow](#2-gated-propagation-data-flow) for details.
 
 ### Frontend PnL Calculation
 

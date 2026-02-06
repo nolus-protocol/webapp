@@ -56,6 +56,7 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
         refresh_prices(&state),
         refresh_gated_protocols(&state),
         refresh_gated_networks(&state),
+        refresh_gas_fee_config(&state),
     );
 
     info!("Essential data warm-up complete");
@@ -114,6 +115,9 @@ pub fn start_all(state: Arc<AppState>, event_channels: &EventChannels) {
     });
     spawn_refresh("lease_configs", state.clone(), 60, |s| {
         Box::pin(refresh_lease_configs(s))
+    });
+    spawn_refresh("gas_fee_config", state.clone(), 60, |s| {
+        Box::pin(refresh_gas_fee_config(s))
     });
 
     // Slow refresh: swap config (300s)
@@ -332,6 +336,7 @@ pub async fn refresh_app_config(state: &Arc<AppState>) {
                 estimation: settings.estimation,
                 primary_protocol: settings.primary_protocol.clone(),
                 forward: settings.forward,
+                gas_multiplier: settings.gas_multiplier,
             }
         })
         .collect();
@@ -868,6 +873,7 @@ pub async fn refresh_gated_networks(state: &Arc<AppState>) {
             icon: n.icon,
             primary_protocol: n.primary_protocol,
             estimation: n.estimation,
+            gas_multiplier: n.gas_multiplier,
         })
         .collect();
 
@@ -1142,6 +1148,57 @@ pub async fn refresh_lease_configs(state: &Arc<AppState>) {
     if !configs.is_empty() {
         state.data_cache.lease_configs.store(configs);
     }
+}
+
+/// Refresh gas fee config from chain tax module + gated network config
+pub async fn refresh_gas_fee_config(state: &Arc<AppState>) {
+    let gated = match state.data_cache.gated_config.load() {
+        Some(g) => g,
+        None => {
+            warn!("Cannot refresh gas_fee_config: gated_config not loaded");
+            return;
+        }
+    };
+
+    let tax_params = match state.chain_client.get_tax_params().await {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("Failed to refresh gas_fee_config: {}", e);
+            return;
+        }
+    };
+
+    let mut gas_prices = std::collections::HashMap::new();
+
+    // Flatten all accepted denoms from tax module params
+    for dex_fee in &tax_params.params.dex_fee_params {
+        for denom_price in &dex_fee.accepted_denoms_min_prices {
+            gas_prices.insert(denom_price.denom.clone(), denom_price.min_price.clone());
+        }
+    }
+
+    // Always include unls as fallback (matching NolusWallet behavior)
+    gas_prices
+        .entry("unls".to_string())
+        .or_insert_with(|| "0.0025".to_string());
+
+    // Gas multiplier from gated network config for NOLUS (single source of truth)
+    let gas_multiplier = gated
+        .network_config
+        .networks
+        .get("NOLUS")
+        .map(|n| n.gas_multiplier)
+        .unwrap_or_else(|| {
+            warn!("NOLUS network not found in gated config, gas_multiplier unavailable");
+            3.5
+        });
+
+    let config = crate::handlers::fees::GasFeeConfigResponse {
+        gas_prices,
+        gas_multiplier,
+    };
+
+    state.data_cache.gas_fee_config.store(config);
 }
 
 // ============================================================================

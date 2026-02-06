@@ -156,9 +156,10 @@
       "ST_OSMO",
       "AKT",
       "INJ",
-      "AXL"
+      "AXL",
+      "ALL_BTC"
     ],
-    "ignore_short": ["NLS", "ST_ATOM", "AKT", "ALL_SOL"],
+    "ignore_short": ["NLS", "ST_ATOM", "AKT", "ALL_SOL", "ALL_BTC"],
     "free_interest": []
   }
 }

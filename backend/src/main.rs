@@ -457,6 +457,8 @@ fn create_router(state: Arc<AppState>) -> Router {
             "/node/status",
             get(handlers::governance::get_network_status),
         )
+        // Fees
+        .route("/fees/gas-config", get(handlers::fees::get_gas_fee_config))
         // Gated Propagation API - Assets (deduplicated view)
         .route("/assets", get(handlers::gated_assets::get_assets))
         .route("/assets/{ticker}", get(handlers::gated_assets::get_asset))

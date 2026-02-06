@@ -57,12 +57,23 @@
         <div
           v-if="pnlStatus"
           :class="pnlStatus?.positive ? 'text-typography-success' : 'text-typography-error'"
-          class="flex gap-1 text-14 font-normal"
+          class="flex items-center gap-1 text-14 font-normal"
         >
+          <div
+            v-if="pnlStatus?.badge && !pnlStatus.badge.base"
+            class="flex w-[20px] items-center justify-center rounded p-0.5"
+            :class="pnlStatus.positive ? '!bg-success-muted' : '!bg-error-muted'"
+          >
+            <SvgIcon
+              name="arrow"
+              size="xs"
+              :class="pnlStatus.positive ? 'fill-icon-success' : 'rotate-180 fill-icon-error'"
+            />
+          </div>
           <Badge
+            v-else-if="pnlStatus?.badge"
             class="!w-[20px]"
-            v-if="pnlStatus?.badge"
-            v-bind="pnlStatus?.badge"
+            v-bind="pnlStatus.badge"
           />
           {{ pnlStatus?.value }}
         </div>

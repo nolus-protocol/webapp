@@ -151,7 +151,7 @@ export interface NetworkInfo {
   forward?: boolean;
   chain_type: string;
   icon: string;
-  gas_multiplier?: number;
+  gas_multiplier: number;
   fees_transfer?: number;
   native_currency_name?: string;
   native_currency_symbol?: string;
@@ -168,6 +168,15 @@ export interface NativeAssetInfo {
 export interface ContractsInfo {
   admin: string;
   dispatcher: string;
+}
+
+/**
+ * Gas fee configuration from /api/fees/gas-config
+ * Contains accepted fee denoms with min gas prices and the gas multiplier.
+ */
+export interface GasFeeConfigResponse {
+  gas_prices: { [denom: string]: string };
+  gas_multiplier: number;
 }
 
 /**

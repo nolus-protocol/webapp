@@ -11,6 +11,7 @@ import { LedgerName } from "@/config/global";
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import { IntercomService } from "@/common/utils/IntercomService";
+import { applyNolusWalletOverrides } from "@/networks/cosm/NolusWalletOverride";
 
 export async function connectLedger(this: Store, payload: { isBluetooth?: boolean } = {}) {
   let breakLoop = false;
@@ -41,6 +42,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
 
       await ledgerWallet.useAccount();
       this.wallet = ledgerWallet;
+      applyNolusWalletOverrides(this.wallet);
 
       WalletManager.saveWalletConnectMechanism(
         payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER

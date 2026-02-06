@@ -43,8 +43,6 @@ const configStore = useConfigStore();
 const connectionStore = useConnectionStore();
 const earnStore = useEarnStore();
 
-const showErrorDialog = ref(false);
-const errorMessage = ref("");
 const mobileMenu = ref<typeof MobileMenu | null>(null);
 
 watch(
@@ -70,42 +68,29 @@ onUnmounted(() => {
   window.removeEventListener("leap_keystorechange", updateLeap);
 });
 
-async function updateKeplr() {
-  try {
-    IntercomService.getInstance().disconnect();
-    await wallet.CONNECT_KEPLR();
-    if (wallet.wallet?.address) {
-      await connectionStore.connectWallet(wallet.wallet.address);
+function createKeystoreHandler(connectAction: () => Promise<void>) {
+  return async () => {
+    try {
+      IntercomService.getInstance().disconnect();
+      await connectAction();
+      if (wallet.wallet?.address) {
+        await connectionStore.connectWallet(wallet.wallet.address);
+      }
+      await loadNetwork();
+    } catch (error: Error | any) {
+      Logger.error(error);
     }
-    await loadNetwork();
-  } catch (error: Error | any) {
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
-  }
+  };
 }
 
-async function updateLeap() {
-  try {
-    IntercomService.getInstance().disconnect();
-    await wallet.CONNECT_LEAP();
-    if (wallet.wallet?.address) {
-      await connectionStore.connectWallet(wallet.wallet.address);
-    }
-    await loadNetwork();
-  } catch (error: Error | any) {
-    Logger.error(error);
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
-  }
-}
+const updateKeplr = createKeystoreHandler(() => wallet.CONNECT_KEPLR());
+const updateLeap = createKeystoreHandler(() => wallet.CONNECT_LEAP());
 
 async function loadNetwork() {
   try {
     await Promise.all([wallet.LOAD_APR(), earnStore.fetchPools()]);
   } catch (error: Error | any) {
     Logger.error(error);
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
   }
 }
 
@@ -117,8 +102,7 @@ function startBalancePolling() {
         await balancesStore.fetchBalances();
       }
     } catch (error: Error | any) {
-      showErrorDialog.value = true;
-      errorMessage.value = error?.message;
+      Logger.error(error);
     }
   }, UPDATE_BALANCE_INTERVAL);
 }

@@ -7,6 +7,7 @@ import { Buffer } from "buffer";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { SolanaWallet } from "@/networks/sol";
 import { SolflareName } from "@/config/global";
+import { applyNolusWalletOverrides } from "@/networks/cosm/NolusWalletOverride";
 
 export async function connectSolflare(this: Store) {
   const sol = new SolanaWallet();
@@ -20,6 +21,7 @@ export async function connectSolflare(this: Store) {
   WalletManager.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
 
   this.wallet = nolusWalletOfflineSigner;
+  applyNolusWalletOverrides(this.wallet);
   this.walletName = SolflareName;
 
   IntercomService.load(this.wallet.address, "solflare");

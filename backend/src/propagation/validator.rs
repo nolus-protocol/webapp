@@ -220,6 +220,7 @@ mod tests {
                     primary_protocol: None,
                     estimation: None,
                     forward: None,
+                    gas_multiplier: 3.5,
                     swap_venue: None,
                     pools: HashMap::new(),
                 },

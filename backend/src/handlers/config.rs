@@ -77,6 +77,8 @@ pub struct NetworkInfo {
     pub primary_protocol: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub forward: Option<bool>,
+    /// Gas multiplier for fee estimation
+    pub gas_multiplier: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

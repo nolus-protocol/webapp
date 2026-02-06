@@ -188,7 +188,8 @@ watch(
     });
 
     quorum.value = props.quorumTokens.mul(new Dec(100)).toString(2);
-  }
+  },
+  { immediate: true }
 );
 
 watch(
@@ -206,7 +207,8 @@ watch(
     }
 
     turnout.value = tally.quo(props.bondedTokens).mul(new Dec(100)).toString(2);
-  }
+  },
+  { immediate: true }
 );
 
 async function onVote(vote: VoteOption) {
