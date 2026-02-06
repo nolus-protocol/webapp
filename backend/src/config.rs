@@ -55,7 +55,6 @@ impl ValidationResult {
 pub struct AppConfig {
     pub server: ServerConfig,
     pub external: ExternalApiConfig,
-    pub external_apis: ExternalApiConfig, // Alias for external
     pub cache: CacheConfig,
     pub admin: AdminConfig,
     pub protocols: ProtocolsConfig,
@@ -380,7 +379,6 @@ impl AppConfig {
                     .parse()
                     .expect("PORT must be a number"),
             },
-            external_apis: external.clone(),
             external,
             cache: CacheConfig {
                 // Prices: 15s default (high volatility)
@@ -457,7 +455,6 @@ mod tests {
                 intercom_app_id: "test".to_string(),
                 intercom_secret_key: String::new(),
             },
-            external_apis: ExternalApiConfig::default(),
             cache: CacheConfig::default(),
             admin: AdminConfig::default(),
             protocols: ProtocolsConfig::default(),

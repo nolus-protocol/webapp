@@ -187,8 +187,14 @@ mod tests {
     #[test]
     fn test_cache_duration_no_cache_referral() {
         assert_eq!(determine_cache_duration("/api/referral/stats/nolus1abc"), 0);
-        assert_eq!(determine_cache_duration("/api/referral/rewards/nolus1abc"), 0);
-        assert_eq!(determine_cache_duration("/api/referral/referrals/nolus1abc"), 0);
+        assert_eq!(
+            determine_cache_duration("/api/referral/rewards/nolus1abc"),
+            0
+        );
+        assert_eq!(
+            determine_cache_duration("/api/referral/referrals/nolus1abc"),
+            0
+        );
     }
 
     #[test]
@@ -199,8 +205,14 @@ mod tests {
 
     #[test]
     fn test_cache_duration_no_cache_zero_interest_user_data() {
-        assert_eq!(determine_cache_duration("/api/zero-interest/eligibility"), 0);
-        assert_eq!(determine_cache_duration("/api/zero-interest/payments/by-owner/nolus1abc"), 0);
+        assert_eq!(
+            determine_cache_duration("/api/zero-interest/eligibility"),
+            0
+        );
+        assert_eq!(
+            determine_cache_duration("/api/zero-interest/payments/by-owner/nolus1abc"),
+            0
+        );
         assert_eq!(determine_cache_duration("/api/campaigns/eligibility"), 0);
     }
 

@@ -19,10 +19,21 @@ use std::{
     collections::HashMap,
     net::{IpAddr, SocketAddr},
     num::NonZeroU32,
-    sync::Arc,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc, OnceLock,
+    },
+    time::{Duration, Instant},
 };
 use tokio::sync::RwLock;
-use tracing::warn;
+use tracing::{debug, warn};
+
+/// Monotonic epoch for converting `Instant` to/from `AtomicU64`.
+/// Using a process-level epoch avoids overflow for any reasonable uptime.
+fn epoch() -> Instant {
+    static EPOCH: OnceLock<Instant> = OnceLock::new();
+    *EPOCH.get_or_init(Instant::now)
+}
 
 /// Configuration for rate limiting
 #[derive(Debug, Clone)]
@@ -51,11 +62,40 @@ impl Default for RateLimitConfig {
 /// Type alias for the rate limiter type to reduce complexity
 type IpRateLimiter = Arc<RateLimiter<NotKeyed, InMemoryState, DefaultClock>>;
 
+/// Per-IP entry: token-bucket limiter + atomic last-access timestamp.
+/// The timestamp is stored as milliseconds since process epoch so it can be
+/// updated with a single atomic store (no write lock needed on the hot path).
+struct IpEntry {
+    limiter: IpRateLimiter,
+    last_access_ms: AtomicU64,
+}
+
+impl IpEntry {
+    fn new(limiter: IpRateLimiter) -> Self {
+        let ms = epoch().elapsed().as_millis() as u64;
+        Self {
+            limiter,
+            last_access_ms: AtomicU64::new(ms),
+        }
+    }
+
+    fn touch(&self) {
+        let ms = epoch().elapsed().as_millis() as u64;
+        self.last_access_ms.store(ms, Ordering::Relaxed);
+    }
+
+    fn last_access(&self) -> Duration {
+        Duration::from_millis(self.last_access_ms.load(Ordering::Relaxed))
+    }
+}
+
 /// Rate limiter state shared across requests
 pub struct RateLimitState {
     config: RateLimitConfig,
-    /// Per-IP rate limiters
-    limiters: RwLock<HashMap<IpAddr, IpRateLimiter>>,
+    /// Per-IP rate limiters with atomic last-access timestamps.
+    /// Read lock: check existing limiter + atomic timestamp update (hot path).
+    /// Write lock: insert new IP or evict stale entries (cold path).
+    limiters: RwLock<HashMap<IpAddr, Arc<IpEntry>>>,
 }
 
 impl RateLimitState {
@@ -66,46 +106,81 @@ impl RateLimitState {
         }
     }
 
-    /// Check if the given IP is rate limited
+    /// Check if the given IP is rate limited.
+    /// Hot path (known IP): read lock only + atomic store.
     pub async fn check_rate_limit(&self, ip: IpAddr) -> bool {
         if !self.config.enabled {
             return true;
         }
 
-        // Check whitelist
         if self.config.whitelist.contains(&ip) {
             return true;
         }
 
-        // Get or create limiter for this IP
-        let limiter = {
+        // Fast path: read lock for known IPs
+        let entry = {
             let limiters = self.limiters.read().await;
-            if let Some(limiter) = limiters.get(&ip) {
-                limiter.clone()
-            } else {
-                drop(limiters);
-                let mut limiters = self.limiters.write().await;
-
-                // Double-check after acquiring write lock
-                if let Some(limiter) = limiters.get(&ip) {
-                    limiter.clone()
-                } else {
-                    let quota = Quota::per_second(
-                        NonZeroU32::new(self.config.requests_per_second).unwrap_or(NonZeroU32::MIN),
-                    )
-                    .allow_burst(
-                        NonZeroU32::new(self.config.burst_size).unwrap_or(NonZeroU32::MIN),
-                    );
-
-                    let limiter = Arc::new(RateLimiter::direct(quota));
-                    limiters.insert(ip, limiter.clone());
-                    limiter
-                }
-            }
+            limiters.get(&ip).cloned()
         };
 
-        limiter.check().is_ok()
+        if let Some(entry) = entry {
+            entry.touch();
+            return entry.limiter.check().is_ok();
+        }
+
+        // Slow path: write lock for new IPs
+        let mut limiters = self.limiters.write().await;
+
+        // Double-check after acquiring write lock
+        if let Some(entry) = limiters.get(&ip) {
+            entry.touch();
+            return entry.limiter.check().is_ok();
+        }
+
+        let quota = Quota::per_second(
+            NonZeroU32::new(self.config.requests_per_second).unwrap_or(NonZeroU32::MIN),
+        )
+        .allow_burst(NonZeroU32::new(self.config.burst_size).unwrap_or(NonZeroU32::MIN));
+
+        let limiter = Arc::new(RateLimiter::direct(quota));
+        let result = limiter.check().is_ok();
+        limiters.insert(ip, Arc::new(IpEntry::new(limiter)));
+        result
     }
+
+    /// Remove entries that haven't been accessed within `max_age`
+    pub async fn cleanup_stale(&self, max_age: Duration) {
+        let now = epoch().elapsed();
+        let max_age_ms = max_age.as_millis() as u64;
+        let mut limiters = self.limiters.write().await;
+        let before = limiters.len();
+        limiters.retain(|_, entry| {
+            let age_ms = now
+                .as_millis()
+                .saturating_sub(entry.last_access().as_millis()) as u64;
+            age_ms < max_age_ms
+        });
+        let removed = before - limiters.len();
+        if removed > 0 {
+            debug!(
+                "Rate limiter cleanup: removed {} stale entries, {} remaining",
+                removed,
+                limiters.len()
+            );
+        }
+    }
+}
+
+/// Start a background task that periodically evicts stale rate limiter entries
+pub fn start_cleanup_task(state: Arc<RateLimitState>) {
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(300)); // 5 minutes
+        let max_age = Duration::from_secs(600); // 10 minutes
+        loop {
+            interval.tick().await;
+            state.cleanup_stale(max_age).await;
+        }
+    });
 }
 
 /// Extract client IP from request
@@ -349,5 +424,62 @@ mod tests {
         let cloned = config.clone();
         assert_eq!(cloned.requests_per_second, 5);
         assert_eq!(cloned.whitelist.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_cleanup_stale_evicts_old_entries() {
+        let config = RateLimitConfig {
+            requests_per_second: 10,
+            burst_size: 10,
+            enabled: true,
+            whitelist: vec![],
+        };
+        let state = RateLimitState::new(config);
+
+        let ip1: IpAddr = Ipv4Addr::new(10, 0, 0, 1).into();
+        let ip2: IpAddr = Ipv4Addr::new(10, 0, 0, 2).into();
+
+        // Create entries for both IPs
+        state.check_rate_limit(ip1).await;
+        state.check_rate_limit(ip2).await;
+        assert_eq!(state.limiters.read().await.len(), 2);
+
+        // Cleanup with zero max age evicts everything
+        state.cleanup_stale(Duration::ZERO).await;
+        assert_eq!(state.limiters.read().await.len(), 0);
+
+        // Re-create ip2 only, then touch ip1 so it's fresh
+        state.check_rate_limit(ip1).await;
+        // Small sleep so ip1 ages a tiny bit, then add ip2 which is newer
+        tokio::time::sleep(tokio::time::Duration::from_millis(20)).await;
+        state.check_rate_limit(ip2).await;
+        assert_eq!(state.limiters.read().await.len(), 2);
+
+        // Cleanup with 10ms max age — ip1 (>20ms old) should be evicted, ip2 (fresh) kept
+        state.cleanup_stale(Duration::from_millis(10)).await;
+
+        let limiters = state.limiters.read().await;
+        assert_eq!(limiters.len(), 1);
+        assert!(limiters.contains_key(&ip2));
+        assert!(!limiters.contains_key(&ip1));
+    }
+
+    #[tokio::test]
+    async fn test_cleanup_keeps_fresh_entries() {
+        let config = RateLimitConfig {
+            requests_per_second: 10,
+            burst_size: 10,
+            enabled: true,
+            whitelist: vec![],
+        };
+        let state = RateLimitState::new(config);
+
+        let ip: IpAddr = Ipv4Addr::new(10, 0, 0, 1).into();
+        state.check_rate_limit(ip).await;
+
+        // Cleanup with a generous max age — entry should survive
+        state.cleanup_stale(Duration::from_secs(600)).await;
+
+        assert_eq!(state.limiters.read().await.len(), 1);
     }
 }

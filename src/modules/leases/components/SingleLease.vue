@@ -213,7 +213,7 @@ const isInProgress = computed(() => {
   if (lease.value?.status === "closing") return true;
   const type = displayData.value?.inProgressType;
   if (!type) return false;
-  return type === "close" || type === "liquidation";
+  return type !== "opening"; // All non-opening in-progress types show loading
 });
 
 interface InProgressBanner {
@@ -238,6 +238,13 @@ const inProgressBanner = computed<InProgressBanner | null>(() => {
     return {
       titleKey: "message.repaid-title",
       descriptionKey: "message.repaid-description"
+    };
+  }
+
+  if (type === "slippage_protection") {
+    return {
+      titleKey: "message.slippage-protection-title",
+      descriptionKey: "message.slippage-protection-description"
     };
   }
 

@@ -271,25 +271,13 @@ impl EtlClient {
 // ---- Protocols ----
 
 /// Protocol contracts from ETL API
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EtlProtocolContracts {
     pub leaser: Option<String>,
     pub lpp: Option<String>,
     pub oracle: Option<String>,
     pub profit: Option<String>,
     pub reserve: Option<String>,
-}
-
-impl Default for EtlProtocolContracts {
-    fn default() -> Self {
-        Self {
-            leaser: None,
-            lpp: None,
-            oracle: None,
-            profit: None,
-            reserve: None,
-        }
-    }
 }
 
 /// Protocol from ETL API

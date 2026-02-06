@@ -344,10 +344,16 @@ pub async fn get_staking_params(
         state.config.external.nolus_rest_url
     );
 
-    let response = reqwest::get(&url).await.map_err(|e| AppError::ChainRpc {
-        chain: "nolus".to_string(),
-        message: format!("Failed to get staking params: {}", e),
-    })?;
+    let response = state
+        .chain_client
+        .client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| AppError::ChainRpc {
+            chain: "nolus".to_string(),
+            message: format!("Failed to get staking params: {}", e),
+        })?;
 
     if !response.status().is_success() {
         return Err(AppError::ChainRpc {

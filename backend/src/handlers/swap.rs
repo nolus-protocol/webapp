@@ -13,6 +13,8 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use crate::external::base_client::ExternalApiClient;
 use std::sync::Arc;
 use tracing::debug;
 

@@ -58,7 +58,7 @@ export interface LeaseDisplayData {
   fee: Dec;
   repaymentValue: Dec;
   // In progress status
-  inProgressType: "opening" | "repayment" | "close" | "liquidation" | null;
+  inProgressType: "opening" | "repayment" | "close" | "liquidation" | "slippage_protection" | null;
   // Asset amounts
   unitAsset: Dec;
   stableAsset: Dec;
@@ -397,7 +397,7 @@ export class LeaseCalculator {
   /**
    * Parse in progress type from lease
    */
-  parseInProgressType(lease: LeaseInfo): "opening" | "repayment" | "close" | "liquidation" | null {
+  parseInProgressType(lease: LeaseInfo): "opening" | "repayment" | "close" | "liquidation" | "slippage_protection" | null {
     if (!lease.in_progress) {
       return null;
     }
@@ -406,6 +406,7 @@ export class LeaseCalculator {
     if ("repayment" in lease.in_progress) return "repayment";
     if ("close" in lease.in_progress) return "close";
     if ("liquidation" in lease.in_progress) return "liquidation";
+    if ("slippage_protection" in lease.in_progress) return "slippage_protection";
 
     return null;
   }

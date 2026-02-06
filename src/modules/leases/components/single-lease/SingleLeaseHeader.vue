@@ -96,23 +96,25 @@
         :label="$t('message.repay')"
         severity="secondary"
         size="medium"
+        :disabled="!!openedSubState"
         @click="
           router.push({
             path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.REPAY}`
           })
         "
-        v-if="TEMPLATES.opened == status && !openedSubState"
+        v-if="TEMPLATES.opened == status"
       />
       <Button
         :label="$t('message.close')"
         severity="primary"
         size="medium"
+        :disabled="!!openedSubState"
         @click="
           router.push({
             path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.CLOSE}`
           })
         "
-        v-if="TEMPLATES.opened == status && !openedSubState"
+        v-if="TEMPLATES.opened == status"
       />
     </div>
     <SharePnLDialog ref="sharePnlDialog" />

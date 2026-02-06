@@ -20,7 +20,7 @@ const MAX_CONCURRENT_CHAIN_QUERIES: usize = 12;
 #[derive(Clone)]
 pub struct ChainClient {
     rest_url: String,
-    client: Client,
+    pub client: Client,
     query_semaphore: Arc<Semaphore>,
 }
 

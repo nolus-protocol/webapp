@@ -68,7 +68,7 @@ pub async fn get_enriched_transactions(
 
     let enriched: Vec<serde_json::Value> = raw_txs
         .into_iter()
-        .filter(|tx| is_user_transaction(tx))
+        .filter(is_user_transaction)
         .map(|tx| enrich_transaction(tx, &user_address))
         .collect();
 

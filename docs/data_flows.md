@@ -82,13 +82,31 @@ The Nolus Webapp follows a **Backend-for-Frontend (BFF)** pattern where all data
 
 | Layer | Location | Purpose |
 |-------|----------|---------|
-| **External → Backend** | `backend/src/external/*.rs` | Fetch raw data from external APIs |
+| **External → Backend** | `backend/src/external/*.rs` | Fetch raw data from external APIs via shared `reqwest::Client` connection pool |
 | **Backend Handlers** | `backend/src/handlers/*.rs` | Transform, merge, enrich data (16 handlers) |
 | **Backend Cache** | `backend/src/data_cache.rs` | Lock-free Cached<T> values refreshed by background tasks (event-driven + timer-based) |
 | **Backend → Frontend** | REST API responses | Serialize to JSON |
 | **Frontend API Client** | `src/common/api/BackendApi.ts` | Transform response to store-friendly format |
 | **Frontend Stores** | `src/common/stores/*/index.ts` | State management, computed values |
 | **Stores → Components** | Vue computed properties | Display formatting |
+
+### External API Client Architecture
+
+All external API clients share a **single `reqwest::Client`** connection pool, created once in `main.rs` with `pool_max_idle_per_host(32)`, `pool_idle_timeout(90s)`, `tcp_keepalive(60s)`. This avoids redundant connection pools and enables TCP connection reuse across all outbound HTTP calls.
+
+Clients implement the **`ExternalApiClient` trait** (`backend/src/external/base_client.rs`), which provides:
+- Standardized `get()`, `post()`, `get_with_query()` methods with consistent error handling
+- Bearer token authentication (optional per client)
+- URL building from `base_url()` + endpoint path
+- Response status checking and JSON parsing
+
+| Client | Trait Impl | Auth | Notes |
+|--------|-----------|------|-------|
+| `ReferralClient` | Yes | Bearer token | Standard trait usage |
+| `ZeroInterestClient` | Yes | Bearer token | DELETE method uses `client()` directly |
+| `SkipClient` | Yes | Raw `authorization` header | Custom `auth()` helper (not Bearer prefix) |
+| `EtlClient` | Yes | None | Standard trait usage |
+| `ChainClient` | No | None | CosmWasm queries + LCD REST, own patterns |
 
 ---
 
@@ -1197,6 +1215,31 @@ const { pnlAmount, pnlPercent, pnlPositive } = leaseCalculator.calculatePnl(
 ```
 
 The `downpayment` value comes from the backend's `pnl.downpayment` field (sourced from ETL `ls-opening.downpayment_amount`).
+
+### Lease In-Progress State Flow
+
+Opened leases have a `status` sub-field from the chain contract that indicates the current operation state. The backend `parse_opened_status()` in `handlers/leases.rs` translates the chain's raw JSON into a typed `LeaseInProgress` enum, which the frontend receives as a discriminated union in the `in_progress` field.
+
+**Chain → Backend → Frontend flow:**
+
+```
+Chain contract status field          Backend LeaseInProgress enum       Frontend inProgressType
+──────────────────────────────       ───────────────────────────        ───────────────────────
+"idle"                            → None (field omitted)             → null
+"slippage_protection_activated"   → SlippageProtection {}            → "slippage_protection"
+{"in_progress":{"repayment":..}}  → Repayment {}                    → "repayment"
+{"in_progress":{"close":..}}      → Close {}                        → "close"
+{"in_progress":{"liquidation":..}}→ Liquidation { cause }           → "liquidation"
+```
+
+**Frontend UI behavior for in-progress states:**
+
+- `LeaseCalculator.parseInProgressType()` maps the `in_progress` discriminated union to a string type
+- `SingleLease.vue` `isInProgress` computed returns `true` for any non-opening type — shows loading skeletons on widgets
+- `SingleLease.vue` `inProgressBanner` shows a contextual banner (closing, repaying, liquidating, or MAG active)
+- `SingleLeaseHeader.vue` disables (not hides) Repay/Close buttons when any `inProgressType` is set
+- `PositionSummaryWidget.vue` disables Stop Loss/Take Profit buttons when `loading` prop is true
+- `Leases.vue` shows status text in the lease title and keeps the Details button visible
 
 ### Leases Summary Reactivity Pattern
 

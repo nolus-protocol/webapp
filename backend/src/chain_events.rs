@@ -39,6 +39,12 @@ pub struct EventChannels {
     pub contract_exec: broadcast::Sender<ContractExecEvent>,
 }
 
+impl Default for EventChannels {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EventChannels {
     pub fn new() -> Self {
         let (new_block, _) = broadcast::channel(64);
@@ -192,7 +198,7 @@ impl ChainEventClient {
         if msg
             .get("result")
             .and_then(|r| r.as_object())
-            .map_or(false, |r| r.is_empty())
+            .is_some_and(|r| r.is_empty())
         {
             debug!("Subscription confirmed: {:?}", msg.get("id"));
             return;

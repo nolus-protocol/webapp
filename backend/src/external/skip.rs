@@ -1,13 +1,30 @@
+use async_trait::async_trait;
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use crate::error::AppError;
+use crate::external::base_client::ExternalApiClient;
 
 /// Skip API client for cross-chain swap routing
 pub struct SkipClient {
     base_url: String,
     api_key: Option<String>,
     client: Client,
+}
+
+#[async_trait]
+impl ExternalApiClient for SkipClient {
+    fn api_name(&self) -> &'static str {
+        "Skip"
+    }
+
+    fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    fn client(&self) -> &Client {
+        &self.client
+    }
 }
 
 impl SkipClient {
@@ -19,9 +36,31 @@ impl SkipClient {
         }
     }
 
-    /// Get the base URL for direct API access
-    pub fn base_url(&self) -> &str {
-        &self.base_url
+    /// Attach the Skip API key as a raw `authorization` header.
+    /// Skip uses a raw API key, not a Bearer token.
+    fn auth(&self, req: reqwest::RequestBuilder) -> reqwest::RequestBuilder {
+        match &self.api_key {
+            Some(key) => req.header("authorization", key),
+            None => req,
+        }
+    }
+
+    /// GET a full URL, parse JSON response
+    async fn get_url<T: DeserializeOwned>(&self, url: &str) -> Result<T, AppError> {
+        let req = self.auth(self.client.get(url));
+        let response = req.send().await.map_err(|e| self.request_error(url, e))?;
+        self.handle_response(response, url).await
+    }
+
+    /// POST a full URL with JSON body, parse JSON response
+    async fn post_url<T: DeserializeOwned, B: Serialize + Send + Sync>(
+        &self,
+        url: &str,
+        body: &B,
+    ) -> Result<T, AppError> {
+        let req = self.auth(self.client.post(url).json(body));
+        let response = req.send().await.map_err(|e| self.request_error(url, e))?;
+        self.handle_response(response, url).await
     }
 
     /// Make a raw POST request to a URL and return JSON response
@@ -30,59 +69,12 @@ impl SkipClient {
         url: &str,
         body: &serde_json::Value,
     ) -> Result<serde_json::Value, AppError> {
-        let mut req = self.client.post(url).json(body);
-
-        if let Some(key) = &self.api_key {
-            req = req.header("authorization", key);
-        }
-
-        let response = req.send().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: e.to_string(),
-        })?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            tracing::error!("Skip API error: HTTP {} - {}", status, body);
-            return Err(AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("HTTP {}: {}", status, body),
-            });
-        }
-
-        response.json().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Failed to parse response: {}", e),
-        })
+        self.post_url(url, body).await
     }
 
     /// Make a raw GET request to a URL and return JSON response
     pub async fn get_raw(&self, url: &str) -> Result<serde_json::Value, AppError> {
-        let mut req = self.client.get(url);
-
-        if let Some(key) = &self.api_key {
-            req = req.header("authorization", key);
-        }
-
-        let response = req.send().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: e.to_string(),
-        })?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("HTTP {}: {}", status, body),
-            });
-        }
-
-        response.json().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Failed to parse response: {}", e),
-        })
+        self.get_url(url).await
     }
 
     /// Get optimal swap route
@@ -91,31 +83,7 @@ impl SkipClient {
         request: SkipRouteRequest,
     ) -> Result<SkipRouteResponse, AppError> {
         let url = format!("{}/v2/fungible/route", self.base_url);
-
-        let mut req = self.client.post(&url).json(&request);
-
-        if let Some(key) = &self.api_key {
-            req = req.header("authorization", key);
-        }
-
-        let response = req.send().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: e.to_string(),
-        })?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("HTTP {}: {}", status, body),
-            });
-        }
-
-        response.json().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Failed to parse route response: {}", e),
-        })
+        self.post_url(&url, &request).await
     }
 
     /// Get messages for a route
@@ -124,31 +92,7 @@ impl SkipClient {
         request: SkipMessagesRequest,
     ) -> Result<SkipMessagesResponse, AppError> {
         let url = format!("{}/v2/fungible/msgs_direct", self.base_url);
-
-        let mut req = self.client.post(&url).json(&request);
-
-        if let Some(key) = &self.api_key {
-            req = req.header("authorization", key);
-        }
-
-        let response = req.send().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: e.to_string(),
-        })?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("HTTP {}: {}", status, body),
-            });
-        }
-
-        response.json().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Failed to parse messages response: {}", e),
-        })
+        self.post_url(&url, &request).await
     }
 
     /// Get transaction status
@@ -161,31 +105,7 @@ impl SkipClient {
             "{}/v2/tx/status?tx_hash={}&chain_id={}",
             self.base_url, tx_hash, chain_id
         );
-
-        let mut req = self.client.get(&url);
-
-        if let Some(key) = &self.api_key {
-            req = req.header("authorization", key);
-        }
-
-        let response = req.send().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: e.to_string(),
-        })?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("HTTP {}: {}", status, body),
-            });
-        }
-
-        response.json().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Failed to parse status response: {}", e),
-        })
+        self.get_url(&url).await
     }
 
     /// Get supported chains from Skip API
@@ -198,31 +118,7 @@ impl SkipClient {
             "{}/v2/info/chains?include_evm={}&include_svm={}",
             self.base_url, include_evm, include_svm
         );
-
-        let mut req = self.client.get(&url);
-
-        if let Some(key) = &self.api_key {
-            req = req.header("authorization", key);
-        }
-
-        let response = req.send().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: e.to_string(),
-        })?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("HTTP {}: {}", status, body),
-            });
-        }
-
-        response.json().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Failed to parse chains response: {}", e),
-        })
+        self.get_url(&url).await
     }
 
     /// Track/register a transaction with Skip
@@ -232,36 +128,11 @@ impl SkipClient {
         tx_hash: &str,
     ) -> Result<SkipTrackResponse, AppError> {
         let url = format!("{}/v2/tx/track", self.base_url);
-
         let body = serde_json::json!({
             "chain_id": chain_id,
             "tx_hash": tx_hash
         });
-
-        let mut req = self.client.post(&url).json(&body);
-
-        if let Some(key) = &self.api_key {
-            req = req.header("authorization", key);
-        }
-
-        let response = req.send().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: e.to_string(),
-        })?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("HTTP {}: {}", status, body),
-            });
-        }
-
-        response.json().await.map_err(|e| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Failed to parse track response: {}", e),
-        })
+        self.post_url(&url, &body).await
     }
 }
 

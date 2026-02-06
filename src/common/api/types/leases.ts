@@ -68,7 +68,8 @@ export type LeaseInProgress =
   | { opening: { stage?: string } }
   | { repayment: Record<string, never> }
   | { close: Record<string, never> }
-  | { liquidation: { cause?: string } };
+  | { liquidation: { cause?: string } }
+  | { slippage_protection: Record<string, never> };
 
 export interface LeaseOpeningStateInfo {
   /** Currency being leased */

@@ -1,9 +1,11 @@
+use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use crate::config::AppConfig;
 use crate::error::AppError;
+use crate::external::base_client::ExternalApiClient;
 
 /// Client for the Zero Interest Payments API
 /// Requires Bearer token authentication
@@ -130,42 +132,41 @@ struct PaymentsManagerResponse<T> {
     pub data: T,
 }
 
-fn api_error(message: String) -> AppError {
-    AppError::ExternalApi {
-        api: "ZeroInterest".to_string(),
-        message,
+#[async_trait]
+impl ExternalApiClient for ZeroInterestClient {
+    fn api_name(&self) -> &'static str {
+        "ZeroInterest"
+    }
+
+    fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
+    fn client(&self) -> &Client {
+        &self.client
+    }
+
+    fn bearer_token(&self) -> Option<&str> {
+        if self.bearer_token.is_empty() {
+            None
+        } else {
+            Some(&self.bearer_token)
+        }
     }
 }
 
 impl ZeroInterestClient {
-    pub fn new(config: &AppConfig) -> Self {
+    pub fn new(config: &AppConfig, client: Client) -> Self {
         Self {
-            client: Client::new(),
-            base_url: config.external_apis.zero_interest_api_url.clone(),
-            bearer_token: config.external_apis.zero_interest_api_token.clone(),
+            client,
+            base_url: config.external.zero_interest_api_url.clone(),
+            bearer_token: config.external.zero_interest_api_token.clone(),
         }
     }
 
     /// Get zero interest configuration
     pub async fn get_config(&self) -> Result<ZeroInterestConfig, AppError> {
-        let url = format!("{}/zero-interest/config", self.base_url);
-
-        let response = self
-            .client
-            .get(&url)
-            .bearer_auth(&self.bearer_token)
-            .send()
-            .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            return Err(api_error(format!("API error: {}", response.status())));
-        }
-
-        response
-            .json()
-            .await
-            .map_err(|e| api_error(format!("Failed to parse response: {}", e)))
+        self.get("zero-interest/config").await
     }
 
     /// Check eligibility for zero interest payment
@@ -174,27 +175,11 @@ impl ZeroInterestClient {
         lease_address: &str,
         owner_address: &str,
     ) -> Result<ZeroInterestEligibility, AppError> {
-        let url = format!(
-            "{}/zero-interest/eligibility?lease={}&owner={}",
-            self.base_url, lease_address, owner_address
-        );
-
-        let response = self
-            .client
-            .get(&url)
-            .bearer_auth(&self.bearer_token)
-            .send()
-            .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            return Err(api_error(format!("API error: {}", response.status())));
-        }
-
-        response
-            .json()
-            .await
-            .map_err(|e| api_error(format!("Failed to parse response: {}", e)))
+        self.get_with_query(
+            "zero-interest/eligibility",
+            &[("lease", lease_address), ("owner", owner_address)],
+        )
+        .await
     }
 
     /// Get all zero interest payments for a user
@@ -202,24 +187,8 @@ impl ZeroInterestClient {
         &self,
         owner_address: &str,
     ) -> Result<Vec<ZeroInterestPayment>, AppError> {
-        let url = format!("{}/zero-interest/payments/{}", self.base_url, owner_address);
-
-        let response = self
-            .client
-            .get(&url)
-            .bearer_auth(&self.bearer_token)
-            .send()
-            .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            return Err(api_error(format!("API error: {}", response.status())));
-        }
-
-        response
-            .json()
-            .await
-            .map_err(|e| api_error(format!("Failed to parse response: {}", e)))
+        let endpoint = format!("zero-interest/payments/{}", owner_address);
+        self.get(&endpoint).await
     }
 
     /// Get payments for a specific lease
@@ -227,27 +196,8 @@ impl ZeroInterestClient {
         &self,
         lease_address: &str,
     ) -> Result<Vec<ZeroInterestPayment>, AppError> {
-        let url = format!(
-            "{}/zero-interest/lease/{}/payments",
-            self.base_url, lease_address
-        );
-
-        let response = self
-            .client
-            .get(&url)
-            .bearer_auth(&self.bearer_token)
-            .send()
-            .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            return Err(api_error(format!("API error: {}", response.status())));
-        }
-
-        response
-            .json()
-            .await
-            .map_err(|e| api_error(format!("Failed to parse response: {}", e)))
+        let endpoint = format!("zero-interest/lease/{}/payments", lease_address);
+        self.get(&endpoint).await
     }
 
     /// Create a new zero interest payment
@@ -255,27 +205,7 @@ impl ZeroInterestClient {
         &self,
         request: CreateZeroInterestPaymentRequest,
     ) -> Result<ZeroInterestPaymentResponse, AppError> {
-        let url = format!("{}/zero-interest/payments", self.base_url);
-
-        let response = self
-            .client
-            .post(&url)
-            .bearer_auth(&self.bearer_token)
-            .json(&request)
-            .send()
-            .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(api_error(format!("API error: {} - {}", status, body)));
-        }
-
-        response
-            .json()
-            .await
-            .map_err(|e| api_error(format!("Failed to parse response: {}", e)))
+        self.post("zero-interest/payments", &request).await
     }
 
     /// Cancel a pending zero interest payment
@@ -285,7 +215,7 @@ impl ZeroInterestClient {
         owner_address: &str,
         signature: &str,
     ) -> Result<(), AppError> {
-        let url = format!("{}/zero-interest/payments/{}", self.base_url, payment_id);
+        let url = self.build_url(&format!("zero-interest/payments/{}", payment_id));
 
         #[derive(Serialize)]
         struct CancelRequest<'a> {
@@ -293,23 +223,19 @@ impl ZeroInterestClient {
             signature: &'a str,
         }
 
-        let response = self
-            .client
-            .delete(&url)
-            .bearer_auth(&self.bearer_token)
-            .json(&CancelRequest {
-                owner_address,
-                signature,
-            })
+        let mut req = self.client.delete(&url).json(&CancelRequest {
+            owner_address,
+            signature,
+        });
+        if let Some(token) = self.bearer_token() {
+            req = req.bearer_auth(token);
+        }
+
+        let response = req
             .send()
             .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(api_error(format!("API error: {} - {}", status, body)));
-        }
+            .map_err(|e| self.request_error("cancel_payment", e))?;
+        self.check_status(response, "cancel_payment").await?;
 
         Ok(())
     }
@@ -319,29 +245,9 @@ impl ZeroInterestClient {
     // ========================================================================
 
     /// Get all currently active zero-interest campaigns
-    /// Returns campaign rules for display in the webapp
     pub async fn get_active_campaigns(&self) -> Result<ActiveCampaignsResponse, AppError> {
-        let url = format!("{}/api/v1/campaigns/active", self.base_url);
-
-        let response = self
-            .client
-            .get(&url)
-            .bearer_auth(&self.bearer_token)
-            .send()
-            .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(api_error(format!("API error: {} - {}", status, body)));
-        }
-
-        let wrapper: PaymentsManagerResponse<ActiveCampaignsResponse> = response
-            .json()
-            .await
-            .map_err(|e| api_error(format!("Failed to parse response: {}", e)))?;
-
+        let wrapper: PaymentsManagerResponse<ActiveCampaignsResponse> =
+            self.get("api/v1/campaigns/active").await?;
         Ok(wrapper.data)
     }
 
@@ -352,38 +258,17 @@ impl ZeroInterestClient {
         protocol: Option<&str>,
         currency: Option<&str>,
     ) -> Result<CampaignEligibilityResponse, AppError> {
-        let mut url = format!(
-            "{}/api/v1/campaigns/check-eligibility?wallet={}",
-            self.base_url, wallet
-        );
-
+        let mut params: Vec<(&str, &str)> = vec![("wallet", wallet)];
         if let Some(p) = protocol {
-            url.push_str(&format!("&protocol={}", p));
+            params.push(("protocol", p));
         }
         if let Some(c) = currency {
-            url.push_str(&format!("&currency={}", c));
+            params.push(("currency", c));
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .bearer_auth(&self.bearer_token)
-            .send()
-            .await
-            .map_err(|e| api_error(format!("Request failed: {}", e)))?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
-            return Err(api_error(format!("API error: {} - {}", status, body)));
-        }
-
-        let wrapper: PaymentsManagerResponse<CampaignEligibilityResponse> =
-            response
-                .json()
-                .await
-                .map_err(|e| api_error(format!("Failed to parse response: {}", e)))?;
-
+        let wrapper: PaymentsManagerResponse<CampaignEligibilityResponse> = self
+            .get_with_query("api/v1/campaigns/check-eligibility", &params)
+            .await?;
         Ok(wrapper.data)
     }
 }

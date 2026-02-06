@@ -16,7 +16,8 @@ use tracing::info;
 
 use crate::middleware::{
     admin_auth_middleware, cache_control_middleware, create_rate_limit_state,
-    rate_limit_middleware, standard_rate_limit_config, strict_rate_limit_config,
+    rate_limit_middleware, standard_rate_limit_config, start_cleanup_task,
+    strict_rate_limit_config,
 };
 
 pub mod chain_events;
@@ -29,7 +30,6 @@ mod external;
 mod handlers;
 mod http_utils;
 mod middleware;
-mod models;
 mod propagation;
 mod query_types;
 pub mod refresh;
@@ -114,8 +114,9 @@ async fn main() -> anyhow::Result<()> {
     let data_cache = data_cache::AppDataCache::new();
 
     // Initialize referral and zero interest clients
-    let referral_client = external::referral::ReferralClient::new(&config);
-    let zero_interest_client = external::zero_interest::ZeroInterestClient::new(&config);
+    let referral_client = external::referral::ReferralClient::new(&config, http_client.clone());
+    let zero_interest_client =
+        external::zero_interest::ZeroInterestClient::new(&config, http_client.clone());
 
     // Initialize WebSocket manager
     let ws_manager = WebSocketManager::new();
@@ -206,6 +207,10 @@ fn create_router(state: Arc<AppState>) -> Router {
     // Rate limiting configuration
     let standard_rate_limit = create_rate_limit_state(standard_rate_limit_config());
     let strict_rate_limit = create_rate_limit_state(strict_rate_limit_config());
+
+    // Start periodic cleanup of stale rate limiter entries
+    start_cleanup_task(standard_rate_limit.clone());
+    start_cleanup_task(strict_rate_limit.clone());
 
     // ETL proxy routes
     let etl_routes = Router::new()

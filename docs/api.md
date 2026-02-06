@@ -42,16 +42,21 @@ Most endpoints are public. Admin endpoints require authentication via `X-Admin-K
 
 ## Rate Limiting
 
-| Endpoint Type | Limit |
-|---------------|-------|
-| Read endpoints | 100 requests/minute |
-| Write endpoints | 20 requests/minute |
-| Admin endpoints | 10 requests/minute |
+Per-IP token bucket rate limiting via the `governor` crate. Each IP gets its own rate limiter on first request.
 
-Rate limit headers are included in responses:
-- `X-RateLimit-Limit`
-- `X-RateLimit-Remaining`
-- `X-RateLimit-Reset`
+| Endpoint Type | Rate | Burst |
+|---------------|------|-------|
+| Read endpoints (standard) | 20 requests/second | 50 |
+| Write endpoints (strict) | 2 requests/second | 5 |
+| Admin endpoints | Same as strict | 5 |
+
+**Implementation details:**
+- Algorithm: Token bucket (replenishes at the configured rate, allows bursts up to the burst limit)
+- Scope: Per-IP address (extracted from `ConnectInfo<SocketAddr>`)
+- Exceeded: Returns HTTP 429 with no body
+- No rate limit headers (`X-RateLimit-*`) are included in responses
+- **Eviction**: Background task runs every 5 minutes, removing IPs inactive for 10+ minutes to prevent unbounded memory growth
+- **Hot path**: Known IPs use a read lock + atomic timestamp update (no write lock contention)
 
 ---
 
@@ -452,6 +457,18 @@ Returns all leases for an owner.
 ```
 
 **Note:** The `pnl.amount` and `pnl.percent` fields are always `"0"` — the ETL `ls-opening` endpoint doesn't provide a PnL value, and the backend doesn't calculate it. PnL is computed on the frontend by `LeaseCalculator.calculatePnl()` using current asset value, debt, and the `pnl.downpayment` field.
+
+**In-progress states:** Opened leases may include an `in_progress` field indicating an ongoing operation. The backend parses the chain contract's `status` sub-field into a discriminated union:
+
+| `in_progress` variant | Description |
+|---|---|
+| `{"opening": {"stage": "..."}}` | Lease is opening (stages: `open_ica_account`, `transfer_out`, `buy_asset`) |
+| `{"repayment": {}}` | Repayment transaction in progress |
+| `{"close": {}}` | Close operation in progress |
+| `{"liquidation": {"cause": "overdue"}}` | Liquidation in progress (cause: `overdue` or `liability`) |
+| `{"slippage_protection": {}}` | Market Anomaly Guard (MAG) activated — actions blocked until resolved |
+
+When `in_progress` is present, the frontend disables Repay/Close/Stop Loss/Take Profit buttons and shows an appropriate status banner.
 
 ### GET /api/leases/:address
 

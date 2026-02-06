@@ -26,11 +26,11 @@ pub struct ReferralClient {
 }
 
 impl ReferralClient {
-    pub fn new(config: &AppConfig) -> Self {
+    pub fn new(config: &AppConfig, client: Client) -> Self {
         Self {
-            client: Client::new(),
-            base_url: config.external_apis.referral_api_url.clone(),
-            bearer_token: config.external_apis.referral_api_token.clone(),
+            client,
+            base_url: config.external.referral_api_url.clone(),
+            bearer_token: config.external.referral_api_token.clone(),
         }
     }
 

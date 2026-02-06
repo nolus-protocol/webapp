@@ -36,7 +36,7 @@ pub struct IntercomToken {
 impl IntercomClient {
     pub fn new(config: &AppConfig) -> Self {
         Self {
-            secret_key: config.external_apis.intercom_secret_key.clone(),
+            secret_key: config.external.intercom_secret_key.clone(),
         }
     }
 
@@ -105,7 +105,7 @@ mod tests {
 
     fn create_test_config() -> AppConfig {
         AppConfig {
-            external_apis: crate::config::ExternalApiConfig {
+            external: crate::config::ExternalApiConfig {
                 intercom_secret_key: "test-secret-key-for-jwt".to_string(),
                 ..Default::default()
             },
@@ -236,7 +236,7 @@ mod tests {
         assert!(client.is_configured());
 
         let empty_config = AppConfig {
-            external_apis: crate::config::ExternalApiConfig {
+            external: crate::config::ExternalApiConfig {
                 intercom_secret_key: String::new(),
                 ..Default::default()
             },
@@ -249,7 +249,7 @@ mod tests {
     #[test]
     fn test_unconfigured_client_fails() {
         let empty_config = AppConfig {
-            external_apis: crate::config::ExternalApiConfig {
+            external: crate::config::ExternalApiConfig {
                 intercom_secret_key: String::new(),
                 ..Default::default()
             },

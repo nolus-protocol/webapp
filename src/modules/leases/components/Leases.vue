@@ -328,6 +328,10 @@ function getTitle(item: LeaseInfo) {
     if (item.in_progress && "liquidation" in item.in_progress) {
       return `${i18n.t("message.liquidating")}...`;
     }
+
+    if (item.in_progress && "slippage_protection" in item.in_progress) {
+      return `${i18n.t("message.slippage-protection")}...`;
+    }
   }
 
   return `#${item.address.slice(-8)}`;
@@ -404,7 +408,7 @@ function getActions(lease: LeaseInfo, displayData: LeaseDisplayData) {
   ];
 
   if (isOpened && displayData.inProgressType) {
-    return [];
+    return [actions[0]]; // Keep Details button, hide Action menu
   }
   return actions;
 }

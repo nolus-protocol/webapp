@@ -34,15 +34,8 @@ macro_rules! etl_proxy_typed {
                     message: format!("Request failed: {}", e),
                 })?;
 
-            let json: serde_json::Value = response.json().await.map_err(|e| {
+            let typed: $response_type = response.json().await.map_err(|e| {
                 $crate::error::AppError::Internal(format!("Failed to parse ETL response: {}", e))
-            })?;
-
-            let typed: $response_type = serde_json::from_value(json).map_err(|e| {
-                $crate::error::AppError::Internal(format!(
-                    "Failed to deserialize ETL response: {}",
-                    e
-                ))
             })?;
 
             Ok(axum::Json(typed))
@@ -88,16 +81,11 @@ macro_rules! etl_proxy_typed_with_params {
                     message: format!("Request failed: {}", e),
                 })?;
 
-            let json: serde_json::Value = response
+            let typed: $response_type = response
                 .json()
                 .await
                 .map_err(|e| $crate::error::AppError::Internal(
                     format!("Failed to parse ETL response: {}", e)
-                ))?;
-
-            let typed: $response_type = serde_json::from_value(json)
-                .map_err(|e| $crate::error::AppError::Internal(
-                    format!("Failed to deserialize ETL response: {}", e)
                 ))?;
 
             Ok(axum::Json(typed))
@@ -169,16 +157,11 @@ macro_rules! etl_proxy_typed_paginated {
                     message: format!("Request failed: {}", e),
                 })?;
 
-            let json: serde_json::Value = response
+            let typed: $response_type = response
                 .json()
                 .await
                 .map_err(|e| $crate::error::AppError::Internal(
                     format!("Failed to parse ETL response: {}", e)
-                ))?;
-
-            let typed: $response_type = serde_json::from_value(json)
-                .map_err(|e| $crate::error::AppError::Internal(
-                    format!("Failed to deserialize ETL response: {}", e)
                 ))?;
 
             Ok(axum::Json(typed))

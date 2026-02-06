@@ -184,6 +184,7 @@
                 :label="stopLoss ? $t('message.edit') : $t('message.set-stop-loss')"
                 severity="secondary"
                 size="small"
+                :disabled="loading"
                 @click="
                   router.push({
                     path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.STOP_LOSS}`
@@ -196,6 +197,7 @@
                 icon="trash"
                 size="small"
                 class="ml-2 text-icon-default"
+                :disabled="loading"
                 :loading="loadingStopLoss"
                 @click="onRemoveStopLoss"
               />
@@ -222,6 +224,7 @@
                 :label="takeProfit ? $t('message.edit') : $t('message.set-take-profit')"
                 severity="secondary"
                 size="small"
+                :disabled="loading"
                 @click="
                   router.push({
                     path: `/${RouteNames.LEASES}/${lease?.address}/${SingleLeaseDialog.TAKE_PROFIT}`
@@ -234,6 +237,7 @@
                 icon="trash"
                 size="small"
                 class="ml-2 text-icon-default"
+                :disabled="loading"
                 :loading="loadingTakeProfit"
                 @click="onRemoveTakeProfit"
               />

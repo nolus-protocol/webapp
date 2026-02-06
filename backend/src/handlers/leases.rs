@@ -140,6 +140,8 @@ pub enum LeaseInProgress {
         #[serde(skip_serializing_if = "Option::is_none")]
         cause: Option<String>,
     },
+    /// Slippage protection activated — actions blocked
+    SlippageProtection {},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -999,16 +1001,18 @@ fn calculate_annual_rate(loan_rate: u32, margin_rate: u32) -> f64 {
 ///
 /// Chain format:
 ///   "idle"                           → None
-///   "slippage_protection_activated"  → None (TODO: handle if needed)
+///   "slippage_protection_activated"  → SlippageProtection
 ///   {"in_progress": {"repayment": {"payment": ..., "in_progress": "swap"}}}  → Repayment
 ///   {"in_progress": {"close": {"close": ..., "in_progress": "swap"}}}        → Close
 ///   {"in_progress": {"liquidation": {"liquidation": ..., "cause": "overdue", "in_progress": "swap"}}} → Liquidation
 fn parse_opened_status(status: &Option<serde_json::Value>) -> Option<LeaseInProgress> {
     let value = status.as_ref()?;
 
-    // "idle" or "slippage_protection_activated" — no operation in progress
-    if value.is_string() {
-        return None;
+    if let Some(s) = value.as_str() {
+        return match s {
+            "slippage_protection_activated" => Some(LeaseInProgress::SlippageProtection {}),
+            _ => None, // "idle" — no operation in progress
+        };
     }
 
     // {"in_progress": { <ongoing_trx> }}
@@ -1321,5 +1325,66 @@ mod tests {
         assert_eq!(debt.ticker, "USDC");
         assert_eq!(debt.principal, "0");
         assert_eq!(debt.total, "0");
+    }
+
+    #[test]
+    fn test_parse_opened_status_none() {
+        assert!(parse_opened_status(&None).is_none());
+    }
+
+    #[test]
+    fn test_parse_opened_status_idle() {
+        let status = Some(serde_json::json!("idle"));
+        assert!(parse_opened_status(&status).is_none());
+    }
+
+    #[test]
+    fn test_parse_opened_status_slippage_protection() {
+        let status = Some(serde_json::json!("slippage_protection_activated"));
+        let result = parse_opened_status(&status);
+        assert!(matches!(result, Some(LeaseInProgress::SlippageProtection {})));
+    }
+
+    #[test]
+    fn test_parse_opened_status_repayment() {
+        let status = Some(serde_json::json!({
+            "in_progress": {
+                "repayment": { "payment": {}, "in_progress": "swap" }
+            }
+        }));
+        let result = parse_opened_status(&status);
+        assert!(matches!(result, Some(LeaseInProgress::Repayment {})));
+    }
+
+    #[test]
+    fn test_parse_opened_status_close() {
+        let status = Some(serde_json::json!({
+            "in_progress": {
+                "close": { "close": {}, "in_progress": "swap" }
+            }
+        }));
+        let result = parse_opened_status(&status);
+        assert!(matches!(result, Some(LeaseInProgress::Close {})));
+    }
+
+    #[test]
+    fn test_parse_opened_status_liquidation() {
+        let status = Some(serde_json::json!({
+            "in_progress": {
+                "liquidation": { "liquidation": {}, "cause": "overdue", "in_progress": "swap" }
+            }
+        }));
+        let result = parse_opened_status(&status);
+        assert!(matches!(
+            result,
+            Some(LeaseInProgress::Liquidation { cause }) if cause.as_deref() == Some("overdue")
+        ));
+    }
+
+    #[test]
+    fn test_slippage_protection_serialization() {
+        let sp = LeaseInProgress::SlippageProtection {};
+        let json = serde_json::to_value(&sp).unwrap();
+        assert_eq!(json, serde_json::json!({"slippage_protection": {}}));
     }
 }
