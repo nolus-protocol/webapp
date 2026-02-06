@@ -29,6 +29,7 @@
         <Tooltip :content="amount_tooltip">
           <BigNumber
             :loading="loading"
+            loadingWidth="200px"
             :label="$t('message.lease-size')"
             :amount="{
               amount: amount,

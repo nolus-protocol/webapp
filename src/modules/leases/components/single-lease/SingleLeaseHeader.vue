@@ -64,7 +64,7 @@
               <div
                 v-if="loading"
                 class="skeleton-box rounded-[4px]"
-                :style="[{ width: '80px', height: '16px' }]"
+                :style="[{ width: '80px', height: `${16 * 1.2}px` }]"
               ></div>
               <template v-else>{{ lease?.opened_at ? formatDate(lease.opened_at) : "" }}</template>
             </span>
