@@ -71,7 +71,7 @@ onUnmounted(() => {
 function createKeystoreHandler(connectAction: () => Promise<void>) {
   return async () => {
     try {
-      IntercomService.getInstance().disconnect();
+      await IntercomService.disconnect();
       await connectAction();
       if (wallet.wallet?.address) {
         await connectionStore.connectWallet(wallet.wallet.address);
