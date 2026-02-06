@@ -12,7 +12,7 @@ export interface ValidatorInfo {
   description?: string;
   commission_rate: string;
   max_commission_rate: string;
-  max_change_rate: string;
+  max_commission_change_rate: string;
   tokens: string;
   delegator_shares: string;
   unbonding_height: string;

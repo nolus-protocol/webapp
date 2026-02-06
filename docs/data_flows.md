@@ -1429,10 +1429,35 @@ Staking data comes from the Cosmos SDK staking and distribution modules.
 ```
 
 **Transformations:**
-1. Flattened nested `description` object
-2. Flattened `commission.commission_rates`
+1. Flattened nested `description` object → `moniker`, `identity`, `website`, `details`
+2. Flattened `commission.commission_rates` → `commission_rate`, `max_commission_rate`, `max_commission_change_rate`
 3. Simplified status: `BOND_STATUS_BONDED` → `bonded`
 4. `unbonding_height` and `unbonding_time` passed through as-is
+
+### Frontend Validator Transform
+
+**Source:** `src/common/utils/NetworkUtils.ts`
+
+The frontend re-nests the flat backend format back into the Cosmos LCD structure expected by staking components. The shared `transformValidator()` helper converts every validator fetched from the backend:
+
+```typescript
+// Backend flat format:
+{ commission_rate: "0.05", max_commission_rate: "0.20", max_commission_change_rate: "0.01", moniker: "Stakecito", details: "..." }
+
+// Frontend nested format (after transformValidator):
+{
+  description: { moniker: "Stakecito", identity: "...", website: "...", details: "..." },
+  commission: { commission_rates: { rate: "0.05", max_rate: "0.20", max_change_rate: "0.01" } },
+  status: "BOND_STATUS_BONDED"  // re-expanded from "bonded"
+}
+```
+
+All three validator loading methods use this transform:
+- `loadValidators()` — bonded validators for delegation selection
+- `loadDelegatorValidators()` — user's existing validators
+- `loadValidator(address)` — single validator details
+
+**Why not change the backend?** The flat format is cleaner for API consumers. The nested format is a Cosmos SDK legacy that existing staking components (`DelegateForm`, `RedelegateButton`) depend on for sorting by `commission.commission_rates.rate`.
 
 ### Step 3: Staking Positions
 

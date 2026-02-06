@@ -8,6 +8,32 @@ import { defaultRegistryTypes } from "@cosmjs/stargate";
 import { connectComet, type ReadonlyDateWithNanoseconds, type TxSearchResponse } from "@cosmjs/tendermint-rpc";
 import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
 import { BackendApi } from "@/common/api";
+import type { ValidatorInfo } from "@/common/api/types/staking";
+
+function transformValidator(v: ValidatorInfo) {
+  return {
+    operator_address: v.operator_address,
+    consensus_pubkey: null,
+    jailed: v.jailed,
+    status: v.status === "bonded" ? "BOND_STATUS_BONDED" : v.status,
+    tokens: v.tokens,
+    delegator_shares: v.delegator_shares,
+    unbonding_time: v.unbonding_time,
+    description: {
+      moniker: v.moniker,
+      identity: v.identity,
+      website: v.website,
+      details: v.description
+    },
+    commission: {
+      commission_rates: {
+        rate: v.commission_rate,
+        max_rate: v.max_commission_rate,
+        max_change_rate: v.max_commission_change_rate
+      }
+    }
+  };
+}
 
 export class NetworkUtils {
   static async loadDelegatorValidators() {
@@ -18,12 +44,10 @@ export class NetworkUtils {
 
     try {
       const positions = await BackendApi.getStakingPositions(walletAddress);
-      // Get unique validator addresses from delegations
       const validatorAddresses = positions.delegations.map((d) => d.validator_address);
 
-      // Fetch full validator info for each
       const validators = await BackendApi.getValidators();
-      return validators.filter((v) => validatorAddresses.includes(v.operator_address));
+      return validators.filter((v) => validatorAddresses.includes(v.operator_address)).map(transformValidator);
     } catch (error) {
       Logger.error(error);
       return [];
@@ -33,29 +57,7 @@ export class NetworkUtils {
   static async loadValidators() {
     try {
       const validators = await BackendApi.getValidators("bonded");
-      // Transform to expected format
-      return validators.map((v) => ({
-        operator_address: v.operator_address,
-        consensus_pubkey: null,
-        jailed: v.jailed,
-        status: v.status === "bonded" ? "BOND_STATUS_BONDED" : v.status,
-        tokens: v.tokens,
-        delegator_shares: v.delegator_shares,
-        unbonding_time: v.unbonding_time,
-        description: {
-          moniker: v.moniker,
-          identity: v.identity,
-          website: v.website,
-          details: v.description
-        },
-        commission: {
-          commission_rates: {
-            rate: v.commission_rate,
-            max_rate: v.max_commission_rate,
-            max_change_rate: v.max_change_rate
-          }
-        }
-      }));
+      return validators.map(transformValidator);
     } catch (error) {
       Logger.error(error);
       return [];
@@ -225,30 +227,7 @@ export class NetworkUtils {
   static async loadValidator(validatorAddress: string) {
     try {
       const validator = await BackendApi.getValidator(validatorAddress);
-      // Transform to expected format
-      return {
-        validator: {
-          operator_address: validator.operator_address,
-          consensus_pubkey: null,
-          jailed: validator.jailed,
-          status: validator.status === "bonded" ? "BOND_STATUS_BONDED" : validator.status,
-          tokens: validator.tokens,
-          delegator_shares: validator.delegator_shares,
-          description: {
-            moniker: validator.moniker,
-            identity: validator.identity,
-            website: validator.website,
-            details: validator.description
-          },
-          commission: {
-            commission_rates: {
-              rate: validator.commission_rate,
-              max_rate: validator.max_commission_rate,
-              max_change_rate: validator.max_change_rate
-            }
-          }
-        }
-      };
+      return { validator: transformValidator(validator) };
     } catch (error) {
       Logger.error(error);
       return { validator: null };

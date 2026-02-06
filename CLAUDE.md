@@ -191,6 +191,10 @@ Opened leases have a `status` sub-field from the chain contract that maps to an 
 - `SingleLease.vue`: `isInProgress` returns `true` for any non-opening type (shows loading skeletons on widgets)
 - `Leases.vue`: Shows status text in title, Details button always visible, Action menu hidden
 
+### Staking Validator Format
+
+The backend returns validators in a **flat format** (`commission_rate`, `max_commission_rate`, `max_commission_change_rate`, `moniker`, `details`). Staking components (`DelegateForm`, `RedelegateButton`) expect the **nested Cosmos LCD format** (`commission.commission_rates.rate`, `description.moniker`). The shared `transformValidator()` helper in `NetworkUtils.ts` bridges the two formats. All three validator loaders — `loadValidators()`, `loadDelegatorValidators()`, `loadValidator()` — apply this transform. The `ValidatorInfo` type in `src/common/api/types/staking.ts` matches the flat backend format; the nested format is untyped (used via `any` in sort callbacks).
+
 ### Staking Post-Transaction Refresh
 
 Staking forms (`DelegateForm`, `UndelegateForm`) call `stakingStore.fetchPositions()` + `balancesStore.fetchBalances()` directly after broadcasting, then close the dialog via `router.push(/stake)`. There are no provide/inject chains for data refresh or dialog closing — each form owns its own post-tx logic. `StakingRewards` and `RedelegateButton` follow the same pattern: call store methods directly, no injected callbacks.
