@@ -145,7 +145,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -262,7 +262,7 @@ const assets = computed(() => {
       ticker: asset.ticker!,
       key: asset.key,
       stable,
-      price: `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: formatDecAsUsd(stable)
     });
   }
   return data;
@@ -271,12 +271,12 @@ const assets = computed(() => {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return `${NATIVE_CURRENCY.symbol}${formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return formatUsd(0);
   }
   const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 
 const balances = computed(() => {

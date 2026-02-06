@@ -11,9 +11,7 @@
         <template v-if="animatedReveal && !hide">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
-            :format="compact
-              ? { notation: 'compact', compactDisplay: 'short', maximumFractionDigits: 1 }
-              : { minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
+            :format="compact ? compactFormatOptions : currencyFormatOptions(maxDecimals)"
           />
         </template>
         <template v-else>
@@ -31,7 +29,7 @@
         <template v-if="animatedReveal && !hide">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
-            :format="{ minimumFractionDigits: maxDecimals, maximumFractionDigits: maxDecimals }"
+            :format="currencyFormatOptions(maxDecimals)"
           />
         </template>
         <template v-else>
@@ -50,6 +48,7 @@ import { NATIVE_CURRENCY } from "@/config/global";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { AnimateNumber } from "motion-plus-vue";
 import { Dec } from "@keplr-wallet/unit";
+import { formatNumber, formatCompact, currencyFormatOptions, compactFormatOptions } from "@/common/utils/NumberFormatUtils";
 
 export interface CurrencyComponentProps {
   type: string;
@@ -111,11 +110,7 @@ const amount = computed(() => {
       }
 
       if (props.compact) {
-        const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
-          notation: "compact",
-          compactDisplay: "short",
-          maximumFractionDigits: 1
-        }).format(Math.abs(numberAmount));
+        const formatted = formatCompact(Math.abs(numberAmount));
 
         if (props.hide) {
           return { symbol: "", denom: "", beforeDecimal: "**", afterDecimal: "**" };
@@ -129,10 +124,7 @@ const amount = computed(() => {
         };
       }
 
-      let amount = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
-        minimumFractionDigits: props.decimals ?? NATIVE_CURRENCY.minimumFractionDigits,
-        maximumFractionDigits: props.decimals ?? NATIVE_CURRENCY.maximumFractionDigits
-      }).format(Math.abs(numberAmount));
+      let amount = formatNumber(Math.abs(numberAmount), props.decimals ?? NATIVE_CURRENCY.maximumFractionDigits);
 
       let [beforeDecimal, afterDecimal] = amount.split(".");
 

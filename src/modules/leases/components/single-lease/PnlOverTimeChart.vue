@@ -29,10 +29,10 @@ import { ref, watch } from "vue";
 import { plot, line } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
 
-import { CHART_RANGES, NATIVE_CURRENCY } from "@/config/global";
+import { CHART_RANGES } from "@/config/global";
 import { useI18n } from "vue-i18n";
 import { isMobile } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
 import type { LeaseInfo } from "@/common/api";
 import { useAnalyticsStore } from "@/common/stores";
 
@@ -115,7 +115,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => `${formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`,
+      tickFormat: (d) => formatUsd(d),
       tickSize: 0
     },
     x: {
@@ -156,7 +156,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         crosshair.attr("x1", x).attr("x2", x).style("display", null);
 
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}:</strong> ${formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
+          `<strong>${i18n.t("message.amount")}:</strong> ${formatUsd(closestData.amount)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();
