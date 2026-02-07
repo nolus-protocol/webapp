@@ -186,7 +186,8 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
             },
             {
               value: `${item.balance}`,
-              subValue: item.stable_balance
+              subValue: item.stable_balance,
+              variant: "right"
             }
           ]
         };
@@ -216,7 +217,8 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
           },
           {
             value: `${item.balance}`,
-            subValue: item.stable_balance
+            subValue: item.stable_balance,
+            variant: "right"
           },
           { value: `${item.apr}%`, class: "text-typography-success" },
           { component: statusComponent }

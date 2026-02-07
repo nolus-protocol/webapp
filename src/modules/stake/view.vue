@@ -198,7 +198,8 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
             },
             {
               value: `${amountLabel} ${NATIVE_ASSET.label}`,
-              subValue: stableLabel
+              subValue: stableLabel,
+              variant: "right"
             }
           ]
         };
@@ -214,7 +215,8 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
           },
           {
             value: `${amountLabel} ${NATIVE_ASSET.label}`,
-            subValue: stableLabel
+            subValue: stableLabel,
+            variant: "right"
           },
           { value: `${rate}%`, class: "max-w-[100px]" },
           {

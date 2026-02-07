@@ -78,7 +78,8 @@ const assets = computed(() => {
             },
             {
               value: balanceLabel,
-              subValue: stableLabel
+              subValue: stableLabel,
+              variant: "right"
             }
           ]
         });
@@ -94,6 +95,7 @@ const assets = computed(() => {
             {
               value: balanceLabel,
               subValue: stableLabel,
+              variant: "right",
               class: "max-w-[200px]"
             },
             { value: dateParser(item.completion_time, true), class: "max-w-[120px]" }

@@ -2,7 +2,7 @@
   <Tooltip :content="tooltip">
     <div class="flex flex-col">
       <div class="flex justify-end">{{ value }}</div>
-      <div class="flex flex-1 text-12 font-normal">{{ subValue }}</div>
+      <div class="flex flex-1 justify-end text-12 font-normal">{{ subValue }}</div>
     </div>
   </Tooltip>
 </template>

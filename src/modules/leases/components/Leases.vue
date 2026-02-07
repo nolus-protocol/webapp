@@ -257,6 +257,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
               {
                 value: hide.value ? "****" : formatMobileAmount(amount),
                 subValue: hide.value ? "****" : formatMobileUsd(stable),
+                variant: "right",
                 click: navigate,
                 class: "cursor-pointer"
               },

@@ -160,8 +160,8 @@ const assets = computed<TableRowItemProps[]>(() => {
       const stable_balance = mobile ? formatMobileUsd(stableDec) : formatUsd(item.balanceUsd);
 
       const balanceValue = hide.value
-        ? { value: "****", subValue: "****" }
-        : { value: `${balance}`, subValue: stable_balance };
+        ? { value: "****", subValue: "****", variant: "right" }
+        : { value: `${balance}`, subValue: stable_balance, variant: "right" };
 
       if (mobile) {
         return {
