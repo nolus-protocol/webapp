@@ -4,7 +4,7 @@
       :items="items"
       :onSearch="onSearch"
     >
-      <div class="my-2 flex flex-col gap-8 md:flex-row">
+      <div class="my-2 flex flex-row flex-wrap gap-4 md:gap-8">
         <BigNumber
           :label="$t('message.total-value')"
           :labelTooltip="{
@@ -15,7 +15,7 @@
             amount: stableAmount,
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: isMobile() ? 24 : 32,
+            fontSize: mobile ? 24 : 32,
             animatedReveal: true
           }"
         />
@@ -36,6 +36,7 @@
         />
 
         <BigNumber
+          class="hidden md:block"
           :label="$t('message.project-anual-return')"
           :labelTooltip="{
             position: 'top',
@@ -70,6 +71,8 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { isMobile } from "@/common/utils";
+
+const mobile = isMobile();
 
 defineProps<{
   items: TableRowItemProps[];

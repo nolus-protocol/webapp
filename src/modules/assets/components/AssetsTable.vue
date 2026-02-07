@@ -2,12 +2,13 @@
   <Table
     :columns="columns"
     searchable
-    :size="isMobile() ? '' : `${assets.length} ${$t('message.assets')}`"
+    :size="mobile ? '' : `${assets.length} ${$t('message.assets')}`"
     :toggle="{ label: $t('message.show-small-balances'), value: smBalances }"
     @togle-value="setSmallBalancesState"
-    :hide-values="{ text: $t('message.toggle-values'), value: hide }"
+    :hide-values="mobile ? undefined : { text: $t('message.toggle-values'), value: hide }"
     @hide-value="onHide"
-    tableClasses="min-w-[530px]"
+    :tableClasses="mobile ? '' : 'min-w-[530px]'"
+    :scrollable="!mobile"
     @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
     header-classes="md:flex-row flex-col items-stretch md:items-center gap-4 md:gap-2"
     @onSearchClear="onSearch('')"
@@ -19,7 +20,7 @@
         hide: hide,
         type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
-        fontSize: isMobile() ? 24 : 32,
+        fontSize: mobile ? 24 : 32,
         animatedReveal: true
       }"
     />
@@ -29,6 +30,7 @@
         v-for="(row, index) in assets"
         :key="index"
         :items="row.items"
+        :scrollable="!mobile"
       />
     </template>
   </Table>
@@ -44,18 +46,18 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
-import { Dec, Int } from "@keplr-wallet/unit";
-import { Logger, WalletManager } from "@/common/utils";
+import { Dec } from "@keplr-wallet/unit";
+import { isMobile, Logger, WalletManager } from "@/common/utils";
 import { formatNumber, formatTokenBalance, formatPrice, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, type ResolvedAsset } from "@/common/composables";
-import { isMobile } from "@/common/utils";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const { getNetworkAssets } = useNetworkCurrency();
+const mobile = isMobile();
 const hide = ref(WalletManager.getHideBalances());
 const total = ref(new Dec(0));
 const smBalances = ref(WalletManager.getSmallBalances());
@@ -68,16 +70,21 @@ const showSmallBalances = computed(() => {
 });
 const search = ref("");
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.assets"), variant: "left" },
-  { label: i18n.t("message.price"), class: "md:flex" },
-  { label: i18n.t("message.balance") },
-  {
-    label: i18n.t("message.yield"),
-    tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") },
-    class: "md:flex"
-  }
-]);
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.assets"), variant: "left" },
+      { label: i18n.t("message.balance") }
+    ]
+  : [
+      { label: i18n.t("message.assets"), variant: "left" },
+      { label: i18n.t("message.price") },
+      { label: i18n.t("message.balance") },
+      {
+        label: i18n.t("message.yield"),
+        tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") }
+      }
+    ]
+);
 
 const filteredAssets = computed(() => {
   const allAssets = getNetworkAssets();
@@ -145,18 +152,28 @@ const assets = computed<TableRowItemProps[]>(() => {
     })
     .map((item) => {
       const c = item.currency;
-      const mobile = isMobile();
       const price = formatPrice(item.price);
       const balanceDec = new Dec(item.balance, c.decimal_digits);
       const stableDec = new Dec(item.balanceUsd.toFixed(2));
       const balance = mobile ? formatMobileAmount(balanceDec) : formatTokenBalance(balanceDec);
       const stable_balance = mobile ? formatMobileUsd(stableDec) : formatNumber(item.balanceUsd.toFixed(2), 2);
 
-      const value = { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" };
+      const balanceValue = hide.value
+        ? { value: "****", subValue: "****" }
+        : { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}` };
 
-      if (hide.value) {
-        value.value = "****";
-        value.subValue = "****";
+      if (mobile) {
+        return {
+          items: [
+            {
+              value: c.shortName,
+              subValue: `${NATIVE_CURRENCY.symbol}${price}`,
+              image: c.icon,
+              variant: "left"
+            },
+            { ...balanceValue }
+          ]
+        } as TableRowItemProps;
       }
 
       return {
@@ -168,9 +185,9 @@ const assets = computed<TableRowItemProps[]>(() => {
             variant: "left",
             textClass: "line-clamp-1 [display:-webkit-box]"
           },
-          { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "md:flex" },
-          value,
-          { value: getYield(item), class: "text-typography-success md:flex" }
+          { value: `${NATIVE_CURRENCY.symbol}${price}` },
+          balanceValue,
+          { value: getYield(item), class: "text-typography-success" }
         ]
       } as TableRowItemProps;
     });

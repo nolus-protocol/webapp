@@ -22,7 +22,7 @@
         :anualYield="anualYield"
         :earningsAmount="earningsAmount"
         :items="assetsRows"
-        class="order-2 overflow-x-auto md:overflow-auto lg:order-none lg:flex-[60%]"
+        class="order-2 overflow-auto lg:order-none lg:flex-[60%]"
         :onSearch="onSearch"
       />
     </div>
@@ -55,6 +55,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { Dec } from "@keplr-wallet/unit";
 
+const mobile = isMobile();
 const wallet = useWalletStore();
 const earnStore = useEarnStore();
 const pricesStore = usePricesStore();
@@ -160,7 +161,6 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       const isOpen =
         pool.deposit_capacity === null || pool.deposit_capacity === undefined || Number(pool.deposit_capacity) > 0;
 
-      const mobile = isMobile();
       return {
         protocol: pool.protocol,
         balance: mobile ? formatMobileAmount(depositedAmount) : formatTokenBalance(depositedAmount),
@@ -174,6 +174,24 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
     })
     .sort((a, b) => b.stable_balance_number - a.stable_balance_number)
     .map((item) => {
+      if (mobile) {
+        return {
+          items: [
+            {
+              value: item.currency?.shortName ?? item.protocol,
+              subValue: `${item.apr}%`,
+              subValueClass: "text-typography-success",
+              image: item.currency?.icon,
+              variant: "left"
+            },
+            {
+              value: `${item.balance}`,
+              subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`
+            }
+          ]
+        };
+      }
+
       const statusComponent = item.isOpen
         ? () =>
             h<LabelProps>(PausedLabel, {
@@ -198,11 +216,10 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
           },
           {
             value: `${item.balance}`,
-            subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`,
-            variant: "right"
+            subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`
           },
-          { value: `${item.apr}%`, class: "hidden md:flex text-typography-success" },
-          { component: statusComponent, class: "hidden md:flex" }
+          { value: `${item.apr}%`, class: "text-typography-success" },
+          { component: statusComponent }
         ]
       };
     });

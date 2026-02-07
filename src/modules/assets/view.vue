@@ -23,7 +23,7 @@
         @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SEND}`)"
       />
     </ListHeader>
-    <Widget class="overflow-x-auto md:overflow-auto">
+    <Widget class="overflow-auto">
       <AssetsTable />
     </Widget>
     <router-view></router-view>
