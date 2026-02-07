@@ -1,23 +1,20 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.earn')">
-      <div
-        class="flex gap-2"
+      <Button
         v-if="wallet.wallet"
-      >
-        <Button
-          :label="$t('message.supply')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.SUPPLY}`)"
-        />
-        <Button
-          :label="$t('message.withdraw-title')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.WITHDRAW}`)"
-        />
-      </div>
+        :label="$t('message.supply')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.SUPPLY}`)"
+      />
+      <Button
+        v-if="wallet.wallet"
+        :label="$t('message.withdraw-title')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.WITHDRAW}`)"
+      />
     </ListHeader>
     <div class="flex flex-col gap-8 lg:flex-row">
       <EarnAssets
@@ -45,7 +42,8 @@ import { EarnAssetsDialog } from "./enums";
 import { computed, h, provide, ref, watch } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
 
-import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { isMobile } from "@/common/utils";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useEarnStore } from "@/common/stores/earn";
@@ -162,10 +160,11 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       const isOpen =
         pool.deposit_capacity === null || pool.deposit_capacity === undefined || Number(pool.deposit_capacity) > 0;
 
+      const mobile = isMobile();
       return {
         protocol: pool.protocol,
-        balance: formatTokenBalance(depositedAmount),
-        stable_balance: formatNumber(stableBalance.toString(2), 2),
+        balance: mobile ? formatMobileAmount(depositedAmount) : formatTokenBalance(depositedAmount),
+        stable_balance: mobile ? formatMobileUsd(stableBalance) : formatNumber(stableBalance.toString(2), 2),
         stable_balance_number: parseFloat(stableBalance.toString(2)),
         // pool.apy is already in percentage format from backend (e.g., 5.25 for 5.25%)
         apr: new Dec(pool.apy).toString(2),
@@ -202,8 +201,8 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
             subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`,
             variant: "right"
           },
-          { value: `${item.apr}%`, class: "text-typography-success" },
-          { component: statusComponent }
+          { value: `${item.apr}%`, class: "hidden md:flex text-typography-success" },
+          { component: statusComponent, class: "hidden md:flex" }
         ]
       };
     });

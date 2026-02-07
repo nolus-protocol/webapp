@@ -1,23 +1,20 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.stake')">
-      <div
-        class="flex gap-2"
+      <Button
         v-if="walletConnected"
-      >
-        <Button
-          :label="$t('message.delegate')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.DELEGATE}`)"
-        />
-        <Button
-          :label="$t('message.undelegate')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.UNDELEGATE}`)"
-        />
-      </div>
+        :label="$t('message.delegate')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.DELEGATE}`)"
+      />
+      <Button
+        v-if="walletConnected"
+        :label="$t('message.undelegate')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.UNDELEGATE}`)"
+      />
     </ListHeader>
     <div class="flex flex-col gap-8 lg:flex-row">
       <div class="order-2 lg:order-none lg:flex-[60%]">
@@ -56,7 +53,8 @@ import VestedOverview from "./components/VestedOverview.vue";
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
 import { computed, h, ref, watch } from "vue";
-import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { isMobile } from "@/common/utils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useStakingStore } from "@/common/stores/staking";
@@ -181,8 +179,9 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       const validator = stakingStore.getValidator(position.validator_address);
       const amount = new Dec(position.balance.amount, NATIVE_ASSET.decimal_digits);
       const stable = amount.mul(new Dec(nativePrice.value));
-      const amountLabel = formatTokenBalance(amount);
-      const stableLabel = formatNumber(stable.toString(), 2);
+      const mobile = isMobile();
+      const amountLabel = mobile ? formatMobileAmount(amount) : formatTokenBalance(amount);
+      const stableLabel = mobile ? formatMobileUsd(stable) : formatNumber(stable.toString(), 2);
 
       // Commission rate as percentage
       const rate = validator ? new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2) : "0.00";

@@ -2,13 +2,15 @@
   <Table
     v-if="validators?.length > 0"
     :columns="columns"
-    tableClasses="min-w-[470px]"
+    tableClasses="md:min-w-[470px]"
+    :scrollable="!mobile"
   >
     <template v-slot:body>
       <TableRow
         v-for="(row, index) in validators"
         :key="index"
         :items="row.items"
+        :scrollable="!mobile"
       />
     </template>
     <template v-slot:footer>
@@ -56,8 +58,10 @@ import { Button, Table, type TableColumnProps, TableRow, type TableRowItemProps 
 import EmptyState from "@/common/components/EmptyState.vue";
 import { NETWORK } from "@/config/global";
 import { computed } from "vue";
+import { isMobile } from "@/common/utils";
 
 const i18n = useI18n();
+const mobile = isMobile();
 
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.validator"), variant: "left", class: "break-all" },

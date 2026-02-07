@@ -24,21 +24,22 @@
         return isOpen;
       }
     "
-    class="max-w-[160px]"
+    class="popover-dropdown !h-fit !w-auto !max-w-[160px] !rounded-xl !border !border-border-default"
   >
     <template #content>
+      <button
+        v-if="showDetails"
+        class="button-secondary w-full border-none px-3 py-3 text-left"
+        @click="viewDetails"
+      >
+        {{ $t("message.details") }}
+      </button>
       <button
         v-if="showClose"
         class="button-secondary w-full border-none px-3 py-3 text-left"
         @click="onClose"
       >
         {{ $t("message.close") }}
-      </button>
-      <button
-        class="button-secondary w-full border-none px-3 py-3 text-left"
-        @click="sharePnl"
-      >
-        {{ $t("message.share-position") }}
       </button>
       <button
         v-if="getLeaseStatus(lease) == TEMPLATES.opened"
@@ -49,9 +50,9 @@
       </button>
       <button
         class="button-secondary w-full border-none px-3 py-3 text-left"
-        @click="history"
+        @click="sharePnl"
       >
-        {{ $t("message.history") }}
+        {{ $t("message.share-position") }}
       </button>
     </template>
   </Popover>
@@ -66,7 +67,7 @@ import { RouteNames } from "@/router";
 import { getLeaseStatus, TEMPLATES } from "../common";
 import { SingleLeaseDialog } from "../../enums";
 
-export type IAction = { lease: LeaseInfo; showClose: boolean; opened: boolean };
+export type IAction = { lease: LeaseInfo; showClose: boolean; opened: boolean; showDetails?: boolean };
 
 const props = defineProps<IAction>();
 
@@ -78,6 +79,11 @@ const router = useRouter();
 onMounted(() => {
   isOpen.value = props.opened;
 });
+
+function viewDetails() {
+  router.push(`/${RouteNames.LEASES}/${props.lease.address}`);
+  close();
+}
 
 function sharePnl() {
   emit("sharePnl");
@@ -91,11 +97,6 @@ function repay() {
 
 function onClose() {
   router.push(`/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.address}`);
-  close();
-}
-
-function history() {
-  router.push(`/${RouteNames.LEASES}/${props.lease.address}#history`);
   close();
 }
 

@@ -9,7 +9,7 @@
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
             decimals: NORMAL_DECIMALS,
-            fontSize: isMobile() ? 20 : 32,
+            fontSize: isMobile() ? 24 : 32,
             animatedReveal: true
           }"
           :loading="loading"

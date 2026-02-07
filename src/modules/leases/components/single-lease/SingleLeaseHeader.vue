@@ -1,14 +1,58 @@
 <template>
-  <div class="flex flex-1 flex-col justify-between gap-y-2 border-b border-border-color pb-3 lg:flex-row lg:gap-0">
+  <div class="flex flex-1 flex-col justify-between gap-y-4 border-b border-border-color pb-4 lg:flex-row lg:gap-0 lg:pb-3">
     <div class="flex items-center">
       <SvgIcon
         name="arrow-left"
         size="l"
-        class="mx-4 cursor-pointer text-icon-default"
+        class="mr-4 cursor-pointer text-icon-default"
         @click="goBack"
       />
-      <div class="flex flex-col">
-        <div class="text-24 font-semibold text-typography-default">#{{ lease?.address?.slice(-8) }}</div>
+      <div class="flex flex-1 flex-col">
+        <div class="flex items-center justify-between">
+          <div class="text-24 font-semibold text-typography-default">#{{ lease?.address?.slice(-8) }}</div>
+          <div
+            v-if="TEMPLATES.opened == status"
+            class="flex items-center gap-1 text-14 text-typography-default lg:hidden"
+          >
+            <div
+              v-if="loading"
+              class="skeleton-box rounded-[4px]"
+              :style="[{ width: '80px', height: `${16 * 1.2}px` }]"
+            ></div>
+            <template v-else>
+              <span class="font-semibold">
+                <Label
+                  v-if="pnl.neutral"
+                  variant="success"
+                >
+                  <SvgIcon
+                    name="arrow-up"
+                    size="xs"
+                    class="fill-icon-success"
+                  />
+                  <span class="ml-1">{{ pnl.status ? "+" : "" }}{{ pnl.percent }}%</span>
+                </Label>
+                <template v-else>
+                  <Label :variant="pnl?.status ? 'success' : 'error'">
+                    <SvgIcon
+                      v-if="pnl?.status"
+                      name="arrow-up"
+                      size="xs"
+                      class="fill-icon-success"
+                    />
+                    <SvgIcon
+                      v-if="pnl?.status == false"
+                      name="arrow-down"
+                      size="xs"
+                      class="fill-icon-error"
+                    />
+                    <span class="ml-1">{{ pnl.status ? "+" : "" }}{{ pnl.percent }}%</span>
+                  </Label>
+                </template>
+              </span>
+            </template>
+          </div>
+        </div>
         <div class="flex items-center gap-4">
           <div class="flex gap-1 text-14 text-typography-default">
             {{ $t("message.type") }}:<span class="font-semibold">
@@ -17,7 +61,7 @@
           </div>
           <div
             v-if="TEMPLATES.opened == status"
-            class="m flex items-center gap-1 text-14 text-typography-default"
+            class="hidden items-center gap-1 text-14 text-typography-default lg:flex"
           >
             <span class="mr-1">{{ $t("message.pnl") }}: </span>
 
@@ -82,7 +126,7 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center gap-3 border-t border-border-color pt-3 md:border-none md:pt-0">
+    <div class="flex items-center gap-3 border-t border-border-color pt-3 lg:border-none lg:pt-0 [&>*]:flex-1 lg:[&>*]:flex-initial">
       <Button
         :label="$t('message.share-position')"
         severity="tertiary"

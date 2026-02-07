@@ -219,6 +219,24 @@ All `Intl.NumberFormat` calls live exclusively in `src/common/utils/NumberFormat
 
 `CurrencyComponent.vue` delegates all formatting to these utilities. `AnimateNumber` receives shared format option objects rather than inline literals.
 
+Mobile-specific formatters for compact display on small screens:
+- `formatMobileAmount(dec)` — compact notation for values >= 1000 (e.g., "1.2K", "3.5M"), falls back to `formatTokenBalance` for smaller values to preserve precision (e.g., "0.000034")
+- `formatMobileUsd(dec)` — compact notation for USD values >= 1000, falls back to `formatNumber(amount, 2)` for smaller values
+
+### Mobile Layout Patterns
+
+The app runs in wallet built-in browsers (Keplr, Leap) at ~360px viewport width. Mobile detection uses `isMobile()` (non-reactive, acceptable since wallet browsers don't resize).
+
+**BigNumber font sizes**: All `BigNumber` components use `isMobile() ? 24 : 32` for primary amounts and `20` for secondary amounts. This ensures summary numbers are visually larger than table text.
+
+**ListHeader**: Left-aligned title on mobile, full-width buttons via `[&>*]:flex-1 md:[&>*]:flex-initial`. Buttons in slots should not be wrapped in extra `<div>` elements — use `v-if` directly on each button.
+
+**Table mobile formatting**: Tables use `formatMobileAmount`/`formatMobileUsd` for numeric cells on mobile to prevent overflow with large numbers. Column headers and cells must use matching flex classes for vertical alignment.
+
+**Popover mobile behavior**: The `web-components` Popover renders full-screen on mobile (`window.innerWidth < 768`) for large modals (Settings, Account). Small dropdown menus (e.g., Action 3-dot menu) opt out by adding the `popover-dropdown` CSS class plus `!h-fit !w-auto !rounded-xl !border !border-border-default` overrides. The Popover JS checks for `popover-dropdown` to skip the mobile full-screen positioning. **Note**: The compiled Popover at `node_modules/web-components/dist/src/components/molecules/popover/Popover.vue.js` is what Vite uses — not the raw `.vue` source files.
+
+**SingleLeaseHeader mobile layout**: On mobile, PnL badge moves to the right of the title row (same line as `#address`), buttons span full width via `[&>*]:flex-1 lg:[&>*]:flex-initial`, and the inline PnL/Opened/Size info line is hidden (uses `lg:flex`).
+
 ### Gated Asset Restrictions
 
 `lease-rules.json` controls which assets are visible via `ignore_all`, `ignore_long`, `ignore_short` lists. **These restrictions apply to existing leases too**, not just new position creation. Adding an asset to `ignore_long` hides all existing long positions with that asset from the dashboard and positions page. See `docs/data_flows.md` for details.

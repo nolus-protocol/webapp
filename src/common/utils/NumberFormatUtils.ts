@@ -211,6 +211,30 @@ export function formatCoinPretty(coin: CoinPretty): string {
 }
 
 /**
+ * Format a number for mobile display. Uses compact notation (1.2K, 1.2M) only
+ * when the absolute value >= 1000 (where full formatting would overflow narrow cells).
+ * For smaller values, falls back to formatTokenBalance (Dec) or formatNumber (string)
+ * which handle small values like 0.000034 with proper precision.
+ */
+export function formatMobileAmount(amount: Dec): string {
+  if (amount.abs().gte(new Dec(1000))) {
+    return formatCompact(amount.toString());
+  }
+  return formatTokenBalance(amount);
+}
+
+/**
+ * Format a USD value for mobile display. Uses compact notation only for values >= 1000.
+ * For smaller values, uses standard 2-decimal formatting.
+ */
+export function formatMobileUsd(amount: Dec): string {
+  if (amount.abs().gte(new Dec(1000))) {
+    return formatCompact(amount.toString(2));
+  }
+  return formatNumber(amount.toString(2), 2);
+}
+
+/**
  * Parse a numeric string, handling locale-specific formatting
  */
 export function parseNumericString(value: string): number {

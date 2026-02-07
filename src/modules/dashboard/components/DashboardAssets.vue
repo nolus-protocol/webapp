@@ -37,7 +37,7 @@
           amount: total.toString(2),
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: isMobile() ? 20 : 32,
+          fontSize: isMobile() ? 24 : 32,
           animatedReveal: true
         }"
       />
@@ -100,7 +100,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { formatNumber, formatTokenBalance, formatPrice } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance, formatPrice, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, useWalletConnected, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
@@ -169,9 +169,12 @@ function getYield(asset: ResolvedAsset): string | undefined {
 const assets = computed<TableRowItemProps[]>(() => {
   return filteredAssets.value.map((item) => {
     const c = item.currency;
+    const mobile = isMobile();
     const price = formatPrice(item.price);
-    const balance = formatTokenBalance(new Dec(item.balance, c.decimal_digits));
-    const stable_balance = formatNumber(item.balanceUsd.toFixed(2), 2);
+    const balanceDec = new Dec(item.balance, c.decimal_digits);
+    const stableDec = new Dec(item.balanceUsd.toFixed(2));
+    const balance = mobile ? formatMobileAmount(balanceDec) : formatTokenBalance(balanceDec);
+    const stable_balance = mobile ? formatMobileUsd(stableDec) : formatNumber(item.balanceUsd.toFixed(2), 2);
     return {
       items: [
         {

@@ -2,9 +2,10 @@
   <Table
     :columns="columns"
     searchable
-    :size="isMobile() ? '' : `${items.length} ${$t('message.assets')}`"
+    :size="mobile ? '' : `${items.length} ${$t('message.assets')}`"
     tableWrapperClasses="md:min-w-auto md:p-0"
-    tableClasses="min-w-[530px]"
+    tableClasses="md:min-w-[530px]"
+    :scrollable="!mobile"
     @input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
     @onSearchClear="onSearch('')"
   >
@@ -14,6 +15,7 @@
         v-for="(row, index) in items"
         :key="index"
         :items="row.items"
+        :scrollable="!mobile"
       />
     </template>
   </Table>
@@ -26,14 +28,20 @@ import { isMobile } from "@/common/utils";
 import { computed } from "vue";
 
 const i18n = useI18n();
+const mobile = isMobile();
 
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.asset"), variant: "left" },
   { label: i18n.t("message.deposit"), tooltip: { position: "top", content: i18n.t("message.deposit-tooltip") } },
-  { label: i18n.t("message.yield"), tooltip: { position: "top", content: i18n.t("message.yield-tooltip") } },
+  {
+    label: i18n.t("message.yield"),
+    tooltip: { position: "top", content: i18n.t("message.yield-tooltip") },
+    class: "hidden md:flex"
+  },
   {
     label: i18n.t("message.availability"),
-    tooltip: { position: "top", content: i18n.t("message.availability-tooltip") }
+    tooltip: { position: "top", content: i18n.t("message.availability-tooltip") },
+    class: "hidden md:flex"
   }
 ]);
 

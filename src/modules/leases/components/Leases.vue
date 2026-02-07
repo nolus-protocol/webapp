@@ -33,25 +33,26 @@
         :size="isTablet() ? '' : `${leasesData.length} ${$t('message.leases-table-label')}`"
         :columns="leasesData.length > 0 ? columns : []"
         tableWrapperClasses="md:min-w-auto md:p-0"
-        tableClasses="min-w-[1000px]"
+        tableClasses="md:min-w-[1000px]"
+        :scrollable="!mobile"
         :hide-values="isTablet() ? undefined : { text: $t('message.toggle-values'), value: hide }"
         @hide-value="onHide"
         @onSearchClear="onSearch('')"
         @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
       >
-        <div class="flex flex-col gap-8 md:flex-row">
+        <div class="flex flex-row flex-wrap gap-4 md:gap-8">
           <BigNumber
             :label="$t('message.unrealized-pnl')"
             :amount="{
               amount: pnl.toString(2),
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
-              fontSize: isMobile() ? 20 : 32,
+              fontSize: mobile ? 24 : 32,
               animatedReveal: true,
               class:
                 pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
-            :pnl-status="{
+            :pnl-status="mobile ? undefined : {
               positive: pnl_percent.isPositive() || pnl_percent.isZero(),
               value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
               badge: {
@@ -71,6 +72,7 @@
             }"
           />
           <BigNumber
+            class="hidden md:block"
             :label="$t('message.debt')"
             :amount="{
               amount: debt.toString(2),
@@ -87,6 +89,7 @@
             v-for="(row, index) in leasesData"
             :key="index"
             :items="row.items"
+            :scrollable="!mobile"
           />
         </template>
       </Table>
@@ -118,7 +121,7 @@ import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
-import { formatNumber, formatPrice } from "@/common/utils/NumberFormatUtils";
+import { formatPrice } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 
 import { Dec } from "@keplr-wallet/unit";
@@ -128,7 +131,7 @@ import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
-import { formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatUsd, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
@@ -157,21 +160,30 @@ const wallet = useWalletStore();
 const configStore = useConfigStore();
 const i18n = useI18n();
 const hide = ref(WalletManager.getHideBalances());
+const mobile = isMobile();
 const search = ref("");
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
 let openMenuId: string | null;
 
 let timeOut: NodeJS.Timeout;
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.lease"), variant: "left", class: "max-w-[150px]" },
-  { label: i18n.t("message.asset"), variant: "left" },
-  { label: i18n.t("message.type"), variant: "left", class: "max-w-[45px]" },
-  { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
-  { label: i18n.t("message.lease-size") },
-  { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
-  { label: "", class: "max-w-[220px]" }
-]);
+const columns = computed<TableColumnProps[]>(() => isMobile()
+  ? [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.lease-size") },
+      { label: i18n.t("message.pnl") },
+      { label: "", class: "!flex-none w-[40px]" }
+    ]
+  : [
+      { label: i18n.t("message.lease"), variant: "left", class: "max-w-[150px]" },
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.type"), variant: "left", class: "max-w-[45px]" },
+      { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
+      { label: i18n.t("message.lease-size") },
+      { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
+      { label: "", class: "max-w-[220px]" }
+    ]
+);
 
 const isProtocolDisabled = computed(() => {
   return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
@@ -179,6 +191,7 @@ const isProtocolDisabled = computed(() => {
 
 const leasesData = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
+  const mobile = isMobile();
   const items = networkFilteredLeases.value
     .filter((item) => {
       if (param.length == 0) {
@@ -205,17 +218,11 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           status: displayData.pnlPositive
         };
         const loading = isLeaseInProgress(item);
-        const liquidation = loading
-          ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
-          : {
-              value: NATIVE_CURRENCY.symbol + formatPrice(displayData.liquidationPrice.toString()),
-              class: "max-w-[200px]"
-            };
-
         const asset = getAsset(item);
         const amount = displayData.unitAsset;
         const stable = displayData.assetValueUsd;
-        const actions: Component[] = getActions(item, displayData);
+        const positionType = i18n.t(`message.${configStore.getPositionType(item.protocol).toLowerCase()}`);
+
         const value = {
           subValue: `${NATIVE_CURRENCY.symbol}${stable.toString(2)}`,
           value: formatTokenBalance(amount),
@@ -226,6 +233,65 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           value.value = "****";
           value.subValue = "****";
         }
+
+        if (mobile) {
+          const navigate = () => {
+            router.push(`/${RouteNames.LEASES}/${item.address}`);
+          };
+          const displayData = leasesStore.getLeaseDisplayData(item);
+          const isOpened = item.status === "opened";
+
+          return {
+            items: [
+              {
+                image: getAssetIcon(item),
+                imageClass: "w-[32px] h-[32px]",
+                value: asset?.shortName ?? "",
+                subValue: positionType,
+                variant: "left",
+                click: navigate,
+                class: "cursor-pointer"
+              },
+              {
+                value: hide.value ? "****" : formatMobileAmount(amount),
+                subValue: hide.value ? "****" : `${NATIVE_CURRENCY.symbol}${formatMobileUsd(stable)}`,
+                click: navigate,
+                class: "cursor-pointer"
+              },
+              {
+                component: () =>
+                  loading
+                    ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                    : h("span", {
+                        class: `text-14 font-normal ${pnlData.status ? "text-typography-success" : "text-typography-error"}`
+                      }, `${pnlData.status ? "+" : ""}${pnlData.percent}%`),
+                click: navigate,
+                class: "cursor-pointer"
+              },
+              {
+                component: () => h<IAction>(Action, {
+                  lease: item,
+                  showClose: isOpened && !displayData.inProgressType,
+                  showDetails: true,
+                  key: `mob-action-${item.address}`,
+                  opened: openMenuId == item.address,
+                  onClick: (data: boolean) => { openMenuId = data ? item.address : null; },
+                  onSharePnl: () => { sharePnlDialog.value?.show(item, displayData); }
+                }),
+                class: "!flex-none w-[40px]"
+              }
+            ]
+          };
+        }
+
+        const liquidation = loading
+          ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
+          : {
+              value: NATIVE_CURRENCY.symbol + formatPrice(displayData.liquidationPrice.toString()),
+              class: "max-w-[200px]"
+            };
+
+        const actions: Component[] = getActions(item, displayData);
 
         return {
           items: [
@@ -247,7 +313,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
               textClass: "line-clamp-1 [display:-webkit-box]"
             },
             {
-              value: `${i18n.t(`message.${configStore.getPositionType(item.protocol).toLowerCase()}`)}`,
+              value: positionType,
               variant: "left",
               class: "max-w-[45px]"
             },

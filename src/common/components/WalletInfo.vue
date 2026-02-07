@@ -3,7 +3,7 @@
     ref="popoverParent"
     class="h-full"
     size="small"
-    :label="isMobile() ? '' : StringUtils.truncateString(wallet?.wallet?.address ?? '', 8, 4)"
+    :label="StringUtils.truncateString(wallet?.wallet?.address ?? '', 8, 4)"
     severity="secondary"
     icon="wallet"
     icon-position="left"

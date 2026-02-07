@@ -2,12 +2,14 @@
   <Table
     v-if="unboundingDelegations?.length > 0"
     :columns="columns"
+    :scrollable="!mobile"
   >
     <template v-slot:body>
       <TableRow
         v-for="(row, index) in assets"
         :key="index"
         :items="row.items"
+        :scrollable="!mobile"
       />
     </template>
   </Table>
@@ -20,14 +22,15 @@ import type { IObjectKeys } from "@/common/types";
 import { computed } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
-import { dateParser } from "@/common/utils";
-import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { dateParser, isMobile } from "@/common/utils";
+import { formatNumber, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 
 const i18n = useI18n();
 const pricesStore = usePricesStore();
+const mobile = isMobile();
 
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.asset"), variant: "left" },
@@ -47,7 +50,7 @@ const assets = computed(() => {
 
   for (const validator of props.unboundingDelegations) {
     for (const item of validator.entries) {
-      const balance = formatTokenBalance(new Dec(item.balance, asset.decimal_digits));
+      const amountDec = new Dec(item.balance, asset.decimal_digits);
 
       const stable_b = CurrencyUtils.calculateBalance(
         price,
@@ -55,7 +58,8 @@ const assets = computed(() => {
         asset.decimal_digits
       ).toDec();
 
-      const stable_balance = formatNumber(stable_b.toString(2), 2);
+      const balanceLabel = mobile ? formatMobileAmount(amountDec) : formatTokenBalance(amountDec);
+      const stableLabel = mobile ? formatMobileUsd(stable_b) : formatNumber(stable_b.toString(2), 2);
 
       data.push({
         items: [
@@ -66,8 +70,8 @@ const assets = computed(() => {
             variant: "left"
           },
           {
-            value: `${balance}`,
-            subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`,
+            value: balanceLabel,
+            subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`,
             variant: "right",
             class: " max-w-[200px]"
           },

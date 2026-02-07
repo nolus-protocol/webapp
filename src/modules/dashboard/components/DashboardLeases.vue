@@ -26,7 +26,7 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               animatedReveal: true,
-              fontSize: isMobile() ? 20 : 32
+              fontSize: isMobile() ? 24 : 32
             }"
             :pnl-status="{
               positive: pnlPercent.isPositive() || pnlPercent.isZero(),

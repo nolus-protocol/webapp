@@ -1,7 +1,9 @@
 <template>
-  <div class="flex flex-col items-center justify-between gap-y-2 lg:flex-row lg:gap-0">
+  <div class="flex flex-col items-start justify-between gap-y-4 md:flex-row md:items-center md:gap-0">
     <h1 class="text-24 font-semibold text-typography-default">{{ title }}</h1>
-    <slot />
+    <div class="flex w-full gap-2 [&>*]:flex-1 md:w-auto md:[&>*]:flex-initial">
+      <slot />
+    </div>
   </div>
 </template>
 

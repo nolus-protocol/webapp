@@ -16,7 +16,7 @@
           decimals: NATIVE_ASSET.decimal_digits,
           hasSpace: true,
           class: 'leading-[36px]',
-          fontSize: isMobile() ? 20 : 32,
+          fontSize: isMobile() ? 24 : 32,
           animatedReveal: true
         }"
         :secondary="{
@@ -37,7 +37,7 @@
           decimals: 2,
           hasSpace: false,
           class: 'leading-[36px]',
-          fontSize: isMobile() ? 20 : 32,
+          fontSize: isMobile() ? 24 : 32,
           animatedReveal: true
         }"
       />
@@ -54,7 +54,7 @@
             class: 'leading-[36px]',
             denom: '%',
             isDenomInfront: false,
-            fontSize: isMobile() ? 20 : 32,
+            fontSize: isMobile() ? 24 : 32,
             animatedReveal: true
           }"
         />
