@@ -129,7 +129,7 @@ function getPoolData(protocolKey: string) {
   const etlPool = earnStore.getEtlPool(protocolKey);
 
   // Utilization from earn pool (already 0-100 range from backend)
-  const utilization = pool ? pool.utilization.toFixed(2) : "0";
+  const utilization = pool ? formatNumber(pool.utilization, 2) : "0";
 
   // Deposit suspension threshold from ETL pools endpoint
   const depositSuspension = etlPool?.deposit_suspension ?? "90";

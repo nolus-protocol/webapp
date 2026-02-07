@@ -120,7 +120,7 @@
                 class="skeleton-box rounded-[4px]"
                 :style="[{ width: '80px', height: `${16 * 1.2}px` }]"
               ></div>
-              <template v-else> {{ NATIVE_CURRENCY.symbol }}{{ stable }} </template>
+              <template v-else> {{ stable }} </template>
             </span>
           </div>
         </div>
@@ -172,10 +172,10 @@ import { Button, Label, SvgIcon } from "web-components";
 
 import { RouteNames } from "@/router";
 import { formatDate } from "@/common/utils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
-import { NATIVE_CURRENCY } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { Dec } from "@keplr-wallet/unit";
@@ -214,7 +214,7 @@ const openedSubState = computed(() => {
 
 const stable = computed(() => {
   if (!props.lease || !props.displayData) {
-    return "0.00";
+    return formatUsd(0);
   }
 
   const posType = props.displayData.positionType;
@@ -225,15 +225,14 @@ const stable = computed(() => {
   if (posType === "long") {
     const price = pricesStore.prices[`${ticker}@${protocol}`];
     const value = new Dec(props.lease.amount.amount, asset?.decimal_digits ?? 0).mul(new Dec(price?.price ?? "0"));
-    return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
+    return formatUsd(value.toString(2));
   } else if (posType === "short") {
-    // For short positions, use LPN for decimal digits
     const lpn = configStore.getLpnByProtocol(protocol);
     const value = new Dec(props.lease.amount.amount, lpn?.decimal_digits ?? 0);
-    return value.toString(NATIVE_CURRENCY.maximumFractionDigits);
+    return formatUsd(value.toString(2));
   }
 
-  return "0";
+  return formatUsd(0);
 });
 
 function goBack() {

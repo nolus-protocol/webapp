@@ -11,7 +11,7 @@
       />
       <div class="flex flex-col">
         <span class="text-16 font-semibold text-typography-default">{{ balance }} {{ asset?.shortName }}</span>
-        <span class="text-14 text-typography-secondary">{{ NATIVE_CURRENCY.symbol }}{{ stableBalance }}</span>
+        <span class="text-14 text-typography-secondary">{{ stableBalance }}</span>
       </div>
     </div>
     <div class="mt-4 flex items-center justify-between border-t border-border-color pt-4">
@@ -25,10 +25,10 @@
 import { Widget } from "web-components";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import { computed } from "vue";
-import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_ASSET } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
 import { useWalletStore } from "@/common/stores/wallet";
-import { formatNumber, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -53,6 +53,6 @@ const stableBalance = computed(() => {
     new Coin(asset.value.ibcData, wallet.vestTokens.amount),
     asset.value.decimal_digits
   ).toDec();
-  return formatNumber(stable.toString(2), 2);
+  return formatUsd(stable.toString(2));
 });
 </script>

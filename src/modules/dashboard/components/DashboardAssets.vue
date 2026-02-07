@@ -101,7 +101,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { formatNumber, formatTokenBalance, formatPrice, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, useWalletConnected, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
@@ -171,11 +171,11 @@ function getYield(asset: ResolvedAsset): string | undefined {
 const assets = computed<TableRowItemProps[]>(() => {
   return filteredAssets.value.map((item) => {
     const c = item.currency;
-    const price = formatPrice(item.price);
+    const price = formatPriceUsd(item.price);
     const balanceDec = new Dec(item.balance, c.decimal_digits);
     const stableDec = new Dec(item.balanceUsd.toFixed(2));
     const balance = mobile ? formatMobileAmount(balanceDec) : formatTokenBalance(balanceDec);
-    const stable_balance = mobile ? formatMobileUsd(stableDec) : formatNumber(item.balanceUsd.toFixed(2), 2);
+    const stable_balance = mobile ? formatMobileUsd(stableDec) : formatUsd(item.balanceUsd);
     return {
       items: [
         {
@@ -185,10 +185,10 @@ const assets = computed<TableRowItemProps[]>(() => {
           variant: "left",
           textClass: "line-clamp-1 [display:-webkit-box]"
         },
-        { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "md:flex hidden" },
+        { value: price, class: "md:flex hidden" },
         {
           value: hide.value ? "****" : `${balance}`,
-          subValue: hide.value ? "****" : `${NATIVE_CURRENCY.symbol}${stable_balance}`,
+          subValue: hide.value ? "****" : stable_balance,
           variant: "right"
         },
         { value: getYield(item), class: "text-typography-success md:flex hidden" }

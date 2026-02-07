@@ -20,10 +20,10 @@ import { useI18n } from "vue-i18n";
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
 import type { IObjectKeys } from "@/common/types";
 import { computed } from "vue";
-import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
+import { NATIVE_ASSET } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
 import { dateParser, isMobile } from "@/common/utils";
-import { formatNumber, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -65,7 +65,7 @@ const assets = computed(() => {
       ).toDec();
 
       const balanceLabel = mobile ? formatMobileAmount(amountDec) : formatTokenBalance(amountDec);
-      const stableLabel = mobile ? formatMobileUsd(stable_b) : formatNumber(stable_b.toString(2), 2);
+      const stableLabel = mobile ? formatMobileUsd(stable_b) : formatUsd(stable_b.toString(2));
 
       if (mobile) {
         data.push({
@@ -78,7 +78,7 @@ const assets = computed(() => {
             },
             {
               value: balanceLabel,
-              subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`
+              subValue: stableLabel
             }
           ]
         });
@@ -93,7 +93,7 @@ const assets = computed(() => {
             },
             {
               value: balanceLabel,
-              subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`,
+              subValue: stableLabel,
               class: "max-w-[200px]"
             },
             { value: dateParser(item.completion_time, true), class: "max-w-[120px]" }

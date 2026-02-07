@@ -669,7 +669,7 @@ const debtData = computed(() => {
 
 const liquidation = computed(() => {
   if (!lease.value || lease.value.status !== "opened") {
-    return `${NATIVE_CURRENCY.symbol}0.00`;
+    return formatUsd(0);
   }
 
   let liquidationVal = new Dec(0);
@@ -689,6 +689,6 @@ const liquidation = computed(() => {
     liquidationVal = LeaseUtils.calculateLiquidationShort(unitAsset, stableAsset);
   }
 
-  return `${NATIVE_CURRENCY.symbol}${formatNumber(liquidationVal.toString(), lpn?.decimal_digits ?? 6)}`;
+  return formatNumber(liquidationVal.toString(), lpn?.decimal_digits ?? 6, NATIVE_CURRENCY.symbol);
 });
 </script>

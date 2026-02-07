@@ -192,6 +192,22 @@ export function formatPriceDec(amount: Dec): string {
 }
 
 /**
+ * Format a price with adaptive decimals and $ prefix: "$1,234.50", "$0.0045"
+ */
+export function formatPriceUsd(amount: number | string): string {
+  const num = Number(amount);
+  const sign = num < 0 ? "-" : "";
+  return `${sign}${NATIVE_CURRENCY.symbol}${formatPrice(Math.abs(num))}`;
+}
+
+/**
+ * Format a Dec value as an adaptive price with $ prefix.
+ */
+export function formatPriceDecUsd(amount: Dec): string {
+  return formatPriceUsd(amount.toString(MAX_DECIMALS));
+}
+
+/**
  * Format a CoinPretty with adaptive decimals: "40 USDC" instead of "40.000000 USDC"
  */
 export function formatCoinPretty(coin: CoinPretty): string {
@@ -212,13 +228,13 @@ export function formatMobileAmount(amount: Dec): string {
 }
 
 /**
- * Format a USD value for mobile display. Uses compact notation only for values >= 1000.
- * For smaller values, uses standard 2-decimal formatting.
+ * Format a USD value for mobile display with $ prefix.
+ * Uses compact notation for values >= 1000, standard 2-decimal formatting otherwise.
  */
 export function formatMobileUsd(amount: Dec): string {
   if (amount.abs().gte(new Dec(1000))) {
-    return formatCompact(amount.toString(2));
+    return `${NATIVE_CURRENCY.symbol}${formatCompact(amount.toString(2))}`;
   }
-  return formatNumber(amount.toString(2), 2);
+  return formatUsd(amount.toString(2));
 }
 

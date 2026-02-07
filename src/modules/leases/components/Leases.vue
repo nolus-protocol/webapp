@@ -123,7 +123,7 @@ import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
-import { formatPrice } from "@/common/utils/NumberFormatUtils";
+import { formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 
 import { Dec } from "@keplr-wallet/unit";
@@ -133,7 +133,7 @@ import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
-import { formatUsd, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatUsd, formatDecAsUsd, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
@@ -226,7 +226,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         const positionType = i18n.t(`message.${configStore.getPositionType(item.protocol).toLowerCase()}`);
 
         const value = {
-          subValue: `${NATIVE_CURRENCY.symbol}${stable.toString(2)}`,
+          subValue: formatDecAsUsd(stable),
           value: formatTokenBalance(amount),
           tooltip: `${amount.toString(asset?.decimal_digits ?? 6)}`
         };
@@ -256,7 +256,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
               },
               {
                 value: hide.value ? "****" : formatMobileAmount(amount),
-                subValue: hide.value ? "****" : `${NATIVE_CURRENCY.symbol}${formatMobileUsd(stable)}`,
+                subValue: hide.value ? "****" : formatMobileUsd(stable),
                 click: navigate,
                 class: "cursor-pointer"
               },
@@ -289,7 +289,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         const liquidation = loading
           ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
           : {
-              value: NATIVE_CURRENCY.symbol + formatPrice(displayData.liquidationPrice.toString()),
+              value: formatPriceUsd(displayData.liquidationPrice.toString()),
               class: "max-w-[200px]"
             };
 

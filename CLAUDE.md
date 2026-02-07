@@ -212,6 +212,8 @@ All `Intl.NumberFormat` calls live in `src/common/utils/NumberFormatUtils.ts` an
 - `formatTokenBalance(dec)` — adaptive decimals based on amount size, trailing zeros trimmed
 - `formatPrice(amount, decimals?)` — format a price with adaptive decimals (2-6 based on magnitude)
 - `formatPriceDec(dec)` — format a `Dec` as a price string with adaptive decimals
+- `formatPriceUsd(amount)` — format a price with adaptive decimals and `$` prefix (handles negative sign)
+- `formatPriceDecUsd(dec)` — `Dec` variant of `formatPriceUsd`
 - `formatCoinPretty(coin)` — format a `CoinPretty` as `"1,234.56 USDC"` (replaces `coin.toString()` which uses no locale formatting)
 - `getAdaptivePriceDecimals(price)` — returns 2-6 decimals based on price magnitude (used by chart tooltips, lease details)
 - `currencyFormatOptions(decimals)` / `compactFormatOptions` — `Intl.NumberFormatOptions` objects for `AnimateNumber` `:format` prop (keeps animated and static formatting in sync)
@@ -221,7 +223,7 @@ All `Intl.NumberFormat` calls live in `src/common/utils/NumberFormatUtils.ts` an
 
 Mobile-specific formatters for compact display on small screens:
 - `formatMobileAmount(dec)` — compact notation for values >= 1000 (e.g., "1.2K", "3.5M"), falls back to `formatTokenBalance` for smaller values to preserve precision (e.g., "0.000034")
-- `formatMobileUsd(dec)` — compact notation for USD values >= 1000, falls back to `formatNumber(amount, 2)` for smaller values
+- `formatMobileUsd(dec)` — compact notation for USD values >= 1000 with `$` prefix (e.g., `"$1.50K"`), falls back to `formatUsd()` for smaller values
 
 ### Chart Configuration
 

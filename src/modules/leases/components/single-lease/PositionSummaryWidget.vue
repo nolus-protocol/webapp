@@ -175,7 +175,7 @@
             ></span>
             <template v-if="stopLoss">
               <span class="flex text-14 font-semibold text-typography-default">
-                {{ NATIVE_CURRENCY.symbol }}{{ stopLoss.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
+                {{ stopLoss.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
               </span>
             </template>
             <div class="flex">
@@ -215,7 +215,7 @@
             ></span>
             <template v-if="takeProfit">
               <span class="flex text-14 font-semibold text-typography-default">
-                {{ NATIVE_CURRENCY.symbol }}{{ takeProfit.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
+                {{ takeProfit.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
               </span>
             </template>
             <div class="flex">
@@ -366,7 +366,7 @@ const stopLoss = computed(() => {
   return props.displayData?.stopLoss
     ? {
         percent: props.displayData.stopLoss.percent,
-        amount: props.displayData.stopLoss.price.toString(asset.value?.decimal_digits)
+        amount: formatNumber(props.displayData.stopLoss.price.toString(asset.value?.decimal_digits), asset.value?.decimal_digits, NATIVE_CURRENCY.symbol)
       }
     : null;
 });
@@ -375,7 +375,7 @@ const takeProfit = computed(() => {
   return props.displayData?.takeProfit
     ? {
         percent: props.displayData.takeProfit.percent,
-        amount: props.displayData.takeProfit.price.toString(asset.value?.decimal_digits)
+        amount: formatNumber(props.displayData.takeProfit.price.toString(asset.value?.decimal_digits), asset.value?.decimal_digits, NATIVE_CURRENCY.symbol)
       }
     : null;
 });

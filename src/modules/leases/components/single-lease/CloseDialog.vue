@@ -92,7 +92,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-partuial-debt', {
                       amount: paidDebt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -120,7 +120,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -156,7 +156,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -204,7 +204,7 @@
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -265,7 +265,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd, formatPrice, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatPriceUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -375,6 +375,8 @@ const price = computed(() => {
   }
 });
 
+const priceUsd = computed(() => formatPriceUsd(price.value));
+
 const remaining = computed(() => {
   const data = getAmountValue(amount.value == "" ? "0" : amount.value);
   const positionType = configStore.getPositionType(lease.value!.protocol);
@@ -425,7 +427,7 @@ const debtData = computed(() => {
       return {
         fee: `${formatNumber(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)}% (${formatDecAsUsd(value)})`,
         asset: currecy.shortName,
-        price: `${NATIVE_CURRENCY.symbol}${formatPrice(price.toString(MAX_DECIMALS))}`,
+        price: formatPriceUsd(price.toString(MAX_DECIMALS)),
         debt: `${formatTokenBalance(asset)} ${currecy.shortName}`
       };
     } else {
@@ -435,7 +437,7 @@ const debtData = computed(() => {
       return {
         fee: `${formatNumber(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)}% (${formatDecAsUsd(value)})`,
         asset: currecy.shortName,
-        price: `${NATIVE_CURRENCY.symbol}${formatPrice(price.toString(MAX_DECIMALS))}`,
+        price: formatPriceUsd(price.toString(MAX_DECIMALS)),
         debt: ` ${formatTokenBalance(asset)} ${lpn.shortName}`
       };
     }

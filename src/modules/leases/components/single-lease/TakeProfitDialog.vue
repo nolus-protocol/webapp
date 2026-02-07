@@ -64,7 +64,7 @@
                 class="flex-1"
                 :innerHTML="
                   $t('message.stoppings-close-price', {
-                    price: `${NATIVE_CURRENCY.symbol}${price}`,
+                    price: price,
                     asset: currency.shortName
                   })
                 "
@@ -110,7 +110,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { useConfigStore } from "@/common/stores/config";
 import { Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatPrice } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
 });
 
 const price = computed(() => {
-  return formatPrice(amount.value.length == 0 ? 0 : amount.value);
+  return formatPriceUsd(amount.value.length == 0 ? 0 : amount.value);
 });
 
 const currency = computed(() => {
@@ -190,7 +190,7 @@ const assets = computed(() => {
   if (lease.value) {
     const asset = getCurrency()!;
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
-    const priceVal = formatPrice(pricesStore.prices[asset.key]?.price ?? 0);
+    const priceVal = formatPriceUsd(pricesStore.prices[asset.key]?.price ?? 0);
 
     data.push({
       name: asset.name,
@@ -205,7 +205,7 @@ const assets = computed(() => {
       balance: {
         value: priceVal,
         ticker: "",
-        customLabel: `${NATIVE_CURRENCY.symbol}${priceVal}`,
+        customLabel: priceVal,
         denom: asset.ibcData
       }
     });
@@ -306,7 +306,7 @@ function isAmountValid() {
       if (positionType === "Long") {
         if (a.lte(price)) {
           amountErrorMsg.value = i18n.t("message.take-profit-min-amount-error", {
-            amount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currencyData.decimal_digits)))}`,
+            amount: formatNumber(Number(price.toString(Number(currencyData.decimal_digits))), Number(currencyData.decimal_digits), NATIVE_CURRENCY.symbol),
             symbol: ""
           });
           isValid = false;
@@ -314,7 +314,7 @@ function isAmountValid() {
       } else {
         if (a.gt(price)) {
           amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-            maxAmount: `${NATIVE_CURRENCY.symbol}${Number(price.toString(Number(currencyData.decimal_digits)))}`,
+            maxAmount: formatNumber(Number(price.toString(Number(currencyData.decimal_digits))), Number(currencyData.decimal_digits), NATIVE_CURRENCY.symbol),
             symbol: ""
           });
           isValid = false;

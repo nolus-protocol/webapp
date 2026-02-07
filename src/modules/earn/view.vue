@@ -42,9 +42,9 @@ import { EarnAssetsDialog } from "./enums";
 import { computed, h, provide, ref, watch } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
 
-import { formatNumber, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { isMobile } from "@/common/utils";
-import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
+import { NORMAL_DECIMALS } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useEarnStore } from "@/common/stores/earn";
 import { usePricesStore } from "@/common/stores/prices";
@@ -164,7 +164,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       return {
         protocol: pool.protocol,
         balance: mobile ? formatMobileAmount(depositedAmount) : formatTokenBalance(depositedAmount),
-        stable_balance: mobile ? formatMobileUsd(stableBalance) : formatNumber(stableBalance.toString(2), 2),
+        stable_balance: mobile ? formatMobileUsd(stableBalance) : formatUsd(stableBalance.toString(2)),
         stable_balance_number: parseFloat(stableBalance.toString(2)),
         // pool.apy is already in percentage format from backend (e.g., 5.25 for 5.25%)
         apr: new Dec(pool.apy).toString(2),
@@ -186,7 +186,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
             },
             {
               value: `${item.balance}`,
-              subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`
+              subValue: item.stable_balance
             }
           ]
         };
@@ -216,7 +216,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
           },
           {
             value: `${item.balance}`,
-            subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`
+            subValue: item.stable_balance
           },
           { value: `${item.apr}%`, class: "text-typography-success" },
           { component: statusComponent }

@@ -53,7 +53,7 @@ import VestedOverview from "./components/VestedOverview.vue";
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
 import { computed, h, ref, watch } from "vue";
-import { formatNumber, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { isMobile } from "@/common/utils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -142,7 +142,7 @@ const rewards = computed(() => {
   return [
     {
       amount: `${formatTokenBalance(rewardsAmount)} ${NATIVE_ASSET.label}`,
-      stableAmount: `${NATIVE_CURRENCY.symbol}${formatNumber(stableAmount.toString(2), 2)}`,
+      stableAmount: formatUsd(stableAmount.toString(2)),
       icon: NATIVE_ASSET.icon
     }
   ];
@@ -181,7 +181,7 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       const amount = new Dec(position.balance.amount, NATIVE_ASSET.decimal_digits);
       const stable = amount.mul(new Dec(nativePrice.value));
       const amountLabel = mobile ? formatMobileAmount(amount) : formatTokenBalance(amount);
-      const stableLabel = mobile ? formatMobileUsd(stable) : formatNumber(stable.toString(), 2);
+      const stableLabel = mobile ? formatMobileUsd(stable) : formatUsd(stable.toString());
 
       // Commission rate as percentage
       const rate = validator ? new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2) : "0.00";
@@ -198,7 +198,7 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
             },
             {
               value: `${amountLabel} ${NATIVE_ASSET.label}`,
-              subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`
+              subValue: stableLabel
             }
           ]
         };
@@ -214,7 +214,7 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
           },
           {
             value: `${amountLabel} ${NATIVE_ASSET.label}`,
-            subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`
+            subValue: stableLabel
           },
           { value: `${rate}%`, class: "max-w-[100px]" },
           {
