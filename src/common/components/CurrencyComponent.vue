@@ -29,7 +29,7 @@
         <template v-if="animatedReveal && !hide">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
-            :format="tokenFormatOptions(tokenMaxDecimals)"
+            :format="compact ? compactFormatOptions : tokenFormatOptions(tokenMaxDecimals)"
           />
         </template>
         <template v-else>
@@ -170,6 +170,21 @@ const amount = computed(() => {
     case CURRENCY_VIEW_TYPES.TOKEN: {
       const dec = new Dec(props.amount, props.decimals).abs();
       const numValue = Number(dec.toString(props.decimals));
+
+      if (props.compact) {
+        const formatted = formatCompact(numValue);
+
+        if (props.hide) {
+          return { denom: "", beforeDecimal: "**", afterDecimal: "**" };
+        }
+
+        return {
+          denom: props.denom,
+          beforeDecimal: formatted,
+          afterDecimal: ""
+        };
+      }
+
       const maxDec = tokenMaxDecimals.value;
       const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, tokenFormatOptions(maxDec)).format(numValue);
       let [beforeDecimal, afterDecimal] = formatted.split(".");

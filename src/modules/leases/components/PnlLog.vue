@@ -39,7 +39,8 @@
             amount: pnl.toString(2),
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: isMobile() ? 24 : 32
+            fontSize: mobile ? 24 : 32,
+            compact: mobile
           }"
         />
         <Button
@@ -107,6 +108,7 @@ import { useRouter } from "vue-router";
 import EmptyState from "@/common/components/EmptyState.vue";
 import { useConfigStore } from "@/common/stores/config";
 
+const mobile = isMobile();
 const i18n = useI18n();
 const wallet = useWalletStore();
 const analyticsStore = useAnalyticsStore();

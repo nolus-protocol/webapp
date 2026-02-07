@@ -4,7 +4,7 @@
       :label="$t('message.delegation-overview')"
       :icon="{ name: 'earn' }"
     />
-    <div class="flex flex-col gap-6 md:flex-row md:gap-0">
+    <div class="flex flex-row flex-wrap gap-4 md:gap-8">
       <BigNumber
         v-if="!showEmpty"
         :label="$t('message.total-value')"
@@ -16,13 +16,15 @@
           decimals: NATIVE_ASSET.decimal_digits,
           hasSpace: true,
           class: 'leading-[36px]',
-          fontSize: isMobile() ? 24 : 32,
-          animatedReveal: true
+          fontSize: mobile ? 24 : 32,
+          animatedReveal: true,
+          compact: mobile
         }"
         :secondary="{
           amount: stableDelegated,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: '$'
+          denom: '$',
+          compact: mobile
         }"
       />
       <BigNumber
@@ -37,28 +39,26 @@
           decimals: 2,
           hasSpace: false,
           class: 'leading-[36px]',
-          fontSize: isMobile() ? 24 : 32,
+          fontSize: mobile ? 24 : 32,
           animatedReveal: true
         }"
       />
-      <template v-if="!showEmpty">
-        <span class="mx-6 hidden h-full border-r border-border-color md:block" />
-        <BigNumber
-          :label="$t('message.yield')"
-          :label-tooltip="{
-            content: $t('message.yield-overview-tooltip')
-          }"
-          :amount="{
-            amount: wallet.apr.toString(),
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
-            class: 'leading-[36px]',
-            denom: '%',
-            isDenomInfront: false,
-            fontSize: isMobile() ? 24 : 32,
-            animatedReveal: true
-          }"
-        />
-      </template>
+      <BigNumber
+        v-if="!showEmpty"
+        :label="$t('message.yield')"
+        :label-tooltip="{
+          content: $t('message.yield-overview-tooltip')
+        }"
+        :amount="{
+          amount: wallet.apr.toString(),
+          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          class: 'leading-[36px]',
+          denom: '%',
+          isDenomInfront: false,
+          fontSize: mobile ? 24 : 32,
+          animatedReveal: true
+        }"
+      />
     </div>
     <div class="flex flex-col">
       <template v-if="!showEmpty && unboundingDelegations.length > 0">
@@ -118,6 +118,8 @@ import { NATIVE_ASSET } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import type { IObjectKeys } from "@/common/types";
 import { isMobile } from "@/common/utils";
+
+const mobile = isMobile();
 
 const props = defineProps<{
   stableDelegated: string;

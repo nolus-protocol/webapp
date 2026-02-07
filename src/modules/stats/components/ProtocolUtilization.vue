@@ -8,6 +8,7 @@
         type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
         decimals: 0,
+        compact: true,
         fontSize: isMobile() ? 24 : 32
       }"
     />

@@ -13,8 +13,9 @@
           amount: earningsAmount,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: isMobile() ? 24 : 32,
-          animatedReveal: true
+          fontSize: mobile ? 24 : 32,
+          animatedReveal: true,
+          compact: mobile
         }"
       />
 
@@ -25,8 +26,9 @@
           amount: stableRewards,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: isMobile() ? 24 : 32,
-          animatedReveal: true
+          fontSize: mobile ? 24 : 32,
+          animatedReveal: true,
+          compact: mobile
         }"
       />
 
@@ -77,6 +79,7 @@ import {
 import { useWalletConnected } from "@/common/composables";
 import { computed, ref } from "vue";
 
+const mobile = isMobile();
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const stakingStore = useStakingStore();

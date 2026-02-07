@@ -49,6 +49,7 @@
               denom: NATIVE_CURRENCY.symbol,
               fontSize: mobile ? 24 : 32,
               animatedReveal: true,
+              compact: mobile,
               class:
                 pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
@@ -68,7 +69,8 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
-              animatedReveal: true
+              animatedReveal: true,
+              compact: mobile
             }"
           />
           <BigNumber

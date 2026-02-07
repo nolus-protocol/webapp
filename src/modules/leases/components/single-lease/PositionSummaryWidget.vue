@@ -36,8 +36,9 @@
             denom: asset?.shortName ?? '',
             decimals: assetLoan?.decimal_digits ?? 0,
             hasSpace: true,
-            fontSize: isMobile() ? 24 : 32,
-            animatedReveal: true
+            fontSize: mobile ? 24 : 32,
+            animatedReveal: true,
+            compact: mobile
           }"
           :secondary="stable"
         />
@@ -148,8 +149,9 @@
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: '$',
             class: pnl.status ? 'text-typography-success' : 'text-typography-error',
-            fontSize: isMobile() ? 24 : 32,
-            animatedReveal: true
+            fontSize: mobile ? 24 : 32,
+            animatedReveal: true,
+            compact: mobile
           }"
           :pnl-status="{
             positive: pnl.status,
@@ -278,6 +280,8 @@ import { useI18n } from "vue-i18n";
 import type { CurrencyComponentProps } from "@/common/components/CurrencyComponent.vue";
 import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
+
+const mobile = isMobile();
 
 const props = defineProps<{
   lease?: LeaseInfo | null;

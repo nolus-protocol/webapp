@@ -21,7 +21,8 @@
         type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
         fontSize: mobile ? 24 : 32,
-        animatedReveal: true
+        animatedReveal: true,
+        compact: mobile
       }"
     />
 

@@ -48,7 +48,8 @@ export function tokenFormatOptions(maxDecimals: number): Intl.NumberFormatOption
 export const compactFormatOptions: Intl.NumberFormatOptions = {
   notation: "compact",
   compactDisplay: "short",
-  maximumFractionDigits: 1
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
 };
 
 /**
@@ -67,11 +68,7 @@ export function formatDecAsUsd(amount: Dec): string {
  * Format a number with compact notation (1K, 1M, etc.)
  */
 export function formatCompact(amount: number | string, locale: string = NATIVE_CURRENCY.locale): string {
-  return new Intl.NumberFormat(locale, {
-    notation: "compact",
-    compactDisplay: "short",
-    maximumFractionDigits: 1
-  }).format(Number(amount));
+  return new Intl.NumberFormat(locale, compactFormatOptions).format(Number(amount));
 }
 
 /**

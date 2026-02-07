@@ -24,7 +24,8 @@
           amount: stableRewards,
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: isMobile() ? 24 : 32
+          fontSize: mobile ? 24 : 32,
+          compact: mobile
         }"
       />
     </div>
@@ -68,6 +69,8 @@ import { useI18n } from "vue-i18n";
 import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
+
+const mobile = isMobile();
 
 defineProps<{
   rewards?: {

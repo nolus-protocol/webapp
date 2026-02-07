@@ -9,8 +9,9 @@
             type: CURRENCY_VIEW_TYPES.CURRENCY,
             denom: NATIVE_CURRENCY.symbol,
             decimals: NORMAL_DECIMALS,
-            fontSize: isMobile() ? 24 : 32,
-            animatedReveal: true
+            fontSize: mobile ? 24 : 32,
+            animatedReveal: true,
+            compact: mobile
           }"
           :loading="loading"
         />
@@ -25,7 +26,8 @@
             denom: NATIVE_CURRENCY.symbol,
             fontSize: 20,
             decimals: NORMAL_DECIMALS,
-            animatedReveal: true
+            animatedReveal: true,
+            compact: mobile
           }"
           :loading="loading"
         />

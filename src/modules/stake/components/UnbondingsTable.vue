@@ -32,11 +32,17 @@ const i18n = useI18n();
 const pricesStore = usePricesStore();
 const mobile = isMobile();
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.asset"), variant: "left" },
-  { label: i18n.t("message.amount-undelegate"), class: "max-w-[200px]" },
-  { label: i18n.t("message.time-left"), class: "hidden md:flex max-w-[120px]" }
-]);
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.amount-undelegate") }
+    ]
+  : [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.amount-undelegate"), class: "max-w-[200px]" },
+      { label: i18n.t("message.time-left"), class: "max-w-[120px]" }
+    ]
+);
 
 const props = defineProps<{
   unboundingDelegations: IObjectKeys[];
@@ -61,23 +67,39 @@ const assets = computed(() => {
       const balanceLabel = mobile ? formatMobileAmount(amountDec) : formatTokenBalance(amountDec);
       const stableLabel = mobile ? formatMobileUsd(stable_b) : formatNumber(stable_b.toString(2), 2);
 
-      data.push({
-        items: [
-          {
-            value: asset.name,
-            subValue: asset.shortName,
-            image: asset.icon,
-            variant: "left"
-          },
-          {
-            value: balanceLabel,
-            subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`,
-            variant: "right",
-            class: " max-w-[200px]"
-          },
-          { value: dateParser(item.completion_time, true), class: "hidden md:flex max-w-[120px]" }
-        ]
-      });
+      if (mobile) {
+        data.push({
+          items: [
+            {
+              value: asset.shortName,
+              subValue: dateParser(item.completion_time, true),
+              image: asset.icon,
+              variant: "left"
+            },
+            {
+              value: balanceLabel,
+              subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`
+            }
+          ]
+        });
+      } else {
+        data.push({
+          items: [
+            {
+              value: asset.name,
+              subValue: asset.shortName,
+              image: asset.icon,
+              variant: "left"
+            },
+            {
+              value: balanceLabel,
+              subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`,
+              class: "max-w-[200px]"
+            },
+            { value: dateParser(item.completion_time, true), class: "max-w-[120px]" }
+          ]
+        });
+      }
     }
   }
 

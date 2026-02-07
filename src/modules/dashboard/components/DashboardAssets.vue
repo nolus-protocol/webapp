@@ -37,8 +37,9 @@
           amount: total.toString(2),
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: isMobile() ? 24 : 32,
-          animatedReveal: true
+          fontSize: mobile ? 24 : 32,
+          animatedReveal: true,
+          compact: mobile
         }"
       />
       <Table
@@ -105,6 +106,7 @@ import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, useWalletConnected, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
 
+const mobile = isMobile();
 const i18n = useI18n();
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
@@ -169,7 +171,6 @@ function getYield(asset: ResolvedAsset): string | undefined {
 const assets = computed<TableRowItemProps[]>(() => {
   return filteredAssets.value.map((item) => {
     const c = item.currency;
-    const mobile = isMobile();
     const price = formatPrice(item.price);
     const balanceDec = new Dec(item.balance, c.decimal_digits);
     const stableDec = new Dec(item.balanceUsd.toFixed(2));

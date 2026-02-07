@@ -26,7 +26,8 @@
               type: CURRENCY_VIEW_TYPES.CURRENCY,
               denom: NATIVE_CURRENCY.symbol,
               animatedReveal: true,
-              fontSize: isMobile() ? 24 : 32
+              fontSize: mobile ? 24 : 32,
+              compact: mobile
             }"
             :pnl-status="{
               positive: pnlPercent.isPositive() || pnlPercent.isZero(),
@@ -83,6 +84,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
 
+const mobile = isMobile();
 const router = useRouter();
 const wallet = useWalletStore();
 const leasesStore = useLeasesStore();

@@ -67,6 +67,7 @@ import { useRouter } from "vue-router";
 import { useWalletConnected } from "@/common/composables";
 import RedelegateButton from "./components/RedelegateButton.vue";
 
+const mobile = isMobile();
 const wallet = useWalletStore();
 const stakingStore = useStakingStore();
 const pricesStore = usePricesStore();
@@ -179,7 +180,6 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       const validator = stakingStore.getValidator(position.validator_address);
       const amount = new Dec(position.balance.amount, NATIVE_ASSET.decimal_digits);
       const stable = amount.mul(new Dec(nativePrice.value));
-      const mobile = isMobile();
       const amountLabel = mobile ? formatMobileAmount(amount) : formatTokenBalance(amount);
       const stableLabel = mobile ? formatMobileUsd(stable) : formatNumber(stable.toString(), 2);
 
@@ -187,6 +187,22 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       const rate = validator ? new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2) : "0.00";
 
       const isJailed = validator?.jailed ?? false;
+
+      if (mobile) {
+        return {
+          items: [
+            {
+              value: position.validator_moniker,
+              variant: "left",
+              class: "break-all"
+            },
+            {
+              value: `${amountLabel} ${NATIVE_ASSET.label}`,
+              subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`
+            }
+          ]
+        };
+      }
 
       return {
         items: [
@@ -198,11 +214,9 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
           },
           {
             value: `${amountLabel} ${NATIVE_ASSET.label}`,
-            subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`,
-            variant: "right",
-            class: "md:flex"
+            subValue: `${NATIVE_CURRENCY.symbol}${stableLabel}`
           },
-          { value: `${rate}%`, class: "md:flex max-w-[100px]" },
+          { value: `${rate}%`, class: "max-w-[100px]" },
           {
             class: "max-w-[140px]",
             component: () =>
