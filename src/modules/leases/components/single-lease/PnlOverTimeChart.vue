@@ -42,7 +42,7 @@ type ChartData = { amount: number; date: Date };
 const mobile = isMobile();
 const chartHeight = 250;
 const marginLeft = mobile ? 45 : 75;
-const chartWidth = mobile ? 320 : 550;
+let chartWidth = mobile ? 320 : 550;
 const marginRight = 20;
 const marginBottom = 40;
 
@@ -103,6 +103,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = plotContainer.clientWidth || chartWidth;
   const plotChart = plot({
     width: chartWidth,
     height: chartHeight,
@@ -110,8 +111,6 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginRight,
     marginBottom,
     style: {
-      width: "100%",
-      height: "100%",
       fontSize: CHART_AXIS.fontSize
     },
     y: {
@@ -135,7 +134,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         stroke: "url(#gradient)",
         strokeWidth: 2,
         strokeLinecap: "round",
-        curve: "basis"
+        curve: "basis",
+        clip: "frame"
       })
     ]
   });

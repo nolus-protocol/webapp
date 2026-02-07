@@ -81,7 +81,7 @@ const chartHeight = 125;
 const marginTop = 0;
 const marginBottom = 30;
 const marginLeft = mobile ? 40 : 50;
-const width = mobile ? 320 : 950;
+let chartWidth = mobile ? 320 : 950;
 
 const chart = ref<typeof Chart>();
 const chart_data = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
@@ -132,14 +132,15 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   const bucketOrder = ["<0", "0-50", "51–100", "101–300", "301+"];
   plotContainer.innerHTML = "";
+  chartWidth = plotContainer.clientWidth || chartWidth;
 
   const plotChart = plot({
-    width,
+    width: chartWidth,
     height: chartHeight,
     marginLeft,
     marginTop,
     marginBottom,
-    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
+    style: { fontSize: CHART_AXIS.fontSize },
     x: { label: null },
     y: {
       label: null,

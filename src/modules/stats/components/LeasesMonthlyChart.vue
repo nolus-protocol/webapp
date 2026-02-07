@@ -22,7 +22,7 @@ import { useStatsStore } from "@/common/stores";
 
 const mobile = isMobile();
 const chartHeight = 300;
-const chartWidth = mobile ? 320 : 950;
+let chartWidth = mobile ? 320 : 950;
 const marginBottom = 50;
 const marginLeft = mobile ? 25 : 30;
 const marginRight = 30;
@@ -60,13 +60,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = plotContainer.clientWidth || chartWidth;
   const plotChart = rectY(
     loans.value,
     // @ts-ignore
     binX({ y: "sum" }, { x: "date", y: "amount", fill: "#19A96C", thresholds: timeMonth })
   ).plot({
     style: {
-      width: "100%",
       fontSize: CHART_AXIS.fontSize
     },
     width: chartWidth,

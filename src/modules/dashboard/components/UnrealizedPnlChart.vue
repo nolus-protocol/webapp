@@ -38,7 +38,7 @@ const data_position = ref<ChartData[]>([]);
 const mobile = isMobile();
 const chartHeight = 250;
 const marginLeft = mobile ? 45 : 75;
-const chartWidth = mobile ? 320 : 950;
+let chartWidth = mobile ? 320 : 950;
 const marginRight = 30;
 const marginBottom = 50;
 
@@ -73,6 +73,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = plotContainer.clientWidth || chartWidth;
 
   // Compute Y domain from data to show volatility clearly
   const allValues = data_position.value.flatMap((d) => [d.position ?? 0, d.debt ?? 0]);
@@ -84,7 +85,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   const plotChart = plot({
     color: { legend: true },
-    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
+    style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
@@ -109,7 +110,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         stroke: "#3470E2",
         strokeWidth: 2,
         strokeLinecap: "round",
-        curve: "catmull-rom"
+        curve: "catmull-rom",
+        clip: "frame"
       }),
       lineY(data_position.value, {
         x: "date",
@@ -118,7 +120,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         strokeWidth: 2,
         strokeLinecap: "round",
         strokeDasharray: "6, 4",
-        curve: "catmull-rom"
+        curve: "catmull-rom",
+        clip: "frame"
       })
     ]
   });

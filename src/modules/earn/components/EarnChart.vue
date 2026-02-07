@@ -33,7 +33,7 @@ const period = 7;
 const mobile = isMobile();
 const chartHeight = 250;
 const marginLeft = mobile ? 40 : 50;
-const chartWidth = mobile ? 320 : 400;
+let chartWidth = mobile ? 320 : 400;
 const marginRight = 30;
 const marginBottom = 65;
 const marginTop = 50;
@@ -63,9 +63,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = plotContainer.clientWidth || chartWidth;
   const plotChart = plot({
     color: { legend: true },
-    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
+    style: { fontSize: CHART_AXIS.fontSize },
     marginTop,
     width: chartWidth,
     height: chartHeight,
@@ -84,7 +85,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         x: "date",
         y: "amount",
         stroke: "#3470E2",
-        curve: "basis"
+        curve: "basis",
+        clip: "frame"
       })
     ]
   });

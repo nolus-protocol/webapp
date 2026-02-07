@@ -55,7 +55,7 @@ type ChartData = { date: Date; borrowed: number; supplied: number };
 const mobile = isMobile();
 const chartHeight = 250;
 const marginLeft = mobile ? 35 : 40;
-const chartWidth = mobile ? 320 : 950;
+let chartWidth = mobile ? 320 : 950;
 const marginRight = 30;
 const marginBottom = 50;
 
@@ -95,6 +95,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = plotContainer.clientWidth || chartWidth;
 
   // Downsample to ~200 points for a smoother chart
   const maxPoints = 200;
@@ -105,7 +106,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   const plotChart = plot({
     color: { legend: true },
-    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
+    style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
@@ -127,7 +128,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         stroke: "#3470E2",
         strokeWidth: 2,
         strokeLinecap: "round",
-        curve: "catmull-rom"
+        curve: "catmull-rom",
+        clip: "frame"
       }),
       lineY(chartData, {
         x: "date",
@@ -135,7 +137,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         stroke: "#19A96C",
         strokeWidth: 2,
         strokeLinecap: "round",
-        curve: "catmull-rom"
+        curve: "catmull-rom",
+        clip: "frame"
       })
     ]
   });
