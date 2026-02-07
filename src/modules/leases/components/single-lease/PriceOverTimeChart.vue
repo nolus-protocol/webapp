@@ -33,9 +33,9 @@ import Chart from "@/common/components/Chart.vue";
 import { Tooltip } from "web-components";
 
 import type { LeaseInfo } from "@/common/api";
-import { isMobile, LeaseUtils } from "@/common/utils";
-import { formatNumber, formatPrice } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, compactTickFormat } from "@/common/utils/ChartUtils";
+import { LeaseUtils } from "@/common/utils";
+import { formatPrice, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { plot, lineY } from "@observablehq/plot";
@@ -61,10 +61,9 @@ const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 const analyticsStore = useAnalyticsStore();
 
-const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = mobile ? 45 : 50;
-let chartWidth = mobile ? 320 : 950;
+let chartWidth: number;
+let marginLeft: number;
 const marginRight = 30;
 const marginBottom = 40;
 
@@ -200,7 +199,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
-  chartWidth = plotContainer.clientWidth || chartWidth;
+  chartWidth = getChartWidth(plotContainer);
 
   // Downsample to ~200 points for a smoother chart
   const maxPoints = 200;
@@ -219,7 +218,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const domainMin = firstLiquidation > 0 && firstLiquidation > minPrice * 0.85 ? firstLiquidation : minPrice;
   const range = maxPrice - domainMin;
   const padding = range * 0.2 || maxPrice * 0.05;
-  const yDomain = [Math.max(0, domainMin - padding), maxPrice + padding];
+  const yDomain: [number, number] = [Math.max(0, domainMin - padding), maxPrice + padding];
+  const tickFormat = createUsdTickFormat(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
 
   const plotChart = plot({
     color: { domain: likert.order, legend: false },
@@ -228,9 +229,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginLeft,
     marginRight,
     marginBottom,
-    style: {
-      fontSize: CHART_AXIS.fontSize
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     y: {
       type: "linear",
       domain: yDomain,
@@ -238,7 +237,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => mobile ? compactTickFormat(d) : `$${d}`,
+      tickFormat,
       ticks: CHART_AXIS.yTicks,
       tickSize: 0
     },
@@ -291,7 +290,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         crosshair.attr("x1", x).attr("x2", x).style("display", null);
 
         tooltip.html(
-          `<strong>${i18n.t("message.price")}:</strong> $${formatNumber(closestData.Price, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> $${formatNumber(closestData.Liquidation!, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.price")}:</strong> ${formatUsd(closestData.Price)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> ${formatUsd(Number(closestData.Liquidation!))}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

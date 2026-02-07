@@ -15,9 +15,8 @@ import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS } from "@/common/utils/ChartUtils";
-import { isMobile } from "@/common/utils";
-import { NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { CHART_AXIS, createNumberTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
+import { PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, ref, watch } from "vue";
 import { Dec, Int } from "@keplr-wallet/unit";
@@ -30,10 +29,9 @@ const data = ref<ChartData[]>([]);
 
 const period = 7;
 
-const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = mobile ? 40 : 50;
-let chartWidth = mobile ? 320 : 400;
+let marginLeft: number;
+let chartWidth: number;
 const marginRight = 30;
 const marginBottom = 65;
 const marginTop = 50;
@@ -63,7 +61,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
-  chartWidth = plotContainer.clientWidth || chartWidth;
+  chartWidth = getChartWidth(plotContainer);
+
+  const amounts = data.value.map((d) => d.amount);
+  const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
+  const tickFormat = createNumberTickFormat(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+
   const plotChart = plot({
     color: { legend: true },
     style: { fontSize: CHART_AXIS.fontSize },
@@ -77,7 +81,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "linear",
       grid: true,
       label: i18n.t("message.earn-chart-y"),
-      round: true
+      round: true,
+      tickFormat
     },
     x: { ticks: 9, tickRotate: 15, type: "linear", tickFormat: (d) => `${d}y.` },
     marks: [
@@ -102,7 +107,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> ${formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)} ${currency.value?.shortName}`
+          `<strong>${i18n.t("message.amount")}</strong> ${formatNumber(closestData.amount, 2)} ${currency.value?.shortName}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

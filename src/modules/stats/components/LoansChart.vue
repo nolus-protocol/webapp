@@ -12,20 +12,19 @@
 import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { isMobile } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS } from "@/common/utils/ChartUtils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, getChartWidth } from "@/common/utils/ChartUtils";
 import { getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { select, pointer, type Selection } from "d3";
 import { ref, watch } from "vue";
-import { NATIVE_CURRENCY } from "@/config/global";
 import { useStatsStore } from "@/common/stores";
 
 const mobile = isMobile();
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
-const marginLeft = mobile ? 70 : 100;
-let chartWidth = mobile ? 320 : 950;
+const marginLeft = mobile ? 55 : 70;
+let chartWidth: number;
 
 const chart = ref<typeof Chart>();
 const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
@@ -83,7 +82,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
-  chartWidth = plotContainer.clientWidth || chartWidth;
+  chartWidth = getChartWidth(plotContainer);
 
   const plotChart = plot({
     width: chartWidth,
@@ -91,9 +90,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginLeft: marginLeft,
     marginTop: marginTop,
     marginBottom: marginBottom,
-    style: {
-      fontSize: CHART_AXIS.fontSize
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     x: {
       percent: true,
       label: null
@@ -124,7 +121,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
         tooltip.html(
-          `<strong>${nearestData.ticker}:</strong> $${formatNumber(nearestData.loan, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${nearestData.ticker}:</strong> ${formatUsd(Number(nearestData.loan))}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

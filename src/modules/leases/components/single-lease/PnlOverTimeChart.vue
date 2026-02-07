@@ -31,18 +31,16 @@ import { pointer, select, type Selection } from "d3";
 
 import { CHART_RANGES } from "@/config/global";
 import { useI18n } from "vue-i18n";
-import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, compactTickFormat } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
 import type { LeaseInfo } from "@/common/api";
 import { useAnalyticsStore } from "@/common/stores";
 
 type ChartData = { amount: number; date: Date };
 
-const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = mobile ? 45 : 75;
-let chartWidth = mobile ? 320 : 550;
+let chartWidth: number;
+let marginLeft: number;
 const marginRight = 20;
 const marginBottom = 40;
 
@@ -103,21 +101,23 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
-  chartWidth = plotContainer.clientWidth || chartWidth;
+  chartWidth = getChartWidth(plotContainer);
+  const amounts = data.value.map((d) => d.amount);
+  const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
+  const tickFormat = createUsdTickFormat(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
   const plotChart = plot({
     width: chartWidth,
     height: chartHeight,
     marginLeft,
     marginRight,
     marginBottom,
-    style: {
-      fontSize: CHART_AXIS.fontSize
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     y: {
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => mobile ? compactTickFormat(d) : formatUsd(d),
+      tickFormat,
       ticks: CHART_AXIS.yTicks,
       tickSize: 0
     },

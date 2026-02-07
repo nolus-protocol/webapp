@@ -24,9 +24,8 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, compactTickFormat } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
 
 import { useWalletStore, useAnalyticsStore } from "@/common/stores";
 import { ref, watch } from "vue";
@@ -35,10 +34,9 @@ type ChartData = { position?: number; debt?: number; date: Date };
 
 const data_position = ref<ChartData[]>([]);
 
-const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = mobile ? 45 : 75;
-let chartWidth = mobile ? 320 : 950;
+let chartWidth: number;
+let marginLeft: number;
 const marginRight = 30;
 const marginBottom = 50;
 
@@ -73,7 +71,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
-  chartWidth = plotContainer.clientWidth || chartWidth;
+  chartWidth = getChartWidth(plotContainer);
 
   // Compute Y domain from data to show volatility clearly
   const allValues = data_position.value.flatMap((d) => [d.position ?? 0, d.debt ?? 0]);
@@ -81,14 +79,16 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const maxVal = Math.max(...allValues);
   const valRange = maxVal - minVal;
   const valPadding = valRange * 0.2 || maxVal * 0.05;
-  const yDomain = [Math.max(0, minVal - valPadding), maxVal + valPadding];
+  const yDomain: [number, number] = [Math.max(0, minVal - valPadding), maxVal + valPadding];
+  const tickFormat = createUsdTickFormat(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
 
   const plotChart = plot({
     color: { legend: true },
     style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
-    marginLeft: marginLeft,
+    marginLeft,
     marginRight: marginRight,
     marginBottom: marginBottom,
     y: {
@@ -98,7 +98,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => mobile ? compactTickFormat(d) : formatUsd(d),
+      tickFormat,
       ticks: CHART_AXIS.yTicks,
       tickSize: 0
     },

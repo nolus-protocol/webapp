@@ -203,7 +203,7 @@ Staking forms (`DelegateForm`, `UndelegateForm`) call `stakingStore.fetchPositio
 
 ### Centralized Number Formatting
 
-All `Intl.NumberFormat` calls live exclusively in `src/common/utils/NumberFormatUtils.ts`. No other file should use `new Intl.NumberFormat()` directly. Key exports:
+All `Intl.NumberFormat` calls live in `src/common/utils/NumberFormatUtils.ts` and `src/common/utils/ChartUtils.ts` (chart axis ticks only). No other file should use `new Intl.NumberFormat()` directly. Key exports:
 
 - `formatNumber(amount, decimals, symbol?)` — standard locale-aware formatting
 - `formatUsd(amount)` — shorthand for `formatNumber(amount, 2, "$")`
@@ -222,6 +222,18 @@ All `Intl.NumberFormat` calls live exclusively in `src/common/utils/NumberFormat
 Mobile-specific formatters for compact display on small screens:
 - `formatMobileAmount(dec)` — compact notation for values >= 1000 (e.g., "1.2K", "3.5M"), falls back to `formatTokenBalance` for smaller values to preserve precision (e.g., "0.000034")
 - `formatMobileUsd(dec)` — compact notation for USD values >= 1000, falls back to `formatNumber(amount, 2)` for smaller values
+
+### Chart Configuration
+
+All charts use Observable Plot (`@observablehq/plot`) with shared configuration from `src/common/utils/ChartUtils.ts`. Key exports:
+
+- `CHART_AXIS` — shared axis config (tick counts, font size, mobile-aware)
+- `getChartWidth(plotContainer)` — measures container via `parentElement.clientWidth`
+- `computeMarginLeft(yDomain, tickFormat, ticks)` — dynamic left margin via Canvas 2D `measureText`
+- `createUsdTickFormat(yDomain)` — factory: returns a tick formatter based on data range (compact `$1.5K`/`$2M` for >=1K, 2-decimal `$7.00` for >=1, adaptive for sub-dollar)
+- `createNumberTickFormat(yDomain)` — same logic without `$` prefix (for token amount charts)
+
+Chart.vue uses a `ResizeObserver` to re-render charts when the container resizes. Charts fill their container width — no hardcoded widths.
 
 ### Mobile Layout Patterns
 

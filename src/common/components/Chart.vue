@@ -32,7 +32,7 @@
 
     <div
       ref="plotContainer"
-      class="flex items-center justify-center"
+      class="min-w-0"
       :class="[{ 'opacity-0': isLoading && !disableSkeleton, hidden: !isLoading && dataLength < minLength }]"
     ></div>
   </div>
@@ -64,6 +64,8 @@ const container = ref<HTMLDivElement | null>();
 const plotContainer = ref<HTMLElement | null>(null);
 const i18n = useI18n();
 
+let resizeObserver: ResizeObserver | null = null;
+
 onMounted(async () => {
   // First run all the data fetching functions
   const items = props.fns.map((item) => item());
@@ -75,10 +77,24 @@ onMounted(async () => {
     await props.updateChart(plotContainer.value, tooltip);
     isLoading.value = false;
   }
+
+  // Re-render chart when container resizes (window resize, layout changes)
+  if (container.value) {
+    let lastWidth = container.value.clientWidth;
+    resizeObserver = new ResizeObserver(() => {
+      const newWidth = container.value?.clientWidth ?? 0;
+      if (newWidth > 0 && newWidth !== lastWidth && plotContainer.value && !isLoading.value) {
+        lastWidth = newWidth;
+        props.updateChart(plotContainer.value, tooltip);
+      }
+    });
+    resizeObserver.observe(container.value);
+  }
 });
 
 onUnmounted(() => {
   tooltip.remove();
+  resizeObserver?.disconnect();
 });
 
 watch(i18n.locale, async () => {

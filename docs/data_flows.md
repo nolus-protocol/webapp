@@ -2532,11 +2532,14 @@ The following components now use `useAnalyticsStore` instead of direct `EtlApi` 
 
 ### Chart Rendering
 
-Position detail charts (`PriceOverTimeChart.vue`, `PnlOverTimeChart.vue`) and the stats page chart (`SupplyBorrowedChart.vue`) use Observable Plot with the following rendering optimizations:
+All charts use Observable Plot with shared configuration from `src/common/utils/ChartUtils.ts`:
 
+- **Responsive width**: `Chart.vue` uses a `ResizeObserver` to re-render when the container resizes. `getChartWidth()` measures `plotContainer.parentElement.clientWidth` — no hardcoded widths.
+- **Dynamic margins**: `computeMarginLeft()` uses Canvas 2D `measureText` to measure the widest Y-axis tick label, ensuring labels are never clipped regardless of data range.
+- **Range-aware tick formatting**: `createUsdTickFormat(yDomain)` and `createNumberTickFormat(yDomain)` are factory functions that inspect the axis data range once and return a single consistent formatter for all ticks. Values >=1K use compact notation (`$1.5K`, `$68K`), values >=1 use 2 decimals (`$7.00`), sub-dollar values use adaptive precision (`$0.0045`).
 - **Downsampling**: Data is reduced to ~200 points maximum before rendering for smoother performance
-- **Curve interpolation**: `catmull-rom` curves with `strokeWidth: 2` and `strokeLinecap: "round"`
-- **Y domain**: Computed from price data only, with liquidation included only if within 70% of the price range (prevents liquidation price from skewing the scale)
+- **Curve interpolation**: `catmull-rom` curves with `strokeWidth: 2` and `strokeLinecap: "round"`, `clip: "frame"` on all marks
+- **Y domain**: Computed from price data only, with liquidation included only if within 15% of the price range (prevents liquidation price from skewing the scale)
 - **PnL address**: `fetchPnlOverTime()` takes a **lease contract address** (not wallet address) as the first parameter — the ETL `/pnl-over-time` endpoint expects the lease address
 
 ---

@@ -12,19 +12,18 @@
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
 import { isMobile } from "@/common/utils";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS } from "@/common/utils/ChartUtils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
-import { NATIVE_CURRENCY } from "@/config/global";
 import { ref, watch } from "vue";
 import { useStatsStore } from "@/common/stores";
 
 const mobile = isMobile();
 const chartHeight = 300;
-let chartWidth = mobile ? 320 : 950;
+let chartWidth: number;
 const marginBottom = 50;
-const marginLeft = mobile ? 25 : 30;
+let marginLeft: number;
 const marginRight = 30;
 const chart = ref<typeof Chart>();
 
@@ -60,15 +59,19 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
-  chartWidth = plotContainer.clientWidth || chartWidth;
+  chartWidth = getChartWidth(plotContainer);
+
+  const amounts = loans.value.map((d) => d.amount);
+  const yDomain: [number, number] = [Math.min(0, ...amounts), Math.max(...amounts)];
+  const tickFormat = createUsdTickFormat(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+
   const plotChart = rectY(
     loans.value,
     // @ts-ignore
     binX({ y: "sum" }, { x: "date", y: "amount", fill: "#19A96C", thresholds: timeMonth })
   ).plot({
-    style: {
-      fontSize: CHART_AXIS.fontSize
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
@@ -80,7 +83,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "linear",
       label: mobile ? null : i18n.t("message.leases-monthly"),
       ticks: CHART_AXIS.yTicks,
-      tickFormat: (d) => `$${d / 1e6}M`
+      tickFormat
     },
     x: { label: null, interval: "months", ticks: CHART_AXIS.xTicks },
     marks: [ruleY([0])]
@@ -96,7 +99,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> $${formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.amount")}</strong> ${formatUsd(closestData.amount)}`
         );
 
         const node = tooltip?.node()!.getBoundingClientRect();
