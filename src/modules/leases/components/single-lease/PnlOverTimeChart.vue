@@ -33,14 +33,16 @@ import { CHART_RANGES } from "@/config/global";
 import { useI18n } from "vue-i18n";
 import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, compactTickFormat } from "@/common/utils/ChartUtils";
 import type { LeaseInfo } from "@/common/api";
 import { useAnalyticsStore } from "@/common/stores";
 
 type ChartData = { amount: number; date: Date };
 
+const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = 75;
-const chartWidth = isMobile() ? 350 : 550;
+const marginLeft = mobile ? 45 : 75;
+const chartWidth = mobile ? 320 : 550;
 const marginRight = 20;
 const marginBottom = 40;
 
@@ -109,18 +111,21 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginBottom,
     style: {
       width: "100%",
-      height: "100%"
+      height: "100%",
+      fontSize: CHART_AXIS.fontSize
     },
     y: {
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => formatUsd(d),
+      tickFormat: (d) => mobile ? compactTickFormat(d) : formatUsd(d),
+      ticks: CHART_AXIS.yTicks,
       tickSize: 0
     },
     x: {
       label: null,
       type: "time",
+      ticks: CHART_AXIS.xTicks,
       tickSize: 0
     },
     marks: [

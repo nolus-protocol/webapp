@@ -43,6 +43,7 @@ import { lineY, plot } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
 import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS } from "@/common/utils/ChartUtils";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { ref, watch } from "vue";
@@ -51,9 +52,10 @@ import { useStatsStore } from "@/common/stores";
 
 type ChartData = { date: Date; borrowed: number; supplied: number };
 
+const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = 40;
-const chartWidth = isMobile() ? 450 : 950;
+const marginLeft = mobile ? 35 : 40;
+const chartWidth = mobile ? 320 : 950;
 const marginRight = 30;
 const marginBottom = 50;
 
@@ -103,7 +105,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   const plotChart = plot({
     color: { legend: true },
-    style: { width: "100%" },
+    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
@@ -112,12 +114,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      ticks: 5,
-      label: i18n.t("message.amount-$"),
+      ticks: CHART_AXIS.yTicks,
+      label: mobile ? null : i18n.t("message.amount-$"),
       tickSize: 0,
       tickFormat: (d) => `$${d / 1e6}M`
     },
-    x: { type: "time", label: i18n.t("message.date-capitalize") },
+    x: { type: "time", label: mobile ? null : i18n.t("message.date-capitalize"), ticks: CHART_AXIS.xTicks },
     marks: [
       lineY(chartData, {
         x: "date",

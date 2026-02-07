@@ -26,6 +26,7 @@ import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, compactTickFormat } from "@/common/utils/ChartUtils";
 
 import { useWalletStore, useAnalyticsStore } from "@/common/stores";
 import { ref, watch } from "vue";
@@ -34,9 +35,10 @@ type ChartData = { position?: number; debt?: number; date: Date };
 
 const data_position = ref<ChartData[]>([]);
 
+const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = 75;
-const chartWidth = isMobile() ? 450 : 950;
+const marginLeft = mobile ? 45 : 75;
+const chartWidth = mobile ? 320 : 950;
 const marginRight = 30;
 const marginBottom = 50;
 
@@ -82,7 +84,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   const plotChart = plot({
     color: { legend: true },
-    style: { width: "100%" },
+    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
@@ -95,11 +97,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => formatUsd(d),
-      ticks: 5,
+      tickFormat: (d) => mobile ? compactTickFormat(d) : formatUsd(d),
+      ticks: CHART_AXIS.yTicks,
       tickSize: 0
     },
-    x: { type: "time", label: null },
+    x: { type: "time", label: null, ticks: CHART_AXIS.xTicks },
     marks: [
       lineY(data_position.value, {
         x: "date",

@@ -14,6 +14,8 @@ import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS } from "@/common/utils/ChartUtils";
+import { isMobile } from "@/common/utils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { ref, watch } from "vue";
@@ -25,9 +27,10 @@ const data = ref<ChartData[]>([]);
 const period = [{ months: 0 }, { months: 12 }, { months: 24 }, { months: 48 }];
 const days = 30;
 
+const mobile = isMobile();
 const chartHeight = 300;
-const marginLeft = 40;
-const chartWidth = 400;
+const marginLeft = mobile ? 35 : 40;
+const chartWidth = mobile ? 320 : 400;
 const marginRight = 30;
 const marginBottom = 50;
 const marginTop = 50;
@@ -53,7 +56,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   plotContainer.innerHTML = "";
   const plotChart = plot({
     color: { legend: true },
-    style: { width: "100%" },
+    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
     marginTop,
     width: chartWidth,
     height: chartHeight,

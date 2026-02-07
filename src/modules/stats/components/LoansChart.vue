@@ -13,17 +13,19 @@ import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS } from "@/common/utils/ChartUtils";
 import { getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { select, pointer, type Selection } from "d3";
 import { ref, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useStatsStore } from "@/common/stores";
 
+const mobile = isMobile();
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
-const marginLeft = isMobile() ? 50 : 100;
-const width = isMobile() ? 450 : 950;
+const marginLeft = mobile ? 70 : 100;
+const width = mobile ? 320 : 950;
 
 const chart = ref<typeof Chart>();
 const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
@@ -89,7 +91,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginTop: marginTop,
     marginBottom: marginBottom,
     style: {
-      width: "100%"
+      width: "100%",
+      fontSize: CHART_AXIS.fontSize
     },
     x: {
       percent: true,

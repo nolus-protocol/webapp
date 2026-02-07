@@ -13,16 +13,18 @@ import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
 import { isMobile } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS } from "@/common/utils/ChartUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { ref, watch } from "vue";
 import { useStatsStore } from "@/common/stores";
 
+const mobile = isMobile();
 const chartHeight = 300;
-const chartWidth = isMobile() ? 350 : 950;
+const chartWidth = mobile ? 320 : 950;
 const marginBottom = 50;
-const marginLeft = 30;
+const marginLeft = mobile ? 25 : 30;
 const marginRight = 30;
 const chart = ref<typeof Chart>();
 
@@ -64,7 +66,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     binX({ y: "sum" }, { x: "date", y: "amount", fill: "#19A96C", thresholds: timeMonth })
   ).plot({
     style: {
-      width: "100%"
+      width: "100%",
+      fontSize: CHART_AXIS.fontSize
     },
     width: chartWidth,
     height: chartHeight,
@@ -75,10 +78,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       grid: true,
       type: "linear",
-      label: i18n.t("message.leases-monthly"),
+      label: mobile ? null : i18n.t("message.leases-monthly"),
+      ticks: CHART_AXIS.yTicks,
       tickFormat: (d) => `$${d / 1e6}M`
     },
-    x: { label: null, interval: "months" },
+    x: { label: null, interval: "months", ticks: CHART_AXIS.xTicks },
     marks: [ruleY([0])]
   });
 

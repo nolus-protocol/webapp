@@ -68,6 +68,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { isMobile, WalletManager } from "@/common/utils";
+import { CHART_AXIS } from "@/common/utils/ChartUtils";
 import { select, pointer, type Selection } from "d3";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import { Widget } from "web-components";
@@ -75,11 +76,12 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { ref, watch, computed, onMounted } from "vue";
 import { useAnalyticsStore } from "@/common/stores";
 
+const mobile = isMobile();
 const chartHeight = 125;
 const marginTop = 0;
 const marginBottom = 30;
-const marginLeft = isMobile() ? 50 : 50;
-const width = isMobile() ? 450 : 950;
+const marginLeft = mobile ? 40 : 50;
+const width = mobile ? 320 : 950;
 
 const chart = ref<typeof Chart>();
 const chart_data = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
@@ -137,7 +139,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginLeft,
     marginTop,
     marginBottom,
-    style: { width: "100%" },
+    style: { width: "100%", fontSize: CHART_AXIS.fontSize },
     x: { label: null },
     y: {
       label: null,

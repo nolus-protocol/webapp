@@ -35,6 +35,7 @@ import { Tooltip } from "web-components";
 import type { LeaseInfo } from "@/common/api";
 import { isMobile, LeaseUtils } from "@/common/utils";
 import { formatNumber, formatPrice } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, compactTickFormat } from "@/common/utils/ChartUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { plot, lineY } from "@observablehq/plot";
@@ -60,9 +61,10 @@ const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 const analyticsStore = useAnalyticsStore();
 
+const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = 50;
-const chartWidth = isMobile() ? 350 : 950;
+const marginLeft = mobile ? 45 : 50;
+const chartWidth = mobile ? 320 : 950;
 const marginRight = 30;
 const marginBottom = 40;
 
@@ -227,7 +229,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginBottom,
     style: {
       width: "100%",
-      height: "100%"
+      height: "100%",
+      fontSize: CHART_AXIS.fontSize
     },
     y: {
       type: "linear",
@@ -236,13 +239,14 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => `$${d}`,
-      ticks: 5,
+      tickFormat: (d) => mobile ? compactTickFormat(d) : `$${d}`,
+      ticks: CHART_AXIS.yTicks,
       tickSize: 0
     },
     x: {
       label: null,
-      type: "time"
+      type: "time",
+      ticks: CHART_AXIS.xTicks
     },
     marks: [
       lineY(chartData, {
