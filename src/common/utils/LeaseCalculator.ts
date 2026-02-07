@@ -96,7 +96,8 @@ export class LeaseCalculator {
       : new Dec(lease.debt.principal);
 
     // Calculate debt components
-    const { totalDebt, interestDue } = this.calculateDebt(lease);
+    const lpnDecimals = lpnCurrency?.decimal_digits ?? 6;
+    const { totalDebt, interestDue } = this.calculateDebt(lease, lpnDecimals);
 
     // Calculate interest rates
     const { interestRate, interestRateMonthly } = this.calculateInterestRates(lease);
@@ -176,12 +177,12 @@ export class LeaseCalculator {
   /**
    * Calculate total debt and interest due
    */
-  calculateDebt(lease: LeaseInfo): { totalDebt: Dec; interestDue: Dec } {
-    const principal = new Dec(lease.debt.principal);
-    const overdueMargin = new Dec(lease.debt.overdue_margin);
-    const overdueInterest = new Dec(lease.debt.overdue_interest);
-    const dueMargin = new Dec(lease.debt.due_margin);
-    const dueInterest = new Dec(lease.debt.due_interest);
+  calculateDebt(lease: LeaseInfo, lpnDecimals: number): { totalDebt: Dec; interestDue: Dec } {
+    const principal = new Dec(lease.debt.principal, lpnDecimals);
+    const overdueMargin = new Dec(lease.debt.overdue_margin, lpnDecimals);
+    const overdueInterest = new Dec(lease.debt.overdue_interest, lpnDecimals);
+    const dueMargin = new Dec(lease.debt.due_margin, lpnDecimals);
+    const dueInterest = new Dec(lease.debt.due_interest, lpnDecimals);
 
     const totalDebt = principal.add(overdueMargin).add(overdueInterest).add(dueMargin).add(dueInterest);
 
@@ -426,17 +427,6 @@ export class LeaseCalculator {
       if (lease.pnl) {
         total = total.add(new Dec(lease.pnl.amount));
       }
-    }
-    return total;
-  }
-
-  /**
-   * Calculate total debt across multiple leases
-   */
-  static calculateTotalDebt(leases: LeaseInfo[]): Dec {
-    let total = new Dec(0);
-    for (const lease of leases) {
-      total = total.add(new Dec(lease.debt.total));
     }
     return total;
   }

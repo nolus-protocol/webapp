@@ -65,11 +65,6 @@ export const useLeasesStore = defineStore("leases", () => {
   const totalPnl = computed(() => LeaseCalculator.calculateTotalPnl(openLeases.value));
 
   /**
-   * Calculate total debt across all open leases
-   */
-  const totalDebt = computed(() => LeaseCalculator.calculateTotalDebt(openLeases.value));
-
-  /**
    * Calculate total collateral value across all open leases
    */
   const totalCollateralUsd = computed(() => {
@@ -318,7 +313,6 @@ export const useLeasesStore = defineStore("leases", () => {
     openLeases,
     closedLeases,
     totalPnl,
-    totalDebt,
     totalCollateralUsd,
 
     // Getters
