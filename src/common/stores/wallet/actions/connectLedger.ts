@@ -6,8 +6,6 @@ import { WalletConnectMechanism } from "@/common/types";
 import { makeCosmoshubPath } from "@cosmjs/amino";
 import { LedgerSigner } from "@cosmjs/ledger-amino";
 import { Buffer } from "buffer";
-import { LedgerName } from "@/config/global";
-
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import { IntercomService } from "@/common/utils/IntercomService";
@@ -48,7 +46,6 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
         payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER
       );
       WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
-      this.walletName = LedgerName;
     } catch (e: Error | any) {
       breakLoop = true;
       throw new Error(e);

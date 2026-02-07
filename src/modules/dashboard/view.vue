@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader
-      :title="wallet?.walletName ? `${$t('message.hello')} ${wallet?.walletName}!` : $t('message.hello-stranger')"
+      :title="wallet?.wallet?.address ? `${$t('message.hello')} ${wallet.wallet.address.slice(-6)}` : $t('message.hello-stranger')"
     />
     <DashboardLeases />
     <div class="flex flex-col gap-8 lg:flex-row">

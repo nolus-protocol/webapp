@@ -6,7 +6,6 @@ import { WalletConnectMechanism } from "@/common/types";
 import { Buffer } from "buffer";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { MetaMaskWallet } from "@/networks/evm";
-import { PhantomName } from "@/config/global";
 import { applyNolusWalletOverrides } from "@/networks/cosm/NolusWalletOverride";
 
 export async function connectPhantom(this: Store) {
@@ -22,7 +21,6 @@ export async function connectPhantom(this: Store) {
 
   this.wallet = nolusWalletOfflineSigner;
   applyNolusWalletOverrides(this.wallet);
-  this.walletName = PhantomName;
 
   IntercomService.load(this.wallet.address, "phantom");
 }

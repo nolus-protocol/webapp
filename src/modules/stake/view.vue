@@ -28,19 +28,18 @@
           :showEmpty="showEmpty"
           :unboundingDelegations="unboundingDelegations"
         />
-
+      </div>
+      <div class="order-1 flex flex-col gap-8 lg:order-none lg:flex-[40%]">
+        <StakingRewards
+          :rewards="rewards"
+          :stableRewards="stableRewards"
+          :showEmpty="showEmpty"
+        />
         <VestedOverview
           v-if="vestedTokens.length > 0"
           :vestedTokens="vestedTokens"
-          class="mt-8"
         />
       </div>
-      <StakingRewards
-        :rewards="rewards"
-        :stableRewards="stableRewards"
-        :showEmpty="showEmpty"
-        class="order-1 lg:order-none lg:flex-[40%]"
-      />
     </div>
     <router-view></router-view>
   </div>

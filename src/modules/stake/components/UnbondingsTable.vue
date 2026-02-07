@@ -4,13 +4,11 @@
     :columns="columns"
   >
     <template v-slot:body>
-      <div class="thin-scroll max-h-[600px] overflow-auto pr-2">
-        <TableRow
-          v-for="(row, index) in assets"
-          :key="index"
-          :items="row.items"
-        />
-      </div>
+      <TableRow
+        v-for="(row, index) in assets"
+        :key="index"
+        :items="row.items"
+      />
     </template>
   </Table>
 </template>

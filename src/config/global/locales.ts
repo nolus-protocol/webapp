@@ -1,18 +1,10 @@
-// Load locale files directly from backend config (single source of truth)
-// Uses dynamic imports for code-splitting - only loads locale when needed
-// Path is relative to project root for import.meta.glob
-const localeModules = import.meta.glob("/backend/config/locales/active/*.json");
-
-// Helper to load a locale, returns empty object if not found
+// Load locale files from the backend API at runtime (single source of truth).
+// This ensures the translation admin system (sync, generate, approve) takes
+// effect immediately without requiring a frontend rebuild.
 const loadLocale = (lang: string) => async (): Promise<Record<string, unknown>> => {
-  const path = `/backend/config/locales/active/${lang}.json`;
-  const loader = localeModules[path];
-  if (loader) {
-    const module = (await loader()) as { default: Record<string, unknown> };
-    return module.default;
-  }
-  // Locale not found - return empty, will fall back to default locale
-  return {};
+  const response = await fetch(`/api/locales/${lang}`);
+  if (!response.ok) return {};
+  return response.json();
 };
 
 const languages: {

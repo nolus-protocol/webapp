@@ -49,8 +49,4 @@ export const INTERCOM_API = "hbjifswh";
 export const MAX_DECIMALS = 8;
 export const NORMAL_DECIMALS = 2;
 
-export const LedgerName = "Ledger";
-export const PhantomName = "Phantom";
-export const SolflareName = "Solflare";
-
 export const UNDELEGATE_DAYS = 21;

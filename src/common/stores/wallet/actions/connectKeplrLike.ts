@@ -56,7 +56,6 @@ export async function connectKeplrLike(
 
       store.wallet = nolusWalletOfflineSigner;
       applyNolusWalletOverrides(store.wallet);
-      store.walletName = (await extension.getKey(chainId)).name;
     }
   }
 
