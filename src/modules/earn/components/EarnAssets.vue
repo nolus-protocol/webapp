@@ -12,8 +12,7 @@
             content: $t('message.total-value-tooltip')
           }"
           :amount="{
-            amount: stableAmount,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: stableAmount,
             denom: NATIVE_CURRENCY.symbol,
             fontSize: mobile ? 24 : 32,
             animatedReveal: true,
@@ -28,8 +27,7 @@
             content: $t('message.earn-yield-tooltip')
           }"
           :amount="{
-            amount: earningsAmount,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: earningsAmount,
             denom: NATIVE_CURRENCY.symbol,
             fontSize: 20,
             animatedReveal: true,
@@ -45,8 +43,7 @@
             content: $t('message.project-anual-return-tooltip')
           }"
           :amount="{
-            amount: anualYield,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: anualYield,
             denom: NATIVE_CURRENCY.symbol,
             fontSize: 20,
             animatedReveal: true
@@ -69,7 +66,6 @@
 <script lang="ts" setup>
 import { SvgIcon, type TableRowItemProps, Widget } from "web-components";
 import EarnAssetsTable from "@/modules/earn/components/EarnAssetsTable.vue";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { isMobile } from "@/common/utils";

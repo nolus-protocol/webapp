@@ -10,23 +10,18 @@
     <BigNumber
       label="Size"
       :amount="{
-        amount: sizeAmount,
-        type: CURRENCY_VIEW_TYPES.TOKEN,
+        microAmount: sizeAmount,
         denom: totalAsset?.shortName ?? downPaymentAsset?.shortName,
-        maxDecimals: MAX_DECIMALS,
-        minimalDenom: '',
         decimals: totalAsset?.decimal_digits ?? downPaymentAsset?.decimal_digits ?? 6,
-        hasSpace: true,
         around: true,
         tooltip: true
       }"
       :secondary="{
-        amount: totalLoan,
-        type: CURRENCY_VIEW_TYPES.TOKEN,
+        value: totalLoan,
         denom: asset?.shortName,
-        maxDecimals: asset?.decimal_digits,
-        decimals: asset?.decimal_digits,
-        hasSpace: true
+        isDenomPrefix: false,
+        hasSpace: true,
+        decimals: asset?.decimal_digits
       }"
     />
     <div class="flex flex-col gap-3">
@@ -48,20 +43,15 @@
             class="md:flex-[50%]"
             :label="$t('message.downpayment')"
             :amount="{
-              amount: downPaymentAmount,
+              microAmount: downPaymentAmount,
               decimals: downPaymentAsset.decimal_digits,
-              type: CURRENCY_VIEW_TYPES.TOKEN,
               denom: downPaymentAsset.shortName,
-              hasSpace: true,
               fontSize: 16
             }"
             :secondary="{
-              amount: downPaymentStable.toString(),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              value: downPaymentStable.toString(),
               denom: NATIVE_CURRENCY.symbol,
-              decimals: 2,
-              maxDecimals: 2,
-              minimalDenom: ''
+              decimals: 2
             }"
           />
           <div class="flex flex-col gap-y-3 md:flex-[50%]">
@@ -69,39 +59,29 @@
               class="md:flex-[50%]"
               :label="$t('message.borrow')"
               :amount="{
-                amount: borrowAmount,
+                microAmount: borrowAmount,
                 decimals: asset.decimal_digits,
-                type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
-                hasSpace: true,
                 fontSize: 16
               }"
               :secondary="{
-                amount: borrowStable.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: borrowStable.toString(),
                 denom: NATIVE_CURRENCY.symbol,
-                decimals: 2,
-                maxDecimals: 2,
-                minimalDenom: ''
+                decimals: 2
               }"
             />
             <BigNumber
               :label="$t('message.impact-and-dex-fees')"
               :amount="{
-                amount: swapFeeAmount.toString(),
+                microAmount: swapFeeAmount.truncate().toString(),
                 decimals: asset.decimal_digits,
-                type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
-                hasSpace: true,
                 fontSize: 16
               }"
               :secondary="{
-                amount: swapStableFee.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: swapStableFee.toString(),
                 denom: NATIVE_CURRENCY.symbol,
-                maxDecimals: 2,
-                decimals: 2,
-                minimalDenom: ''
+                decimals: 2
               }"
             />
           </div>
@@ -128,28 +108,25 @@
         class="md:flex-[50%]"
         :label="$t('message.lease-interest')"
         :amount="{
-          amount: annualInterestRate.toString(),
-          type: CURRENCY_VIEW_TYPES.TOKEN,
+          value: annualInterestRate.toString(),
           denom: '%',
-          maxDecimals: 0,
-          minimalDenom: '',
+          isDenomPrefix: false,
           decimals: 2,
           fontSize: 16,
-          class: { 'line-through': isFreeLease },
-          additional: isFreeLease
-            ? {
-                text: '0%',
-                class: 'text-typography-success'
-              }
-            : undefined
+          class: { 'line-through': isFreeLease }
         }"
+        :additional="isFreeLease
+          ? {
+              text: '0%',
+              class: 'text-typography-success'
+            }
+          : undefined"
       />
       <BigNumber
         class="md:flex-[50%]"
         :label="$t('message.price-per-symbol', { symbol: asset?.shortName })"
         :amount="{
-          amount: pricesStore.prices[loanCurrency]?.price ?? '0',
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: pricesStore.prices[loanCurrency]?.price ?? '0',
           denom: NATIVE_CURRENCY.symbol,
           decimals: currentPriceDecimals,
           fontSize: 16
@@ -159,11 +136,9 @@
         class="md:flex-[50%]"
         :label="$t('message.partial-liquidation')"
         :amount="{
-          amount: percentLique,
-          type: CURRENCY_VIEW_TYPES.TOKEN,
+          value: percentLique,
           denom: `% ($${calculateLique})`,
-          maxDecimals: 0,
-          minimalDenom: '',
+          isDenomPrefix: false,
           decimals: 0,
           fontSize: 16
         }"
@@ -177,9 +152,8 @@ import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { Button, SvgIcon } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY } from "@/config/global";
 import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
@@ -248,9 +222,7 @@ const isFreeLease = computed(() => {
 });
 
 const annualInterestRate = computed(() => {
-  return (
-    (((props.lease?.annual_interest_rate ?? 0) + (props.lease?.annual_interest_rate_margin ?? 0)) / MONTHS) * PERCENT
-  );
+  return ((props.lease?.annual_interest_rate ?? 0) + (props.lease?.annual_interest_rate_margin ?? 0)) / MONTHS;
 });
 
 const totalLoan = computed(() => {

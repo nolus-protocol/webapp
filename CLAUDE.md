@@ -219,7 +219,7 @@ All `Intl.NumberFormat` calls live in `src/common/utils/NumberFormatUtils.ts` an
 - `currencyFormatOptions(decimals)` / `compactFormatOptions` — `Intl.NumberFormatOptions` objects for `AnimateNumber` `:format` prop (keeps animated and static formatting in sync)
 - `tokenFormatOptions(maxDecimals)` — format option object for AnimateNumber in TOKEN contexts
 
-`CurrencyComponent.vue` delegates all formatting to these utilities. `AnimateNumber` receives shared format option objects rather than inline literals.
+Amount display is split into two components: `TokenAmount.vue` (receives raw on-chain micro-units via `microAmount`, converts with `Dec(amount, decimals)`, formats with adaptive precision) and `FormattedAmount.vue` (receives human-readable numbers via `value`, formats with fixed decimals). `BigNumber.vue` uses a discriminated union (`AmountDisplayProps`) with `isTokenAmount()` type guard to render the correct child. `AnimateNumber` receives shared format option objects rather than inline literals.
 
 Mobile-specific formatters for compact display on small screens:
 - `formatMobileAmount(dec)` — compact notation for values >= 1000 (e.g., "1.2K", "3.5M"), falls back to `formatTokenBalance` for smaller values to preserve precision (e.g., "0.000034")

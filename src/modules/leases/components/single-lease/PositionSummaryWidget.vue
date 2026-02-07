@@ -31,11 +31,9 @@
           loadingWidth="200px"
           :label="$t('message.lease-size')"
           :amount="{
-            amount: amount,
-            type: CURRENCY_VIEW_TYPES.TOKEN,
+            microAmount: amount,
             denom: asset?.shortName ?? '',
             decimals: assetLoan?.decimal_digits ?? 0,
-            hasSpace: true,
             fontSize: mobile ? 24 : 32,
             animatedReveal: true,
             compact: mobile
@@ -49,11 +47,9 @@
               :label="$t('message.outstanding-loan')"
               :label-tooltip="{ content: $t('message.outstanding-loan-tooltip') }"
               :amount="{
-                amount: debt,
-                type: CURRENCY_VIEW_TYPES.TOKEN,
+                microAmount: debt,
                 denom: lpn?.shortName ?? '',
                 decimals: lpn?.decimal_digits ?? 0,
-                hasSpace: true,
                 fontSize: 16
               }"
             />
@@ -62,8 +58,7 @@
               :loading="loading"
               :label="`${$t('message.price-per-asset')} ${pricerPerAsset?.shortName}`"
               :amount="{
-                amount: openedPrice,
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: openedPrice,
                 denom: NATIVE_CURRENCY.symbol,
                 decimals: openedPriceDecimals,
                 fontSize: 16
@@ -75,9 +70,8 @@
               :label="$t('message.partial-liquidation')"
               :label-tooltip="{ content: $t('message.partial-liquidation-tooltip') }"
               :amount="{
-                amount: liquidation,
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
-                denom: `${NATIVE_CURRENCY.symbol}`,
+                value: liquidation,
+                denom: NATIVE_CURRENCY.symbol,
                 decimals: liquidationDecimals,
                 fontSize: 16
               }"
@@ -87,11 +81,9 @@
               :label="$t('message.interest-due')"
               :label-tooltip="{ content: $t('message.repay-interest', { dueDate: interestDueDate }) }"
               :amount="{
-                amount: interestDue,
-                type: CURRENCY_VIEW_TYPES.TOKEN,
+                microAmount: interestDue,
                 denom: lpn?.shortName ?? '',
                 decimals: lpn?.decimal_digits ?? 0,
-                hasSpace: true,
                 fontSize: 16,
                 class: interestDueStatus ? 'text-warning-100' : ''
               }"
@@ -103,10 +95,8 @@
               :label="$t('message.down-payment')"
               :label-tooltip="{ content: $t('message.downpayment-tooltip') }"
               :amount="{
-                amount: downPayment,
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: downPayment,
                 denom: NATIVE_CURRENCY.symbol,
-                hasSpace: false,
                 fontSize: 16
               }"
             />
@@ -116,8 +106,7 @@
               :label="$t('message.impact-dex-fee')"
               :label-tooltip="{ content: $t('message.impact-dex-fee-tooltip') }"
               :amount="{
-                amount: fee,
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: fee,
                 denom: NATIVE_CURRENCY.symbol,
                 fontSize: 16
               }"
@@ -128,10 +117,9 @@
               :label="$t('message.interest-fee')"
               :label-tooltip="{ content: $t('message.interest-fee-tooltip') }"
               :amount="{
-                amount: interest,
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: interest,
                 denom: '%',
-                isDenomInfront: false,
+                isDenomPrefix: false,
                 fontSize: 16
               }"
             />
@@ -145,8 +133,7 @@
           :loading-width="'120px'"
           :label="$t('message.unrealized-pnl')"
           :amount="{
-            amount: pnl.amount.toString(2),
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: pnl.amount.toString(2),
             denom: '$',
             class: pnl.status ? 'text-typography-success' : 'text-typography-error',
             fontSize: mobile ? 24 : 32,
@@ -254,7 +241,6 @@
 <script lang="ts" setup>
 import { Button, SvgIcon, ToastType, Tooltip, Widget } from "web-components";
 
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { RouteNames } from "@/router";
 
 import EmptyState from "@/common/components/EmptyState.vue";
@@ -267,7 +253,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { formatNumber, formatPriceDec, getAdaptivePriceDecimals } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, getAdaptivePriceDecimals } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { dateParser, isMobile, Logger, walletOperation } from "@/common/utils";
@@ -277,7 +263,7 @@ import { TEMPLATES } from "../common";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import { useI18n } from "vue-i18n";
-import type { CurrencyComponentProps } from "@/common/components/CurrencyComponent.vue";
+import type { AmountDisplayProps } from "@/common/components/BigNumber.vue";
 import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
 
@@ -388,13 +374,12 @@ const asset = computed(() => {
   return item ? getCurrencyByDenom(item.ibcData as string) : undefined;
 });
 
-const stable = computed<CurrencyComponentProps>(() => {
-  const dflt = {
-    amount: "0",
-    type: CURRENCY_VIEW_TYPES.CURRENCY,
+const stable = computed<AmountDisplayProps>(() => {
+  const dflt: AmountDisplayProps = {
+    value: "0",
     denom: NATIVE_CURRENCY.symbol,
     fontSize: 16
-  } as CurrencyComponentProps;
+  };
 
   if (!props.lease || !props.displayData) {
     return dflt;
@@ -410,11 +395,10 @@ const stable = computed<CurrencyComponentProps>(() => {
     const value = assetAmount.mul(new Dec(price?.price ?? "0"));
 
     return {
-      amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
-      type: CURRENCY_VIEW_TYPES.CURRENCY,
+      value: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
       denom: NATIVE_CURRENCY.symbol,
       fontSize: 16
-    } as CurrencyComponentProps;
+    } as AmountDisplayProps;
   } else if (posType === "short") {
     const ticker = props.lease.etl_data?.lease_position_ticker ?? props.lease.amount.ticker;
     const protocol = props.lease.protocol;
@@ -422,13 +406,12 @@ const stable = computed<CurrencyComponentProps>(() => {
     const price = pricesStore.prices[ast?.key as string];
     const value = assetAmount.quo(new Dec(price?.price ?? "1"));
     return {
-      amount: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
-      type: CURRENCY_VIEW_TYPES.TOKEN,
-      denom: ast?.shortName,
-      decimals: asset.value?.decimal_digits,
-      fontSize: 16,
-      hasSpace: true
-    } as CurrencyComponentProps;
+      value: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
+      denom: ast?.shortName ?? "",
+      isDenomPrefix: false,
+      hasSpace: true,
+      fontSize: 16
+    } as AmountDisplayProps;
   }
 
   return dflt;
@@ -444,7 +427,7 @@ const lpn = computed(() => {
 const debt = computed(() => {
   if (props.lease && lpn.value) {
     const totalDebt = props.displayData?.totalDebt ?? new Dec(0);
-    return totalDebt.toString(lpn.value.decimal_digits);
+    return totalDebt.mul(new Dec(10 ** lpn.value.decimal_digits)).truncate().toString();
   }
   return "0";
 });
@@ -466,7 +449,7 @@ const fee = computed(() => {
 
 const openedPrice = computed(() => {
   if (props.displayData) {
-    return formatPriceDec(props.displayData.openingPrice);
+    return props.displayData.openingPrice.toString(8);
   }
   return "0";
 });
@@ -477,7 +460,8 @@ const openedPriceDecimals = computed(() => {
 
 const interestDue = computed(() => {
   if (props.displayData && props.lease?.status === "opened") {
-    return props.displayData.interestDue.toString(lpn.value?.decimal_digits ?? 6);
+    const due = props.displayData.interestDue;
+    return due.mul(new Dec(10 ** (lpn.value?.decimal_digits ?? 6))).truncate().toString();
   }
   return "0";
 });
@@ -495,7 +479,7 @@ const interest = computed(() => {
 
 const liquidation = computed(() => {
   if (props.displayData && props.lease?.status === "opened") {
-    return formatPriceDec(props.displayData.liquidationPrice);
+    return props.displayData.liquidationPrice.toString(8);
   }
   return "0";
 });

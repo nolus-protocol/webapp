@@ -16,9 +16,8 @@
     <BigNumber
       :label="$t('message.assets-title')"
       :amount="{
-        amount: total.toString(2),
+        value: total.toString(2),
         hide: hide,
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
         fontSize: mobile ? 24 : 32,
         animatedReveal: true,
@@ -41,7 +40,6 @@
 import BigNumber from "@/common/components/BigNumber.vue";
 import type { TableColumnProps, TableRowItemProps } from "web-components";
 import { Table, TableRow } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";

@@ -5,8 +5,7 @@
       <BigNumber
         :label="$t('message.tvl')"
         :amount="{
-          amount: tvl,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: tvl,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
           fontSize: mobile ? 24 : 32,
@@ -17,8 +16,7 @@
       <BigNumber
         :label="$t('message.tx-volume')"
         :amount="{
-          amount: txVolume,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: txVolume,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
           fontSize: 20,
@@ -29,8 +27,7 @@
       <BigNumber
         :label="$t('message.realized-pnl')"
         :amount="{
-          amount: realized_pnl,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: realized_pnl,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
           fontSize: 20,
@@ -42,8 +39,7 @@
         class="hidden md:block"
         :label="$t('message.protocol-revenue')"
         :amount="{
-          amount: protocolRevenue,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: protocolRevenue,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
           compact: true,
@@ -55,12 +51,11 @@
         class="hidden md:block"
         :label="$t('message.buyback')"
         :amount="{
-          amount: buybackTotal,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: buybackTotal,
           denom: NATIVE_ASSET.label,
           compact: true,
           hasSpace: true,
-          isDenomInfront: false,
+          isDenomPrefix: false,
           fontSize: 20,
           animatedReveal: true
         }"
@@ -81,7 +76,6 @@ import SupplyBorrowedChart from "./SupplyBorrowedChart.vue";
 import LeasesMonthlyChart from "@/modules/stats/components/LeasesMonthlyChart.vue";
 
 import { Widget } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { isMobile } from "@/common/utils";
 import { computed, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";

@@ -44,8 +44,7 @@
           <BigNumber
             :label="$t('message.unrealized-pnl')"
             :amount="{
-              amount: pnl.toString(2),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              value: pnl.toString(2),
               denom: NATIVE_CURRENCY.symbol,
               fontSize: mobile ? 24 : 32,
               animatedReveal: true,
@@ -65,8 +64,7 @@
           <BigNumber
             :label="$t('message.leases-table')"
             :amount="{
-              amount: activeLeases.toString(2),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              value: activeLeases.toString(2),
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
               animatedReveal: true,
@@ -77,8 +75,7 @@
             class="hidden md:block"
             :label="$t('message.debt')"
             :amount="{
-              amount: debt.toString(2),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              value: debt.toString(2),
               denom: NATIVE_CURRENCY.symbol,
               fontSize: 20,
               animatedReveal: true,
@@ -121,7 +118,6 @@ import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDia
 
 import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
 import { formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";

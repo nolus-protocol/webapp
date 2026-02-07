@@ -5,8 +5,7 @@
         <BigNumber
           :label="$t('message.total-pnl')"
           :amount="{
-            amount: pnl,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: pnl,
             denom: NATIVE_CURRENCY.symbol,
             decimals: NORMAL_DECIMALS,
             fontSize: mobile ? 24 : 32,
@@ -21,8 +20,7 @@
             content: $t('message.volume-tooltip')
           }"
           :amount="{
-            amount: tx_volume,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: tx_volume,
             denom: NATIVE_CURRENCY.symbol,
             fontSize: 20,
             decimals: NORMAL_DECIMALS,
@@ -38,12 +36,11 @@
             content: $t('message.win-rate-tooltip')
           }"
           :amount="{
-            amount: win_rate,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: win_rate,
             denom: '%',
             fontSize: 20,
             decimals: NORMAL_DECIMALS,
-            isDenomInfront: false,
+            isDenomPrefix: false,
             animatedReveal: true
           }"
           :loading="loading"
@@ -75,7 +72,6 @@ import { CHART_AXIS, getChartWidth } from "@/common/utils/ChartUtils";
 import { select, pointer, type Selection } from "d3";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import { Widget } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { ref, watch, computed, onMounted } from "vue";
 import { useAnalyticsStore } from "@/common/stores";
 

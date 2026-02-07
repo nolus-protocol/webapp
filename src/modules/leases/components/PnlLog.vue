@@ -36,8 +36,7 @@
         <BigNumber
           :label="$t('message.realized-pnl')"
           :amount="{
-            amount: pnl.toString(2),
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: pnl.toString(2),
             denom: NATIVE_CURRENCY.symbol,
             fontSize: mobile ? 24 : 32,
             compact: mobile
@@ -96,7 +95,7 @@ import {
 } from "web-components";
 import { computed, h, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
+import type { IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
 import type { ILoan } from "./types";
 import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";

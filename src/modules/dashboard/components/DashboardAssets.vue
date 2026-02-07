@@ -34,8 +34,7 @@
         :label="$t('message.total-value')"
         class="px-6"
         :amount="{
-          amount: total.toString(2),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: total.toString(2),
           denom: NATIVE_CURRENCY.symbol,
           fontSize: mobile ? 24 : 32,
           animatedReveal: true,
@@ -87,8 +86,6 @@
 import type { TableColumnProps, TableRowItemProps } from "web-components";
 import { Button, Table, TableRow, Widget } from "web-components";
 import { RouteNames } from "@/router";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import EmptyState from "@/common/components/EmptyState.vue";

@@ -14,4 +14,3 @@ export { WalletConnectMechanism } from "@/common/types/WalletConnectMechanism";
 
 export { CONFIRM_STEP } from "@/common/types/ConfirmStep";
 export { NetworkTypes } from "@/common/types/NetworkConfig";
-export { CURRENCY_VIEW_TYPES } from "@/common/types/Currencies";

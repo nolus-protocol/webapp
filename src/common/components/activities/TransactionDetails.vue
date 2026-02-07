@@ -74,14 +74,11 @@
             v-if="fee"
           >
             <span class="text-14 text-typography-secondary">{{ $t("message.fees") }}</span>
-            <CurrencyComponent
-              :amount="fee.amount"
+            <TokenAmount
+              :micro-amount="fee.amount"
               :denom="fee.denom"
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
               :decimals="fee.decimals"
-              :has-space="true"
               :font-size="16"
-              :font-size-small="16"
               class="flex font-semibold"
             />
           </div>
@@ -127,7 +124,7 @@
 
 <script lang="ts" setup>
 import nlsIcon from "@/assets/icons/networks/nolus.svg?url";
-import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
+import TokenAmount from "@/common/components/TokenAmount.vue";
 import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { Button, Dialog, ToastType } from "web-components";
 import type { ITransactionData } from "@/modules/history/types";
@@ -135,7 +132,7 @@ import type { HistoryData } from "@/modules/history/types/ITransaction";
 import { StringUtils } from "@/common/utils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
-import { CONFIRM_STEP, CURRENCY_VIEW_TYPES } from "@/common/types";
+import { CONFIRM_STEP } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { StepperVariant, Stepper, Alert, AlertType } from "web-components";
 

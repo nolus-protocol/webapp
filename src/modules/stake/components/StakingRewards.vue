@@ -21,8 +21,7 @@
       <BigNumber
         :label="$t('message.unclaimed-staking')"
         :amount="{
-          amount: stableRewards,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: stableRewards,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: mobile ? 24 : 32,
           compact: mobile
@@ -53,7 +52,6 @@
 
 <script lang="ts" setup>
 import { Asset, Button, ToastType, Widget } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { isMobile, Logger, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";

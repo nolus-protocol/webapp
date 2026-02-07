@@ -21,33 +21,45 @@
           v-if="amount?.tooltip"
           :content="amount_tooltip"
         >
-          <CurrencyComponent
-            v-if="amount"
+          <TokenAmount
+            v-if="amount && isTokenAmount(amount)"
+            :font-size="32"
+            v-bind="amount"
+            class="flex break-keep font-semibold text-typography-default"
+          />
+          <FormattedAmount
+            v-else-if="amount"
             :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
         </Tooltip>
         <template v-else>
-          <CurrencyComponent
-            v-if="amount"
+          <TokenAmount
+            v-if="amount && isTokenAmount(amount)"
+            :font-size="32"
+            v-bind="amount"
+            class="flex break-keep font-semibold text-typography-default"
+          />
+          <FormattedAmount
+            v-else-if="amount"
             :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
         </template>
         <span
-          v-if="amount?.additional"
-          :class="amount?.additional?.class"
+          v-if="additional"
+          :class="additional?.class"
           class="flex break-keep font-semibold text-typography-default"
         >
-          {{ amount.additional.text }}
+          {{ additional.text }}
         </span>
       </template>
       <div
         v-else
         class="skeleton-box rounded-[4px]"
-        :style="[{ width: loadingWidth ?? '100%', height: `${(amount?.fontSize ?? 32) * 1.2}px` }]"
+        :style="[{ width: loadingWidth ?? '100%', height: `${amountFontSize * 1.2}px` }]"
       ></div>
     </div>
 
@@ -86,22 +98,18 @@
 
     <template v-if="secondary">
       <template v-if="!loading">
-        <CurrencyComponent
-          v-if="secondary"
+        <TokenAmount
+          v-if="isTokenAmount(secondary)"
           v-bind="secondary"
-          :amount="secondary?.amount"
-          :denom="secondary?.denom"
-          :type="secondary?.type"
           :font-size="12"
           class="flex font-normal text-typography-default"
         />
-        <span
-          v-if="amount?.additional"
-          :class="amount?.additional?.class"
-          class="flex break-keep font-semibold text-typography-default"
-        >
-          {{ amount.additional.text }}
-        </span>
+        <FormattedAmount
+          v-else
+          v-bind="secondary"
+          :font-size="12"
+          class="flex font-normal text-typography-default"
+        />
       </template>
       <div
         v-else
@@ -112,35 +120,60 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { Badge, SvgIcon, Tooltip, type TooltipProps } from "web-components";
-import CurrencyComponent, { type CurrencyComponentProps } from "@/common/components/CurrencyComponent.vue";
+<script lang="ts">
+import type { TokenAmountProps } from "@/common/components/TokenAmount.vue";
+import type { FormattedAmountProps } from "@/common/components/FormattedAmount.vue";
+import type { TooltipProps } from "web-components";
 import type { IBadgeProps } from "web-components/dist/src/components/atoms/badge/types";
-import { computed, type Component } from "vue";
-import { formatNumber } from "../utils/NumberFormatUtils";
-import { Dec } from "@keplr-wallet/unit";
+import type { Component } from "vue";
+
+export type AmountDisplayProps = TokenAmountProps | FormattedAmountProps;
+
+export function isTokenAmount(props: AmountDisplayProps): props is TokenAmountProps {
+  return "microAmount" in props;
+}
 
 export interface IBigNumber {
   label?: string;
   labelTooltip?: TooltipProps;
-  description?: string;
-  amount?: CurrencyComponentProps & Component;
-  secondary?: CurrencyComponentProps & Component;
+  amount?: AmountDisplayProps & Component;
+  secondary?: AmountDisplayProps & Component;
+  additional?: {
+    text: string;
+    class: string;
+  };
   pnlStatus?: {
     positive?: boolean;
     badge?: IBadgeProps & Component;
     value?: string;
   };
-  icon?: boolean;
   loading?: boolean;
   loadingWidth?: string;
 }
+</script>
+
+<script lang="ts" setup>
+import { Badge, SvgIcon, Tooltip } from "web-components";
+import TokenAmount from "@/common/components/TokenAmount.vue";
+import FormattedAmount from "@/common/components/FormattedAmount.vue";
+import { computed } from "vue";
+import { formatNumber } from "../utils/NumberFormatUtils";
+import { Dec } from "@keplr-wallet/unit";
+
 const props = defineProps<IBigNumber>();
+
+const amountFontSize = computed(() => {
+  return props.amount?.fontSize ?? 32;
+});
 
 const amount_tooltip = computed(() => {
   if (props.amount?.tooltip) {
-    const a = new Dec(props.amount.amount ?? 0, props.amount.decimals ?? 0);
-    return `~${formatNumber(a.toString(props.amount.decimals), props.amount.decimals ?? 0)}`;
+    if (isTokenAmount(props.amount)) {
+      const a = new Dec(props.amount.microAmount, props.amount.decimals);
+      return `~${formatNumber(a.toString(props.amount.decimals), props.amount.decimals)}`;
+    } else {
+      return `~${props.amount.value}`;
+    }
   }
   return "";
 });

@@ -40,8 +40,3 @@ export interface ExternalCurrency {
 export interface ExternalCurrencies {
   [key: string]: ExternalCurrency;
 }
-
-export enum CURRENCY_VIEW_TYPES {
-  TOKEN = "TOKEN",
-  CURRENCY = "CURRENCY"
-}

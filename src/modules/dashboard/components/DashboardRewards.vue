@@ -10,8 +10,7 @@
         v-if="!isEmpty"
         :label="$t('message.earn-yield')"
         :amount="{
-          amount: earningsAmount,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: earningsAmount,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: mobile ? 24 : 32,
           animatedReveal: true,
@@ -23,8 +22,7 @@
         v-if="!isEmpty"
         :label="$t('message.unclaimed-staking-widget')"
         :amount="{
-          amount: stableRewards,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: stableRewards,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: mobile ? 24 : 32,
           animatedReveal: true,
@@ -63,7 +61,6 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 
 import { Button, Widget } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { isMobile, Logger, walletOperation } from "@/common/utils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Dec } from "@keplr-wallet/unit";

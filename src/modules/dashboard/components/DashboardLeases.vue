@@ -22,8 +22,7 @@
             :label="$t('message.unrealized-pnl')"
             :amount="{
               hide: hide,
-              amount: pnl.toString(2),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              value: pnl.toString(2),
               denom: NATIVE_CURRENCY.symbol,
               animatedReveal: true,
               fontSize: mobile ? 24 : 32,
@@ -71,7 +70,6 @@ import EmptyState from "@/common/components/EmptyState.vue";
 
 import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { IntercomService } from "@/common/utils/IntercomService";

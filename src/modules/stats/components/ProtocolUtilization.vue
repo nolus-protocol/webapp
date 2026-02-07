@@ -4,8 +4,7 @@
     <BigNumber
       :label="$t('message.supplied-funds')"
       :amount="{
-        amount: suppliedFundsValue,
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
+        value: suppliedFundsValue,
         denom: NATIVE_CURRENCY.symbol,
         decimals: 0,
         compact: true,
@@ -43,8 +42,6 @@ import { useEarnStore } from "@/common/stores/earn";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-
 import type { UtilizationProps } from "../types";
 
 const mobile = isMobile();

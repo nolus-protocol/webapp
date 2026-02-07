@@ -5,8 +5,7 @@
       <BigNumber
         :label="$t('message.open-posiitons-value')"
         :amount="{
-          amount: openPositionValue,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: openPositionValue,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
           fontSize: mobile ? 24 : 32
@@ -19,8 +18,7 @@
           content: $t('message.open-interest-tooltip')
         }"
         :amount="{
-          amount: openInterest,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: openInterest,
           denom: NATIVE_CURRENCY.symbol,
           fontSize: 20,
           compact: true
@@ -37,7 +35,6 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { Widget } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { isMobile } from "@/common/utils";
 import { computed, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";

@@ -12,6 +12,7 @@ import { DECIMALS_AMOUNT, MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global"
  */
 export function formatNumber(amount: number | string, decimals: number, symbol?: string): string {
   const numValue = Number(amount);
+  if (isNaN(numValue)) return `${symbol ?? ""}0.${"0".repeat(Math.max(decimals, 0))}`;
   const sign = numValue < 0 ? "-" : "";
 
   const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {

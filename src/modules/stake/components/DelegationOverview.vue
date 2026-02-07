@@ -9,20 +9,16 @@
         v-if="!showEmpty"
         :label="$t('message.total-value')"
         :amount="{
-          amount: delegated,
-          type: CURRENCY_VIEW_TYPES.TOKEN,
+          microAmount: delegated,
           denom: NATIVE_ASSET.label,
-          minimalDenom: '',
           decimals: NATIVE_ASSET.decimal_digits,
-          hasSpace: true,
           class: 'leading-[36px]',
           fontSize: mobile ? 24 : 32,
           animatedReveal: true,
           compact: mobile
         }"
         :secondary="{
-          amount: stableDelegated,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: stableDelegated,
           denom: '$',
           compact: mobile
         }"
@@ -31,13 +27,10 @@
         v-if="showEmpty"
         :label="$t('message.yield')"
         :amount="{
-          amount: wallet.apr.toString(),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: wallet.apr.toString(),
           denom: '%',
-          isDenomInfront: false,
-          minimalDenom: '',
+          isDenomPrefix: false,
           decimals: 2,
-          hasSpace: false,
           class: 'leading-[36px]',
           fontSize: mobile ? 24 : 32,
           animatedReveal: true
@@ -50,11 +43,10 @@
           content: $t('message.yield-overview-tooltip')
         }"
         :amount="{
-          amount: wallet.apr.toString(),
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: wallet.apr.toString(),
           class: 'leading-[36px]',
           denom: '%',
-          isDenomInfront: false,
+          isDenomPrefix: false,
           fontSize: mobile ? 24 : 32,
           animatedReveal: true
         }"
@@ -110,7 +102,7 @@
 
 <script lang="ts" setup>
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
-import { CURRENCY_VIEW_TYPES, SvgIcon, Tooltip, Widget, type TableRowItemProps } from "web-components";
+import { SvgIcon, Tooltip, Widget, type TableRowItemProps } from "web-components";
 import DelegationTable from "@/modules/stake/components/DelegationTable.vue";
 import UnbondingsTable from "@/modules/stake/components/UnbondingsTable.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
