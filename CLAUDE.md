@@ -215,7 +215,7 @@ All `Intl.NumberFormat` calls live in `src/common/utils/NumberFormatUtils.ts` an
 - `formatCoinPretty(coin)` — format a `CoinPretty` as `"1,234.56 USDC"` (replaces `coin.toString()` which uses no locale formatting)
 - `getAdaptivePriceDecimals(price)` — returns 2-6 decimals based on price magnitude (used by chart tooltips, lease details)
 - `currencyFormatOptions(decimals)` / `compactFormatOptions` — `Intl.NumberFormatOptions` objects for `AnimateNumber` `:format` prop (keeps animated and static formatting in sync)
-- `tokenFormatOptions(maxDecimals)` / `priceFormatOptions(decimals)` — format option objects for AnimateNumber in TOKEN and price contexts
+- `tokenFormatOptions(maxDecimals)` — format option object for AnimateNumber in TOKEN contexts
 
 `CurrencyComponent.vue` delegates all formatting to these utilities. `AnimateNumber` receives shared format option objects rather than inline literals.
 

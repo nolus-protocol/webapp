@@ -42,6 +42,14 @@ export function tokenFormatOptions(maxDecimals: number): Intl.NumberFormatOption
 }
 
 /**
+ * Format a number using token display rules (min 2, max adaptive decimals).
+ * Matches the AnimateNumber tokenFormatOptions output for non-animated paths.
+ */
+export function formatToken(amount: number, maxDecimals: number): string {
+  return new Intl.NumberFormat(NATIVE_CURRENCY.locale, tokenFormatOptions(maxDecimals)).format(amount);
+}
+
+/**
  * Intl.NumberFormatOptions for compact currency display (K, M, B).
  * Use with AnimateNumber :format prop.
  */
@@ -145,14 +153,6 @@ function formatNumberTrimmed(amount: string, minDecimals: number, maxDecimals: n
 }
 
 /**
- * Format percentage value
- */
-export function formatPercent(value: number | string, decimals: number = 2): string {
-  const numValue = Number(value);
-  return `${formatNumber(numValue, decimals)}%`;
-}
-
-/**
  * Get adaptive decimal places for a price value.
  * Prices >= 1 get 4 max decimals; prices >= 10K get 2.
  * Prices < 1 use first-significant-digit logic (same as formatTokenBalance).
@@ -192,15 +192,6 @@ export function formatPriceDec(amount: Dec): string {
 }
 
 /**
- * Intl.NumberFormatOptions for adaptive price display.
- * Use with AnimateNumber :format prop for price BigNumber components.
- */
-export function priceFormatOptions(amount: number): Intl.NumberFormatOptions {
-  const maxDec = getAdaptivePriceDecimals(amount);
-  return { minimumFractionDigits: 2, maximumFractionDigits: maxDec };
-}
-
-/**
  * Format a CoinPretty with adaptive decimals: "40 USDC" instead of "40.000000 USDC"
  */
 export function formatCoinPretty(coin: CoinPretty): string {
@@ -231,11 +222,3 @@ export function formatMobileUsd(amount: Dec): string {
   return formatNumber(amount.toString(2), 2);
 }
 
-/**
- * Parse a numeric string, handling locale-specific formatting
- */
-export function parseNumericString(value: string): number {
-  // Remove any non-numeric characters except decimal point and minus
-  const cleaned = value.replace(/[^\d.-]/g, "");
-  return parseFloat(cleaned) || 0;
-}

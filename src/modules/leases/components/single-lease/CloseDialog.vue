@@ -423,7 +423,7 @@ const debtData = computed(() => {
       const asset = d.quo(price);
       const value = new Dec(amount.value).mul(new Dec(swapFee.value));
       return {
-        fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
+        fee: `${formatNumber(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)}% (${formatDecAsUsd(value)})`,
         asset: currecy.shortName,
         price: `${NATIVE_CURRENCY.symbol}${formatPrice(price.toString(MAX_DECIMALS))}`,
         debt: `${formatTokenBalance(asset)} ${currecy.shortName}`
@@ -433,7 +433,7 @@ const debtData = computed(() => {
       const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
       let lpn = getLpnByProtocol(lease.value.protocol);
       return {
-        fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
+        fee: `${formatNumber(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)}% (${formatDecAsUsd(value)})`,
         asset: currecy.shortName,
         price: `${NATIVE_CURRENCY.symbol}${formatPrice(price.toString(MAX_DECIMALS))}`,
         debt: ` ${formatTokenBalance(asset)} ${lpn.shortName}`

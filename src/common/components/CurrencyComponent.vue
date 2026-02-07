@@ -15,7 +15,7 @@
           />
         </template>
         <template v-else>
-          {{ amount.beforeDecimal + amount.afterDecimal }}
+          {{ amount.formatted }}
         </template>
         <template v-if="!isDenomInfront"> <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}</template>
       </span>
@@ -33,7 +33,7 @@
           />
         </template>
         <template v-else>
-          {{ amount.beforeDecimal + amount.afterDecimal }}
+          {{ amount.formatted }}
         </template>
         <template v-if="hasSpace">&nbsp;</template>{{ amount.denom }}
       </span>
@@ -50,6 +50,7 @@ import { Dec } from "@keplr-wallet/unit";
 import {
   formatNumber,
   formatCompact,
+  formatToken,
   currencyFormatOptions,
   tokenFormatOptions,
   compactFormatOptions,
@@ -67,7 +68,6 @@ export interface CurrencyComponentProps {
   hasSpace?: boolean;
   isDenomInfront?: boolean;
   defaultZeroValue?: string;
-  prettyZeros?: boolean;
   around?: boolean;
   hide?: boolean;
   tooltip?: boolean;
@@ -86,7 +86,6 @@ const props = withDefaults(defineProps<CurrencyComponentProps>(), {
   fontSize: 16,
   hasSpace: false,
   isDenomInfront: true,
-  prettyZeros: false,
   animatedReveal: false,
   compact: false
 });
@@ -106,111 +105,39 @@ const tokenMaxDecimals = computed(() => {
 const amount = computed(() => {
   switch (props.type) {
     case CURRENCY_VIEW_TYPES.CURRENCY: {
-      let numberAmount = Number(props.amount);
-      let symbol = "";
+      const numberAmount = Number(props.amount);
 
-      if (numberAmount < 0) {
-        symbol = "-";
+      if (props.hide) {
+        return { symbol: "", denom: "", formatted: "****" };
       }
 
       if (numberAmount == 0 && props.defaultZeroValue) {
-        return {
-          denom: props.defaultZeroValue,
-          beforeDecimal: "",
-          afterDecimal: ""
-        };
+        return { denom: props.defaultZeroValue, formatted: "" };
       }
 
-      if (props.compact) {
-        const formatted = formatCompact(Math.abs(numberAmount));
+      const symbol = numberAmount < 0 ? "-" : "";
+      const formatted = props.compact
+        ? formatCompact(Math.abs(numberAmount))
+        : formatNumber(Math.abs(numberAmount), props.decimals ?? NATIVE_CURRENCY.maximumFractionDigits);
 
-        if (props.hide) {
-          return { symbol: "", denom: "", beforeDecimal: "**", afterDecimal: "**" };
-        }
-
-        return {
-          symbol,
-          denom: props.hide ? "" : props.denom,
-          beforeDecimal: formatted,
-          afterDecimal: ""
-        };
-      }
-
-      let amount = formatNumber(Math.abs(numberAmount), props.decimals ?? NATIVE_CURRENCY.maximumFractionDigits);
-
-      let [beforeDecimal, afterDecimal] = amount.split(".");
-
-      if (numberAmount == 0 && !props.prettyZeros) {
-        afterDecimal = "";
-      }
-
-      if (afterDecimal?.length > 0) {
-        afterDecimal = `.${afterDecimal}`;
-      } else {
-        afterDecimal = ".00";
-      }
-
-      if (props.hide) {
-        beforeDecimal = "**";
-        afterDecimal = "**";
-        symbol = "";
-      }
-
-      if (props.decimals == 0) {
-        afterDecimal = "";
-      }
-
-      return {
-        symbol,
-        denom: props.hide ? "" : props.denom,
-        beforeDecimal,
-        afterDecimal
-      };
+      return { symbol, denom: props.denom, formatted };
     }
     case CURRENCY_VIEW_TYPES.TOKEN: {
+      if (props.hide) {
+        return { denom: "", formatted: "****" };
+      }
+
       const dec = new Dec(props.amount, props.decimals).abs();
       const numValue = Number(dec.toString(props.decimals));
 
-      if (props.compact) {
-        const formatted = formatCompact(numValue);
+      const formatted = props.compact
+        ? formatCompact(numValue)
+        : formatToken(numValue, tokenMaxDecimals.value);
 
-        if (props.hide) {
-          return { denom: "", beforeDecimal: "**", afterDecimal: "**" };
-        }
-
-        return {
-          denom: props.denom,
-          beforeDecimal: formatted,
-          afterDecimal: ""
-        };
-      }
-
-      const maxDec = tokenMaxDecimals.value;
-      const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, tokenFormatOptions(maxDec)).format(numValue);
-      let [beforeDecimal, afterDecimal] = formatted.split(".");
-
-      afterDecimal = afterDecimal ? `.${afterDecimal}` : ".00";
-
-      if (props.hide) {
-        return { denom: "", beforeDecimal: "**", afterDecimal: "**" };
-      }
-
-      if (props.decimals == 0) {
-        afterDecimal = "";
-      }
-
-      return {
-        denom: props.denom,
-        beforeDecimal,
-        afterDecimal
-      };
+      return { denom: props.denom, formatted };
     }
   }
-  return {
-    denom: "",
-    beforeDecimal: "0",
-    afterDecimal: ""
-  };
+  return { denom: "", formatted: "0" };
 });
 
 onMounted(() => {

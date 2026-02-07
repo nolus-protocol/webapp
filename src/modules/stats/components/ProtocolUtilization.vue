@@ -42,6 +42,7 @@ import { computed, h } from "vue";
 import { useEarnStore } from "@/common/stores/earn";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
 import type { UtilizationProps } from "../types";
@@ -77,7 +78,7 @@ const columns = computed<TableColumnProps[]>(() => mobile
     ]
 );
 function buildRow(ticker: string, subValue: string, icon: string, utilization: string, deposit: string, protocolKey: string) {
-  const apr = `${earnStore.getProtocolApr(protocolKey).toFixed(2)}%`;
+  const apr = `${formatNumber(earnStore.getProtocolApr(protocolKey), 2)}%`;
 
   if (mobile) {
     return {
