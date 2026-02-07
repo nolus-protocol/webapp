@@ -1,7 +1,7 @@
 <template>
   <Widget>
     <WidgetHeader :label="$t('message.overview')" />
-    <div class="flex flex-col gap-3 md:flex-row md:gap-8">
+    <div class="flex flex-row flex-wrap gap-4 md:gap-8">
       <BigNumber
         :label="$t('message.tvl')"
         :amount="{
@@ -9,7 +9,7 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
-          fontSize: isMobile() ? 24 : 32,
+          fontSize: mobile ? 24 : 32,
           animatedReveal: true
         }"
         :loading="loading"
@@ -39,6 +39,7 @@
         :loading="loading"
       />
       <BigNumber
+        class="hidden md:block"
         :label="$t('message.protocol-revenue')"
         :amount="{
           amount: protocolRevenue,
@@ -51,6 +52,7 @@
         :loading="loading"
       />
       <BigNumber
+        class="hidden md:block"
         :label="$t('message.buyback')"
         :amount="{
           amount: buybackTotal,
@@ -85,6 +87,7 @@ import { computed, watch } from "vue";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useConfigStore, useStatsStore } from "@/common/stores";
 
+const mobile = isMobile();
 const configStore = useConfigStore();
 const statsStore = useStatsStore();
 

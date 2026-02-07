@@ -1,7 +1,7 @@
 <template>
   <Widget>
     <WidgetHeader :label="$t('message.leased-assets-total')" />
-    <div class="flex flex-col gap-4 md:flex-row md:gap-8">
+    <div class="flex flex-row flex-wrap gap-4 md:gap-8">
       <BigNumber
         :label="$t('message.open-posiitons-value')"
         :amount="{
@@ -9,7 +9,7 @@
           type: CURRENCY_VIEW_TYPES.CURRENCY,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
-          fontSize: isMobile() ? 24 : 32
+          fontSize: mobile ? 24 : 32
         }"
         :loading="loading"
       />
@@ -43,6 +43,7 @@ import { computed, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useConfigStore, useStatsStore } from "@/common/stores";
 
+const mobile = isMobile();
 const configStore = useConfigStore();
 const statsStore = useStatsStore();
 

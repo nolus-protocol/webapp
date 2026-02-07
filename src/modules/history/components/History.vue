@@ -11,11 +11,11 @@
     </div>
     <RealisedPnl />
     <ListHeader :title="$t('message.activities')" />
-    <Widget class="overflow-x-auto md:overflow-auto">
+    <Widget class="overflow-auto">
       <Table
         searchable
         @input="(e: Event) => (search = (e.target as HTMLInputElement).value)"
-        :size="isMobile() ? '' : `${transactions.length} transactions`"
+        :size="mobile ? '' : `${transactions.length} transactions`"
         :columns="transactions.length > 0 ? columns : []"
         tableWrapperClasses="md:min-w-auto md:pr-0"
         @onSearchClear="search = ''"
@@ -102,7 +102,7 @@ const transactions = computed(() => historyStore.transactions);
 const loading = computed(() => historyStore.transactionsLoading);
 const loaded = computed(() => historyStore.allTransactionsLoaded);
 
-const columns = computed<TableColumnProps[]>(() => isMobile()
+const columns = computed<TableColumnProps[]>(() => mobile
   ? [
       { label: i18n.t("message.history-transaction"), variant: "left" },
       { label: i18n.t("message.time") }

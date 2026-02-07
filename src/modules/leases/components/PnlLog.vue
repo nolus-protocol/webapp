@@ -54,13 +54,15 @@
       <!-- <PositionPreviewChart /> -->
       <Table
         :columns="leasesHistory.length > 0 ? columns : []"
-        table-classes="min-w-[660px]"
+        :table-classes="mobile ? '' : 'min-w-[660px]'"
+        :scrollable="!mobile"
       >
         <template v-slot:body>
           <TableRow
             v-for="(row, index) in leasesHistory"
             :key="index"
             :items="row.items"
+            :scrollable="!mobile"
           />
         </template>
       </Table>
@@ -129,14 +131,20 @@ const loaded = ref(false);
 const showSkeleton = ref(true);
 const router = useRouter();
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
-  { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
-  { label: i18n.t("message.asset"), variant: "left" },
-  { label: i18n.t("message.action") },
-  { label: i18n.t("message.realized") },
-  { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
-]);
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.realized") }
+    ]
+  : [
+      { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
+      { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.action") },
+      { label: i18n.t("message.realized") },
+      { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
+    ]
+);
 
 const loans = ref([] as ILoan[]);
 const filename = "data.csv";
@@ -207,6 +215,25 @@ const leasesHistory = computed(() => {
 
       const raw = item.LS_timestamp;
       const date = new Date(raw);
+      const typeLabel = positionType === "Short" ? i18n.t("message.short") : i18n.t("message.long");
+
+      if (mobile) {
+        return {
+          items: [
+            {
+              image: currency.icon,
+              value: currency.shortName,
+              subValue: typeLabel,
+              subValueClass: positionType === "Short" ? "text-typography-error" : "text-typography-success",
+              variant: "left"
+            },
+            {
+              value: pnl_amount,
+              class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
+            }
+          ]
+        };
+      }
 
       return {
         items: [

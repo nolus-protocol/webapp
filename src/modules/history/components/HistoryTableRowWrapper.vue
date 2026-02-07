@@ -25,7 +25,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const transactionData = computed<TableRowItemProps>(() => {
-  if (isMobile()) {
+  if (mobile) {
     return {
       items: [
         {

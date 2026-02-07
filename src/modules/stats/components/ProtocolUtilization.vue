@@ -9,18 +9,20 @@
         denom: NATIVE_CURRENCY.symbol,
         decimals: 0,
         compact: true,
-        fontSize: isMobile() ? 24 : 32
+        fontSize: mobile ? 24 : 32
       }"
     />
     <Table
       :columns="columns"
-      table-classes="min-w-[420px]"
+      :table-classes="mobile ? '' : 'min-w-[420px]'"
+      :scrollable="!mobile"
     >
       <template v-slot:body>
         <TableRow
           v-for="(row, index) in tableRows"
           :key="index"
           :items="row.items"
+          :scrollable="!mobile"
         />
       </template>
     </Table>
@@ -44,180 +46,72 @@ import { CURRENCY_VIEW_TYPES } from "@/common/types";
 
 import type { UtilizationProps } from "../types";
 
+const mobile = isMobile();
 const i18n = useI18n();
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.asset"), variant: "left" },
-  { label: "", class: "hidden md:flex" },
-  { label: i18n.t("message.current-utilization"), class: "hidden md:flex" },
-  {
-    label: i18n.t("message.deposit-suspension"),
-    tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
-    class: "whitespace-pre max-w-[200px]"
-  },
-  {
-    label: i18n.t("message.yield"),
-    tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.asset"), variant: "left" },
+      {
+        label: i18n.t("message.deposit-suspension"),
+        tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") }
+      },
+      {
+        label: i18n.t("message.yield"),
+        tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+      }
+    ]
+  : [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: "" },
+      { label: i18n.t("message.current-utilization") },
+      {
+        label: i18n.t("message.deposit-suspension"),
+        tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
+        class: "whitespace-pre max-w-[200px]"
+      },
+      {
+        label: i18n.t("message.yield"),
+        tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+      }
+    ]
+);
+function buildRow(ticker: string, subValue: string, icon: string, utilization: string, deposit: string, protocolKey: string) {
+  const apr = `${earnStore.getProtocolApr(protocolKey).toFixed(2)}%`;
+
+  if (mobile) {
+    return {
+      items: [
+        { value: ticker, subValue, image: icon, variant: "left", class: "break-all" },
+        { value: `${deposit}%` },
+        { value: apr, class: "text-typography-success" }
+      ]
+    };
   }
-]);
+
+  return {
+    items: [
+      { value: ticker, subValue, image: icon, variant: "left", class: "break-all" },
+      {
+        component: () => h<UtilizationProps>(ChartUtilization, { value: utilization, icon, deposit }),
+        class: "w-full min-w-[200]"
+      },
+      { value: `${utilization}%`, class: "font-semibold" },
+      { value: `${deposit}%`, class: "max-w-[200px]" },
+      { value: apr, class: "text-typography-success" }
+    ]
+  };
+}
+
 const tableRows = computed<TableRowItemProps[]>(() => {
+  const p = getProtocols();
   return [
-    {
-      items: [
-        {
-          value: "USDC",
-          subValue: i18n.t("message.utilization_sub_osmosis_usdc"),
-          image: iconOsmosis.value,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilization, {
-              value: utilizationLevelOsmosis.value,
-              icon: iconOsmosis.value,
-              deposit: depositOsmosis.value
-            }),
-          class: "hidden md:flex w-full min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositOsmosis.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${earnStore.getProtocolApr(getProtocols().osmosis_noble).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "USDC",
-          subValue: i18n.t("message.utilization_sub_neutron_usdc"),
-          image: iconNeutron.value,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilization, {
-              value: utilizationLevelNeutron.value,
-              icon: iconNeutron.value,
-              deposit: depositNeutron.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositNeutron.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${earnStore.getProtocolApr(getProtocols().neutron_noble).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "SOL",
-          subValue: i18n.t("message.utilization_sub_osmosis_sol"),
-          image: iconAllSol.value,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilization, {
-              value: utilizationLevelOsmosisAllSol.value,
-              icon: iconAllSol.value,
-              deposit: depositAllSol.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllSol.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_all_sol).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "BTC",
-          subValue: i18n.t("message.utilization_sub_osmosis_btc"),
-          image: iconAllBtc.value,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilization, {
-              value: utilizationLevelOsmosisAllBtc.value,
-              icon: iconAllBtc.value,
-              deposit: depositAllBtc.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllBtc.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_all_btc).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "AKT",
-          subValue: i18n.t("message.utilization_sub_osmosis_akt"),
-          image: iconAkt.value,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilization, {
-              value: utilizationLevelOsmosisAkt.value,
-              icon: iconAkt.value,
-              deposit: depositAkt.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAkt.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_akt).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "ATOM",
-          subValue: i18n.t("message.utilization_sub_osmosis_atom"),
-          image: iconAtom.value,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilization, {
-              value: utilizationLevelOsmosisAtom.value,
-              icon: iconAtom.value,
-              deposit: depositAtom.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAtom.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${earnStore.getProtocolApr(getProtocols().osmosis_osmosis_atom).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    }
+    buildRow("USDC", i18n.t("message.utilization_sub_osmosis_usdc"), iconOsmosis.value, utilizationLevelOsmosis.value, depositOsmosis.value, p.osmosis_noble),
+    buildRow("USDC", i18n.t("message.utilization_sub_neutron_usdc"), iconNeutron.value, utilizationLevelNeutron.value, depositNeutron.value, p.neutron_noble),
+    buildRow("SOL", i18n.t("message.utilization_sub_osmosis_sol"), iconAllSol.value, utilizationLevelOsmosisAllSol.value, depositAllSol.value, p.osmosis_osmosis_all_sol),
+    buildRow("BTC", i18n.t("message.utilization_sub_osmosis_btc"), iconAllBtc.value, utilizationLevelOsmosisAllBtc.value, depositAllBtc.value, p.osmosis_osmosis_all_btc),
+    buildRow("AKT", i18n.t("message.utilization_sub_osmosis_akt"), iconAkt.value, utilizationLevelOsmosisAkt.value, depositAkt.value, p.osmosis_osmosis_akt),
+    buildRow("ATOM", i18n.t("message.utilization_sub_osmosis_atom"), iconAtom.value, utilizationLevelOsmosisAtom.value, depositAtom.value, p.osmosis_osmosis_atom)
   ] as TableRowItemProps[];
 });
 

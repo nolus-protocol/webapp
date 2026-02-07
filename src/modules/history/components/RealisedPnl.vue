@@ -1,7 +1,7 @@
 <template>
   <Widget>
     <template v-if="!disabled()">
-      <div class="flex flex-col gap-4 md:flex-row md:gap-8">
+      <div class="flex flex-row flex-wrap gap-4 md:gap-8">
         <BigNumber
           :label="$t('message.total-pnl')"
           :amount="{
@@ -32,6 +32,7 @@
           :loading="loading"
         />
         <BigNumber
+          class="hidden md:block"
           :label="$t('message.win-rate')"
           :label-tooltip="{
             content: $t('message.win-rate-tooltip')
