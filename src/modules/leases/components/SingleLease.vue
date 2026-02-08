@@ -90,12 +90,14 @@ import { TEMPLATES } from "./common";
 import { NATIVE_NETWORK, UPDATE_LEASES } from "@/config/global";
 import { RouteNames } from "@/router";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
+import { useBalancesStore } from "@/common/stores/balances";
 import { useConfigStore } from "@/common/stores/config";
 import type { LeaseInfo } from "@/common/api";
 
 const route = useRoute();
 const router = useRouter();
 const leasesStore = useLeasesStore();
+const balancesStore = useBalancesStore();
 const configStore = useConfigStore();
 
 let timeOut: NodeJS.Timeout;
@@ -124,6 +126,7 @@ async function getLease() {
 
 function reload() {
   getLease();
+  balancesStore.fetchBalances();
 }
 
 const steps = computed(() => {

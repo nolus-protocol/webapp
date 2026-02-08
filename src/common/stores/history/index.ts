@@ -8,7 +8,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { h } from "vue";
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
@@ -16,6 +16,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { formatNumber, formatTokenBalance, formatCoinPretty } from "@/common/utils/NumberFormatUtils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { BackendApi } from "@/common/api";
+import { useConnectionStore } from "@/common/stores/connection";
 import { getCreatedAtForHuman, StringUtils } from "@/common/utils";
 import { action, icon as iconFn, message } from "@/modules/history/common";
 import { i18n } from "@/i18n";
@@ -401,8 +402,22 @@ export const useHistoryStore = defineStore("history", () => {
     transactionsLoaded.value = false;
   }
 
-  // Alias for backwards compatibility
-  const clear = cleanup;
+  // Self-register: watch wallet address changes from connectionStore.
+  // { immediate: true } ensures stores created after wallet is already
+  // connected will still load data (the watcher fires with current value).
+  const connectionStore = useConnectionStore();
+  watch(
+    () => connectionStore.walletAddress,
+    (newAddress, oldAddress) => {
+      if (newAddress && newAddress !== oldAddress) {
+        setAddress(newAddress);
+        loadActivities();
+      } else if (!newAddress && oldAddress) {
+        cleanup();
+      }
+    },
+    { immediate: true }
+  );
 
   // ==========================================================================
   // Helper Functions
@@ -491,7 +506,6 @@ export const useHistoryStore = defineStore("history", () => {
     // Actions - Lifecycle
     initialize,
     setAddress,
-    cleanup,
-    clear // Alias for backwards compatibility
+    cleanup
   };
 });

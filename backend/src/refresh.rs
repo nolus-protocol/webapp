@@ -62,70 +62,80 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
     info!("Essential data warm-up complete");
 }
 
-/// Start all background refresh tasks.
+/// Start all background refresh tasks grouped by dependency chain.
 ///
-/// Prices are event-driven (triggered by NewBlock via CometBFT WebSocket).
-/// All other tasks remain on timer intervals.
+/// **Group 1 — Chain Data (event-driven, ~6s):**
+///   Prices + gas fee config, both depend on chain state.
+///
+/// **Group 2 — ETL + Gated Core (60s, sequential):**
+///   gated_config → filter_context → protocol_contracts → (currencies + app_config)
+///   Runs in dependency order so derived caches always see fresh inputs.
+///
+/// **Group 3 — Derived Gated Views (60s, runs after Group 2):**
+///   gated_assets, gated_protocols, gated_networks, lease_configs
+///   All depend on Group 2 outputs.
+///
+/// **Group 4 — Domain Data (60s, independent):**
+///   pools, validators — no internal dependencies.
+///
+/// **Group 5 — ETL Stats (60s, independent):**
+///   stats_overview, loans_stats — pure ETL reads.
+///
+/// **Group 6 — Slow (300s):**
+///   swap_config — depends on gated_config + ETL, infrequently changing.
 pub fn start_all(state: Arc<AppState>, event_channels: &EventChannels) {
-    // Event-driven: prices refreshed every other NewBlock (~6s)
+    // Group 1: Chain data (event-driven)
     spawn_event_refresh(
-        "prices",
+        "chain_data",
         state.clone(),
         event_channels.new_block.subscribe(),
-        2, // skip_factor: refresh every 2nd event
-        |s| Box::pin(refresh_prices(s)),
+        2,
+        |s| {
+            Box::pin(async move {
+                tokio::join!(refresh_prices(s), refresh_gas_fee_config(s));
+            })
+        },
     );
 
-    // Medium refresh: filter context (30s)
-    spawn_refresh("filter_context", state.clone(), 30, |s| {
-        Box::pin(refresh_filter_context(s))
+    // Group 2+3: ETL + Gated Core → Derived Views (60s, sequential pipeline)
+    spawn_refresh("gated_pipeline", state.clone(), 60, |s| {
+        Box::pin(async move {
+            // Phase 1: Core data (sequential — each depends on the previous)
+            refresh_gated_config(s).await;
+            refresh_filter_context(s).await;
+            refresh_protocol_contracts(s).await;
+            tokio::join!(refresh_currencies(s), refresh_app_config(s));
+
+            // Phase 2: Derived views (parallel — all depend on Phase 1 outputs)
+            tokio::join!(
+                refresh_gated_assets(s),
+                refresh_gated_protocols(s),
+                refresh_gated_networks(s),
+                refresh_lease_configs(s),
+            );
+        })
     });
 
-    // Standard refresh: most data (60s)
-    spawn_refresh("gated_config", state.clone(), 60, |s| {
-        Box::pin(refresh_gated_config(s))
-    });
-    spawn_refresh("protocol_contracts", state.clone(), 60, |s| {
-        Box::pin(refresh_protocol_contracts(s))
-    });
-    spawn_refresh("app_config", state.clone(), 60, |s| {
-        Box::pin(refresh_app_config(s))
-    });
-    spawn_refresh("currencies", state.clone(), 60, |s| {
-        Box::pin(refresh_currencies(s))
-    });
-    spawn_refresh("pools", state.clone(), 60, |s| Box::pin(refresh_pools(s)));
-    spawn_refresh("validators", state.clone(), 60, |s| {
-        Box::pin(refresh_validators(s))
-    });
-    spawn_refresh("gated_assets", state.clone(), 60, |s| {
-        Box::pin(refresh_gated_assets(s))
-    });
-    spawn_refresh("gated_protocols", state.clone(), 60, |s| {
-        Box::pin(refresh_gated_protocols(s))
-    });
-    spawn_refresh("gated_networks", state.clone(), 60, |s| {
-        Box::pin(refresh_gated_networks(s))
-    });
-    spawn_refresh("stats_overview", state.clone(), 60, |s| {
-        Box::pin(refresh_stats_overview(s))
-    });
-    spawn_refresh("loans_stats", state.clone(), 60, |s| {
-        Box::pin(refresh_loans_stats(s))
-    });
-    spawn_refresh("lease_configs", state.clone(), 60, |s| {
-        Box::pin(refresh_lease_configs(s))
-    });
-    spawn_refresh("gas_fee_config", state.clone(), 60, |s| {
-        Box::pin(refresh_gas_fee_config(s))
+    // Group 4: Domain data (60s, independent)
+    spawn_refresh("domain_data", state.clone(), 60, |s| {
+        Box::pin(async move {
+            tokio::join!(refresh_pools(s), refresh_validators(s));
+        })
     });
 
-    // Slow refresh: swap config (300s)
+    // Group 5: ETL stats (60s, independent)
+    spawn_refresh("etl_stats", state.clone(), 60, |s| {
+        Box::pin(async move {
+            tokio::join!(refresh_stats_overview(s), refresh_loans_stats(s));
+        })
+    });
+
+    // Group 6: Slow refresh (300s)
     spawn_refresh("swap_config", state.clone(), 300, |s| {
         Box::pin(refresh_swap_config(s))
     });
 
-    info!("All background refresh tasks started");
+    info!("All background refresh tasks started (6 groups)");
 }
 
 /// Spawn a single refresh task that runs on a timer interval.

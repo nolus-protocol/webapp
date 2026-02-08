@@ -6,7 +6,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import {
   BackendApi,
   WebSocketClient,
@@ -18,6 +18,7 @@ import {
   type SuppliedFundsResponse,
   type Unsubscribe
 } from "@/common/api";
+import { useConnectionStore } from "../connection";
 
 export const useEarnStore = defineStore("earn", () => {
   // State
@@ -258,8 +259,21 @@ export const useEarnStore = defineStore("earn", () => {
     error.value = null;
   }
 
-  // Alias for backwards compatibility
-  const clear = cleanup;
+  // Self-register: watch wallet address changes from connectionStore.
+  // { immediate: true } ensures stores created after wallet is already
+  // connected will still load data (the watcher fires with current value).
+  const connectionStore = useConnectionStore();
+  watch(
+    () => connectionStore.walletAddress,
+    (newAddress, oldAddress) => {
+      if (newAddress && newAddress !== oldAddress) {
+        setAddress(newAddress);
+      } else if (!newAddress && oldAddress) {
+        cleanup();
+      }
+    },
+    { immediate: true }
+  );
 
   return {
     // State
@@ -300,7 +314,6 @@ export const useEarnStore = defineStore("earn", () => {
     setAddress,
     initialize,
     refresh,
-    cleanup,
-    clear // Alias for backwards compatibility
+    cleanup
   };
 });

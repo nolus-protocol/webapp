@@ -10,8 +10,9 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { BackendApi } from "@/common/api";
+import { useConnectionStore } from "../connection";
 import type { IObjectKeys } from "@/common/types";
 import type { PriceSeriesDataPoint, PnlOverTimeDataPoint, LeaseClosingEntry } from "@/common/api/types";
 
@@ -364,9 +365,6 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     lastUpdated.value = null;
   }
 
-  // Alias for backwards compatibility
-  const clear = cleanup;
-
   /**
    * Refresh all user data
    */
@@ -375,6 +373,22 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     await Promise.all([fetchDashboardData(), fetchHistoryData()]);
   }
+
+  // Self-register: watch wallet address changes from connectionStore.
+  // { immediate: true } ensures stores created after wallet is already
+  // connected will still load data (the watcher fires with current value).
+  const connectionStore = useConnectionStore();
+  watch(
+    () => connectionStore.walletAddress,
+    (newAddress, oldAddress) => {
+      if (newAddress && newAddress !== oldAddress) {
+        setAddress(newAddress);
+      } else if (!newAddress && oldAddress) {
+        cleanup();
+      }
+    },
+    { immediate: true }
+  );
 
   // ==========================================================================
   // Return
@@ -428,7 +442,6 @@ export const useAnalyticsStore = defineStore("analytics", () => {
     initialize,
     setAddress,
     cleanup,
-    clear, // Alias for backwards compatibility
     refresh
   };
 });

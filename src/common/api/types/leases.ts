@@ -55,6 +55,7 @@ export interface LeasePnlInfo {
   amount: string;
   percent: string;
   downpayment: string;
+  pnl_positive: boolean;
 }
 
 export interface LeaseClosePolicy {

@@ -1,35 +1,26 @@
 //! ETL API proxy handlers
 //!
 //! This module provides proxy handlers for the ETL (Extract-Transform-Load) API.
-//! All handlers forward requests to the configured ETL API URL with proper
-//! parameter encoding and error handling.
 //!
-//! The module uses macros from `etl_macros.rs` to reduce boilerplate for
-//! simple proxy handlers, while keeping complex handlers (like batch endpoints)
-//! as explicit implementations for clarity.
+//! Simple passthrough endpoints use a single generic handler with an allowlist.
+//! Complex handlers (batch, enriched transactions) are implemented explicitly.
 
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
+use lazy_static::lazy_static;
 use reqwest::Client;
 use serde::Deserialize;
 use tracing::{debug, warn};
 
+use crate::error::AppError;
 use crate::AppState;
-
-// Re-export macros for use in this module
-use crate::{etl_proxy_raw, etl_proxy_raw_with_params, etl_proxy_typed};
-
-// Import typed response types (only for endpoints that match)
-use super::etl_types::{
-    BuybackTotalResponse, OpenInterestResponse, OpenPositionValueResponse,
-    RealizedPnlStatsResponse, RevenueResponse, TvlResponse, TxVolumeResponse,
-};
 
 // ============================================================================
 // Query Types
@@ -43,76 +34,88 @@ pub struct ProxyQuery {
 }
 
 // ============================================================================
-// Cached Proxy Handlers
-// These endpoints return the same data for all users and benefit from caching
+// Generic ETL Proxy (replaces all macro-generated passthrough handlers)
 // ============================================================================
 
-// Raw passthrough handlers (ETL API returns arrays, not wrapped objects)
-etl_proxy_raw!(proxy_pools, "pools");
-etl_proxy_raw!(proxy_leases_monthly, "leases-monthly");
-etl_proxy_raw!(proxy_leased_assets, "leased-assets");
-etl_proxy_raw!(proxy_supplied_funds, "supplied-funds");
-etl_proxy_raw!(proxy_unrealized_pnl, "unrealized-pnl");
+lazy_static! {
+    /// Allowlist of ETL API paths that can be proxied through the generic handler.
+    /// Only paths in this set are forwarded; all others return 404.
+    static ref ETL_ALLOWED_PATHS: HashSet<&'static str> = HashSet::from([
+        "pools",
+        "leases-monthly",
+        "leased-assets",
+        "supplied-funds",
+        "unrealized-pnl",
+        "total-value-locked",
+        "total-tx-value",
+        "open-position-value",
+        "open-interest",
+        "realized-pnl-stats",
+        "buyback-total",
+        "revenue",
+        "ls-opening",
+        "prices",
+        "pnl-over-time",
+        "position-debt-value",
+        "realized-pnl",
+        "realized-pnl-data",
+        "supplied-borrowed-history",
+        "earnings",
+        "lp-withdraw",
+        "history-stats",
+        "ls-loan-closing",
+        "leases-search",
+    ]);
+}
 
-// Typed handlers (ETL API returns objects matching our types)
-etl_proxy_typed!(proxy_tvl, "total-value-locked", TvlResponse);
-etl_proxy_typed!(proxy_tx_volume, "total-tx-value", TxVolumeResponse);
-etl_proxy_typed!(
-    proxy_open_position_value,
-    "open-position-value",
-    OpenPositionValueResponse
-);
-etl_proxy_typed!(proxy_open_interest, "open-interest", OpenInterestResponse);
-etl_proxy_typed!(
-    proxy_realized_pnl_stats,
-    "realized-pnl-stats",
-    RealizedPnlStatsResponse
-);
-etl_proxy_typed!(proxy_buyback_total, "buyback-total", BuybackTotalResponse);
-etl_proxy_typed!(proxy_revenue, "revenue", RevenueResponse);
+/// Generic ETL proxy handler — forwards GET requests to ETL API for allowed paths.
+/// Query parameters are passed through as-is.
+pub async fn etl_proxy_generic(
+    State(state): State<Arc<AppState>>,
+    Path(path): Path<String>,
+    Query(query): Query<ProxyQuery>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    if !ETL_ALLOWED_PATHS.contains(path.as_str()) {
+        return Err(AppError::NotFound {
+            resource: format!("ETL endpoint: {}", path),
+        });
+    }
 
-// ============================================================================
-// Proxy Handlers with Query Parameters
-// ============================================================================
+    let base_url = &state.config.external.etl_api_url;
 
-// Raw passthrough handlers with params (ETL API returns arrays)
-etl_proxy_raw_with_params!(proxy_lease_opening, "ls-opening", ["lease"]);
-etl_proxy_raw_with_params!(
-    proxy_price_series,
-    "prices",
-    ["interval", "key", "protocol"]
-);
-etl_proxy_raw_with_params!(
-    proxy_pnl_over_time,
-    "pnl-over-time",
-    ["interval", "address"]
-);
-// Raw passthrough handlers with params (ETL API returns simple objects or arrays)
-etl_proxy_raw_with_params!(
-    proxy_position_debt_value,
-    "position-debt-value",
-    ["address"]
-);
-etl_proxy_raw_with_params!(proxy_realized_pnl, "realized-pnl", ["address"]);
-etl_proxy_raw_with_params!(proxy_realized_pnl_data, "realized-pnl-data", ["address"]);
-etl_proxy_raw_with_params!(proxy_time_series, "supplied-borrowed-history", ["period"]);
-etl_proxy_raw_with_params!(proxy_earnings, "earnings", ["address"]);
-etl_proxy_raw_with_params!(proxy_lp_withdraw, "lp-withdraw", ["tx"]);
-etl_proxy_raw_with_params!(proxy_history_stats, "history-stats", ["address"]);
+    let params: Vec<String> = query
+        .params
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, urlencoding::encode(v)))
+        .collect();
 
-// ============================================================================
-// Proxy Handlers with Pagination (all use raw passthrough)
-// ============================================================================
+    let url = if params.is_empty() {
+        format!("{}/api/{}", base_url, path)
+    } else {
+        format!("{}/api/{}?{}", base_url, path, params.join("&"))
+    };
 
-etl_proxy_raw_with_params!(proxy_pnl, "ls-loan-closing", ["address", "skip", "limit"]);
+    debug!("ETL proxy: {}", url);
 
-// proxy_txs replaced by handlers::transactions::get_enriched_transactions
+    let response =
+        state
+            .etl_client
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| AppError::ExternalApi {
+                api: "ETL".to_string(),
+                message: format!("Request failed: {}", e),
+            })?;
 
-etl_proxy_raw_with_params!(
-    proxy_leases_search,
-    "leases-search",
-    ["address", "skip", "limit", "search"]
-);
+    let json: serde_json::Value = response
+        .json()
+        .await
+        .map_err(|e| AppError::Internal(format!("Failed to parse ETL response: {}", e)))?;
+
+    Ok(Json(json))
+}
 
 // ============================================================================
 // POST Proxy Handler

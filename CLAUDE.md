@@ -46,7 +46,7 @@ The backend uses a **background-refresh** architecture (`data_cache.rs` + `refre
 
 - **`Cached<T>`** — lock-free cached value using `arc-swap`. One writer (background task), many readers (handlers). Methods: `load()`, `store()`, `age_secs()`.
 - **`AppDataCache`** — single struct holding all `Cached<T>` fields (app_config, prices, currencies, pools, validators, etc.)
-- **Background refresh tasks** (`refresh.rs` + `chain_events.rs`) — one `tokio::spawn` per data type. Chain-driven data (prices, leases, earn) refreshed via CometBFT WebSocket events; ETL/disk data refreshes on fixed intervals (30s-300s).
+- **Background refresh tasks** (`refresh.rs` + `chain_events.rs`) — 6 dependency-aware task groups (not individual tasks per data type). Chain-driven data (prices, gas fees) refreshed via CometBFT WebSocket events; ETL/gated data refreshes in a sequential pipeline (core → derived) on 60s timers; slow data (swap config) on 300s timer.
 - **Handlers never fetch** — they read from cache via `data_cache.field.load()` and return 503 if cache isn't populated yet.
 - **Warm-up on startup** — `warm_essential_data()` runs before the server accepts requests.
 - **Admin config writes** trigger immediate refresh via `trigger_gated_refresh()` in `gated_admin.rs`.
@@ -77,7 +77,7 @@ src/
 ├── common/
 │   ├── api/              # BackendApi (REST), WebSocketClient (real-time)
 │   ├── stores/           # Pinia stores: prices, config, balances, leases, earn, staking, etc.
-│   ├── composables/      # Vue composables (useNetworkCurrency, useValidation, useAsyncOperation, useBlockInfo)
+│   ├── composables/      # Vue composables (useWalletEvents, useNetworkCurrency, useValidation, useAsyncOperation, useBlockInfo)
 │   ├── components/       # Shared Vue components
 │   └── utils/            # Utilities (LeaseUtils, CurrencyLookup, PriceLookup, etc.)
 ├── modules/              # Feature modules (dashboard, leases, earn, stake, vote, etc.)
@@ -94,7 +94,6 @@ backend/
 │   ├── chain_events.rs   # CometBFT WebSocket client, event parsing, broadcast channels
 │   ├── data_cache.rs     # Cached<T>, AppDataCache (lock-free background-refresh cache)
 │   ├── refresh.rs        # Background refresh tasks (timer-based + event-driven)
-│   ├── etl_macros.rs     # Macro-generated ETL proxy handlers
 │   └── middleware/       # Rate limiting (token bucket + eviction), auth, cache-control
 └── config/
     ├── gated/            # Gated propagation config files (currency-display, network-config, etc.)
@@ -151,7 +150,7 @@ Keplr and Leap share identical connection patterns. Shared logic is extracted in
 
 ### Wallet Connection Centralization
 
-All wallet connect/disconnect store coordination goes through `connectionStore.connectWallet(address)` and `connectionStore.disconnectWallet()`. Individual wallet connect actions only set wallet state — they do NOT call store methods directly. Components do NOT have their own wallet watchers. Two entry points: `view.vue` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard).
+`connectionStore.connectWallet(address)` sets `walletAddress` — user-specific stores (balances, leases, staking, earn, analytics, history) self-register by watching `connectionStore.walletAddress` with `{ immediate: true }`. Stores load their own data when the address appears and cleanup when it clears. `connectionStore` does NOT import or call user-specific stores. Side effects (keystorechange listeners, initial wallet connect) live in the `useWalletEvents` composable (`src/common/composables/useWalletEvents.ts`), called once from `view.vue`. Two entry points trigger `connectWallet`: `useWalletEvents` (extension keystorechange events) and `entry-client.ts` (initial page load watcher with dedup guard).
 
 ### Wallet-Aware Empty States
 
@@ -167,9 +166,9 @@ The `EmptyState` component itself stays dumb/presentational — it receives slid
 
 When aggregating store data into `ref` values (e.g., summary totals in `Leases.vue`), the watch MUST include `{ immediate: true }` and watch all dependencies (leases + prices). Without `immediate`, SPA navigation shows stale $0.00 because store data is already loaded at mount time. The `configStore.initialized` watcher in `view.vue` must also use `{ immediate: true }`.
 
-### Frontend PnL Calculation
+### PnL Calculation
 
-`LeaseCalculator.calculatePnl()` computes PnL on the frontend from asset value, debt, and downpayment. The backend `lease.pnl` field is not used for display.
+PnL is computed in **both** the backend and the frontend using the same formula: `pnlAmount = assetValueUsd - totalDebtUsd - downPayment + fee - repaymentValue`. The backend calculates PnL in `build_opened_lease_info()` (`handlers/leases.rs`) using prices and currencies from the data cache, and returns `pnl.amount`, `pnl.percent`, `pnl.pnl_positive` in the API response. The frontend's `LeaseCalculator.calculatePnl()` recomputes PnL for display using live store data (prices may be more current than the cached API response). The `pnl.amount` from the API is used by `LeaseCalculator.calculateTotalPnl()` for summary totals.
 
 **PnL arrow direction:** All PnL displays use `pnlPositive` (from `LeaseCalculator`) as the single source of truth for arrow direction and color. `BigNumber.vue` renders the arrow directly (SvgIcon + CSS classes) based on `pnlStatus.positive`, bypassing the `Badge` component's independent `Number(content)` parsing which can disagree for near-zero values like `-0.00%`. The `SingleLeaseHeader.vue` uses the same `pnl.status` boolean for its inline arrow rendering.
 
@@ -259,11 +258,12 @@ The app runs in wallet built-in browsers (Keplr, Leap) at ~360px viewport width.
 
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests
 - **Browser HTTP caching**: Global data uses backend `Cache-Control` headers. User-specific endpoints use `no-store`. No localStorage data caches — only user preferences persist in localStorage.
-- **Pinia stores**: Each domain has its own store with `initialize()` and `cleanup()` methods
-- **Price polling ownership**: Handled exclusively by `pricesStore.startPolling()`. `view.vue` only manages balance polling.
+- **Pinia stores**: Each domain has its own store with `initialize()` and `cleanup()` methods. User-specific stores self-register via `watch(() => connectionStore.walletAddress, ..., { immediate: true })`.
+- **Real-time prices**: Prices are fetched once via REST on startup, then kept current via WebSocket subscription (~6s cadence from backend CometBFT events). No frontend polling.
 - **Network-aware balance deduplication**: `filteredBalances` in balances store deduplicates currencies by ticker, preferring the IBC denom whose protocol belongs to the user's selected network
-- **Transaction enrichment**: `/api/etl/txs` decodes protobuf, filters system txs, adds `data` field, and detects swap vs transfer via `is_swap` (bech32 address comparison)
-- **ETL proxy macros**: `etl_macros.rs` generates ETL proxy handlers via macros (`etl_proxy_raw!`, `etl_proxy_typed!`, etc.). Typed macros deserialize directly to the target type in a single pass.
+- **Post-transaction balance refresh**: Lease dialogs (close, repay) refresh balances via `balancesStore.fetchBalances()` in the `reload()` callback. The backend does not push balance updates via WebSocket — refresh is explicit after transactions.
+- **Transaction enrichment**: `/api/etl/txs` decodes protobuf, filters system txs, adds `data` field, and detects swap vs transfer via `is_swap` (bech32 address comparison). Decoded transactions are cached in an LRU cache (500 entries, 300s TTL) to avoid repeated protobuf decoding.
+- **Generic ETL proxy**: `etl_proxy.rs` uses a single generic handler with a `HashSet` allowlist of ~24 paths. Specialized handlers are kept for enriched endpoints (`/txs`), POST endpoints (`/subscribe`), and batch endpoints. No macros.
 - **ETL chart data**: `/api/etl/prices` returns raw `[[timestamp, price], ...]`; `/api/etl/pnl-over-time` returns raw `[{amount, date}, ...]`. Note: `pnl-over-time` expects a **lease contract address**, not a wallet address.
 
 ## Common Tasks

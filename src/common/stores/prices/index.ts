@@ -1,14 +1,13 @@
 /**
- * Prices Store - Real-time price data from backend
+ * Prices Store - Real-time price data from backend via WebSocket
  *
- * Fetches prices from the Rust backend which queries Oracle contracts on-chain.
- * Browser HTTP cache (Cache-Control: max-age=10, stale-while-revalidate=5)
- * handles caching at the network layer.
+ * Initial prices are fetched via REST, then kept up-to-date via WebSocket
+ * subscription to the backend's event-driven price updates (~6s cadence).
  */
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { BackendApi, type PriceData } from "@/common/api";
+import { BackendApi, WebSocketClient, type PriceData, type Unsubscribe } from "@/common/api";
 
 export const usePricesStore = defineStore("prices", () => {
   // State
@@ -17,8 +16,8 @@ export const usePricesStore = defineStore("prices", () => {
   const error = ref<string | null>(null);
   const lastUpdated = ref<Date | null>(null);
 
-  // Polling interval handle
-  let pollInterval: ReturnType<typeof setInterval> | null = null;
+  // WebSocket subscription handle
+  let unsubscribe: Unsubscribe | null = null;
 
   // Computed
   const priceCount = computed(() => Object.keys(prices.value).length);
@@ -48,7 +47,7 @@ export const usePricesStore = defineStore("prices", () => {
   }
 
   /**
-   * Fetch prices from backend
+   * Fetch prices from backend (used for initial load only)
    */
   async function fetchPrices(): Promise<void> {
     const isInitialLoad = !lastUpdated.value;
@@ -71,43 +70,55 @@ export const usePricesStore = defineStore("prices", () => {
   }
 
   /**
-   * Start polling for price updates
+   * Subscribe to real-time price updates via WebSocket.
+   *
+   * The backend sends `{key: "price_string"}` but the store uses
+   * `PriceData` format `{key: {price, symbol}}`. We merge WS updates
+   * into the existing store data to preserve the symbol field and
+   * only overwrite the price value.
    */
-  function startPolling(intervalMs: number = 30000): void {
-    if (pollInterval) {
-      return; // Already polling
+  function subscribeToPrices(): void {
+    if (unsubscribe) {
+      return;
     }
 
-    pollInterval = setInterval(() => {
-      fetchPrices().catch((e) => {
-        console.error("[PricesStore] Polling error:", e);
-      });
-    }, intervalMs);
+    unsubscribe = WebSocketClient.subscribePrices((wsUpdate: Record<string, string>) => {
+      const current = prices.value;
+      const updated: PriceData = { ...current };
+      for (const [key, priceStr] of Object.entries(wsUpdate)) {
+        updated[key] = {
+          price: priceStr,
+          symbol: current[key]?.symbol ?? key.split("@")[0]
+        };
+      }
+      prices.value = updated;
+      lastUpdated.value = new Date();
+    });
   }
 
   /**
-   * Stop polling for price updates
+   * Unsubscribe from real-time price updates
    */
-  function stopPolling(): void {
-    if (pollInterval) {
-      clearInterval(pollInterval);
-      pollInterval = null;
+  function unsubscribeFromPrices(): void {
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
     }
   }
 
   /**
-   * Initialize the store - fetch fresh data, then start polling
+   * Initialize the store - fetch fresh data, then subscribe to WebSocket updates
    */
   async function initialize(): Promise<void> {
     await fetchPrices();
-    startPolling();
+    subscribeToPrices();
   }
 
   /**
-   * Cleanup - stop polling
+   * Cleanup - unsubscribe from WebSocket
    */
   function cleanup(): void {
-    stopPolling();
+    unsubscribeFromPrices();
   }
 
   return {
@@ -127,8 +138,6 @@ export const usePricesStore = defineStore("prices", () => {
 
     // Actions
     fetchPrices,
-    startPolling,
-    stopPolling,
     initialize,
     cleanup
   };

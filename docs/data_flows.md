@@ -147,22 +147,24 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 
 ### Key Implementation Details
 
-- **Event listener registration**: The `configStore.initialized` watcher in `view.vue` uses `{ immediate: true }` — critical because `initialized` may already be `true` when the component mounts. Without `immediate`, the watcher callback never fires and event listeners are never registered.
-- **No component-level wallet watchers**: Individual page components (`Leases.vue`, `DashboardLeases.vue`, etc.) do NOT watch wallet changes. All store coordination happens exclusively through `connectionStore.connectWallet()`. Components like `DashboardRewards.vue`, `UndelegateForm.vue`, and `stake/view.vue` rely on `connectionStore` — they do NOT have their own wallet watchers to call `stakingStore.setAddress()` or `stakingStore.fetchPositions()`.
-- **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts`, `connectPhantom.ts`, `connectSolflare.ts`) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly — that's `connectionStore`'s responsibility. Keplr and Leap share logic via `connectKeplrLike.ts`; each is a thin wrapper passing the extension getter and mechanism.
+- **Event listener registration**: The `configStore.initialized` watcher in `useWalletEvents` composable uses `{ immediate: true }` — critical because `initialized` may already be `true` when the composable runs. Without `immediate`, the watcher callback never fires and event listeners are never registered.
+- **Reactive store self-registration**: User-specific stores (balances, leases, staking, earn, analytics, history) watch `connectionStore.walletAddress` with `{ immediate: true }` and call their own `setAddress()`/`cleanup()`. `connectionStore.connectWallet()` only sets `walletAddress` — it does NOT import or call user-specific stores. The `{ immediate: true }` is critical: stores may be lazily created after the wallet is already connected, so the watcher must fire on the current value, not just on changes.
+- **No component-level wallet watchers**: Individual page components (`Leases.vue`, `DashboardLeases.vue`, etc.) do NOT watch wallet changes. Store coordination is handled by each store's self-registration watcher.
+- **No direct store calls in connect actions**: Wallet connect actions (`connectKeplr.ts`, `connectLeap.ts`, `connectLedger.ts`, `connectPhantom.ts`, `connectSolflare.ts`) only set `wallet` state on the wallet store. They do NOT call `balancesStore.setAddress()` or `historyStore.setAddress()` directly. Keplr and Leap share logic via `connectKeplrLike.ts`; each is a thin wrapper passing the extension getter and mechanism.
 - **NolusWallet overrides**: All connect actions call `applyNolusWalletOverrides(wallet)` after creating the wallet instance, which patches `gasPrices()`, `simulateTx()`, `simulateMultiTx()`, and `getGasInfo()` to use backend-cached gas config instead of querying the chain directly.
-- **Disconnect flow**: `Disconnect.vue` calls both `wallet[WalletActions.DISCONNECT]()` (clears wallet state) and `connectionStore.disconnectWallet()` (clears all user-specific stores: balances, leases, staking, earn, analytics, history).
-- **Price polling ownership**: Price polling is handled exclusively by `pricesStore.startPolling()` (called during `pricesStore.initialize()`). `view.vue` does NOT have its own price polling interval — it only manages balance polling. This avoids duplicate price fetches.
-- **Balance polling**: `view.vue` manages a balance polling interval via `startBalancePolling()`, called when `configStore.initialized` becomes true.
+- **Disconnect flow**: `Disconnect.vue` calls both `wallet[WalletActions.DISCONNECT]()` (clears wallet state) and `connectionStore.disconnectWallet()` (sets `walletAddress` to null, which triggers each store's self-registration watcher to call `cleanup()`).
+- **Real-time prices**: Prices are fetched once via REST on startup, then kept current via WebSocket subscription (~6s cadence). No frontend polling.
 - **Wallet-aware empty states**: Components use the `useWalletConnected()` composable (`src/common/composables/useWalletConnected.ts`) to determine wallet connection state for showing empty states. Wallet state is NOT passed as props (`isVisible`, `showEmpty`) — each widget calls the composable directly. This distinguishes "no wallet" (EmptyState without action buttons) from "wallet connected, no data" (EmptyState with action buttons like Receive, Open Position, etc.). The `EmptyState` component itself is purely presentational with no wallet awareness.
+- **Side effects in composable**: Wallet lifecycle events (keystorechange listeners, initial wallet connection, APR loading) are extracted from `view.vue` into the `useWalletEvents` composable (`src/common/composables/useWalletEvents.ts`). `view.vue` is a pure layout component.
 
 ### Key Files
 
 | File | Role |
 |------|------|
-| `src/modules/view.vue` | Registers `keplr_keystorechange` / `leap_keystorechange` event listeners, manages balance polling |
+| `src/modules/view.vue` | Layout wrapper, delegates wallet events to `useWalletEvents` composable |
+| `src/common/composables/useWalletEvents.ts` | Keystorechange event listeners, wallet reconnection on config init |
 | `src/entry-client.ts` | Watches `walletStore.wallet?.address` for initial page load reconnect |
-| `src/common/stores/connection/index.ts` | `connectWallet()` / `disconnectWallet()` — coordinates all user-specific stores |
+| `src/common/stores/connection/index.ts` | `connectWallet()` / `disconnectWallet()` — sets `walletAddress`; stores self-register via watchers |
 | `src/common/stores/wallet/actions/connectKeplrLike.ts` | Shared Keplr/Leap connect logic |
 | `src/common/stores/wallet/actions/connect*.ts` | Set wallet state + apply NolusWallet overrides (no direct store calls) |
 | `src/networks/cosm/NolusWalletOverride.ts` | Patches NolusWallet to use backend-cached gas config |
@@ -707,7 +709,7 @@ const assetKey = "ATOM@OSMOSIS-OSMOSIS-USDC_NOBLE";
 |-------|-----|-----------|
 | Backend cache (Cached<T>) | ~6 seconds | Refreshed on every 2nd NewBlock via CometBFT WebSocket events |
 | Browser HTTP cache | 10 seconds (`max-age=10, stale-while-revalidate=5`) | Backend `Cache-Control` headers, no manual localStorage caching |
-| Frontend Polling | 30 seconds | `pricesStore.startPolling()` — sole owner of price polling (no duplicate intervals in `view.vue`) |
+| Frontend WebSocket | ~6 seconds | `pricesStore.subscribeToPrices()` — real-time updates via WebSocket subscription, no polling |
 
 ### Config Impact on Prices
 
@@ -1247,7 +1249,7 @@ watch(
 
 **Critical: both `deep` and `immediate` are required:**
 - `immediate: true` — On SPA navigation, leases are already in the store from `connectionStore.connectWallet()`. Without `immediate`, the watch never fires and summary stays at $0.00.
-- `deep: true` — Prices object mutations (from polling/WebSocket) need to trigger recalculation.
+- `deep: true` — Prices object mutations (from WebSocket updates) need to trigger recalculation.
 - Watching `pricesStore.prices` — Summary depends on current prices via `LeaseCalculator.calculateDisplayData()`. Without this, price updates don't refresh the summary.
 
 Individual lease rows don't have this issue because `leasesData` is a `computed` property that automatically tracks reactive dependencies (including `pricesStore.prices` accessed inside `getLeaseDisplayData()`).

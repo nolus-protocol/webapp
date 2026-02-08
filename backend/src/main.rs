@@ -25,7 +25,6 @@ mod config;
 mod config_store;
 pub mod data_cache;
 mod error;
-mod etl_macros;
 mod external;
 mod handlers;
 mod http_utils;
@@ -213,82 +212,16 @@ fn create_router(state: Arc<AppState>) -> Router {
     start_cleanup_task(strict_rate_limit.clone());
 
     // ETL proxy routes
+    // Specialized handlers for enriched/batch/POST endpoints; generic catch-all for passthrough
     let etl_routes = Router::new()
-        .route("/pools", get(handlers::etl_proxy::proxy_pools))
-        .route("/ls-opening", get(handlers::etl_proxy::proxy_lease_opening))
-        .route("/prices", get(handlers::etl_proxy::proxy_price_series))
-        .route(
-            "/pnl-over-time",
-            get(handlers::etl_proxy::proxy_pnl_over_time),
-        )
-        .route("/total-value-locked", get(handlers::etl_proxy::proxy_tvl))
-        .route("/total-tx-value", get(handlers::etl_proxy::proxy_tx_volume))
-        .route(
-            "/leases-monthly",
-            get(handlers::etl_proxy::proxy_leases_monthly),
-        )
-        .route("/ls-loan-closing", get(handlers::etl_proxy::proxy_pnl))
-        .route(
-            "/open-position-value",
-            get(handlers::etl_proxy::proxy_open_position_value),
-        )
-        .route(
-            "/open-interest",
-            get(handlers::etl_proxy::proxy_open_interest),
-        )
-        .route(
-            "/unrealized-pnl",
-            get(handlers::etl_proxy::proxy_unrealized_pnl),
-        )
-        .route(
-            "/position-debt-value",
-            get(handlers::etl_proxy::proxy_position_debt_value),
-        )
-        .route(
-            "/realized-pnl",
-            get(handlers::etl_proxy::proxy_realized_pnl),
-        )
-        .route(
-            "/realized-pnl-data",
-            get(handlers::etl_proxy::proxy_realized_pnl_data),
-        )
-        .route(
-            "/realized-pnl-stats",
-            get(handlers::etl_proxy::proxy_realized_pnl_stats),
-        )
-        .route(
-            "/supplied-funds",
-            get(handlers::etl_proxy::proxy_supplied_funds),
-        )
-        .route(
-            "/supplied-borrowed-history",
-            get(handlers::etl_proxy::proxy_time_series),
-        )
-        .route("/earnings", get(handlers::etl_proxy::proxy_earnings))
-        .route("/lp-withdraw", get(handlers::etl_proxy::proxy_lp_withdraw))
+        // Enriched transactions (protobuf decoding + caching)
         .route(
             "/txs",
             get(handlers::transactions::get_enriched_transactions),
         )
-        .route(
-            "/leases-search",
-            get(handlers::etl_proxy::proxy_leases_search),
-        )
-        .route(
-            "/leased-assets",
-            get(handlers::etl_proxy::proxy_leased_assets),
-        )
-        .route(
-            "/buyback-total",
-            get(handlers::etl_proxy::proxy_buyback_total),
-        )
-        .route("/revenue", get(handlers::etl_proxy::proxy_revenue))
-        .route(
-            "/history-stats",
-            get(handlers::etl_proxy::proxy_history_stats),
-        )
+        // POST endpoint
         .route("/subscribe", post(handlers::etl_proxy::proxy_subscribe))
-        // Batch endpoints - fetch multiple resources in parallel
+        // Batch endpoints (parallel fetching + aggregation)
         .route(
             "/batch/stats-overview",
             get(handlers::etl_proxy::batch_stats_overview),
@@ -304,6 +237,11 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route(
             "/batch/user-history",
             get(handlers::etl_proxy::batch_user_history),
+        )
+        // Generic passthrough for all other ETL endpoints (allowlist-gated)
+        .route(
+            "/{path}",
+            get(handlers::etl_proxy::etl_proxy_generic),
         );
 
     // Read-only API routes (standard rate limit)

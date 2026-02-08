@@ -43,6 +43,7 @@ async-trait = "0.1"
 
 # Caching
 arc-swap = "1"
+mini-moka = "0.10"
 
 # Concurrent HashMap for WebSocket connections
 dashmap = "6"
@@ -75,9 +76,6 @@ prost = "0.12"
 # Regex for placeholder validation (translations)
 regex = "1"
 lazy_static = "1"
-
-# Macro utilities for identifier concatenation
-paste = "1.0"
 
 # WebSocket client for CometBFT event subscriptions
 tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }

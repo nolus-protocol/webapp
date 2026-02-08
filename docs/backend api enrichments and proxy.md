@@ -360,6 +360,8 @@ Beyond the gated propagation system, the backend also enriches transaction histo
 
 **Source:** `backend/src/handlers/transactions.rs`
 
+Decoded transactions are cached in an LRU cache (500 entries, 300s TTL via `mini-moka`) keyed by `(address, skip, limit)`. Since transaction data is immutable once confirmed, the cache avoids redundant protobuf decoding on repeated requests.
+
 The handler uses `cosmrs::proto` + `prost` to decode 9 cosmos message types:
 
 | Type URL | Decoded Fields |

@@ -6,9 +6,10 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { BackendApi, WebSocketClient, type BalanceInfo, type BalancesResponse, type Unsubscribe } from "@/common/api";
 import { useConfigStore } from "../config";
+import { useConnectionStore } from "../connection";
 import { NATIVE_ASSET } from "@/config/global";
 import type { ExternalCurrency } from "@/common/types";
 
@@ -245,9 +246,6 @@ export const useBalancesStore = defineStore("balances", () => {
     error.value = null;
   }
 
-  // Alias for backwards compatibility
-  const clear = cleanup;
-
   /**
    * Add a currency to the ignore list
    */
@@ -305,6 +303,22 @@ export const useBalancesStore = defineStore("balances", () => {
   // Load ignored currencies on store creation
   loadIgnoredCurrencies();
 
+  // Self-register: watch wallet address changes from connectionStore.
+  // { immediate: true } ensures stores created after wallet is already
+  // connected will still load data (the watcher fires with current value).
+  const connectionStore = useConnectionStore();
+  watch(
+    () => connectionStore.walletAddress,
+    (newAddress, oldAddress) => {
+      if (newAddress && newAddress !== oldAddress) {
+        setAddress(newAddress);
+      } else if (!newAddress && oldAddress) {
+        cleanup();
+      }
+    },
+    { immediate: true }
+  );
+
   return {
     // State
     balances,
@@ -334,7 +348,6 @@ export const useBalancesStore = defineStore("balances", () => {
     unsubscribeFromUpdates,
     setAddress,
     cleanup,
-    clear, // Alias for backwards compatibility
     ignoreCurrency,
     unignoreCurrency,
     setIgnoredCurrencies

@@ -113,6 +113,7 @@ pub struct LeasePnlInfo {
     pub amount: String,
     pub percent: String,
     pub downpayment: String,
+    pub pnl_positive: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -672,6 +673,10 @@ async fn fetch_lease_info(
         .await
         .ok();
 
+    // Load prices and currencies from cache (for PnL calculation)
+    let prices = state.data_cache.prices.load();
+    let currencies = state.data_cache.currencies.load();
+
     // Build ETL data struct if available
     // Note: Some fields are at the top level of EtlLeaseOpening, not inside lease
     let etl_info = etl_data.as_ref().map(|d| LeaseEtlData {
@@ -743,7 +748,7 @@ async fn fetch_lease_info(
             etl_data: etl_info,
         },
         LeaseStatusResponse::Opened(opened) => {
-            build_opened_lease_info(lease_address, protocol, &opened.opened, etl_data, etl_info)
+            build_opened_lease_info(lease_address, protocol, &opened.opened, etl_data, etl_info, &prices, &currencies)
         }
         LeaseStatusResponse::Closing(closing) => build_closing_lease_info(
             lease_address,
@@ -835,6 +840,8 @@ fn build_opened_lease_info(
     opened: &OpenedLeaseInfo,
     etl_data: Option<crate::external::etl::EtlLeaseOpening>,
     etl_info: Option<LeaseEtlData>,
+    prices: &Option<crate::handlers::currencies::PricesResponse>,
+    currencies: &Option<crate::handlers::currencies::CurrenciesResponse>,
 ) -> LeaseInfo {
     let total_debt = calculate_total_debt(opened);
     let interest_info = calculate_interest_info(opened);
@@ -847,6 +854,16 @@ fn build_opened_lease_info(
         stop_loss: cp.stop_loss,
         take_profit: cp.take_profit,
     });
+
+    // Calculate PnL if we have prices, currencies, and ETL data
+    let pnl = calculate_pnl(
+        protocol,
+        opened,
+        &total_debt,
+        etl_data.as_ref(),
+        prices.as_ref(),
+        currencies.as_ref(),
+    );
 
     LeaseInfo {
         address: lease_address.to_string(),
@@ -868,16 +885,9 @@ fn build_opened_lease_info(
             total_usd: None,
         },
         interest: interest_info,
-        liquidation_price: None, // Would need price data to calculate
+        liquidation_price: None,
         opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
-        pnl: etl_data.map(|d| LeasePnlInfo {
-            amount: d.pnl.unwrap_or_else(|| "0".to_string()),
-            percent: "0".to_string(),
-            downpayment: d
-                .lease
-                .downpayment_amount
-                .unwrap_or_else(|| "0".to_string()),
-        }),
+        pnl,
         close_policy,
         overdue_collect_in: opened.overdue_collect_in.map(|v| v.to_string()),
         in_progress,
@@ -1035,6 +1045,109 @@ fn parse_opened_status(status: &Option<serde_json::Value>) -> Option<LeaseInProg
 
     None
 }
+/// Calculate PnL for an opened lease.
+///
+/// Formula (matches frontend `LeaseCalculator.calculatePnl`):
+///   pnlAmount = assetValueUsd - totalDebtUsd - downPayment + fee - repaymentValue
+///   pnlPercent = pnlAmount / (downPayment + repaymentValue) * 100
+///
+/// Where:
+///   - assetValueUsd = Dec(amount, assetDecimals) * assetPrice
+///   - totalDebtUsd = Dec(debtTotal, lpnDecimals) * lpnPrice
+///   - downPayment = Dec(etl.downpayment_amount, lpnDecimals)
+///   - fee = Dec(etl.fee, assetDecimals)
+///   - repaymentValue = parseFloat(etl.repayment_value) (already formatted)
+fn calculate_pnl(
+    protocol: &str,
+    opened: &OpenedLeaseInfo,
+    total_debt: &str,
+    etl_data: Option<&crate::external::etl::EtlLeaseOpening>,
+    prices: Option<&crate::handlers::currencies::PricesResponse>,
+    currencies: Option<&crate::handlers::currencies::CurrenciesResponse>,
+) -> Option<LeasePnlInfo> {
+    let etl = etl_data?;
+    let prices = prices?;
+    let currencies = currencies?;
+
+    let asset_ticker = &opened.amount.ticker;
+    let lpn_ticker = &opened.principal_due.ticker;
+
+    // Look up currency info for asset and LPN
+    let asset_key = format!("{}@{}", asset_ticker, protocol);
+    let lpn_key = format!("{}@{}", lpn_ticker, protocol);
+
+    let asset_currency = currencies.currencies.get(&asset_key);
+    let lpn_currency = currencies.currencies.get(&lpn_key);
+
+    let asset_decimals = asset_currency.map(|c| c.decimal_digits).unwrap_or(6) as i32;
+    let lpn_decimals = lpn_currency.map(|c| c.decimal_digits).unwrap_or(6) as i32;
+
+    // Look up prices
+    let asset_price: f64 = prices
+        .prices
+        .get(&asset_key)
+        .and_then(|p| p.price_usd.parse().ok())
+        .unwrap_or(0.0);
+    let lpn_price: f64 = prices
+        .prices
+        .get(&lpn_key)
+        .and_then(|p| p.price_usd.parse().ok())
+        .unwrap_or(0.0);
+
+    // Calculate asset value in USD
+    let asset_amount: f64 = opened.amount.amount.parse().unwrap_or(0.0);
+    let asset_value_usd = (asset_amount / 10_f64.powi(asset_decimals)) * asset_price;
+
+    // Calculate total debt in USD
+    let debt_total: f64 = total_debt.parse().unwrap_or(0.0);
+    let total_debt_usd = (debt_total / 10_f64.powi(lpn_decimals)) * lpn_price;
+
+    // Parse ETL data: downpayment uses LPN decimals
+    let downpayment_raw: f64 = etl
+        .lease
+        .downpayment_amount
+        .as_deref()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0.0);
+    let downpayment = downpayment_raw / 10_f64.powi(lpn_decimals);
+
+    // Fee uses asset decimals (matching frontend behavior)
+    let fee_raw: f64 = etl
+        .fee
+        .as_deref()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0.0);
+    let fee = fee_raw / 10_f64.powi(asset_decimals);
+
+    // repayment_value is already formatted as a decimal number
+    let repayment_value: f64 = etl
+        .repayment_value
+        .as_deref()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(0.0);
+
+    // PnL formula
+    let pnl_amount = asset_value_usd - total_debt_usd - downpayment + fee - repayment_value;
+    let total_invested = downpayment + repayment_value;
+    let pnl_percent = if total_invested > 0.0 {
+        (pnl_amount / total_invested) * 100.0
+    } else {
+        0.0
+    };
+    let pnl_positive = pnl_amount >= 0.0;
+
+    Some(LeasePnlInfo {
+        amount: format!("{:.6}", pnl_amount),
+        percent: format!("{:.2}", pnl_percent),
+        downpayment: etl
+            .lease
+            .downpayment_amount
+            .clone()
+            .unwrap_or_else(|| "0".to_string()),
+        pnl_positive,
+    })
+}
+
 /// Parse the opening stage from the chain's `in_progress` field.
 ///
 /// Chain format (externally tagged enum):
@@ -1389,5 +1502,269 @@ mod tests {
         let sp = LeaseInProgress::SlippageProtection {};
         let json = serde_json::to_value(&sp).unwrap();
         assert_eq!(json, serde_json::json!({"slippage_protection": {}}));
+    }
+
+    // ── PnL calculation tests ────────────────────────────────────
+
+    use crate::external::chain::LeaseAmount;
+    use crate::external::etl::{EtlLeaseInfo, EtlLeaseOpening};
+    use crate::handlers::currencies::{
+        CurrenciesResponse, CurrencyInfo, PriceInfo, PricesResponse,
+    };
+    use std::collections::HashMap;
+
+    fn make_opened(asset_ticker: &str, asset_amount: &str, debt_ticker: &str) -> OpenedLeaseInfo {
+        OpenedLeaseInfo {
+            amount: LeaseAmount {
+                ticker: asset_ticker.to_string(),
+                amount: asset_amount.to_string(),
+            },
+            loan_interest_rate: 50,
+            margin_interest_rate: 30,
+            principal_due: LeaseAmount {
+                ticker: debt_ticker.to_string(),
+                amount: "500000000".to_string(), // 500 USDC (6 dec)
+            },
+            overdue_margin: LeaseAmount {
+                ticker: debt_ticker.to_string(),
+                amount: "0".to_string(),
+            },
+            overdue_interest: LeaseAmount {
+                ticker: debt_ticker.to_string(),
+                amount: "0".to_string(),
+            },
+            due_margin: LeaseAmount {
+                ticker: debt_ticker.to_string(),
+                amount: "0".to_string(),
+            },
+            due_interest: LeaseAmount {
+                ticker: debt_ticker.to_string(),
+                amount: "0".to_string(),
+            },
+            validity: "valid".to_string(),
+            overdue_collect_in: None,
+            close_policy: None,
+            status: Some(serde_json::json!("idle")),
+        }
+    }
+
+    fn make_etl(downpayment: &str, fee: &str, repayment_value: &str) -> EtlLeaseOpening {
+        EtlLeaseOpening {
+            lease: EtlLeaseInfo {
+                timestamp: None,
+                downpayment_amount: Some(downpayment.to_string()),
+                loan_amount: None,
+                lease_position_ticker: None,
+                collateral_symbol: None,
+                opening_price: None,
+                history: None,
+            },
+            downpayment_price: None,
+            lpn_price: None,
+            pnl: None,
+            fee: Some(fee.to_string()),
+            repayment_value: Some(repayment_value.to_string()),
+            history: None,
+        }
+    }
+
+    fn make_currency(key: &str, ticker: &str, decimals: u8) -> CurrencyInfo {
+        CurrencyInfo {
+            key: key.to_string(),
+            ticker: ticker.to_string(),
+            symbol: ticker.to_string(),
+            name: ticker.to_string(),
+            short_name: ticker.to_string(),
+            decimal_digits: decimals,
+            bank_symbol: "ibc/test".to_string(),
+            dex_symbol: "ibc/test".to_string(),
+            icon: "".to_string(),
+            native: false,
+            coingecko_id: None,
+            protocol: "TEST-PROTOCOL".to_string(),
+            group: "lease".to_string(),
+            is_active: true,
+        }
+    }
+
+    fn make_prices_and_currencies(
+        asset_price: &str,
+        lpn_price: &str,
+    ) -> (PricesResponse, CurrenciesResponse) {
+        let mut prices = HashMap::new();
+        prices.insert(
+            "ALL_BTC@TEST-PROTOCOL".to_string(),
+            PriceInfo {
+                key: "ALL_BTC@TEST-PROTOCOL".to_string(),
+                symbol: "BTC".to_string(),
+                price_usd: asset_price.to_string(),
+            },
+        );
+        prices.insert(
+            "USDC_NOBLE@TEST-PROTOCOL".to_string(),
+            PriceInfo {
+                key: "USDC_NOBLE@TEST-PROTOCOL".to_string(),
+                symbol: "USDC".to_string(),
+                price_usd: lpn_price.to_string(),
+            },
+        );
+
+        let mut currencies = HashMap::new();
+        currencies.insert(
+            "ALL_BTC@TEST-PROTOCOL".to_string(),
+            make_currency("ALL_BTC@TEST-PROTOCOL", "ALL_BTC", 8),
+        );
+        currencies.insert(
+            "USDC_NOBLE@TEST-PROTOCOL".to_string(),
+            make_currency("USDC_NOBLE@TEST-PROTOCOL", "USDC_NOBLE", 6),
+        );
+
+        (
+            PricesResponse {
+                prices,
+                updated_at: "2024-01-01T00:00:00Z".to_string(),
+            },
+            CurrenciesResponse {
+                currencies,
+                lpn: vec![],
+                lease_currencies: vec![],
+                map: HashMap::new(),
+            },
+        )
+    }
+
+    #[test]
+    fn test_calculate_pnl_positive() {
+        // BTC at $100,000, holding 0.01 BTC = $1000 asset value
+        // Debt: 500 USDC at $1.00 = $500 debt
+        // Downpayment: 400 USDC (400_000_000 micro) → $400
+        // Fee: 0 (no fee)
+        // Repayment: $0
+        // PnL = 1000 - 500 - 400 + 0 - 0 = $100
+        // PnL% = 100 / (400 + 0) * 100 = 25%
+        let opened = make_opened("ALL_BTC", "1000000", "USDC_NOBLE"); // 0.01 BTC (8 dec)
+        let etl = make_etl("400000000", "0", "0"); // 400 USDC (6 dec)
+        let (prices, currencies) = make_prices_and_currencies("100000", "1.0");
+        let total_debt = "500000000"; // 500 USDC
+
+        let result = calculate_pnl(
+            "TEST-PROTOCOL",
+            &opened,
+            total_debt,
+            Some(&etl),
+            Some(&prices),
+            Some(&currencies),
+        );
+
+        let pnl = result.unwrap();
+        let amount: f64 = pnl.amount.parse().unwrap();
+        let percent: f64 = pnl.percent.parse().unwrap();
+        assert!((amount - 100.0).abs() < 0.01, "PnL amount: {}", amount);
+        assert!((percent - 25.0).abs() < 0.01, "PnL percent: {}", percent);
+        assert!(pnl.pnl_positive);
+    }
+
+    #[test]
+    fn test_calculate_pnl_negative() {
+        // BTC at $50,000, holding 0.01 BTC = $500 asset value
+        // Debt: 500 USDC at $1.00 = $500
+        // Downpayment: 400 USDC → $400
+        // PnL = 500 - 500 - 400 = -$400
+        // PnL% = -400 / 400 * 100 = -100%
+        let opened = make_opened("ALL_BTC", "1000000", "USDC_NOBLE");
+        let etl = make_etl("400000000", "0", "0");
+        let (prices, currencies) = make_prices_and_currencies("50000", "1.0");
+
+        let result = calculate_pnl(
+            "TEST-PROTOCOL",
+            &opened,
+            "500000000",
+            Some(&etl),
+            Some(&prices),
+            Some(&currencies),
+        );
+
+        let pnl = result.unwrap();
+        let amount: f64 = pnl.amount.parse().unwrap();
+        let percent: f64 = pnl.percent.parse().unwrap();
+        assert!(
+            (amount - (-400.0)).abs() < 0.01,
+            "PnL amount: {}",
+            amount
+        );
+        assert!(
+            (percent - (-100.0)).abs() < 0.01,
+            "PnL percent: {}",
+            percent
+        );
+        assert!(!pnl.pnl_positive);
+    }
+
+    #[test]
+    fn test_calculate_pnl_with_repayment() {
+        // BTC at $100,000, holding 0.01 BTC = $1000
+        // Debt: 300 USDC = $300
+        // Downpayment: 400 USDC = $400
+        // Repayment: $200 (already formatted)
+        // PnL = 1000 - 300 - 400 + 0 - 200 = $100
+        // PnL% = 100 / (400 + 200) * 100 = 16.67%
+        let opened = make_opened("ALL_BTC", "1000000", "USDC_NOBLE");
+        let etl = make_etl("400000000", "0", "200");
+        let (prices, currencies) = make_prices_and_currencies("100000", "1.0");
+
+        let result = calculate_pnl(
+            "TEST-PROTOCOL",
+            &opened,
+            "300000000",
+            Some(&etl),
+            Some(&prices),
+            Some(&currencies),
+        );
+
+        let pnl = result.unwrap();
+        let amount: f64 = pnl.amount.parse().unwrap();
+        let percent: f64 = pnl.percent.parse().unwrap();
+        assert!((amount - 100.0).abs() < 0.01, "PnL amount: {}", amount);
+        assert!(
+            (percent - 16.67).abs() < 0.1,
+            "PnL percent: {}",
+            percent
+        );
+        assert!(pnl.pnl_positive);
+    }
+
+    #[test]
+    fn test_calculate_pnl_none_without_etl() {
+        let opened = make_opened("ALL_BTC", "1000000", "USDC_NOBLE");
+        let (prices, currencies) = make_prices_and_currencies("100000", "1.0");
+
+        let result = calculate_pnl(
+            "TEST-PROTOCOL",
+            &opened,
+            "500000000",
+            None,
+            Some(&prices),
+            Some(&currencies),
+        );
+
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_calculate_pnl_none_without_prices() {
+        let opened = make_opened("ALL_BTC", "1000000", "USDC_NOBLE");
+        let etl = make_etl("400000000", "0", "0");
+        let (_, currencies) = make_prices_and_currencies("100000", "1.0");
+
+        let result = calculate_pnl(
+            "TEST-PROTOCOL",
+            &opened,
+            "500000000",
+            Some(&etl),
+            None,
+            Some(&currencies),
+        );
+
+        assert!(result.is_none());
     }
 }

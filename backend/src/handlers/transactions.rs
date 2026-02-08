@@ -4,13 +4,27 @@
 //! `value` field into structured `data` for the frontend.
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use axum::extract::{Query, State};
 use axum::Json;
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine as _;
+use lazy_static::lazy_static;
+use mini_moka::sync::Cache;
 use prost::Message;
 use tracing::debug;
+
+lazy_static! {
+    /// LRU cache for decoded transactions.
+    /// Key: (address, skip, limit, filter, to) — Value: enriched JSON array.
+    /// Entries expire after 60s for skip=0 (new txs may appear), 300s for historical pages.
+    /// Max 500 entries to bound memory usage.
+    static ref TX_CACHE: Cache<String, Vec<serde_json::Value>> = Cache::builder()
+        .max_capacity(500)
+        .time_to_live(Duration::from_secs(300))
+        .build();
+}
 
 use cosmrs::proto::cosmos::bank::v1beta1::MsgSend;
 use cosmrs::proto::cosmos::distribution::v1beta1::MsgWithdrawDelegatorReward;
@@ -32,6 +46,15 @@ pub async fn get_enriched_transactions(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProxyQuery>,
 ) -> Result<Json<Vec<serde_json::Value>>, AppError> {
+    // Build cache key from all query params
+    let cache_key = build_cache_key(&query);
+
+    // Check cache
+    if let Some(cached) = TX_CACHE.get(&cache_key) {
+        debug!("Transaction cache hit for {}", cache_key);
+        return Ok(Json(cached));
+    }
+
     let base_url = &state.config.external.etl_api_url;
 
     let mut params: Vec<String> = Vec::new();
@@ -72,7 +95,20 @@ pub async fn get_enriched_transactions(
         .map(|tx| enrich_transaction(tx, &user_address))
         .collect();
 
+    // Cache the result
+    TX_CACHE.insert(cache_key, enriched.clone());
+
     Ok(Json(enriched))
+}
+
+/// Build a deterministic cache key from query parameters
+fn build_cache_key(query: &ProxyQuery) -> String {
+    let address = query.params.get("address").map(|s| s.as_str()).unwrap_or("");
+    let skip = query.params.get("skip").map(|s| s.as_str()).unwrap_or("0");
+    let limit = query.params.get("limit").map(|s| s.as_str()).unwrap_or("50");
+    let filter = query.params.get("filter").map(|s| s.as_str()).unwrap_or("");
+    let to = query.params.get("to").map(|s| s.as_str()).unwrap_or("");
+    format!("txs:{}:{}:{}:{}:{}", address, skip, limit, filter, to)
 }
 
 /// User-initiated transaction types that the frontend can render.

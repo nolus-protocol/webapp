@@ -1,10 +1,10 @@
 /**
- * Connection Store - Manages WebSocket connection and coordinates stores
+ * Connection Store - Manages WebSocket connection and wallet address state
  *
  * This store handles:
  * - WebSocket connection lifecycle
- * - Coordinating store initialization when wallet connects/disconnects
- * - Connection state tracking
+ * - Wallet address state (user-specific stores self-register via watchers)
+ * - Global store initialization
  */
 
 import { defineStore } from "pinia";
@@ -12,13 +12,9 @@ import { ref, computed } from "vue";
 import { WebSocketClient, type ConnectionState, type Unsubscribe } from "@/common/api";
 import { useConfigStore } from "../config";
 import { usePricesStore } from "../prices";
-import { useBalancesStore } from "../balances";
-import { useLeasesStore } from "../leases";
 import { useStakingStore } from "../staking";
 import { useEarnStore } from "../earn";
 import { useStatsStore } from "../stats";
-import { useAnalyticsStore } from "../analytics";
-import { useHistoryStore } from "../history";
 
 export const useConnectionStore = defineStore("connection", () => {
   // State
@@ -83,88 +79,20 @@ export const useConnectionStore = defineStore("connection", () => {
   }
 
   /**
-   * Connect wallet - update all stores with user address
+   * Connect wallet - sets address; user-specific stores react via watchers
    */
-  async function connectWallet(address: string): Promise<void> {
+  function connectWallet(address: string): void {
     if (!address) {
       return;
     }
-
     walletAddress.value = address;
-
-    // Update all user-specific stores
-    const balancesStore = useBalancesStore();
-    const leasesStore = useLeasesStore();
-    const stakingStore = useStakingStore();
-    const earnStore = useEarnStore();
-    const analyticsStore = useAnalyticsStore();
-    const historyStore = useHistoryStore();
-
-    await Promise.all([
-      balancesStore.setAddress(address),
-      leasesStore.setOwner(address),
-      stakingStore.setAddress(address),
-      earnStore.setAddress(address),
-      analyticsStore.setAddress(address)
-    ]);
-
-    historyStore.setAddress(address);
-    historyStore.loadActivities();
   }
 
   /**
-   * Disconnect wallet - clear all user-specific data
+   * Disconnect wallet - clears address; user-specific stores react via watchers
    */
   function disconnectWallet(): void {
     walletAddress.value = null;
-
-    // Clear all user-specific stores
-    const balancesStore = useBalancesStore();
-    const leasesStore = useLeasesStore();
-    const stakingStore = useStakingStore();
-    const earnStore = useEarnStore();
-    const analyticsStore = useAnalyticsStore();
-    const historyStore = useHistoryStore();
-
-    balancesStore.clear();
-    leasesStore.clear();
-    stakingStore.clear();
-    earnStore.clear();
-    analyticsStore.clear();
-    historyStore.setAddress(null);
-  }
-
-  /**
-   * Refresh all data
-   */
-  async function refreshAll(): Promise<void> {
-    const pricesStore = usePricesStore();
-    const earnStore = useEarnStore();
-    const stakingStore = useStakingStore();
-    const statsStore = useStatsStore();
-
-    const promises: Promise<void>[] = [
-      pricesStore.fetchPrices(),
-      earnStore.refresh(),
-      stakingStore.fetchValidators(),
-      statsStore.refresh()
-    ];
-
-    if (walletAddress.value) {
-      const balancesStore = useBalancesStore();
-      const leasesStore = useLeasesStore();
-      const analyticsStore = useAnalyticsStore();
-
-      promises.push(
-        balancesStore.fetchBalances(),
-        leasesStore.fetchLeases(),
-        stakingStore.fetchPositions(),
-        earnStore.fetchPositions(),
-        analyticsStore.refresh()
-      );
-    }
-
-    await Promise.all(promises);
   }
 
   /**
@@ -178,7 +106,7 @@ export const useConnectionStore = defineStore("connection", () => {
 
     WebSocketClient.disconnect();
 
-    // Cleanup all stores
+    // Cleanup global stores
     const pricesStore = usePricesStore();
     const statsStore = useStatsStore();
     pricesStore.cleanup();
@@ -207,7 +135,6 @@ export const useConnectionStore = defineStore("connection", () => {
     initializeApp,
     connectWallet,
     disconnectWallet,
-    refreshAll,
     cleanup
   };
 });

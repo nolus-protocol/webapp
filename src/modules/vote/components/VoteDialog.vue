@@ -108,7 +108,6 @@ import { useStakingStore } from "@/common/stores/staking";
 import { useHistoryStore } from "@/common/stores/history";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { useI18n } from "vue-i18n";
-import { useConfigStore } from "@/common/stores/config";
 
 const dialog = ref<typeof Dialog | null>(null);
 const description = ref();
@@ -121,8 +120,6 @@ const wallet = useWalletStore();
 const stakingStore = useStakingStore();
 const historyStore = useHistoryStore();
 const i18n = useI18n();
-const configStore = useConfigStore();
-
 const props = defineProps<{
   proposal: Proposal;
   bondedTokens: Dec | any;
@@ -137,40 +134,9 @@ const labels = ref({
   no_with_veto_count: i18n.t(`message.no_with_veto_count`)
 });
 
-watch(
-  () => configStore.initialized,
-  () => {
-    if (configStore.initialized) {
-      onInit();
-    }
-  },
-  {
-    immediate: true
-  }
-);
-
-async function onInit() {
-  // Load staking data if wallet is connected
-  if (wallet.wallet?.address) {
-    await stakingStore.setAddress(wallet.wallet.address);
-  }
-}
-
 onBeforeUnmount(() => {
   hide();
 });
-
-// Watch for wallet changes
-watch(
-  () => wallet.wallet?.address,
-  async (address) => {
-    if (address) {
-      await stakingStore.setAddress(address);
-    } else {
-      stakingStore.clear();
-    }
-  }
-);
 
 // Check if user has delegated tokens (can vote)
 const hasDelegatedTokens = computed(() => {

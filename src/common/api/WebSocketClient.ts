@@ -5,7 +5,7 @@
  * typed event handling for price updates, balance changes, lease updates, etc.
  */
 
-import type { PriceData, LeaseInfo, BalanceInfo, StakingPositionsResponse } from "./BackendApi";
+import type { LeaseInfo, BalanceInfo, StakingPositionsResponse } from "./BackendApi";
 
 // WebSocket URL - must be configured via environment variable
 const WS_URL = import.meta.env.VITE_WS_URL;
@@ -63,7 +63,7 @@ interface PongMessage {
 
 interface PriceUpdateMessage {
   type: "price_update";
-  prices: PriceData;
+  prices: Record<string, string>;
 }
 
 interface BalanceUpdateMessage {
@@ -130,7 +130,7 @@ type ServerMessage =
 /**
  * Callback types for each subscription
  */
-export type PriceCallback = (prices: PriceData) => void;
+export type PriceCallback = (prices: Record<string, string>) => void;
 export type BalanceCallback = (address: string, balances: BalanceInfo[]) => void;
 export type LeaseCallback = (lease: Partial<LeaseInfo> & Pick<LeaseInfo, "address" | "status">) => void;
 export type TxStatusCallback = (txHash: string, status: "pending" | "success" | "failed", error?: string) => void;

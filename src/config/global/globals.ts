@@ -26,8 +26,6 @@ export const PERCENT = 100;
 export const UPDATE_BLOCK_INTERVAL = 1 * 60 * 1000;
 export const UPDATE_LEASES = 10000;
 
-export const UPDATE_BALANCE_INTERVAL = 8 * 1000;
-
 export const MONTHS = 12;
 
 export const DECIMALS_AMOUNT = [

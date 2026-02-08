@@ -26,7 +26,7 @@ Complete reference for the backend REST API and WebSocket protocol.
 | Governance | 10 | Proposals, tally, votes, params, pool, APR, accounts, denoms, node info |
 | Referral | 7 | Validate, register, stats, rewards, payouts, referrals, assign |
 | Zero-Interest | 7 | Config, eligibility, payments, campaigns |
-| ETL Proxy | 26+ | All ETL endpoints + 4 batch endpoints |
+| ETL Proxy | 24 generic + 5 specialized | Generic catch-all proxy (24 allowlisted paths) + 4 batch endpoints + enriched transactions |
 | Admin Gated | 15+ | Currency display, network config, lease rules, swap/UI settings |
 | Admin Translations | 12 | Sync, generate, approve, audit |
 | Admin Cache | 2 | Stats, invalidate |
@@ -485,7 +485,7 @@ Returns all leases for an owner.
 }
 ```
 
-**Note:** The `pnl.amount` and `pnl.percent` fields are always `"0"` — the ETL `ls-opening` endpoint doesn't provide a PnL value, and the backend doesn't calculate it. PnL is computed on the frontend by `LeaseCalculator.calculatePnl()` using current asset value, debt, and the `pnl.downpayment` field.
+**PnL calculation:** The backend computes `pnl.amount` and `pnl.percent` using current oracle prices, debt, downpayment, fees, and repayment values. The `pnl.pnl_positive` boolean indicates direction. Formula: `pnlAmount = assetValueUsd - totalDebtUsd - downPayment + fee - repaymentValue`. The frontend `LeaseCalculator` uses these backend values for display.
 
 **In-progress states:** Opened leases may include an `in_progress` field indicating an ongoing operation. The backend parses the chain contract's `status` sub-field into a discriminated union:
 
@@ -919,6 +919,8 @@ Assign a referral (link referred wallet to referrer).
 
 The backend proxies requests to the ETL API. All endpoints are prefixed with `/api/etl/`.
 
+A generic catch-all handler (`etl_proxy_generic`) forwards requests for 24 allowlisted paths directly to the ETL API. Query parameters are passed through as-is. Specialized handlers exist for enriched endpoints (transaction decoding, batch parallel fetching) that transform data before returning.
+
 ### Enriched Endpoints
 
 #### GET /api/etl/txs
@@ -1298,7 +1300,7 @@ The 503 response follows the standard error format:
 }
 ```
 
-Background refresh tasks run on fixed intervals (15s–300s depending on data type) and will populate the cache as soon as the upstream source becomes available. The frontend already handles transient errors with retry logic.
+Background refresh tasks run in 6 dependency-aware groups (chain events ~6s, ETL+gated pipeline 60s, derived views 60s, domain data 60s, ETL stats 60s, slow data 300s) and will populate the cache as soon as the upstream source becomes available. The frontend already handles transient errors with retry logic.
 
 ---
 

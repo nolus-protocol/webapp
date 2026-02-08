@@ -126,6 +126,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { IntercomService } from "@/common/utils/IntercomService";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
+import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
@@ -137,6 +138,7 @@ import TableNumber from "@/common/components/TableNumber.vue";
 import type { LeaseInfo } from "@/common/api";
 
 const leasesStore = useLeasesStore();
+const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const leaseLoaded = computed(() => !leasesStore.loading || leasesStore.leases.length > 0);
 const leases = computed(() => leasesStore.leases);
@@ -371,6 +373,7 @@ onUnmounted(() => {
 
 function reload() {
   leasesStore.refresh();
+  balancesStore.fetchBalances();
 }
 
 function getTitle(item: LeaseInfo) {
