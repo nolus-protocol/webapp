@@ -326,7 +326,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                   : h<IBigNumber>(BigNumber, {
                       pnlStatus: {
                         positive: pnlData.status,
-                        value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${pnlData.amount})`,
+                        value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${hide.value ? "****" : pnlData.amount})`,
                         badge: {
                           content: pnlData.percent,
                           base: false
