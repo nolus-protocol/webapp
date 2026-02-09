@@ -260,6 +260,7 @@ import { AdvancedFormControl, Button, Dialog, Tooltip, Slider, SvgIcon, ToastTyp
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
@@ -289,6 +290,7 @@ const router = useRouter();
 const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
 const configStore = useConfigStore();
+const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
 const leasesStore = useLeasesStore();
 const i18n = useI18n();
@@ -774,6 +776,7 @@ async function marketCloseLease() {
 
       const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      balancesStore.fetchBalances();
       reload();
       dialog?.value?.close();
       historyStore.loadActivities();

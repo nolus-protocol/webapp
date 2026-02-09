@@ -578,6 +578,7 @@ async function repayLease() {
 
       const { txBytes } = await leaseClient.simulateRepayLeaseTx(wallet, funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      balancesStore.fetchBalances();
       historyStore.loadActivities();
       reload();
       dialog?.value?.close();

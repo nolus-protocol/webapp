@@ -105,6 +105,7 @@ import { AdvancedFormControl, Button, Dialog, Tooltip, SvgIcon, ToastType } from
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
 import { usePricesStore } from "@/common/stores/prices";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
@@ -127,6 +128,7 @@ const route = useRoute();
 const router = useRouter();
 const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
+const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
 
 const leasesStore = useLeasesStore();
@@ -365,6 +367,7 @@ async function operation() {
         funds
       );
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      balancesStore.fetchBalances();
       historyStore.loadActivities();
       reload();
       dialog?.value?.close();

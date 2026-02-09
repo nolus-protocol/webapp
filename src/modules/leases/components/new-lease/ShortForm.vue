@@ -627,6 +627,7 @@ async function openLease() {
       });
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
+      balancesStore.fetchBalances();
       historyStore.loadActivities();
       reload();
       onShowToast({
