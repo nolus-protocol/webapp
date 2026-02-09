@@ -388,12 +388,23 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
     };
 
     let currency_config = &gated.currency_display;
+    let ignore_all: std::collections::HashSet<&str> = gated
+        .lease_rules
+        .asset_restrictions
+        .ignore_all
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+
     let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
     let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
     let mut lease_currencies_set: std::collections::HashSet<String> =
         std::collections::HashSet::new();
 
     for etl_currency in etl_response.currencies {
+        if ignore_all.contains(etl_currency.ticker.as_str()) {
+            continue;
+        }
         let display = currency_config.currencies.get(&etl_currency.ticker);
 
         for protocol_mapping in etl_currency.protocols {
@@ -702,10 +713,22 @@ pub async fn refresh_gated_assets(state: &Arc<AppState>) {
         &gated.network_config,
     );
 
+    let ignore_all: std::collections::HashSet<&str> = gated
+        .lease_rules
+        .asset_restrictions
+        .ignore_all
+        .iter()
+        .map(|s| s.as_str())
+        .collect();
+
     let mut assets: Vec<AssetResponse> = Vec::new();
 
     for currency in &etl_currencies.currencies {
         if !currency.is_active {
+            continue;
+        }
+
+        if ignore_all.contains(currency.ticker.as_str()) {
             continue;
         }
 

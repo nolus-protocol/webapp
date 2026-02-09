@@ -131,7 +131,7 @@
     }
   },
   "asset_restrictions": {
-    "ignore_all": [],
+    "ignore_all": ["STRD"],
     "ignore_long": [
       "ATOM@NEUTRON-ASTROPORT-USDC_NOBLE",
       "ST_ATOM",
@@ -157,7 +157,8 @@
       "AKT",
       "INJ",
       "AXL",
-      "NLS"
+      "NLS",
+      "STRD"
     ],
     "ignore_short": ["NLS", "ST_ATOM", "AKT", "ALL_SOL", "ALL_BTC"],
     "free_interest": []

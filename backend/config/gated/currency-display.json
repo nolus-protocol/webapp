@@ -41,7 +41,7 @@
     "color": "#E50571",
     "coingeckoId": "stride-staked-tia"
   },
-  "USDC_AXELAR": {
+  "USDC": {
     "icon": "/assets/icons/currencies/USDC_AXELAR.svg",
     "displayName": "Axelar USDC",
     "shortName": "USDC.axl",
