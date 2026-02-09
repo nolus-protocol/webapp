@@ -12,26 +12,8 @@
       </div>
     </div>
   </div>
-  <Widget
-    v-if="!showSkeleton"
-    class="overflow-auto"
-  >
-    <EmptyState
-      v-if="leasesHistory.length == 0"
-      :slider="[
-        {
-          image: { name: 'new-lease' },
-          title: $t('message.start-lease'),
-          description: $t('message.start-lease-description'),
-          link: {
-            label: $t('message.learn-new-leases'),
-            url: `/${RouteNames.LEASES}/learn-leases`,
-            tooltip: { content: $t('message.learn-new-leases') }
-          }
-        }
-      ]"
-    />
-    <template v-else>
+  <Widget class="overflow-auto">
+    <template v-if="walletConnected && !emptyState">
       <div class="flex flex-col justify-between gap-2 md:flex-row md:items-center">
         <BigNumber
           :label="$t('message.realized-pnl')"
@@ -66,6 +48,22 @@
         </template>
       </Table>
     </template>
+    <template v-else>
+      <EmptyState
+        :slider="[
+          {
+            image: { name: 'new-lease' },
+            title: $t('message.start-lease'),
+            description: $t('message.start-lease-description'),
+            link: {
+              label: $t('message.learn-new-leases'),
+              url: `/${RouteNames.LEASES}/learn-leases`,
+              tooltip: { content: $t('message.learn-new-leases') }
+            }
+          }
+        ]"
+      />
+    </template>
   </Widget>
   <div class="my-4 flex justify-center">
     <Button
@@ -75,7 +73,7 @@
       class="mx-auto"
       severity="secondary"
       size="medium"
-      @click="loadLoans"
+      @click="loadMore"
     />
   </div>
 </template>
@@ -101,19 +99,22 @@ import type { ILoan } from "./types";
 import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTickerForProtocol, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
-import { useWalletStore } from "@/common/stores/wallet";
 import { useAnalyticsStore } from "@/common/stores";
 import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
 import EmptyState from "@/common/components/EmptyState.vue";
 import { useConfigStore } from "@/common/stores/config";
+import { useWalletConnected } from "@/common/composables";
+import { useConnectionStore } from "@/common/stores/connection";
 
 const mobile = isMobile();
 const i18n = useI18n();
-const wallet = useWalletStore();
 const analyticsStore = useAnalyticsStore();
 const configStore = useConfigStore();
+const connectionStore = useConnectionStore();
+const walletConnected = useWalletConnected();
+const router = useRouter();
 
 // Realized PnL from analytics store
 const pnl = computed(() => {
@@ -127,8 +128,12 @@ const loadingPnl = ref(false);
 
 const loading = computed(() => analyticsStore.realizedPnlListLoading);
 const loaded = ref(false);
-const showSkeleton = ref(true);
-const router = useRouter();
+
+const loans = ref([] as ILoan[]);
+
+const emptyState = computed(() => {
+  return !loading.value && loans.value.length === 0;
+});
 
 const columns = computed<TableColumnProps[]>(() => mobile
   ? [
@@ -145,54 +150,42 @@ const columns = computed<TableColumnProps[]>(() => mobile
     ]
 );
 
-const loans = ref([] as ILoan[]);
 const filename = "data.csv";
 const delimiter = ",";
 
+// Watch wallet address (from connectionStore) + config initialization.
+// This follows the same pattern as DashboardLeases: the store self-loads
+// via connectionStore.walletAddress watcher, and the component triggers
+// paginated fetches when both dependencies are ready.
 watch(
-  () => configStore.initialized,
-  () => {
-    if (configStore.initialized) {
-      onInit();
+  [() => connectionStore.walletAddress, () => configStore.initialized],
+  ([address, initialized], [oldAddress]) => {
+    if (!initialized) return;
+
+    if (address && address !== oldAddress) {
+      skip = 0;
+      loans.value = [];
+      loaded.value = false;
+      loadMore();
     }
   },
-  {
-    immediate: true
-  }
-);
-
-async function onInit() {
-  loadLoans();
-  setRealizedPnl();
-}
-
-watch(
-  () => wallet.wallet,
-  () => {
-    skip = 0;
-    loadLoans();
-    setRealizedPnl();
-  }
+  { immediate: true }
 );
 
 function goBack() {
   router.push({ path: `/${RouteNames.HISTORY}` });
 }
 
-async function loadLoans() {
+async function loadMore() {
   try {
-    if (wallet.wallet?.address) {
-      const res = await analyticsStore.fetchPnlList(skip, limit);
-      loans.value = [...loans.value, ...res] as ILoan[];
-      const loadedSender = res.length < limit;
-      if (loadedSender) {
-        loaded.value = true;
-      }
-      skip += limit;
-    } else {
-      loans.value = [];
+    if (!connectionStore.walletAddress || !configStore.initialized) return;
+
+    const res = await analyticsStore.fetchPnlList(skip, limit);
+    loans.value = [...loans.value, ...res] as ILoan[];
+    if (res.length < limit) {
+      loaded.value = true;
     }
-    showSkeleton.value = false;
+    skip += limit;
   } catch (e: Error | any) {
     Logger.error(e);
   }
@@ -279,14 +272,6 @@ function getType(item: ILoan) {
   }
 }
 
-async function setRealizedPnl() {
-  // Realized PnL is now fetched by analyticsStore when address is set
-  // The pnl computed property reads from analyticsStore.realizedPnl
-  if (!analyticsStore.realizedPnl && wallet.wallet?.address) {
-    await analyticsStore.fetchRealizedPnl();
-  }
-}
-
 function jsonToCsv(rows: IObjectKeys[]) {
   const esc = (v: string) => {
     if (v == null) return "";
@@ -307,7 +292,7 @@ function jsonToCsv(rows: IObjectKeys[]) {
 }
 
 async function downloadCsv() {
-  if (!wallet.wallet?.address) {
+  if (!connectionStore.walletAddress) {
     return;
   }
 
