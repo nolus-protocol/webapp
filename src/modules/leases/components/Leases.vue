@@ -49,18 +49,17 @@
               fontSize: mobile ? 24 : 32,
               animatedReveal: true,
               compact: mobile,
-              hide: hide,
               class:
                 pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
-            :pnl-status="hide ? undefined : (mobile ? undefined : {
+            :pnl-status="mobile ? undefined : {
               positive: pnl_percent.isPositive() || pnl_percent.isZero(),
               value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
               badge: {
                 content: pnl_percent.toString(),
                 base: false
               }
-            })"
+            }"
           />
           <BigNumber
             :label="$t('message.leases-table')"
@@ -266,8 +265,8 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                   loading
                     ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
                     : h("span", {
-                        class: `text-14 font-normal ${hide.value ? '' : pnlData.status ? "text-typography-success" : "text-typography-error"}`
-                      }, hide.value ? "****" : `${pnlData.status ? "+" : ""}${pnlData.percent}%`),
+                        class: `text-14 font-normal ${pnlData.status ? "text-typography-success" : "text-typography-error"}`
+                      }, `${pnlData.status ? "+" : ""}${pnlData.percent}%`),
                 click: navigate,
                 class: "cursor-pointer"
               },
@@ -325,16 +324,14 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                 loading
                   ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
                   : h<IBigNumber>(BigNumber, {
-                      pnlStatus: hide.value
-                        ? { positive: true, value: "****", badge: { content: "0", base: false } }
-                        : {
-                            positive: pnlData.status,
-                            value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${pnlData.amount})`,
-                            badge: {
-                              content: pnlData.percent,
-                              base: false
-                            }
-                          }
+                      pnlStatus: {
+                        positive: pnlData.status,
+                        value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${pnlData.amount})`,
+                        badge: {
+                          content: pnlData.percent,
+                          base: false
+                        }
+                      }
                     }),
               class: "max-w-[200px]"
             },
