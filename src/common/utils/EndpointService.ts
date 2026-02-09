@@ -75,11 +75,3 @@ async function fetchCosmosEndpoint(network: string): Promise<API> {
     api: networkInfo.lcd
   };
 }
-
-/**
- * Fetch EVM RPC endpoints for a network
- * TODO: EVM networks need to be added to the gated system or handled separately
- */
-export async function fetchEvmEndpoints(network: string): Promise<API> {
-  throw new Error(`EVM network endpoints not yet supported in gated system: ${network}`);
-}

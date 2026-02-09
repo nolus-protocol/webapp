@@ -17,7 +17,7 @@ import { ensureEip191AuthInfoBytes, personalSignJSON } from "./sign";
 import { WalletTypes } from "../types";
 import { WalletConnectMechanism, type API, type NetworkData } from "@/common/types";
 import { StargateClient } from "@cosmjs/stargate";
-import type { Window as MetamaskWindow } from "../metamask/window";
+import type { Window as MetamaskWindow } from "../window";
 
 export class MetaMaskWallet implements Wallet {
   address!: string;

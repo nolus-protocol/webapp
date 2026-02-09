@@ -21,7 +21,7 @@ import type { ChainInfo } from "@keplr-wallet/types";
 import { WalletTypes } from "../types";
 import { type API, type NetworkData } from "@/common/types";
 import { StargateClient } from "@cosmjs/stargate";
-import type { Window } from "../metamask/window";
+import type { Window } from "../window";
 import { PubKey as Ed25519PubKey } from "cosmjs-types/cosmos/crypto/ed25519/keys";
 import { encodeEd25519Pubkey } from "@cosmjs/amino";
 

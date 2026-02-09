@@ -12,7 +12,7 @@
       <Dropdown
         id="network"
         :on-select="onUpdateNetwork"
-        :options="all_networks"
+        :options="networks"
         :size="Size.medium"
         searchable
         :selected="network"
@@ -37,9 +37,9 @@
       "
       @input="handleAmountChange"
       :value="amount"
-      :is-loading-picker="disablePicker || isMetamaskLoading"
-      :disabled-input-field="isDisabled || isMetamaskLoading"
-      :disabled-currency-picker="disablePicker || isDisabled || isMetamaskLoading"
+      :is-loading-picker="disablePicker"
+      :disabled-input-field="isDisabled"
+      :disabled-currency-picker="disablePicker || isDisabled"
       :error-msg="amountErrorMsg"
       :selected-currency-option="assets[selectedCurrency]"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
@@ -81,38 +81,6 @@
     </div>
 
     <hr class="my-4 border-border-color" />
-
-    <!-- <div class="mt-4 flex flex-col justify-end px-4">
-      <Button
-        v-if="showDetails"
-        :label="$t('message.hide-transaction-details')"
-        @click="showDetails = !showDetails"
-        severity="tertiary"
-        icon="minus"
-        iconPosition="left"
-        size="small"
-        class="self-end text-icon-default"
-      />
-
-      <Button
-        v-else
-        :label="$t('message.show-transaction-details')"
-        @click="showDetails = !showDetails"
-        severity="tertiary"
-        icon="plus"
-        iconPosition="left"
-        size="small"
-        class="self-end text-icon-default"
-      />
-
-      <Stepper
-        v-if="showDetails"
-        :active-step="-1"
-        :steps="steps"
-        :variant="StepperVariant.MEDIUM"
-      />
-    </div>
-    <hr class="my-4 border-border-color" /> -->
   </div>
   <div class="flex flex-col gap-2 p-6">
     <Button
@@ -130,13 +98,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ChainType, type EvmNetwork } from "@/common/types/Network";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
 import { SwapStatus } from "../enums";
 import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type AssetItemProps } from "web-components";
-import { MetaMaskWallet } from "@/networks/metamask";
 import { NETWORK_DATA } from "@/networks/config";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
@@ -151,21 +117,17 @@ import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/u
 import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByDenom, getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
-import { fetchEvmEndpoints } from "@/common/utils/EndpointService";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { Dec } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
-import { StepperVariant, Stepper } from "web-components";
 import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
 import { HYSTORY_ACTIONS } from "@/modules/history/types";
 import type { RouteResponse, Chain } from "@/common/types/skipRoute";
-import { WalletTypes } from "@/networks/types";
 
 const i18n = useI18n();
-const showDetails = ref(false);
 
 const assets = computed(() => {
   const data = [];
@@ -203,7 +165,7 @@ const assets = computed(() => {
   });
 });
 
-let client: Wallet | MetaMaskWallet;
+let client: Wallet;
 let timeOut!: NodeJS.Timeout;
 let route: RouteResponse | null;
 
@@ -212,7 +174,7 @@ const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const configStore = useConfigStore();
 const historyStore = useHistoryStore();
-const networks = ref<(Network | EvmNetwork | any)[]>(NETWORK_DATA.list);
+const networks = ref<Network[]>(NETWORK_DATA.list);
 
 const selectedNetwork = ref(0);
 const networkCurrencies = ref<AssetBalance[]>([]);
@@ -226,26 +188,13 @@ const fee = ref<Coin>();
 const isLoading = ref(false);
 const disablePicker = ref(false);
 const isDisabled = ref(false);
-const evmAddress = ref("");
 const tempRoute = ref<IObjectKeys | null>();
 let chainsData: Chain[] = [];
 
 const wallet = ref(walletStore.wallet?.address);
-const isMetamaskLoading = ref(false);
 let skipRouteConfig: SkipRouteConfigType | null;
 let id = Date.now();
 const onClose = inject("close", () => {});
-
-const all_networks = computed<(Network | EvmNetwork | any)[]>(() => {
-  switch (walletStore.wallet?.signer?.type) {
-    case WalletTypes.evm: {
-      return networks.value.filter((item: Network) => item.chain_type == ChainType.evm);
-    }
-    default: {
-      return networks.value;
-    }
-  }
-});
 
 watch(
   () => configStore.initialized,
@@ -270,18 +219,18 @@ async function onInit() {
         return true;
       }
       return false;
-    }) as (Network | EvmNetwork)[];
+    }) as Network[];
 
     networks.value = [...n].filter((item) => {
       return !IGNORED_NETWORKS.includes(item.key);
     });
-    const index = all_networks.value.findIndex((item: Network) => item.key == configStore.protocolFilter);
+    const index = networks.value.findIndex((item: Network) => item.key == configStore.protocolFilter);
     if (index < 0) {
       selectedNetwork.value = 0;
     } else {
       selectedNetwork.value = index;
     }
-    await onUpdateNetwork(all_networks.value[selectedNetwork.value]);
+    await onUpdateNetwork(networks.value[selectedNetwork.value]);
   } catch (error) {
     Logger.error(error);
   }
@@ -296,83 +245,11 @@ onUnmounted(() => {
 });
 
 const network = computed(() => {
-  return all_networks.value[selectedNetwork.value];
+  return networks.value[selectedNetwork.value];
 });
 
 const currency = computed(() => {
   return assets.value[selectedCurrency.value];
-});
-
-const steps = computed(() => {
-  if (tempRoute.value && network.value.chain_type == "evm") {
-    const chains = getChainIds(tempRoute.value as RouteResponse);
-    const stps = [];
-    for (const [index, operation] of (tempRoute.value?.operations ?? []).entries()) {
-      if (operation.go_fast_transfer || operation.transfer || operation.cctp_transfer) {
-        const op = operation.go_fast_transfer ?? operation.transfer ?? operation.cctp_transfer;
-        const from = chains[op.from_chain_id];
-        const to = chains[op.to_chain_id];
-        let label = i18n.t("message.send-stepper");
-
-        if (index > 0 && index < tempRoute.value?.operations.length) {
-          label = i18n.t("message.swap-stepper");
-        }
-
-        stps.push({
-          label,
-          icon: from.icon,
-          token: {
-            balance: formatNumber(
-              new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency.value?.decimal_digits).toString(
-                currency.value?.decimal_digits
-              ),
-              currency.value?.decimal_digits
-            ),
-            symbol: currency.value?.shortName
-          },
-          meta: () => h("div", `${from.label} > ${to.label}`)
-        });
-
-        if (index == tempRoute.value?.operations.length - 1) {
-          stps.push({
-            label: i18n.t("message.receive-stepper"),
-            icon: to.icon,
-            token: {
-              balance: formatNumber(
-                new Dec(operation.amount_out, currency.value?.decimal_digits).toString(currency.value?.decimal_digits),
-                currency.value?.decimal_digits
-              ),
-              symbol: currency.value?.shortName
-            },
-            meta: () => h("div", `${to.label}`)
-          });
-        }
-      }
-    }
-
-    return stps;
-  }
-
-  return [
-    {
-      label: i18n.t("message.send-stepper"),
-      icon: network.value.icon,
-      token: {
-        balance: formatTokenBalance(new Dec(amount.value || 0)),
-        symbol: currency.value?.shortName
-      },
-      meta: () => h("div", `${network.value.label} > ${NATIVE_NETWORK.label}`)
-    },
-    {
-      label: i18n.t("message.receive-stepper"),
-      icon: NATIVE_NETWORK.icon,
-      token: {
-        balance: formatTokenBalance(new Dec(amount.value || 0)),
-        symbol: currency.value?.shortName
-      },
-      meta: () => h("div", `${NATIVE_NETWORK.label}`)
-    }
-  ];
 });
 
 const calculatedBalance = computed(() => {
@@ -440,19 +317,9 @@ watch(
 
 async function onUpdateNetwork(event: Network) {
   tempRoute.value = null;
-  selectedNetwork.value = all_networks.value.findIndex((item) => item == event);
+  selectedNetwork.value = networks.value.findIndex((item) => item == event);
   if (!event.native) {
-    switch (event.chain_type) {
-      case "cosmos": {
-        await setCosmosNetwork();
-        break;
-      }
-      case "evm": {
-        await connectEvm();
-        await setEvmNetwork();
-        break;
-      }
-    }
+    await setCosmosNetwork();
   }
 }
 
@@ -470,20 +337,6 @@ async function onSubmitCosmos() {
       const networkdata = NETWORK_DATA?.supportedNetworks[network.value.key];
       const currency = getCurrencyByTickerForNetwork(networkdata.ticker);
       fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
-    }
-  } catch (e: Error | any) {
-    amountErrorMsg.value = e.toString();
-  }
-}
-
-async function onSubmitEvm() {
-  try {
-    amountErrorMsg.value = "";
-    const isValid = validateAmount();
-
-    if (isValid) {
-      route = await getRoute();
-      fee.value = coin(network.value.fees.transfer, network.value.nativeCurrency.symbol);
     }
   } catch (e: Error | any) {
     amountErrorMsg.value = e.toString();
@@ -538,61 +391,8 @@ async function setCosmosNetwork() {
   if (WalletUtils.isAuth()) {
     for (const c of mappedCurrencies) {
       async function fn() {
-        const balance = await (client as Wallet).getBalance(wallet.value as string, c.balance.denom);
+        const balance = await client.getBalance(wallet.value as string, c.balance.denom);
         c.balance = balance;
-      }
-      promises.push(fn());
-    }
-  }
-
-  await Promise.all(promises);
-
-  networkCurrencies.value = mappedCurrencies;
-  disablePicker.value = false;
-  selectedCurrency.value = 0;
-}
-
-async function setEvmNetwork() {
-  networkCurrencies.value = [];
-  amount.value = "";
-  amountErrorMsg.value = "";
-
-  disablePicker.value = true;
-
-  const currencies = [];
-  const promises = [];
-  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
-
-  for (const c of data ?? []) {
-    const currency = getCurrencyByDenom(c.from);
-    currency.native = c.native;
-    currency.balance = coin(0, c.to);
-    currencies.push(currency);
-  }
-
-  const mappedCurrencies = currencies.map((item) => {
-    return {
-      balance: item.balance,
-      shortName: item.shortName,
-      ticker: item.ticker,
-      name: item.shortName,
-      icon: item.icon,
-      decimal_digits: item.decimal_digits,
-      symbol: item.symbol,
-      native: item.native,
-      from: item.ibcData
-    };
-  });
-  if (client instanceof MetaMaskWallet) {
-    for (const c of mappedCurrencies) {
-      async function fn() {
-        if (c.native) {
-          const balance = await (client as MetaMaskWallet).getBalance();
-          c.balance.amount = balance;
-        } else {
-          const balance = await (client as MetaMaskWallet).getContractBalance(c.balance.denom);
-          c.balance.amount = balance;
-        }
       }
       promises.push(fn());
     }
@@ -647,21 +447,10 @@ function validateAmount() {
   return true;
 }
 
-async function loadRoute() {
-  switch (network.value.chain_type) {
-    case "cosmos": {
-      return onSubmitCosmos();
-    }
-    case "evm": {
-      return onSubmitEvm();
-    }
-  }
-}
-
 async function onSwap() {
   try {
     isDisabled.value = true;
-    await loadRoute();
+    await onSubmitCosmos();
     await onSubmit();
   } catch (error: Error | any) {
     step.value = CONFIRM_STEP.ERROR;
@@ -727,50 +516,28 @@ async function onSubmit() {
   }
 }
 
-async function submit(wallets: { [key: string]: BaseWallet | MetaMaskWallet }) {
+async function submit(wallets: { [key: string]: BaseWallet }) {
   await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chainId: string) => {
     walletStore.history[id].historyData.route.activeStep++;
     walletStore.history[id].historyData.routeDetails.activeStep++;
-    switch (wallet.constructor) {
-      case MetaMaskWallet: {
-        const element = {
-          hash: tx.hash,
-          status: SwapStatus.pending,
-          url: wallet.explorer
-        };
-        txHashes.value.push(element);
-        if (walletStore.history[id]) {
-          walletStore.history[id].historyData.txHashes = txHashes.value;
-        }
 
-        await SkipRouter.track(chainId, (tx as IObjectKeys).hash);
-        await SkipRouter.fetchStatus((tx as IObjectKeys).hash, chainId);
-        element.status = SwapStatus.success;
+    const element = {
+      hash: tx.txHash,
+      status: SwapStatus.pending,
+      url: wallet.explorer
+    };
 
-        break;
-      }
-      default: {
-        const element = {
-          hash: tx.txHash,
-          status: SwapStatus.pending,
-          url: wallet.explorer
-        };
+    txHashes.value.push(element);
 
-        txHashes.value.push(element);
-
-        if (walletStore.history[id]) {
-          walletStore.history[id].historyData.txHashes = txHashes.value;
-        }
-
-        await wallet.broadcastTx(tx.txBytes as Uint8Array);
-        await SkipRouter.track(chainId, (tx as IObjectKeys).txHash);
-        await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainId);
-
-        element.status = SwapStatus.success;
-
-        break;
-      }
+    if (walletStore.history[id]) {
+      walletStore.history[id].historyData.txHashes = txHashes.value;
     }
+
+    await wallet.broadcastTx(tx.txBytes as Uint8Array);
+    await SkipRouter.track(chainId, (tx as IObjectKeys).txHash);
+    await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainId);
+
+    element.status = SwapStatus.success;
   });
   onClose();
 }
@@ -785,34 +552,12 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   for (const chain in chainToParse) {
     const fn = async function () {
-      switch (chainToParse[chain].chain_type) {
-        case "cosmos": {
-          const client = await WalletUtils.getWallet(chain);
-          const network = NETWORK_DATA;
-          const networkData = network?.supportedNetworks[chain];
-          const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-          const chainId = await baseWallet.getChainId();
-          addrs[chainId] = baseWallet;
-          break;
-        }
-        case "evm": {
-          const net = network.value as EvmNetwork;
-          const client = new MetaMaskWallet(net.explorer);
-          const endpoint = await fetchEvmEndpoints(net.key);
-          const chainId = await client.getChainId(endpoint.rpc);
-
-          await client.connect({
-            chainId: chainId,
-            chainName: net.label,
-            rpcUrls: [endpoint.rpc],
-            blockExplorerUrls: [net.explorer],
-            nativeCurrency: { ...net.nativeCurrency }
-          });
-          addrs[parseInt(chainId).toString()] = client;
-
-          break;
-        }
-      }
+      const client = await WalletUtils.getWallet(chain);
+      const network = NETWORK_DATA;
+      const networkData = network?.supportedNetworks[chain];
+      const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+      const chainId = await baseWallet.getChainId();
+      addrs[chainId] = baseWallet;
     };
     promises.push(fn());
   }
@@ -823,29 +568,10 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 }
 
 async function getRoute() {
-  let chainId = await client.getChainId();
+  const chainId = await client.getChainId();
   const asset = assets.value[selectedCurrency.value];
 
   const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
-  const options: IObjectKeys = {};
-
-  switch (network.value.chain_type) {
-    case "evm": {
-      chainId = Number(chainId).toString();
-      break;
-    }
-  }
-
-  switch (walletStore.wallet?.signer?.type) {
-    case WalletTypes.evm: {
-      options.allow_multi_tx = false;
-      options.smart_swap_options = {
-        split_routes: false, // if you ALSO want to avoid split swaps, set this to false
-        evm_swaps: true
-      };
-      break;
-    }
-  }
 
   const route = await SkipRouter.getRoute(
     asset.balance.denom,
@@ -854,50 +580,9 @@ async function getRoute() {
     false,
     chainId,
     null,
-    options
+    {}
   );
   return route;
-}
-
-async function connectEvm() {
-  try {
-    destroyClient();
-    isMetamaskLoading.value = true;
-
-    const net = network.value as EvmNetwork;
-    client = new MetaMaskWallet(net.explorer);
-    const endpoint = await fetchEvmEndpoints(net.key);
-    const chainId = await client.getChainId(endpoint.rpc);
-    await client.connect(
-      {
-        chainId: chainId,
-        chainName: net.label,
-        rpcUrls: [endpoint.rpc],
-        blockExplorerUrls: [net.explorer],
-        nativeCurrency: { ...net.nativeCurrency }
-      },
-      async () => {
-        try {
-          evmAddress.value = (client as MetaMaskWallet).shortAddress;
-          wallet.value = (client as MetaMaskWallet).address;
-          await setEvmNetwork();
-        } catch (error) {
-          Logger.error(error);
-        }
-      }
-    );
-
-    evmAddress.value = client.shortAddress;
-    wallet.value = client.address;
-
-    await setEvmNetwork();
-  } catch (error: Error | any) {
-    Logger.error(error);
-    amountErrorMsg.value = error.toString();
-  } finally {
-    isMetamaskLoading.value = false;
-    disablePicker.value = false;
-  }
 }
 
 function getChains(route?: RouteResponse) {
