@@ -108,15 +108,7 @@
             </div>
           </div>
         </div>
-        <template v-if="data?.historyData?.routeDetails">
-          <p class="font-semibold text-typography-default">
-            {{ $t("message.transactions-summary") }}
-          </p>
-          <Stepper
-            v-bind="data?.historyData?.routeDetails"
-            :variant="StepperVariant.MEDIUM"
-          />
-        </template>
+
       </div>
     </template>
   </Dialog>
@@ -134,7 +126,7 @@ import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
 import { CONFIRM_STEP } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
-import { StepperVariant, Stepper, Alert, AlertType } from "web-components";
+import { Alert, AlertType } from "web-components";
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
