@@ -521,21 +521,31 @@ export const useConfigStore = defineStore("config", () => {
     return undefined;
   }
 
-  /** Get currency by ticker, preferring a protocol that belongs to the given network */
+  /** Get currency by ticker, preferring the network's primary protocol */
   function getCurrencyByTickerForNetwork(ticker: string, networkFilter: string): CurrencyInfo | undefined {
     const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
+    const network = supportedNetworksData.value[networkFilter];
+    const primaryProtocol = network?.primary_protocol;
+
+    let networkMatch: CurrencyInfo | undefined;
     let fallback: CurrencyInfo | undefined;
+
     for (const currency of Object.values(currenciesData.value)) {
       if (currency.ticker === ticker) {
         if (networkProtocols.includes(currency.protocol)) {
-          return currency;
+          if (currency.protocol === primaryProtocol) {
+            return currency;
+          }
+          if (!networkMatch) {
+            networkMatch = currency;
+          }
         }
         if (!fallback) {
           fallback = currency;
         }
       }
     }
-    return fallback;
+    return networkMatch ?? fallback;
   }
 
   /** Get currency by IBC denom */

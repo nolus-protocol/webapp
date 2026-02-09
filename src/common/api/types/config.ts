@@ -156,6 +156,7 @@ export interface NetworkInfo {
   native_currency_name?: string;
   native_currency_symbol?: string;
   native_currency_decimals?: number;
+  primary_protocol?: string;
 }
 
 export interface NativeAssetInfo {
