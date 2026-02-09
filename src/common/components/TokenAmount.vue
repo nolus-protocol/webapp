@@ -4,18 +4,20 @@
       :class="[`text-${fontSize}`, $attrs.class]"
       class="items-center"
     >
-      <template v-if="around">~</template>
-      <template v-if="animatedReveal && !hide">
-        <AnimateNumber
-          :value="isMounted ? numberAmount : 0"
-          :format="compact ? compactFormatOptions : tokenFormatOptions(adaptiveDecimals)"
-        />
-      </template>
-      <template v-else-if="hide">****</template>
+      <template v-if="hide">****</template>
       <template v-else>
-        {{ formatted }}
+        <template v-if="around">~</template>
+        <template v-if="animatedReveal">
+          <AnimateNumber
+            :value="isMounted ? numberAmount : 0"
+            :format="compact ? compactFormatOptions : tokenFormatOptions(adaptiveDecimals)"
+          />
+        </template>
+        <template v-else>
+          {{ formatted }}
+        </template>
+        &nbsp;{{ denom }}
       </template>
-      &nbsp;{{ denom }}
     </span>
   </div>
 </template>

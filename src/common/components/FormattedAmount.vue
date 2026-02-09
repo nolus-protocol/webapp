@@ -4,20 +4,22 @@
       :class="[`text-${fontSize}`, $attrs.class]"
       class="items-center"
     >
-      {{ sign
-      }}<template v-if="isDenomPrefix">{{ denom }}<template v-if="hasSpace">&nbsp;</template></template>
-      <template v-if="around">~</template>
-      <template v-if="animatedReveal && !hide">
-        <AnimateNumber
-          :value="isMounted ? absValue : 0"
-          :format="compact ? compactFormatOptions : currencyFormatOptions(decimals)"
-        />
-      </template>
-      <template v-else-if="hide">****</template>
+      <template v-if="hide">****</template>
       <template v-else>
-        {{ formatted }}
+        {{ sign
+        }}<template v-if="isDenomPrefix">{{ denom }}<template v-if="hasSpace">&nbsp;</template></template>
+        <template v-if="around">~</template>
+        <template v-if="animatedReveal">
+          <AnimateNumber
+            :value="isMounted ? absValue : 0"
+            :format="compact ? compactFormatOptions : currencyFormatOptions(decimals)"
+          />
+        </template>
+        <template v-else>
+          {{ formatted }}
+        </template>
+        <template v-if="!isDenomPrefix"><template v-if="hasSpace">&nbsp;</template>{{ denom }}</template>
       </template>
-      <template v-if="!isDenomPrefix"><template v-if="hasSpace">&nbsp;</template>{{ denom }}</template>
     </span>
   </div>
 </template>

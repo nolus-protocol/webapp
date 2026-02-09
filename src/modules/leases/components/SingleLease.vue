@@ -21,10 +21,9 @@
           <p class="my-1 text-14 font-normal text-typography-secondary">
             {{ $t("message.opening-description") }}
           </p>
-          <Stepper
+          <ProgressDots
+            :steps="3"
             :activeStep="openingSubState"
-            :steps="steps"
-            :variant="StepperVariant.SMALL"
           />
         </template>
       </Alert>
@@ -85,9 +84,10 @@ import LeaseLogWidget from "./single-lease/LeaseLogWidget.vue";
 import { useRoute, useRouter } from "vue-router";
 import { Logger } from "@/common/utils";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
-import { Alert, AlertType, Stepper, StepperVariant } from "web-components";
+import { Alert, AlertType } from "web-components";
+import ProgressDots from "@/common/components/ProgressDots.vue";
 import { TEMPLATES } from "./common";
-import { NATIVE_NETWORK, UPDATE_LEASES } from "@/config/global";
+import { UPDATE_LEASES } from "@/config/global";
 import { RouteNames } from "@/router";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { useBalancesStore } from "@/common/stores/balances";
@@ -128,25 +128,6 @@ function reload() {
   getLease();
   balancesStore.fetchBalances();
 }
-
-const steps = computed(() => {
-  const protocolIcon = getProtocolIcon()!;
-
-  return [
-    {
-      label: "",
-      icon: NATIVE_NETWORK.icon
-    },
-    {
-      label: "",
-      icon: protocolIcon
-    },
-    {
-      label: "",
-      icon: protocolIcon
-    }
-  ];
-});
 
 const status = computed(() => {
   if (!lease.value) return TEMPLATES.opening;
@@ -217,6 +198,7 @@ watch(
   () => lease.value?.status,
   (newStatus) => {
     if (newStatus === "closed" || newStatus === "liquidated" || newStatus === "paid_off") {
+      balancesStore.fetchBalances();
       leasesStore.refresh().then(() => router.replace(`/${RouteNames.LEASES}`));
     }
   }
@@ -289,11 +271,6 @@ function getLiquidationCause(): string | undefined {
     return lease.value.in_progress.liquidation.cause;
   }
   return undefined;
-}
-
-function getProtocolIcon() {
-  if (!lease.value?.protocol) return null;
-  return configStore.getNetworkIconByProtocol(lease.value.protocol);
 }
 
 provide("reload", reload);
