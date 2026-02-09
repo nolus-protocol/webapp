@@ -4,9 +4,9 @@ import { NATIVE_CURRENCY } from "@/config/global";
 const mobile = isMobile();
 
 export const CHART_AXIS = {
-  yTicks: mobile ? 4 : 5,
-  xTicks: mobile ? 3 : (undefined as number | undefined),
-  fontSize: mobile ? "12px" : "14px"
+  fontSize: mobile ? "12px" : "14px",
+  xTicks: mobile ? 4 : 6,
+  yTicks: mobile ? 3 : 4
 };
 
 export function getChartWidth(plotContainer: HTMLElement): number {
@@ -17,16 +17,22 @@ const measureCanvas = document.createElement("canvas").getContext("2d")!;
 
 export function computeMarginLeft(
   yDomain: [number, number],
-  tickFormat: (d: number) => string,
-  ticks: number
+  tickFormat: (d: number) => string
 ): number {
   measureCanvas.font = `${CHART_AXIS.fontSize} system-ui, sans-serif`;
-  const [min, max] = yDomain;
-  const step = (max - min) / (ticks - 1 || 1);
+  const minLabel = tickFormat(yDomain[0]);
+  const maxLabel = tickFormat(yDomain[1]);
+  const maxWidth = Math.max(
+    measureCanvas.measureText(minLabel).width,
+    measureCanvas.measureText(maxLabel).width
+  );
+  return Math.ceil(maxWidth) + 12;
+}
+
+export function computeMarginLeftForLabels(labels: string[]): number {
+  measureCanvas.font = `${CHART_AXIS.fontSize} system-ui, sans-serif`;
   let maxWidth = 0;
-  for (let i = 0; i < ticks; i++) {
-    const value = min + step * i;
-    const label = tickFormat(value);
+  for (const label of labels) {
     const width = measureCanvas.measureText(label).width;
     if (width > maxWidth) maxWidth = width;
   }

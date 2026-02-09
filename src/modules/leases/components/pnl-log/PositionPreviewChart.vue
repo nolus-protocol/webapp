@@ -10,6 +10,7 @@
 
 <script lang="ts" setup>
 import { line } from "@observablehq/plot";
+import { CHART_AXIS } from "@/common/utils/ChartUtils";
 
 const aapl = [
   { Date: "2020-01-01", Close: 292.92 },
@@ -35,14 +36,14 @@ const chartHTML = line(aapl, { x: "Date", y: "Close", stroke: "#3470E2", strokeW
     label: null,
     labelArrow: false,
     tickFormat: (d) => `$${d}`,
-    ticks: 4,
-    tickSize: 0
+    tickSize: 0,
+    ticks: CHART_AXIS.yTicks
   },
   x: {
     label: null,
     type: "time",
-    ticks: 3,
     tickSize: 0,
+    ticks: CHART_AXIS.xTicks,
     tickFormat: (d) => new Date(d).toLocaleString("default", { month: "short", year: "2-digit" })
   }
 }).outerHTML;

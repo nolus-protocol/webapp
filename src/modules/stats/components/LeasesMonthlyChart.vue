@@ -11,7 +11,6 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
-import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
 import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
@@ -19,7 +18,10 @@ import { useI18n } from "vue-i18n";
 import { ref, watch } from "vue";
 import { useStatsStore } from "@/common/stores";
 
-const mobile = isMobile();
+const props = defineProps<{
+  period: string;
+}>();
+
 const chartHeight = 300;
 let chartWidth: number;
 const marginBottom = 50;
@@ -48,11 +50,14 @@ watch(
   { immediate: true }
 );
 
+// Re-fetch when period changes from parent
+watch(
+  () => props.period,
+  () => setStats()
+);
+
 async function setStats() {
-  // Data is now fetched by statsStore, just trigger a refresh if needed
-  if (statsStore.monthlyLeases.length === 0) {
-    await statsStore.fetchMonthlyLeases();
-  }
+  await statsStore.fetchMonthlyLeases(props.period);
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
@@ -64,7 +69,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const amounts = loans.value.map((d) => d.amount);
   const yDomain: [number, number] = [Math.min(0, ...amounts), Math.max(...amounts)];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+  marginLeft = computeMarginLeft(yDomain, tickFormat);
 
   const plotChart = rectY(
     loans.value,
@@ -81,9 +86,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       grid: true,
       type: "linear",
-      label: mobile ? null : i18n.t("message.leases-monthly"),
-      ticks: CHART_AXIS.yTicks,
-      tickFormat
+      label: null,
+      tickFormat,
+      ticks: CHART_AXIS.yTicks
     },
     x: { label: null, interval: "months", ticks: CHART_AXIS.xTicks },
     marks: [ruleY([0])]

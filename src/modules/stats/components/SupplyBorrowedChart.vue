@@ -1,33 +1,4 @@
 <template>
-  <div class="flex">
-    <div class="flex flex-1 justify-center">
-      <div class="flex items-center">
-        <span class="m-2 block h-[8px] w-[20px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
-      </div>
-      <div class="flex items-center">
-        <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.borrowed-chart") }}
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3">
-      <span>{{ $t("message.period") }}:</span>
-      <Dropdown
-        id="period"
-        :on-select="
-          (data) => {
-            chartTimeRange = data;
-            loadData();
-          }
-        "
-        :options="options"
-        :selected="options[0]"
-        class="w-20"
-        dropdownPosition="right"
-        dropdownClassName="min-w-10"
-      />
-    </div>
-  </div>
-
   <Chart
     ref="chart"
     :updateChart="updateChart"
@@ -47,8 +18,11 @@ import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } fro
 import { useI18n } from "vue-i18n";
 
 import { ref, watch } from "vue";
-import { Dropdown } from "web-components";
 import { useStatsStore } from "@/common/stores";
+
+const props = defineProps<{
+  period: string;
+}>();
 
 type ChartData = { date: Date; borrowed: number; supplied: number };
 
@@ -82,14 +56,11 @@ watch(
   { immediate: true }
 );
 
-const options = ref([
-  { label: `3${i18n.t("message.month_abr")}`, value: "3m" },
-  { label: `6${i18n.t("message.month_abr")}`, value: "6m" },
-  { label: `12${i18n.t("message.month_abr")}`, value: "12m" },
-  { label: i18n.t("message.all"), value: "all" }
-]);
-
-const chartTimeRange = ref(options.value[0]);
+// Re-fetch when period changes from parent
+watch(
+  () => props.period,
+  () => loadData()
+);
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
@@ -107,7 +78,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const allValues = chartData.flatMap((d) => [d.borrowed, d.supplied]);
   const yDomain: [number, number] = [Math.min(...allValues), Math.max(...allValues)];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+  marginLeft = computeMarginLeft(yDomain, tickFormat);
 
   const plotChart = plot({
     color: { legend: true },
@@ -120,12 +91,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      ticks: CHART_AXIS.yTicks,
-      label: mobile ? null : i18n.t("message.amount-$"),
+      label: null,
       tickSize: 0,
-      tickFormat
+      tickFormat,
+      ticks: CHART_AXIS.yTicks
     },
-    x: { type: "time", label: mobile ? null : i18n.t("message.date-capitalize"), ticks: CHART_AXIS.xTicks },
+    x: { type: "time", label: null, ticks: CHART_AXIS.xTicks },
     marks: [
       lineY(chartData, {
         x: "date",
@@ -220,8 +191,7 @@ function getClosestDataPoint(cPosition: number) {
 }
 
 async function loadData() {
-  // Fetch with the current time range
-  await statsStore.fetchSupplyBorrowHistory(chartTimeRange.value.value);
+  await statsStore.fetchSupplyBorrowHistory(props.period);
 }
 </script>
 

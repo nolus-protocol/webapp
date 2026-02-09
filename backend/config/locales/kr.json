@@ -155,7 +155,7 @@
     "repay-interest": "{dueDate}까지 발생한 총 이자",
     "policy": "wallet을 연결하면 Nolus Protocol의 내용을 읽고, 동의하며, 수락했음을 인정하는 것입니다.",
     "terms-of-service": "Terms of Service",
-    "price-impact": "Swap 수수료",
+    "price-impact": "가격 영향",
     "many_d": "일",
     "one_d": "1일",
     "one_s_in": "1초",

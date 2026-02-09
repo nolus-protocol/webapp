@@ -13,11 +13,11 @@ import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, getChartWidth } from "@/common/utils/ChartUtils";
 import { getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { select, pointer, type Selection } from "d3";
 import { ref, watch } from "vue";
-import { useStatsStore } from "@/common/stores";
+import { useConfigStore, useStatsStore } from "@/common/stores";
 
 const mobile = isMobile();
 const chartHeight = 500;
@@ -27,13 +27,15 @@ const marginLeft = mobile ? 55 : 70;
 let chartWidth: number;
 
 const chart = ref<typeof Chart>();
-const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
+const loans = ref<{ ticker: string; loan: number }[]>([]);
+const configStore = useConfigStore();
 const statsStore = useStatsStore();
 
-// Watch for leasedAssets changes from store
+// Watch both leasedAssets and configStore.initialized — currency names
+// require the config store to be populated for friendly name resolution
 watch(
-  () => statsStore.leasedAssets,
-  (items) => {
+  [() => statsStore.leasedAssets, () => configStore.initialized],
+  ([items]) => {
     if (items) {
       processLeasedAssets(items as { loan: string; asset: string }[]);
     }
@@ -42,12 +44,6 @@ watch(
 );
 
 function processLeasedAssets(items: { loan: string; asset: string }[]) {
-  let total = 0;
-
-  for (const i of items) {
-    total += Number(i.loan);
-  }
-
   loans.value = items
     .map((item) => {
       const [key, protocol] = item.asset.split(" ");
@@ -59,14 +55,12 @@ function processLeasedAssets(items: { loan: string; asset: string }[]) {
         // Currency not found in registry, use ticker as-is
       }
 
-      const loan = (Number(item.loan) / total) * 100;
       return {
         ticker: `${shortName}${protocol ? ` ${protocol}` : ""}`,
-        percentage: loan,
-        loan: item.loan
+        loan: Number(item.loan)
       };
     })
-    .sort((a, b) => b.percentage - a.percentage);
+    .sort((a, b) => b.loan - a.loan);
 
   chart.value?.update();
 }
@@ -84,6 +78,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   plotContainer.innerHTML = "";
   chartWidth = getChartWidth(plotContainer);
 
+  const loanValues = loans.value.map((d) => d.loan);
+  const xDomain: [number, number] = [0, Math.max(...loanValues)];
+  const tickFormat = createUsdTickFormat(xDomain);
+
   const plotChart = plot({
     width: chartWidth,
     height: chartHeight,
@@ -92,16 +90,18 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginBottom: marginBottom,
     style: { fontSize: CHART_AXIS.fontSize },
     x: {
-      percent: true,
-      label: null
+      label: null,
+      tickFormat,
+      ticks: CHART_AXIS.xTicks
     },
     y: {
-      label: null
+      label: null,
+      ticks: CHART_AXIS.yTicks
     },
     marks: [
       ruleX([0]),
       barX(loans.value, {
-        x: "percentage",
+        x: "loan",
         y: "ticker",
         rx2: 2,
         fill: "#3470E2",
@@ -121,7 +121,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
         tooltip.html(
-          `<strong>${nearestData.ticker}:</strong> ${formatUsd(Number(nearestData.loan))}`
+          `<strong>${nearestData.ticker}:</strong> ${formatUsd(nearestData.loan)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

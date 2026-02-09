@@ -155,7 +155,7 @@
     "repay-interest": "{dueDate} に支払う累積利息の合計",
     "policy": "ウォレットを接続することで、Nolus Protocol の以下を読み、同意し、受諾したことを認めるものとします：",
     "terms-of-service": "Terms of Service",
-    "price-impact": "Swap 手数料",
+    "price-impact": "価格への影響",
     "many_d": "日",
     "one_d": "1日",
     "one_s_in": "1秒",

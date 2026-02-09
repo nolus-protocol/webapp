@@ -219,7 +219,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const padding = range * 0.2 || maxPrice * 0.05;
   const yDomain: [number, number] = [Math.max(0, domainMin - padding), maxPrice + padding];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+  marginLeft = computeMarginLeft(yDomain, tickFormat);
 
   const plotChart = plot({
     color: { domain: likert.order, legend: false },
@@ -237,8 +237,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       label: null,
       labelArrow: false,
       tickFormat,
-      ticks: CHART_AXIS.yTicks,
-      tickSize: 0
+      tickSize: 0,
+      ticks: CHART_AXIS.yTicks
     },
     x: {
       label: null,

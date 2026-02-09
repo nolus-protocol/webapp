@@ -71,11 +71,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "linear",
       grid: true,
       label: i18n.t("message.earn-chart-y"),
-      ticks: 4,
       round: true,
-      tickFormat
+      tickFormat,
+      ticks: CHART_AXIS.yTicks
     },
-    x: { ticks: 4, type: "linear", round: true, tickFormat: (d) => `${d}m.` },
+    x: { type: "linear", round: true, tickFormat: (d) => `${d}m.`, ticks: CHART_AXIS.xTicks },
     marks: [
       lineY(data.value, {
         x: "date",

@@ -66,7 +66,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const amounts = data.value.map((d) => d.amount);
   const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
   const tickFormat = createNumberTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+  marginLeft = computeMarginLeft(yDomain, tickFormat);
 
   const plotChart = plot({
     color: { legend: true },
@@ -82,9 +82,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       grid: true,
       label: i18n.t("message.earn-chart-y"),
       round: true,
-      tickFormat
+      tickFormat,
+      ticks: CHART_AXIS.yTicks
     },
-    x: { ticks: 9, tickRotate: 15, type: "linear", tickFormat: (d) => `${d}y.` },
+    x: { tickRotate: 15, type: "linear", tickFormat: (d) => `${d}y.`, ticks: CHART_AXIS.xTicks },
     marks: [
       lineY(data.value, {
         x: "date",

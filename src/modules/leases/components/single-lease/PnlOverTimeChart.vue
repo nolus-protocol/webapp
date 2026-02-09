@@ -105,7 +105,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const amounts = data.value.map((d) => d.amount);
   const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+  marginLeft = computeMarginLeft(yDomain, tickFormat);
   const plotChart = plot({
     width: chartWidth,
     height: chartHeight,
@@ -118,14 +118,14 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       label: null,
       labelArrow: false,
       tickFormat,
-      ticks: CHART_AXIS.yTicks,
-      tickSize: 0
+      tickSize: 0,
+      ticks: CHART_AXIS.yTicks
     },
     x: {
       label: null,
       type: "time",
-      ticks: CHART_AXIS.xTicks,
-      tickSize: 0
+      tickSize: 0,
+      ticks: CHART_AXIS.xTicks
     },
     marks: [
       line(data.value, {

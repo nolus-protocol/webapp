@@ -68,7 +68,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
 import { isMobile, WalletManager } from "@/common/utils";
-import { CHART_AXIS, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, getChartWidth, computeMarginLeftForLabels } from "@/common/utils/ChartUtils";
 import { select, pointer, type Selection } from "d3";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
 import { Widget } from "web-components";
@@ -79,7 +79,7 @@ const mobile = isMobile();
 const chartHeight = 125;
 const marginTop = 0;
 const marginBottom = 30;
-const marginLeft = mobile ? 35 : 45;
+let marginLeft: number;
 let chartWidth: number;
 
 const chart = ref<typeof Chart>();
@@ -132,6 +132,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const bucketOrder = ["<0", "0-50", "51–100", "101–300", "301+"];
   plotContainer.innerHTML = "";
   chartWidth = getChartWidth(plotContainer);
+  marginLeft = computeMarginLeftForLabels(bucketOrder);
 
   const plotChart = plot({
     width: chartWidth,
@@ -140,10 +141,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginTop,
     marginBottom,
     style: { fontSize: CHART_AXIS.fontSize },
-    x: { label: null },
+    x: { label: null, ticks: CHART_AXIS.xTicks },
     y: {
       label: null,
-      domain: bucketOrder // force order
+      domain: bucketOrder, // force order
+      ticks: CHART_AXIS.yTicks
     },
     marks: [
       ruleX([0]),

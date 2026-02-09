@@ -177,24 +177,19 @@ export const useStatsStore = defineStore("stats", () => {
   /**
    * Fetch monthly leases data
    */
-  async function fetchMonthlyLeases(): Promise<void> {
-    const isInitialLoad = !lastUpdated.value;
-    if (isInitialLoad) {
-      monthlyLeasesLoading.value = true;
-    }
+  async function fetchMonthlyLeases(period: string = ""): Promise<void> {
+    monthlyLeasesLoading.value = true;
     error.value = null;
 
     try {
-      monthlyLeases.value = await BackendApi.getMonthlyLeases();
+      monthlyLeases.value = await BackendApi.getMonthlyLeases(period || undefined);
       lastUpdated.value = new Date();
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch monthly leases";
       console.error("[StatsStore] Failed to fetch monthly leases:", e);
       throw e;
     } finally {
-      if (isInitialLoad) {
-        monthlyLeasesLoading.value = false;
-      }
+      monthlyLeasesLoading.value = false;
     }
   }
 
@@ -225,7 +220,7 @@ export const useStatsStore = defineStore("stats", () => {
       return;
     }
 
-    await Promise.all([fetchOverview(), fetchLoansStats(), fetchLeasedAssets(), fetchMonthlyLeases()]);
+    await Promise.all([fetchOverview(), fetchLoansStats(), fetchLeasedAssets()]);
     initialized.value = true;
   }
 
@@ -233,7 +228,7 @@ export const useStatsStore = defineStore("stats", () => {
    * Refresh all stats data
    */
   async function refresh(): Promise<void> {
-    await Promise.all([fetchOverview(), fetchLoansStats(), fetchLeasedAssets(), fetchMonthlyLeases()]);
+    await Promise.all([fetchOverview(), fetchLoansStats(), fetchLeasedAssets()]);
   }
 
   /**

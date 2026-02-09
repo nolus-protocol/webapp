@@ -674,8 +674,10 @@ export class BackendApiClient {
   /**
    * Fetch monthly leases statistics
    */
-  async getMonthlyLeases(): Promise<LeasesMonthlyResponse> {
-    return this.request<LeasesMonthlyResponse>("GET", "/api/etl/leases-monthly");
+  async getMonthlyLeases(period?: string): Promise<LeasesMonthlyResponse> {
+    return this.request<LeasesMonthlyResponse>("GET", "/api/etl/leases-monthly", {
+      params: period ? { period } : undefined
+    });
   }
 
   /**

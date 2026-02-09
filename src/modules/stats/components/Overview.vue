@@ -63,9 +63,33 @@
       />
     </div>
 
-    <SupplyBorrowedChart />
+    <div class="flex">
+      <div class="flex flex-1 justify-center">
+        <div class="flex items-center">
+          <span class="m-2 block h-[8px] w-[20px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
+        </div>
+        <div class="flex items-center">
+          <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.borrowed-chart") }}
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <span>{{ $t("message.period") }}:</span>
+        <Dropdown
+          id="period"
+          :on-select="onPeriodChange"
+          :options="periodOptions"
+          :selected="periodOptions[1]"
+          class="w-20"
+          dropdownPosition="right"
+          dropdownClassName="min-w-10"
+        />
+      </div>
+    </div>
+
+    <SupplyBorrowedChart :period="chartPeriod" />
     <hr class="my-6 border-t border-border-color" />
-    <LeasesMonthlyChart />
+    <LeasesMonthlyChart :period="chartPeriod" />
   </Widget>
 </template>
 
@@ -75,15 +99,29 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import SupplyBorrowedChart from "./SupplyBorrowedChart.vue";
 import LeasesMonthlyChart from "@/modules/stats/components/LeasesMonthlyChart.vue";
 
-import { Widget } from "web-components";
+import { Widget, Dropdown } from "web-components";
 import { isMobile } from "@/common/utils";
-import { computed, watch } from "vue";
+import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useConfigStore, useStatsStore } from "@/common/stores";
 
 const mobile = isMobile();
+const i18n = useI18n();
 const configStore = useConfigStore();
 const statsStore = useStatsStore();
+
+const periodOptions = ref([
+  { label: `6${i18n.t("message.month_abr")}`, value: "6m" },
+  { label: `12${i18n.t("message.month_abr")}`, value: "12m" },
+  { label: i18n.t("message.all"), value: "all" }
+]);
+
+const chartPeriod = ref(periodOptions.value[0].value); // default 6m
+
+function onPeriodChange(data: { label: string; value: string }) {
+  chartPeriod.value = data.value;
+}
 
 // Computed properties from store
 const tvl = computed(() => statsStore.overview.tvl);

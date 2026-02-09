@@ -81,7 +81,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const valPadding = valRange * 0.2 || maxVal * 0.05;
   const yDomain: [number, number] = [Math.max(0, minVal - valPadding), maxVal + valPadding];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat, CHART_AXIS.yTicks);
+  marginLeft = computeMarginLeft(yDomain, tickFormat);
 
   const plotChart = plot({
     color: { legend: true },
@@ -99,8 +99,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       label: null,
       labelArrow: false,
       tickFormat,
-      ticks: CHART_AXIS.yTicks,
-      tickSize: 0
+      tickSize: 0,
+      ticks: CHART_AXIS.yTicks
     },
     x: { type: "time", label: null, ticks: CHART_AXIS.xTicks },
     marks: [
