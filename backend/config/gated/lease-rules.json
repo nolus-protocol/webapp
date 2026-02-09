@@ -160,7 +160,6 @@
       "NLS",
       "STRD"
     ],
-    "ignore_short": ["NLS", "ST_ATOM", "AKT", "ALL_SOL", "ALL_BTC"],
-    "free_interest": []
+    "ignore_short": ["NLS", "ST_ATOM", "AKT", "ALL_SOL", "ALL_BTC"]
   }
 }

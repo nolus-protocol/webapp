@@ -309,7 +309,6 @@ mod tests {
                 ignore_all: vec!["DEPRECATED_TOKEN".to_string()],
                 ignore_long: vec!["RISKY_LONG".to_string()],
                 ignore_short: vec!["RISKY_SHORT".to_string()],
-                free_interest: vec![],
             },
         }
     }

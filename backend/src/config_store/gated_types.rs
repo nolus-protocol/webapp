@@ -183,9 +183,6 @@ pub struct AssetRestrictions {
     /// Assets to ignore for short positions only
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub ignore_short: Vec<String>,
-    /// Assets with free interest (zero interest)
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub free_interest: Vec<String>,
 }
 
 // ============================================================================
@@ -622,7 +619,6 @@ mod tests {
                 ignore_all: vec!["DEPRECATED_TOKEN".to_string()],
                 ignore_long: vec![],
                 ignore_short: vec![],
-                free_interest: vec!["SPECIAL_TOKEN".to_string()],
             },
         };
 
