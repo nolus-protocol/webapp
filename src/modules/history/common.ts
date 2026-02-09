@@ -5,6 +5,7 @@ import { Messages } from "./types";
 import { Logger, StringUtils } from "@/common/utils";
 import {
   getCurrencyByDenom,
+  getCurrencyByTicker,
   getCurrencyByTickerForProtocol,
   getCurrencyBySymbol,
   getProtocolByContract,
@@ -330,16 +331,12 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
 
         if (data.close_position?.partial_close) {
-          const partialProtocol = getProtocolByContract(msg.data.contract);
-          const currency = getCurrencyByTickerForProtocol(
-            data.close_position?.partial_close.amount.ticker,
-            partialProtocol
-          );
+          const currency = getCurrencyByTicker(data.close_position.partial_close.amount.ticker);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
-            data.close_position?.partial_close.amount.amount,
-            currency?.ibcData!,
-            currency?.shortName!,
-            Number(currency?.decimal_digits)
+            data.close_position.partial_close.amount.amount,
+            currency.ibcData,
+            currency.shortName,
+            Number(currency.decimal_digits)
           );
 
           return [
