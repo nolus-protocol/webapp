@@ -37,7 +37,7 @@
         }
       "
       @input="handleAmountChange"
-      :is-loading-picker="disablePicker || isDisabled || isMetamaskLoading"
+      :is-loading-picker="disablePicker || isMetamaskLoading"
       :disabled-input-field="isDisabled || isMetamaskLoading"
       :disabled-currency-picker="disablePicker || isDisabled || isMetamaskLoading"
       :error-msg="amountErrorMsg"
