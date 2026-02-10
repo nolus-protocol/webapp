@@ -115,7 +115,7 @@ import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
 import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
-import { getCurrencyByDenom, getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
+import { getCurrencyByTickerForNetwork, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
@@ -133,10 +133,12 @@ const assets = computed(() => {
   const data = [];
 
   for (const asset of networkCurrencies.value ?? []) {
+    const currency = tryGetCurrencyByDenom(asset.from!);
+    if (!currency) continue; // Skip deprecated/removed denoms
+
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = formatNumber(value.toString(), asset.decimal_digits!);
 
-    const currency = getCurrencyByDenom(asset.from!);
     const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const stable = price.mul(value);
     data.push({
@@ -258,7 +260,9 @@ const calculatedBalance = computed(() => {
     return formatUsd(0);
   }
 
-  const currency = getCurrencyByDenom(asset.from!);
+  const currency = tryGetCurrencyByDenom(asset.from!);
+  if (!currency) return formatUsd(0);
+
   const price = new Dec(pricesStore.prices[currency.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
@@ -356,17 +360,13 @@ async function setCosmosNetwork() {
   const promises = [];
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
   for (const c of data ?? []) {
-    if (c.visible) {
-      if (configStore.protocolFilter == c.visible) {
-        const currency = getCurrencyByDenom(c.from);
-        currency.balance = coin(0, c.to);
-        currencies.push(currency);
-      }
-    } else {
-      const currency = getCurrencyByDenom(c.from);
-      currency.balance = coin(0, c.to);
-      currencies.push(currency);
-    }
+    if (c.visible && configStore.protocolFilter != c.visible) continue;
+
+    const currency = tryGetCurrencyByDenom(c.from);
+    if (!currency) continue; // Skip deprecated/removed denoms
+
+    currency.balance = coin(0, c.to);
+    currencies.push(currency);
   }
 
   const mappedCurrencies = currencies.map((item) => {
