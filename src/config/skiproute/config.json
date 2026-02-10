@@ -90,10 +90,6 @@
         {
           "from": "ibc/7879B1CBBD2E07347002334792368E65C11A7D1629297D04B6A2155F557E02D4",
           "to": "factory/osmo1k6c8jln7ejuqwtqmay3yvzrg3kueaczl96pk067ldg8u835w0yhsw27twm/alloyed/allETH"
-        },
-        {
-          "from": "ibc/15FAFC240963D999FA5F87982747F9BAA708EDD307DAA4CCDE2FF84ED2B4614D",
-          "to": "ibc/D37860EB1D2669F34B47A7BC48885853D5AB23642EF958CDEA35EB6074087064"
         }
       ]
     },
