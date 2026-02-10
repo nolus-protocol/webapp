@@ -38,7 +38,7 @@ Browser → Rust Backend (port 3000) → External APIs (ETL, Skip, Chain RPC)
 1. **Frontend stores** (`src/common/stores/`) call **BackendApi** (`src/common/api/BackendApi.ts`)
 2. **BackendApi** makes HTTP requests to `/api/*` endpoints
 3. **Backend handlers** (`backend/src/handlers/`) read from `AppDataCache` (lock-free `Cached<T>` values populated by background refresh tasks)
-4. **WebSocket** provides real-time updates for prices, balances, leases, and transaction status
+4. **WebSocket** provides real-time updates for prices, balances, leases, and transaction status. Server-side pings (30s interval), stale connection reaper (90s timeout), configurable max connections (`WS_MAX_CONNECTIONS`, default 5000), per-connection subscription limit (20). User-specific caches (lease/earn/skip_tx states) are cleaned up on disconnect when no other connection subscribes to the same data
 
 ### Backend Cache Model
 
@@ -114,6 +114,7 @@ backend/
 NOLUS_RPC_URL=https://rpc.nolus.network
 NOLUS_REST_URL=https://lcd.nolus.network
 ETL_API_URL=https://etl-internal.nolus.network
+WS_MAX_CONNECTIONS=5000  # optional, default 5000
 ```
 
 ## Key Patterns
@@ -259,7 +260,7 @@ The app runs in wallet built-in browsers (Keplr, Leap) at ~360px viewport width.
 - **Request coalescing**: BackendApi deduplicates simultaneous identical GET requests
 - **Browser HTTP caching**: Global data uses backend `Cache-Control` headers. User-specific endpoints use `no-store`. No localStorage data caches — only user preferences persist in localStorage.
 - **Pinia stores**: Each domain has its own store with `initialize()` and `cleanup()` methods. User-specific stores self-register via `watch(() => connectionStore.walletAddress, ..., { immediate: true })`.
-- **Real-time prices**: Prices are fetched once via REST on startup, then kept current via WebSocket subscription (~6s cadence from backend CometBFT events). No frontend polling.
+- **Real-time prices**: Prices are fetched once via REST on startup, then kept current via WebSocket subscription (~6s cadence from backend CometBFT events). No frontend polling. Server-side WS pings (30s) are transparent to subscriptions.
 - **Network-aware balance deduplication**: `filteredBalances` in balances store deduplicates currencies by ticker, preferring the IBC denom whose protocol belongs to the user's selected network
 - **Post-transaction balance refresh**: Lease dialogs (close, repay) refresh balances via `balancesStore.fetchBalances()` in the `reload()` callback. The backend does not push balance updates via WebSocket — refresh is explicit after transactions.
 - **Transaction enrichment**: `/api/etl/txs` decodes protobuf, filters system txs, adds `data` field, and detects swap vs transfer via `is_swap` (bech32 address comparison). Decoded transactions are cached in an LRU cache (500 entries, 300s TTL) to avoid repeated protobuf decoding.

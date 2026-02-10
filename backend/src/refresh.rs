@@ -289,6 +289,8 @@ pub async fn refresh_protocol_contracts(state: &Arc<AppState>) {
             "Refreshed protocol contracts: {} protocols",
             contracts_map.len()
         );
+        // Update LPP addresses for WebSocket earn event filtering
+        state.ws_manager.refresh_lpp_addresses(&contracts_map);
         state.data_cache.protocol_contracts.store(contracts_map);
     }
 }

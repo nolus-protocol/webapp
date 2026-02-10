@@ -17,7 +17,7 @@ use axum::{
     http::StatusCode,
     response::IntoResponse,
 };
-use dashmap::DashMap;
+use dashmap::{DashMap, DashSet};
 use futures::{sink::SinkExt, stream::StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -49,8 +49,6 @@ pub enum ClientMessage {
         #[serde(flatten)]
         params: serde_json::Value,
     },
-    /// Ping for keepalive
-    Ping,
 }
 
 /// Server -> Client messages
@@ -61,8 +59,6 @@ pub enum ServerMessage {
     Subscribed { topic: String },
     /// Unsubscription confirmed
     Unsubscribed { topic: String },
-    /// Pong response
-    Pong { timestamp: String },
     /// Error message
     Error { code: String, message: String },
     /// Price update
@@ -254,14 +250,23 @@ impl Subscription {
 // Connection State
 // ============================================================================
 
-/// Maximum number of WebSocket connections allowed
-const MAX_CONNECTIONS: usize = 5000;
+/// Interval between server-side WebSocket pings (seconds)
+const WS_PING_INTERVAL_SECS: u64 = 30;
+
+/// How long before a connection without a pong is considered stale (seconds)
+const STALE_CONNECTION_TIMEOUT_SECS: u64 = 90;
+
+/// How often the reaper checks for stale connections (seconds)
+const REAPER_INTERVAL_SECS: u64 = 30;
+
+/// Maximum subscriptions per connection (prevents abuse)
+const MAX_SUBSCRIPTIONS_PER_CONNECTION: usize = 20;
 
 /// State for a single WebSocket connection
 struct ConnectionState {
     subscriptions: HashSet<Subscription>,
     last_ping: Instant,
-    message_tx: mpsc::Sender<ServerMessage>,
+    message_tx: mpsc::Sender<Arc<ServerMessage>>,
 }
 
 /// Cached lease state for change detection
@@ -302,38 +307,49 @@ pub struct WebSocketManager {
     connections: DashMap<String, ConnectionState>,
     /// Connection counter for fast count and limit checking
     connection_count: AtomicUsize,
+    /// Maximum allowed connections (configurable via WS_MAX_CONNECTIONS env var)
+    max_connections: usize,
     /// Cached lease states for change detection (owner_address -> (lease_address -> state))
     lease_states: DashMap<String, HashMap<String, CachedLeaseState>>,
     /// Cached Skip transaction states (tx_hash -> state)
     skip_tx_states: DashMap<String, CachedSkipTxState>,
     /// Cached earn states for change detection (address -> state)
     earn_states: DashMap<String, CachedEarnState>,
+    /// Reverse index: lease contract address -> owner address (for targeted event handling)
+    lease_address_to_owner: DashMap<String, String>,
+    /// Known LPP contract addresses (for filtering earn-relevant contract events)
+    lpp_contract_addresses: DashSet<String>,
 }
 
 impl WebSocketManager {
-    pub fn new() -> Self {
+    pub fn new(max_connections: usize) -> Self {
         Self {
             connections: DashMap::new(),
             connection_count: AtomicUsize::new(0),
+            max_connections,
             lease_states: DashMap::new(),
             skip_tx_states: DashMap::new(),
             earn_states: DashMap::new(),
+            lease_address_to_owner: DashMap::new(),
+            lpp_contract_addresses: DashSet::new(),
         }
     }
 
     /// Check if we can accept a new connection
     pub fn can_accept_connection(&self) -> bool {
-        self.connection_count.load(Ordering::Relaxed) < MAX_CONNECTIONS
+        self.connection_count.load(Ordering::Relaxed) < self.max_connections
     }
 
     /// Broadcast a message to all connections subscribed to a topic
     /// Uses try_send for backpressure - drops messages for slow clients
+    /// Wraps in Arc to avoid cloning per connection
     pub fn broadcast(&self, msg: ServerMessage) {
+        let msg = Arc::new(msg);
         for entry in self.connections.iter() {
             let conn = entry.value();
             if self.should_receive(&conn.subscriptions, &msg) {
                 // Use try_send for backpressure - if channel is full, drop the message
-                match conn.message_tx.try_send(msg.clone()) {
+                match conn.message_tx.try_send(Arc::clone(&msg)) {
                     Ok(_) => {}
                     Err(mpsc::error::TrySendError::Full(_)) => {
                         debug!("Dropping message for slow client {}", entry.key());
@@ -357,19 +373,19 @@ impl WebSocketManager {
 
     /// Send balance update to relevant subscribers
     pub fn send_balance_update(&self, chain: &str, address: &str, balances: Vec<BalanceInfo>) {
-        let msg = ServerMessage::BalanceUpdate {
+        let msg = Arc::new(ServerMessage::BalanceUpdate {
             chain: chain.to_string(),
             address: address.to_string(),
             balances,
             timestamp: chrono::Utc::now().to_rfc3339(),
-        };
+        });
 
         for entry in self.connections.iter() {
             let conn = entry.value();
             for sub in &conn.subscriptions {
                 if let Subscription::Balances { addresses } = sub {
                     if addresses.contains(&address.to_string()) {
-                        let _ = conn.message_tx.try_send(msg.clone());
+                        let _ = conn.message_tx.try_send(Arc::clone(&msg));
                         break;
                     }
                 }
@@ -379,14 +395,14 @@ impl WebSocketManager {
 
     /// Send lease update to relevant subscribers
     pub fn send_lease_update(&self, owner: &str, lease: serde_json::Value) {
-        let msg = ServerMessage::LeaseUpdate { lease };
+        let msg = Arc::new(ServerMessage::LeaseUpdate { lease });
 
         for entry in self.connections.iter() {
             let conn = entry.value();
             for sub in &conn.subscriptions {
                 if let Subscription::Leases { address: sub_addr } = sub {
                     if sub_addr == owner {
-                        let _ = conn.message_tx.try_send(msg.clone());
+                        let _ = conn.message_tx.try_send(Arc::clone(&msg));
                         break;
                     }
                 }
@@ -402,11 +418,11 @@ impl WebSocketManager {
         status: TxStatusValue,
         error: Option<String>,
     ) {
-        let msg = ServerMessage::TxStatus {
+        let msg = Arc::new(ServerMessage::TxStatus {
             tx_hash: tx_hash.to_string(),
             status,
             error,
-        };
+        });
 
         for entry in self.connections.iter() {
             let conn = entry.value();
@@ -417,7 +433,7 @@ impl WebSocketManager {
                 } = sub
                 {
                     if sub_hash == tx_hash && sub_chain == chain_id {
-                        let _ = conn.message_tx.try_send(msg.clone());
+                        let _ = conn.message_tx.try_send(Arc::clone(&msg));
                         break;
                     }
                 }
@@ -442,7 +458,7 @@ impl WebSocketManager {
         }
     }
 
-    fn add_connection(&self, id: String, tx: mpsc::Sender<ServerMessage>) {
+    fn add_connection(&self, id: String, tx: mpsc::Sender<Arc<ServerMessage>>) {
         self.connections.insert(
             id,
             ConnectionState {
@@ -455,17 +471,55 @@ impl WebSocketManager {
     }
 
     fn remove_connection(&self, id: &str) {
-        if self.connections.remove(id).is_some() {
+        if let Some((_, conn)) = self.connections.remove(id) {
             self.connection_count.fetch_sub(1, Ordering::Relaxed);
+
+            // Clean up caches for subscriptions with no remaining subscribers
+            for sub in &conn.subscriptions {
+                match sub {
+                    Subscription::Leases { address } => {
+                        if !self.has_other_subscriber(
+                            |s| matches!(s, Subscription::Leases { address: a } if a == address),
+                        ) {
+                            self.clear_lease_cache(address);
+                        }
+                    }
+                    Subscription::Earn { address } => {
+                        if !self.has_other_subscriber(
+                            |s| matches!(s, Subscription::Earn { address: a } if a == address),
+                        ) {
+                            self.clear_earn_cache(address);
+                        }
+                    }
+                    Subscription::SkipTx { tx_hash, .. } => {
+                        if !self.has_other_subscriber(|s| {
+                            matches!(s, Subscription::SkipTx { tx_hash: h, .. } if h == tx_hash)
+                        }) {
+                            self.skip_tx_states.remove(tx_hash);
+                        }
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 
-    fn add_subscription(&self, conn_id: &str, sub: Subscription) -> bool {
+    /// Check if any remaining connection has a subscription matching the predicate
+    fn has_other_subscriber(&self, predicate: impl Fn(&Subscription) -> bool) -> bool {
+        self.connections
+            .iter()
+            .any(|entry| entry.value().subscriptions.iter().any(&predicate))
+    }
+
+    fn add_subscription(&self, conn_id: &str, sub: Subscription) -> Result<bool, ()> {
         if let Some(mut conn) = self.connections.get_mut(conn_id) {
+            if conn.subscriptions.len() >= MAX_SUBSCRIPTIONS_PER_CONNECTION {
+                return Err(()); // Limit exceeded
+            }
             conn.subscriptions.insert(sub);
-            true
+            Ok(true)
         } else {
-            false
+            Ok(false)
         }
     }
 
@@ -539,6 +593,9 @@ impl WebSocketManager {
     /// Clear lease cache for an owner (when they unsubscribe)
     pub fn clear_lease_cache(&self, owner: &str) {
         self.lease_states.remove(owner);
+        // Also remove reverse index entries for this owner
+        self.lease_address_to_owner
+            .retain(|_, v| v.as_str() != owner);
     }
 
     // =========================================================================
@@ -599,13 +656,13 @@ impl WebSocketManager {
         total_steps: u32,
         error: Option<String>,
     ) {
-        let msg = ServerMessage::SkipTxUpdate {
+        let msg = Arc::new(ServerMessage::SkipTxUpdate {
             tx_hash: tx_hash.to_string(),
             status,
             steps_completed,
             total_steps,
             error,
-        };
+        });
 
         for entry in self.connections.iter() {
             let conn = entry.value();
@@ -615,7 +672,7 @@ impl WebSocketManager {
                 } = sub
                 {
                     if sub_hash == tx_hash {
-                        let _ = conn.message_tx.try_send(msg.clone());
+                        let _ = conn.message_tx.try_send(Arc::clone(&msg));
                         break;
                     }
                 }
@@ -668,30 +725,83 @@ impl WebSocketManager {
         positions: Vec<EarnPositionInfo>,
         total_deposited_usd: String,
     ) {
-        let msg = ServerMessage::EarnUpdate {
+        let msg = Arc::new(ServerMessage::EarnUpdate {
             address: address.to_string(),
             positions,
             total_deposited_usd,
-        };
+        });
 
         for entry in self.connections.iter() {
             let conn = entry.value();
             for sub in &conn.subscriptions {
                 if let Subscription::Earn { address: sub_addr } = sub {
                     if sub_addr == address {
-                        let _ = conn.message_tx.try_send(msg.clone());
+                        let _ = conn.message_tx.try_send(Arc::clone(&msg));
                         break;
                     }
                 }
             }
         }
     }
+
+    // =========================================================================
+    // LPP Address Management (for earn event filtering)
+    // =========================================================================
+
+    /// Refresh the set of known LPP contract addresses from protocol contracts
+    pub fn refresh_lpp_addresses(
+        &self,
+        contracts: &HashMap<String, crate::external::chain::ProtocolContractsInfo>,
+    ) {
+        self.lpp_contract_addresses.clear();
+        for info in contracts.values() {
+            self.lpp_contract_addresses.insert(info.lpp.clone());
+        }
+        info!(
+            "Refreshed LPP addresses: {} protocols",
+            self.lpp_contract_addresses.len()
+        );
+    }
 }
 
 impl Default for WebSocketManager {
     fn default() -> Self {
-        Self::new()
+        Self::new(5000)
     }
+}
+
+// ============================================================================
+// Stale Connection Reaper
+// ============================================================================
+
+/// Periodically removes connections that haven't responded to pings.
+/// Server sends WS pings every 30s; browsers auto-respond with pong.
+/// Connections without a pong for 90s are dead and get reaped.
+pub async fn start_stale_connection_reaper(state: Arc<AppState>) {
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(REAPER_INTERVAL_SECS));
+        let stale_threshold = Duration::from_secs(STALE_CONNECTION_TIMEOUT_SECS);
+
+        loop {
+            interval.tick().await;
+
+            // Collect stale IDs first, then remove (avoids holding DashMap refs during removal)
+            let stale_ids: Vec<String> = state
+                .ws_manager
+                .connections
+                .iter()
+                .filter(|entry| entry.value().last_ping.elapsed() > stale_threshold)
+                .map(|entry| entry.key().clone())
+                .collect();
+
+            if !stale_ids.is_empty() {
+                info!("Reaping {} stale WebSocket connections", stale_ids.len());
+                for id in &stale_ids {
+                    state.ws_manager.remove_connection(id);
+                }
+            }
+        }
+    });
 }
 
 // ============================================================================
@@ -723,24 +833,38 @@ async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
     let (mut ws_sender, mut ws_receiver) = socket.split();
 
     // Channel for sending messages to this connection (bounded for backpressure)
-    let (msg_tx, mut msg_rx) = mpsc::channel::<ServerMessage>(100);
+    let (msg_tx, mut msg_rx) = mpsc::channel::<Arc<ServerMessage>>(100);
 
     // Register connection with manager
     state.ws_manager.add_connection(conn_id.clone(), msg_tx);
 
-    // Spawn task to forward messages to WebSocket
+    // Spawn task to forward messages to WebSocket + send periodic pings
     let send_conn_id = conn_id.clone();
     let send_task = tokio::spawn(async move {
-        while let Some(msg) = msg_rx.recv().await {
-            match serde_json::to_string(&msg) {
-                Ok(json) => {
-                    if ws_sender.send(Message::Text(json.into())).await.is_err() {
-                        debug!("Failed to send message to {}", send_conn_id);
-                        break;
+        let mut ping_interval = tokio::time::interval(Duration::from_secs(WS_PING_INTERVAL_SECS));
+        ping_interval.tick().await; // Consume the immediate first tick
+
+        loop {
+            tokio::select! {
+                msg = msg_rx.recv() => {
+                    let Some(msg) = msg else { break };
+                    match serde_json::to_string(&*msg) {
+                        Ok(json) => {
+                            if ws_sender.send(Message::Text(json.into())).await.is_err() {
+                                debug!("Failed to send message to {}", send_conn_id);
+                                break;
+                            }
+                        }
+                        Err(e) => {
+                            error!("Failed to serialize message: {}", e);
+                        }
                     }
                 }
-                Err(e) => {
-                    error!("Failed to serialize message: {}", e);
+                _ = ping_interval.tick() => {
+                    if ws_sender.send(Message::Ping(vec![].into())).await.is_err() {
+                        debug!("Failed to send ping to {}", send_conn_id);
+                        break;
+                    }
                 }
             }
         }
@@ -799,9 +923,6 @@ async fn handle_text_message(conn_id: &str, text: &str, state: &Arc<AppState>) {
         ClientMessage::Unsubscribe { topic, params } => {
             handle_unsubscribe(conn_id, &topic, &params, state).await;
         }
-        ClientMessage::Ping => {
-            handle_ping(conn_id, state).await;
-        }
     }
 }
 
@@ -814,12 +935,23 @@ async fn handle_subscribe(
     match Subscription::from_client_message(topic, params) {
         Ok(sub) => {
             let topic_name = sub.topic_name().to_string();
-            if state.ws_manager.add_subscription(conn_id, sub) {
-                send_message(
-                    conn_id,
-                    state,
-                    ServerMessage::Subscribed { topic: topic_name },
-                );
+            match state.ws_manager.add_subscription(conn_id, sub) {
+                Ok(true) => {
+                    send_message(
+                        conn_id,
+                        state,
+                        ServerMessage::Subscribed { topic: topic_name },
+                    );
+                }
+                Ok(false) => {} // Connection not found, will be cleaned up
+                Err(()) => {
+                    send_error(
+                        conn_id,
+                        state,
+                        "SUBSCRIPTION_LIMIT",
+                        "Maximum subscriptions per connection exceeded",
+                    );
+                }
             }
         }
         Err(e) => {
@@ -850,20 +982,9 @@ async fn handle_unsubscribe(
     }
 }
 
-async fn handle_ping(conn_id: &str, state: &Arc<AppState>) {
-    state.ws_manager.update_ping(conn_id);
-    send_message(
-        conn_id,
-        state,
-        ServerMessage::Pong {
-            timestamp: chrono::Utc::now().to_rfc3339(),
-        },
-    );
-}
-
 fn send_message(conn_id: &str, state: &Arc<AppState>, msg: ServerMessage) {
     if let Some(conn) = state.ws_manager.connections.get(conn_id) {
-        let _ = conn.message_tx.try_send(msg);
+        let _ = conn.message_tx.try_send(Arc::new(msg));
     }
 }
 
@@ -941,67 +1062,124 @@ pub async fn start_price_update_task(
 // Lease Monitoring Task
 // ============================================================================
 
-/// Start background task for lease state monitoring, triggered by contract execution events.
+/// Start background task for lease state monitoring.
 ///
-/// Uses 500ms debounce to batch events from the same block. Multiple transactions
-/// in one block produce multiple events — the debounce collapses them into one check.
+/// Hybrid approach:
+/// - Contract events: targeted via reverse index (lease addr -> owner), O(1) per event
+/// - 60s periodic sweep: catches new leases and indirect changes (oracle price updates)
+/// - Uses 500ms debounce to batch events from the same block
 pub async fn start_lease_monitor_task(
     state: Arc<AppState>,
     mut contract_rx: tokio::sync::broadcast::Receiver<crate::chain_events::ContractExecEvent>,
 ) {
     tokio::spawn(async move {
+        let mut sweep_interval = tokio::time::interval(Duration::from_secs(60));
+        sweep_interval.tick().await; // Consume the immediate first tick
+
         loop {
-            // Wait for first contract execution event
-            match contract_rx.recv().await {
-                Ok(_) => {}
-                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
-                    debug!("Lease monitor lagged {} events", n);
+            let mut pending_contracts: HashSet<String> = HashSet::new();
+            let mut do_full_sweep = false;
+
+            tokio::select! {
+                result = contract_rx.recv() => {
+                    match result {
+                        Ok(event) => {
+                            pending_contracts.insert(event.contract_address);
+                        }
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                            debug!("Lease monitor lagged {} events, triggering full sweep", n);
+                            do_full_sweep = true;
+                        }
+                        Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                            error!("Contract event channel closed, lease monitor stopping");
+                            return;
+                        }
+                    }
                 }
-                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    error!("Contract event channel closed, lease monitor stopping");
-                    return;
+                _ = sweep_interval.tick() => {
+                    do_full_sweep = true;
                 }
             }
 
-            // Debounce: absorb additional events for 500ms
-            let debounce = tokio::time::sleep(Duration::from_millis(500));
-            tokio::pin!(debounce);
-            loop {
-                tokio::select! {
-                    _ = &mut debounce => break,
-                    result = contract_rx.recv() => {
-                        match result {
-                            Ok(_) => continue,
-                            Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
-                            Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
+            if !do_full_sweep && !pending_contracts.is_empty() {
+                // Debounce: absorb additional events for 500ms
+                let debounce = tokio::time::sleep(Duration::from_millis(500));
+                tokio::pin!(debounce);
+                loop {
+                    tokio::select! {
+                        _ = &mut debounce => break,
+                        result = contract_rx.recv() => {
+                            match result {
+                                Ok(event) => {
+                                    pending_contracts.insert(event.contract_address);
+                                    continue;
+                                }
+                                Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                                    do_full_sweep = true;
+                                    break;
+                                }
+                                Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
+                            }
                         }
                     }
                 }
             }
 
-            // Get all owners with lease subscriptions
-            let owners = state.ws_manager.get_subscribed_lease_owners();
-            if owners.is_empty() {
-                continue;
-            }
-
-            // Check each owner's leases in parallel
-            let futures: Vec<_> = owners
-                .iter()
-                .map(|owner| {
-                    let state = state.clone();
-                    let owner = owner.clone();
-                    async move {
-                        if let Err(e) = check_owner_leases(&state, &owner).await {
-                            debug!("Failed to check leases for {}: {}", owner, e);
-                        }
+            if do_full_sweep {
+                // Full sweep: check ALL subscribed owners
+                check_all_lease_owners(&state).await;
+            } else {
+                // Targeted: look up affected owners via reverse index
+                let mut owners_to_check: HashSet<String> = HashSet::new();
+                for contract_addr in &pending_contracts {
+                    if let Some(owner) = state.ws_manager.lease_address_to_owner.get(contract_addr)
+                    {
+                        owners_to_check.insert(owner.clone());
                     }
-                })
-                .collect();
+                }
 
-            futures::future::join_all(futures).await;
+                if !owners_to_check.is_empty() {
+                    let futures: Vec<_> = owners_to_check
+                        .iter()
+                        .map(|owner| {
+                            let state = state.clone();
+                            let owner = owner.clone();
+                            async move {
+                                if let Err(e) = check_owner_leases(&state, &owner).await {
+                                    debug!("Failed to check leases for {}: {}", owner, e);
+                                }
+                            }
+                        })
+                        .collect();
+
+                    futures::future::join_all(futures).await;
+                }
+            }
         }
     });
+}
+
+/// Check all subscribed lease owners (full sweep)
+async fn check_all_lease_owners(state: &Arc<AppState>) {
+    let owners = state.ws_manager.get_subscribed_lease_owners();
+    if owners.is_empty() {
+        return;
+    }
+
+    let futures: Vec<_> = owners
+        .iter()
+        .map(|owner| {
+            let state = state.clone();
+            let owner = owner.clone();
+            async move {
+                if let Err(e) = check_owner_leases(&state, &owner).await {
+                    debug!("Failed to check leases for {}: {}", owner, e);
+                }
+            }
+        })
+        .collect();
+
+    futures::future::join_all(futures).await;
 }
 
 /// Check lease states for a specific owner and send updates if changed
@@ -1037,6 +1215,12 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
         }
 
         let lease_address = &lease.address;
+
+        // Update reverse index (lease contract addr -> owner) for targeted event handling
+        state
+            .ws_manager
+            .lease_address_to_owner
+            .insert(lease_address.clone(), owner.to_string());
 
         // Create current state snapshot
         let current_state = CachedLeaseState {
@@ -1103,11 +1287,15 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
                 lease_address, owner, change_type
             );
 
-            // Clean up cache for closed/liquidated leases
+            // Clean up cache and reverse index for closed/liquidated leases
             if matches!(lease.status.as_str(), "closed" | "liquidated" | "paid_off") {
                 state
                     .ws_manager
                     .remove_lease_from_cache(owner, lease_address);
+                state
+                    .ws_manager
+                    .lease_address_to_owner
+                    .remove(lease_address);
             }
         }
     }
@@ -1253,26 +1441,43 @@ async fn check_skip_tx_status(
 // Earn Position Monitoring Task
 // ============================================================================
 
-/// Start background task for earn position monitoring, triggered by contract execution events.
+/// Start background task for earn position monitoring, triggered by LPP contract events.
 ///
+/// Filters events by known LPP contract addresses — non-LPP events are skipped entirely.
 /// Uses 10s debounce — earn positions don't need per-block freshness.
-/// This reduces unnecessary chain queries while still providing 10-15s freshness.
 pub async fn start_earn_monitor_task(
     state: Arc<AppState>,
     mut contract_rx: tokio::sync::broadcast::Receiver<crate::chain_events::ContractExecEvent>,
 ) {
     tokio::spawn(async move {
         loop {
-            // Wait for first contract execution event
-            match contract_rx.recv().await {
-                Ok(_) => {}
-                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
-                    debug!("Earn monitor lagged {} events", n);
+            // Wait for an LPP-relevant contract event
+            let is_lpp_event = loop {
+                match contract_rx.recv().await {
+                    Ok(event) => {
+                        if state
+                            .ws_manager
+                            .lpp_contract_addresses
+                            .contains(&event.contract_address)
+                        {
+                            break true;
+                        }
+                        // Not an LPP event, skip
+                        continue;
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                        debug!("Earn monitor lagged {} events", n);
+                        break true; // Treat lag as potentially relevant
+                    }
+                    Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                        error!("Contract event channel closed, earn monitor stopping");
+                        return;
+                    }
                 }
-                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
-                    error!("Contract event channel closed, earn monitor stopping");
-                    return;
-                }
+            };
+
+            if !is_lpp_event {
+                continue;
             }
 
             // Debounce: absorb events for 10s (earn doesn't need per-block freshness)
@@ -1447,7 +1652,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_websocket_manager() {
-        let manager = WebSocketManager::new();
+        let manager = WebSocketManager::default();
         assert_eq!(manager.connection_count(), 0);
     }
 }

@@ -118,7 +118,12 @@ async fn main() -> anyhow::Result<()> {
         external::zero_interest::ZeroInterestClient::new(&config, http_client.clone());
 
     // Initialize WebSocket manager
-    let ws_manager = WebSocketManager::new();
+    let ws_max_connections: usize = std::env::var("WS_MAX_CONNECTIONS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(5000);
+    info!("WebSocket max connections: {}", ws_max_connections);
+    let ws_manager = WebSocketManager::new(ws_max_connections);
 
     // Initialize config store for webapp configuration
     let config_dir = std::env::var("CONFIG_DIR").unwrap_or_else(|_| "./config".to_string());
@@ -158,6 +163,11 @@ async fn main() -> anyhow::Result<()> {
     // Warm up essential caches before accepting requests (blocking)
     refresh::warm_essential_data(state.clone()).await;
 
+    // Populate LPP addresses from protocol contracts for earn event filtering
+    if let Some(contracts) = state.data_cache.protocol_contracts.load() {
+        state.ws_manager.refresh_lpp_addresses(&contracts);
+    }
+
     // Create event channels for CometBFT WebSocket events
     let event_channels = chain_events::EventChannels::new();
 
@@ -184,6 +194,7 @@ async fn main() -> anyhow::Result<()> {
         event_channels.contract_exec.subscribe(),
     )
     .await;
+    handlers::websocket::start_stale_connection_reaper(state.clone()).await;
 
     // Build router
     let app = create_router(state);
@@ -239,10 +250,7 @@ fn create_router(state: Arc<AppState>) -> Router {
             get(handlers::etl_proxy::batch_user_history),
         )
         // Generic passthrough for all other ETL endpoints (allowlist-gated)
-        .route(
-            "/{path}",
-            get(handlers::etl_proxy::etl_proxy_generic),
-        );
+        .route("/{path}", get(handlers::etl_proxy::etl_proxy_generic));
 
     // Read-only API routes (standard rate limit)
     let read_routes = Router::new()

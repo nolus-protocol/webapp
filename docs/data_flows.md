@@ -1864,11 +1864,16 @@ CometBFT /websocket ──► ChainEventClient
 |------|---------|-----------|
 | `refresh_prices` | NewBlock (every 2nd block) | ~6s |
 | `start_price_update_task` | NewBlock (every 2nd block) | ~6s |
-| `start_lease_monitor_task` | Tx wasm event + 500ms debounce | ~3.5s |
-| `start_earn_monitor_task` | Tx wasm event + 10s debounce | 10-15s |
+| `start_lease_monitor_task` | Contract event (targeted via reverse index) + 60s sweep | ~3.5s (event) / 60s (sweep) |
+| `start_earn_monitor_task` | Contract event (LPP address filtered) + 10s debounce | 10-15s |
 | `start_skip_tracking_task` | 5s timer (Skip API, no chain events) | 5s |
+| `start_stale_connection_reaper` | 30s timer | Reaps connections idle 90s+ |
 
 ETL/disk data (config, pools, validators, stats, etc.) stays on fixed-interval timers (30s–300s).
+
+**Lease monitoring** uses a hybrid approach: contract execution events are matched against a reverse index (`lease_address → owner`) for O(1) targeted owner lookups, while a 60-second periodic sweep catches indirect changes (e.g., Oracle price updates affecting liquidation thresholds). On `Lagged` (missed events), an immediate full sweep is triggered.
+
+**Earn monitoring** filters contract events by a set of known LPP contract addresses. Only events targeting an actual LPP contract trigger the earn state check, avoiding unnecessary queries from unrelated contract executions.
 
 ### Message Types
 
@@ -1888,8 +1893,7 @@ ETL/disk data (config, pools, validators, stats, etc.) stays on fixed-interval t
 // Unsubscribe
 { "type": "unsubscribe", "topic": "prices" }
 
-// Ping (keepalive)
-{ "type": "ping" }
+// No application-level pings — server sends WS protocol pings every 30s
 ```
 
 **Server → Client:**
@@ -1898,10 +1902,7 @@ ETL/disk data (config, pools, validators, stats, etc.) stays on fixed-interval t
 // Subscription confirmed
 { "type": "subscribed", "topic": "prices" }
 
-// Pong response
-{ "type": "pong" }
-
-// Price update (every 30s or on change)
+// Price update (~6s cadence from CometBFT events)
 {
   "type": "price_update",
   "prices": {

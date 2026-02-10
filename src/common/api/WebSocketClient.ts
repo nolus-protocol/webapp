@@ -32,11 +32,7 @@ interface UnsubscribeMessage {
   topic: SubscriptionTopic;
 }
 
-interface PingMessage {
-  type: "ping";
-}
-
-type ClientMessage = SubscribeMessage | UnsubscribeMessage | PingMessage;
+type ClientMessage = SubscribeMessage | UnsubscribeMessage;
 
 /**
  * Server -> Client messages
@@ -55,10 +51,6 @@ interface ErrorMessage {
   type: "error";
   message: string;
   topic?: SubscriptionTopic;
-}
-
-interface PongMessage {
-  type: "pong";
 }
 
 interface PriceUpdateMessage {
@@ -118,7 +110,6 @@ type ServerMessage =
   | SubscribedMessage
   | UnsubscribedMessage
   | ErrorMessage
-  | PongMessage
   | PriceUpdateMessage
   | BalanceUpdateMessage
   | LeaseUpdateMessage
@@ -176,8 +167,6 @@ interface WebSocketClientConfig {
   reconnectInterval?: number;
   maxReconnectInterval?: number;
   reconnectDecay?: number;
-  pingInterval?: number;
-  pongTimeout?: number;
 }
 
 /**
@@ -194,8 +183,6 @@ class WebSocketClientImpl {
   private subscriptions: Map<string, Subscription> = new Map();
   private reconnectAttempts = 0;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
-  private pingInterval: ReturnType<typeof setInterval> | null = null;
-  private pongTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(config: WebSocketClientConfig = {}) {
     const url = config.url || WS_URL;
@@ -207,8 +194,6 @@ class WebSocketClientImpl {
       reconnectInterval: config.reconnectInterval || 1000,
       maxReconnectInterval: config.maxReconnectInterval || 30000,
       reconnectDecay: config.reconnectDecay || 1.5,
-      pingInterval: config.pingInterval || 30000,
-      pongTimeout: config.pongTimeout || 10000
     };
   }
 
@@ -260,7 +245,6 @@ class WebSocketClientImpl {
           console.log("[WebSocket] Connected");
           this.setConnectionState("connected");
           this.reconnectAttempts = 0;
-          this.startPing();
           this.resubscribeAll();
           resolve();
         };
@@ -306,14 +290,6 @@ class WebSocketClientImpl {
    * Cleanup timers
    */
   private cleanup(): void {
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
-    }
-    if (this.pongTimeout) {
-      clearTimeout(this.pongTimeout);
-      this.pongTimeout = null;
-    }
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
@@ -344,21 +320,6 @@ class WebSocketClientImpl {
   }
 
   /**
-   * Start ping/pong heartbeat
-   */
-  private startPing(): void {
-    this.pingInterval = setInterval(() => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        this.send({ type: "ping" });
-        this.pongTimeout = setTimeout(() => {
-          console.warn("[WebSocket] Pong timeout, reconnecting");
-          this.ws?.close();
-        }, this.config.pongTimeout);
-      }
-    }, this.config.pingInterval);
-  }
-
-  /**
    * Send a message to the server
    */
   private send(message: ClientMessage): void {
@@ -375,13 +336,6 @@ class WebSocketClientImpl {
       const message: ServerMessage = JSON.parse(data);
 
       switch (message.type) {
-        case "pong":
-          if (this.pongTimeout) {
-            clearTimeout(this.pongTimeout);
-            this.pongTimeout = null;
-          }
-          break;
-
         case "subscribed":
           console.log(`[WebSocket] Subscribed to ${message.topic}`);
           break;

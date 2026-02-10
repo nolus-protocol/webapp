@@ -1131,13 +1131,6 @@ With parameters:
 }
 ```
 
-#### Ping
-```json
-{
-  "type": "ping"
-}
-```
-
 ### Server → Client Messages
 
 #### Subscribed
@@ -1145,13 +1138,6 @@ With parameters:
 {
   "type": "subscribed",
   "topic": "prices"
-}
-```
-
-#### Pong
-```json
-{
-  "type": "pong"
 }
 ```
 
@@ -1206,6 +1192,18 @@ With parameters:
 | `staking` | `address` | Staking position updates |
 | `skip_tx` | `tx_hash`, `source_chain` | Skip swap progress |
 
+**Limits:** Maximum 20 subscriptions per connection. Exceeding this returns an error:
+```json
+{ "type": "error", "code": "SUBSCRIPTION_LIMIT", "message": "Maximum subscriptions per connection exceeded" }
+```
+
+### Connection Management
+
+- **Max connections**: 5,000 concurrent WebSocket connections (configurable via `WS_MAX_CONNECTIONS` env var, default 5000). Connections exceeding this limit are rejected with HTTP 429.
+- **Server-side pings**: The server sends WebSocket protocol-level pings every 30 seconds. Browsers auto-respond with pong frames. No application-level ping/pong messages are used.
+- **Stale connection reaper**: Connections with no pong response for 90+ seconds are automatically closed. The reaper runs every 30 seconds.
+- **Cache cleanup on disconnect**: When a connection disconnects, user-specific caches (lease states, earn states, skip tx states) are cleaned up if no other connection subscribes to the same data.
+
 ### Example: JavaScript Client
 
 ```javascript
@@ -1221,6 +1219,8 @@ ws.onopen = () => {
     topic: 'leases',
     address: 'nolus1...'
   }));
+
+  // No application-level pings needed — server sends WS protocol pings automatically
 };
 
 ws.onmessage = (event) => {
