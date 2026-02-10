@@ -52,9 +52,6 @@ import type {
   ReferralStatusType,
   RewardStatusType,
   PayoutStatusType,
-  // Campaigns
-  ActiveCampaignsResponse,
-  CampaignEligibilityResponse,
   // Governance
   ProposalsResponse,
   TallyResult,
@@ -395,24 +392,6 @@ export class BackendApiClient {
   async assignReferral(referralCode: string, referredWallet: string): Promise<AssignReferralResponse> {
     return this.request<AssignReferralResponse>("POST", "/api/referral/assign", {
       body: { referral_code: referralCode, referred_wallet: referredWallet }
-    });
-  }
-
-  // =========================================================================
-  // Campaigns
-  // =========================================================================
-
-  async getActiveCampaigns(): Promise<ActiveCampaignsResponse> {
-    return this.request<ActiveCampaignsResponse>("GET", "/api/campaigns/active");
-  }
-
-  async checkCampaignEligibility(
-    wallet: string,
-    protocol?: string,
-    currency?: string
-  ): Promise<CampaignEligibilityResponse> {
-    return this.request<CampaignEligibilityResponse>("GET", "/api/campaigns/eligibility", {
-      params: { wallet, protocol, currency }
     });
   }
 

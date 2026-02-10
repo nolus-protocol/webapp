@@ -5,11 +5,9 @@
 //! - Response parsing
 //! - URL building
 
-#![allow(dead_code)]
-
-use reqwest::{Client, Response};
+use reqwest::Response;
 use serde::de::DeserializeOwned;
-use tracing::{debug, error};
+use tracing::error;
 
 use crate::error::AppError;
 
@@ -82,52 +80,6 @@ impl RequestResultExt for Result<Response, reqwest::Error> {
 }
 
 // ============================================================================
-// HTTP Client Helpers
-// ============================================================================
-
-/// Fetch JSON from a URL with error handling
-pub async fn fetch_json<T: DeserializeOwned>(
-    client: &Client,
-    url: &str,
-    api_name: &str,
-) -> Result<T, AppError> {
-    debug!("{}: GET {}", api_name, url);
-
-    client
-        .get(url)
-        .send()
-        .await
-        .with_context(api_name, "request")
-        .await?
-        .check_status(api_name, "response")
-        .await?
-        .parse_json(api_name, "body")
-        .await
-}
-
-/// Fetch JSON with optional parameters
-pub async fn fetch_json_with_query<T: DeserializeOwned, Q: serde::Serialize + ?Sized>(
-    client: &Client,
-    url: &str,
-    query: &Q,
-    api_name: &str,
-) -> Result<T, AppError> {
-    debug!("{}: GET {} (with query)", api_name, url);
-
-    client
-        .get(url)
-        .query(query)
-        .send()
-        .await
-        .with_context(api_name, "request")
-        .await?
-        .check_status(api_name, "response")
-        .await?
-        .parse_json(api_name, "body")
-        .await
-}
-
-// ============================================================================
 // URL Builder
 // ============================================================================
 
@@ -141,12 +93,6 @@ impl UrlBuilder {
         Self {
             base_url: base_url.into(),
         }
-    }
-
-    /// Build a URL with path segments
-    pub fn path(&self, segments: &[&str]) -> String {
-        let path = segments.join("/");
-        format!("{}/{}", self.base_url, path)
     }
 
     /// Build a URL with a single path segment
@@ -183,74 +129,6 @@ impl UrlBuilder {
     }
 }
 
-// ============================================================================
-// Chain RPC Helpers
-// ============================================================================
-
-/// Extension trait for chain RPC responses
-#[async_trait::async_trait]
-pub trait ChainResponseExt {
-    /// Check if response is successful and return chain-specific error
-    async fn check_chain_status(self, chain: &str, context: &str) -> Result<Response, AppError>;
-
-    /// Parse JSON response for chain queries
-    async fn parse_chain_json<T: DeserializeOwned>(
-        self,
-        chain: &str,
-        context: &str,
-    ) -> Result<T, AppError>;
-}
-
-#[async_trait::async_trait]
-impl ChainResponseExt for Response {
-    async fn check_chain_status(self, chain: &str, context: &str) -> Result<Response, AppError> {
-        if !self.status().is_success() {
-            let status = self.status();
-            let body = self.text().await.unwrap_or_default();
-            error!("Chain {} {} failed: {} - {}", chain, context, status, body);
-            return Err(AppError::ChainRpc {
-                chain: chain.to_string(),
-                message: format!("{}: HTTP {} - {}", context, status, body),
-            });
-        }
-        Ok(self)
-    }
-
-    async fn parse_chain_json<T: DeserializeOwned>(
-        self,
-        chain: &str,
-        context: &str,
-    ) -> Result<T, AppError> {
-        self.json().await.map_err(|e| {
-            error!("Chain {} failed to parse {}: {}", chain, context, e);
-            AppError::ChainRpc {
-                chain: chain.to_string(),
-                message: format!("Failed to parse {}: {}", context, e),
-            }
-        })
-    }
-}
-
-/// Extension trait for chain request results
-#[async_trait::async_trait]
-pub trait ChainRequestResultExt {
-    /// Add chain error context
-    async fn with_chain_context(self, chain: &str, context: &str) -> Result<Response, AppError>;
-}
-
-#[async_trait::async_trait]
-impl ChainRequestResultExt for Result<Response, reqwest::Error> {
-    async fn with_chain_context(self, chain: &str, context: &str) -> Result<Response, AppError> {
-        self.map_err(|e| {
-            error!("Chain {} {} request failed: {}", chain, context, e);
-            AppError::ChainRpc {
-                chain: chain.to_string(),
-                message: format!("{}: {}", context, e),
-            }
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -259,15 +137,6 @@ mod tests {
     fn test_url_builder_endpoint() {
         let builder = UrlBuilder::new("https://api.example.com");
         assert_eq!(builder.endpoint("prices"), "https://api.example.com/prices");
-    }
-
-    #[test]
-    fn test_url_builder_path() {
-        let builder = UrlBuilder::new("https://api.example.com");
-        assert_eq!(
-            builder.path(&["v1", "users", "123"]),
-            "https://api.example.com/v1/users/123"
-        );
     }
 
     #[test]

@@ -61,12 +61,6 @@ pub trait ExternalApiClient: Send + Sync {
         None
     }
 
-    /// Check if the client is configured (has valid base URL)
-    #[allow(dead_code)]
-    fn is_configured(&self) -> bool {
-        !self.base_url().is_empty()
-    }
-
     // ========================================================================
     // GET Requests
     // ========================================================================
@@ -257,8 +251,6 @@ pub trait WrappedResponseExt<T> {
 /// Generic wrapper for APIs that return { success: bool, data: T, error?: string }
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct ApiWrapper<T> {
-    #[allow(dead_code)]
-    pub success: bool,
     pub data: Option<T>,
     pub error: Option<String>,
 }
@@ -332,24 +324,8 @@ mod tests {
     }
 
     #[test]
-    fn test_is_configured() {
-        let configured = TestClient {
-            base_url: "https://api.example.com".to_string(),
-            bearer_token: None,
-        };
-        assert!(configured.is_configured());
-
-        let not_configured = TestClient {
-            base_url: "".to_string(),
-            bearer_token: None,
-        };
-        assert!(!not_configured.is_configured());
-    }
-
-    #[test]
     fn test_api_wrapper_extract_data_success() {
         let wrapper: ApiWrapper<String> = ApiWrapper {
-            success: true,
             data: Some("hello".to_string()),
             error: None,
         };
@@ -359,7 +335,6 @@ mod tests {
     #[test]
     fn test_api_wrapper_extract_data_error() {
         let wrapper: ApiWrapper<String> = ApiWrapper {
-            success: false,
             data: None,
             error: Some("Something went wrong".to_string()),
         };

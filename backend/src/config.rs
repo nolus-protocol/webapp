@@ -24,7 +24,6 @@ pub enum ConfigError {
 
     #[error("No active protocols configured")]
     NoActiveProtocols,
-
 }
 
 /// Result of configuration validation
