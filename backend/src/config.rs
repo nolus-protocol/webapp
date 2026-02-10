@@ -25,8 +25,6 @@ pub enum ConfigError {
     #[error("No active protocols configured")]
     NoActiveProtocols,
 
-    #[error("Cache TTL must be positive: {field} = {value}")]
-    InvalidCacheTtl { field: String, value: u64 },
 }
 
 /// Result of configuration validation
@@ -55,7 +53,6 @@ impl ValidationResult {
 pub struct AppConfig {
     pub server: ServerConfig,
     pub external: ExternalApiConfig,
-    pub cache: CacheConfig,
     pub admin: AdminConfig,
     pub protocols: ProtocolsConfig,
 }
@@ -97,32 +94,6 @@ pub struct ExternalApiConfig {
     // Intercom
     pub intercom_app_id: String,
     pub intercom_secret_key: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct CacheConfig {
-    /// Price cache TTL in seconds
-    pub prices_ttl_secs: u64,
-    /// Config cache TTL in seconds
-    pub config_ttl_secs: u64,
-    /// APR cache TTL in seconds
-    pub apr_ttl_secs: u64,
-    /// Max cache entries
-    pub max_entries: u64,
-}
-
-impl Default for CacheConfig {
-    fn default() -> Self {
-        Self {
-            // Prices change frequently - short TTL
-            prices_ttl_secs: 15,
-            // Config rarely changes - long TTL (1 hour)
-            config_ttl_secs: 3600,
-            // APR changes moderately - medium TTL (5 min)
-            apr_ttl_secs: 300,
-            max_entries: 10000,
-        }
-    }
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -237,24 +208,6 @@ impl AppConfig {
         }
 
         // ====================================================================
-        // Cache Configuration
-        // ====================================================================
-
-        if self.cache.prices_ttl_secs == 0 {
-            errors.push(ConfigError::InvalidCacheTtl {
-                field: "CACHE_PRICES_TTL_SECS".to_string(),
-                value: 0,
-            });
-        }
-
-        if self.cache.config_ttl_secs == 0 {
-            errors.push(ConfigError::InvalidCacheTtl {
-                field: "CACHE_CONFIG_TTL_SECS".to_string(),
-                value: 0,
-            });
-        }
-
-        // ====================================================================
         // Warnings (non-critical)
         // ====================================================================
 
@@ -285,14 +238,6 @@ impl AppConfig {
         if self.external.skip_api_key.is_none() {
             warnings
                 .push("Skip API key not configured - swap routing may be rate limited".to_string());
-        }
-
-        // Performance warnings
-        if self.cache.prices_ttl_secs > 60 {
-            warnings.push(format!(
-                "Price cache TTL is {}s - this may cause stale prices in UI",
-                self.cache.prices_ttl_secs
-            ));
         }
 
         ValidationResult { errors, warnings }
@@ -380,27 +325,6 @@ impl AppConfig {
                     .expect("PORT must be a number"),
             },
             external,
-            cache: CacheConfig {
-                // Prices: 15s default (high volatility)
-                prices_ttl_secs: env::var("CACHE_PRICES_TTL_SECS")
-                    .unwrap_or_else(|_| "15".to_string())
-                    .parse()
-                    .unwrap_or(15),
-                // Config: 1 hour default (rarely changes)
-                config_ttl_secs: env::var("CACHE_CONFIG_TTL_SECS")
-                    .unwrap_or_else(|_| "3600".to_string())
-                    .parse()
-                    .unwrap_or(3600),
-                // APR: 5 min default (moderate volatility)
-                apr_ttl_secs: env::var("CACHE_APR_TTL_SECS")
-                    .unwrap_or_else(|_| "300".to_string())
-                    .parse()
-                    .unwrap_or(300),
-                max_entries: env::var("CACHE_MAX_ENTRIES")
-                    .unwrap_or_else(|_| "10000".to_string())
-                    .parse()
-                    .unwrap_or(10000),
-            },
             admin: AdminConfig {
                 enabled: env::var("ADMIN_API_ENABLED")
                     .unwrap_or_else(|_| "false".to_string())
@@ -455,7 +379,6 @@ mod tests {
                 intercom_app_id: "test".to_string(),
                 intercom_secret_key: String::new(),
             },
-            cache: CacheConfig::default(),
             admin: AdminConfig::default(),
             protocols: ProtocolsConfig::default(),
         }
@@ -466,15 +389,6 @@ mod tests {
         let config = ServerConfig::default();
         assert_eq!(config.host, "0.0.0.0");
         assert_eq!(config.port, 3000);
-    }
-
-    #[test]
-    fn test_default_cache_config() {
-        let config = CacheConfig::default();
-        assert_eq!(config.prices_ttl_secs, 15);
-        assert_eq!(config.config_ttl_secs, 3600);
-        assert_eq!(config.apr_ttl_secs, 300);
-        assert_eq!(config.max_entries, 10000);
     }
 
     #[test]
@@ -520,14 +434,6 @@ mod tests {
         let config = ProtocolsConfig::default();
         assert!(config.admin_contract.starts_with("nolus1"));
         assert!(config.dispatcher_contract.starts_with("nolus1"));
-    }
-
-    #[test]
-    fn test_cache_config_reasonable_values() {
-        let config = CacheConfig::default();
-        assert!(config.prices_ttl_secs <= 60);
-        assert!(config.config_ttl_secs >= 60);
-        assert!(config.max_entries >= 1000);
     }
 
     #[test]
@@ -642,17 +548,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_zero_cache_ttl() {
-        let mut config = create_test_config();
-        config.cache.prices_ttl_secs = 0;
-        let result = config.validate();
-        assert!(!result.is_ok());
-        assert!(result.errors.iter().any(|e| {
-            matches!(e, ConfigError::InvalidCacheTtl { field, .. } if field == "CACHE_PRICES_TTL_SECS")
-        }));
-    }
-
-    #[test]
     fn test_validate_warnings_for_optional_apis() {
         let mut config = create_test_config();
         config.external.referral_api_url = String::new();
@@ -664,17 +559,6 @@ mod tests {
         // Warnings for optional features, but no errors
         assert!(result.has_warnings());
         assert!(result.warnings.len() >= 4);
-    }
-
-    #[test]
-    fn test_validate_warning_for_high_price_ttl() {
-        let mut config = create_test_config();
-        config.cache.prices_ttl_secs = 120; // 2 minutes
-        let result = config.validate();
-        assert!(result
-            .warnings
-            .iter()
-            .any(|w| w.contains("Price cache TTL")));
     }
 
     #[test]
