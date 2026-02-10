@@ -747,9 +747,15 @@ async fn fetch_lease_info(
             }),
             etl_data: etl_info,
         },
-        LeaseStatusResponse::Opened(opened) => {
-            build_opened_lease_info(lease_address, protocol, &opened.opened, etl_data, etl_info, &prices, &currencies)
-        }
+        LeaseStatusResponse::Opened(opened) => build_opened_lease_info(
+            lease_address,
+            protocol,
+            &opened.opened,
+            etl_data,
+            etl_info,
+            &prices,
+            &currencies,
+        ),
         LeaseStatusResponse::Closing(closing) => build_closing_lease_info(
             lease_address,
             protocol,
@@ -1687,11 +1693,7 @@ mod tests {
         let pnl = result.unwrap();
         let amount: f64 = pnl.amount.parse().unwrap();
         let percent: f64 = pnl.percent.parse().unwrap();
-        assert!(
-            (amount - (-400.0)).abs() < 0.01,
-            "PnL amount: {}",
-            amount
-        );
+        assert!((amount - (-400.0)).abs() < 0.01, "PnL amount: {}", amount);
         assert!(
             (percent - (-100.0)).abs() < 0.01,
             "PnL percent: {}",
@@ -1725,11 +1727,7 @@ mod tests {
         let amount: f64 = pnl.amount.parse().unwrap();
         let percent: f64 = pnl.percent.parse().unwrap();
         assert!((amount - 100.0).abs() < 0.01, "PnL amount: {}", amount);
-        assert!(
-            (percent - 16.67).abs() < 0.1,
-            "PnL percent: {}",
-            percent
-        );
+        assert!((percent - 16.67).abs() < 0.1, "PnL percent: {}", percent);
         assert!(pnl.pnl_positive);
     }
 

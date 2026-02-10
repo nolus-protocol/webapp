@@ -103,9 +103,17 @@ pub async fn get_enriched_transactions(
 
 /// Build a deterministic cache key from query parameters
 fn build_cache_key(query: &ProxyQuery) -> String {
-    let address = query.params.get("address").map(|s| s.as_str()).unwrap_or("");
+    let address = query
+        .params
+        .get("address")
+        .map(|s| s.as_str())
+        .unwrap_or("");
     let skip = query.params.get("skip").map(|s| s.as_str()).unwrap_or("0");
-    let limit = query.params.get("limit").map(|s| s.as_str()).unwrap_or("50");
+    let limit = query
+        .params
+        .get("limit")
+        .map(|s| s.as_str())
+        .unwrap_or("50");
     let filter = query.params.get("filter").map(|s| s.as_str()).unwrap_or("");
     let to = query.params.get("to").map(|s| s.as_str()).unwrap_or("");
     format!("txs:{}:{}:{}:{}:{}", address, skip, limit, filter, to)

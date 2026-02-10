@@ -97,17 +97,16 @@ pub async fn etl_proxy_generic(
 
     debug!("ETL proxy: {}", url);
 
-    let response =
-        state
-            .etl_client
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ExternalApi {
-                api: "ETL".to_string(),
-                message: format!("Request failed: {}", e),
-            })?;
+    let response = state
+        .etl_client
+        .client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| AppError::ExternalApi {
+            api: "ETL".to_string(),
+            message: format!("Request failed: {}", e),
+        })?;
 
     let json: serde_json::Value = response
         .json()
