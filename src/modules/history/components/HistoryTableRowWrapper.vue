@@ -95,6 +95,9 @@ function getStatus() {
       return { value: i18n.t(`message.error`), variant: "error" } as any;
     }
   }
+  if (props.transaction.code != null && props.transaction.code !== 0) {
+    return { value: i18n.t(`message.failed`), variant: "error" } as any;
+  }
   return { value: i18n.t(`message.completed`), variant: "success" } as any;
 }
 

@@ -52,6 +52,7 @@
     "earn-apr-tooltip": "Annualized percentage return on supplied or delegated assets",
     "interest-fee-tooltip": "The percentage interest rate at which the debt will increase each month",
     "error": "Error",
+    "failed": "Failed",
     "success": "Success",
     "stake": "Stake NLS",
     "vote": "Vote",

@@ -165,6 +165,12 @@ const status = computed(() => {
       };
     }
     default: {
+      if (data.value?.code != null && data.value.code !== 0) {
+        return {
+          title: i18n.t(`message.failed`),
+          class: "text-typography-error"
+        };
+      }
       return {
         title: i18n.t(`message.completed`),
         class: "text-typography-success"
