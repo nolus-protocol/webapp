@@ -12,7 +12,7 @@
         :amount="{
           value: earningsAmount,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           animatedReveal: true,
           compact: mobile
         }"
@@ -24,7 +24,7 @@
         :amount="{
           value: stableRewards,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           animatedReveal: true,
           compact: mobile
         }"

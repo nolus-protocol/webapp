@@ -1191,7 +1191,7 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
         .data_cache
         .filter_context
         .load()
-        .ok_or_else(|| "Filter context not yet available".to_string())?;
+        .ok_or("Filter context not yet available")?;
 
     // Fetch current leases using the lease handler's function
     let leases = fetch_leases_for_monitoring(state, owner)
@@ -1530,7 +1530,7 @@ async fn check_earn_positions(state: &AppState, address: &str) -> Result<(), Str
         .data_cache
         .filter_context
         .load()
-        .ok_or_else(|| "Filter context not yet available".to_string())?;
+        .ok_or("Filter context not yet available")?;
 
     // Fetch current positions using the earn handler's function
     let (all_positions, _) = fetch_earn_positions_for_monitoring(state, address)

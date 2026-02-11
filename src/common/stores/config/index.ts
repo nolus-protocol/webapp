@@ -190,6 +190,31 @@ export const useConfigStore = defineStore("config", () => {
   /** All currencies indexed by key */
   const currenciesData = computed<{ [key: string]: CurrencyInfo }>(() => currenciesResponse.value?.currencies ?? {});
 
+  /** Currencies indexed by IBC denom for O(1) lookup */
+  const currenciesByDenom = computed(() => {
+    const map = new Map<string, CurrencyInfo>();
+    for (const currency of Object.values(currenciesData.value)) {
+      if (currency.ibcData) {
+        map.set(currency.ibcData, currency);
+      }
+    }
+    return map;
+  });
+
+  /** Currencies grouped by ticker for O(1) lookup (same ticker can exist on multiple protocols) */
+  const currenciesByTicker = computed(() => {
+    const map = new Map<string, CurrencyInfo[]>();
+    for (const currency of Object.values(currenciesData.value)) {
+      const existing = map.get(currency.ticker);
+      if (existing) {
+        existing.push(currency);
+      } else {
+        map.set(currency.ticker, [currency]);
+      }
+    }
+    return map;
+  });
+
   /** LPN currencies (one per protocol) */
   const lpn = computed<CurrencyInfo[]>(() => currenciesResponse.value?.lpn ?? []);
 
@@ -515,14 +540,15 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Get currency by ticker (first match across protocols) */
   function getCurrencyByTicker(ticker: string): CurrencyInfo | undefined {
-    for (const currency of Object.values(currenciesData.value)) {
-      if (currency.ticker === ticker) return currency;
-    }
-    return undefined;
+    const matches = currenciesByTicker.value.get(ticker);
+    return matches?.[0];
   }
 
   /** Get currency by ticker, preferring the network's primary protocol */
   function getCurrencyByTickerForNetwork(ticker: string, networkFilter: string): CurrencyInfo | undefined {
+    const matches = currenciesByTicker.value.get(ticker);
+    if (!matches) return undefined;
+
     const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
     const network = supportedNetworksData.value[networkFilter];
     const primaryProtocol = network?.primary_protocol;
@@ -530,19 +556,17 @@ export const useConfigStore = defineStore("config", () => {
     let networkMatch: CurrencyInfo | undefined;
     let fallback: CurrencyInfo | undefined;
 
-    for (const currency of Object.values(currenciesData.value)) {
-      if (currency.ticker === ticker) {
-        if (networkProtocols.includes(currency.protocol)) {
-          if (currency.protocol === primaryProtocol) {
-            return currency;
-          }
-          if (!networkMatch) {
-            networkMatch = currency;
-          }
+    for (const currency of matches) {
+      if (networkProtocols.includes(currency.protocol)) {
+        if (currency.protocol === primaryProtocol) {
+          return currency;
         }
-        if (!fallback) {
-          fallback = currency;
+        if (!networkMatch) {
+          networkMatch = currency;
         }
+      }
+      if (!fallback) {
+        fallback = currency;
       }
     }
     return networkMatch ?? fallback;
@@ -550,10 +574,7 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Get currency by IBC denom */
   function getCurrencyByDenom(denom: string): CurrencyInfo | undefined {
-    for (const currency of Object.values(currenciesData.value)) {
-      if (currency.ibcData === denom) return currency;
-    }
-    return undefined;
+    return currenciesByDenom.value.get(denom);
   }
 
   /** Get currency by symbol */
@@ -566,10 +587,11 @@ export const useConfigStore = defineStore("config", () => {
 
   /** Get currency by denom and protocol */
   function getCurrency(denom: string, protocol: string): CurrencyInfo | undefined {
-    for (const currency of Object.values(currenciesData.value)) {
-      if (currency.ibcData === denom && currency.protocol === protocol) {
-        return currency;
-      }
+    const currency = currenciesByDenom.value.get(denom);
+    if (currency && currency.protocol === protocol) return currency;
+    // Fallback: denom may map to multiple protocols (rare)
+    for (const c of Object.values(currenciesData.value)) {
+      if (c.ibcData === denom && c.protocol === protocol) return c;
     }
     return undefined;
   }
@@ -767,10 +789,14 @@ export const useConfigStore = defineStore("config", () => {
       fetchGatedProtocols(),
       fetchGasFeeConfig()
     ]);
+    fetchedNetworks.add(networkToFetch.toUpperCase());
     ensureDefaultProtocolFilter();
     await prefetchProtocolCurrenciesForNetwork(networkToFetch);
     initialized.value = true;
   }
+
+  // Track which networks have had their assets fetched to avoid redundant API calls
+  const fetchedNetworks = new Set<string>();
 
   /** Set protocolFilter to the first available network if it's empty or invalid */
   function ensureDefaultProtocolFilter(): void {
@@ -780,11 +806,14 @@ export const useConfigStore = defineStore("config", () => {
     }
   }
 
-  // Watch for protocol filter changes and refetch assets for the new network
+  // Watch for protocol filter changes and fetch assets for new networks
   watch(protocolFilter, async (newFilter) => {
     if (initialized.value && newFilter) {
-      await fetchNetworkAssets(newFilter);
-      // Also prefetch protocol currencies for the new network
+      const upperFilter = newFilter.toUpperCase();
+      if (!fetchedNetworks.has(upperFilter)) {
+        await fetchNetworkAssets(newFilter);
+        fetchedNetworks.add(upperFilter);
+      }
       await prefetchProtocolCurrenciesForNetwork(newFilter).catch((e) => {
         console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
       });
@@ -795,6 +824,7 @@ export const useConfigStore = defineStore("config", () => {
    * Refresh all configuration
    */
   async function refresh(): Promise<void> {
+    fetchedNetworks.clear();
     await Promise.all([fetchConfig(), fetchCurrencies()]);
   }
 

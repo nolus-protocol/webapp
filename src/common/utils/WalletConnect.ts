@@ -163,11 +163,5 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
   return result;
 };
 
-const removeComma = (n: string) => {
-  const re = new RegExp(",", "g");
-  return n.replace(re, "");
-};
-
-const removeSpace = (n: string) => {
-  return n.replace(" ", "");
-};
+const removeComma = (n: string) => n.replace(/,/g, "");
+const removeSpace = (n: string) => n.replace(/\s/g, "");

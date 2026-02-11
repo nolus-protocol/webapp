@@ -12,7 +12,7 @@ use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
 };
-use tracing::info;
+use tracing::{info, warn};
 
 use crate::middleware::{
     admin_auth_middleware, cache_control_middleware, create_rate_limit_state,
@@ -33,6 +33,7 @@ mod propagation;
 mod query_types;
 pub mod refresh;
 mod translations;
+mod validation;
 
 #[cfg(test)]
 mod test_utils;
@@ -201,9 +202,23 @@ async fn main() -> anyhow::Result<()> {
     // Start server
     info!("Starting server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
+    info!("Server shut down gracefully");
 
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = tokio::signal::ctrl_c();
+    let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        .expect("failed to install SIGTERM handler");
+
+    tokio::select! {
+        _ = ctrl_c => { info!("Received SIGINT, shutting down"); }
+        _ = sigterm.recv() => { info!("Received SIGTERM, shutting down"); }
+    }
 }
 
 fn create_router(state: Arc<AppState>) -> Router {
@@ -653,6 +668,13 @@ fn create_router(state: Arc<AppState>) -> Router {
     // Falls back to index.html for SPA routing with 200 OK status
     let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "../dist".to_string());
     let index_path = format!("{}/index.html", static_dir);
+
+    if !std::path::Path::new(&index_path).exists() {
+        warn!(
+            "Static directory '{}' or index.html not found. SPA routes will return 404.",
+            static_dir
+        );
+    }
 
     // Create SPA fallback that serves index.html with 200 OK for client-side routes
     let spa_fallback = handlers::spa::create_spa_fallback(static_dir.clone(), index_path);

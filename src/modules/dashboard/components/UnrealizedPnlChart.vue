@@ -25,7 +25,7 @@ import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
 
 import { useWalletStore, useAnalyticsStore } from "@/common/stores";
 import { ref, watch } from "vue";
@@ -81,10 +81,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const valPadding = valRange * 0.2 || maxVal * 0.05;
   const yDomain: [number, number] = [Math.max(0, minVal - valPadding), maxVal + valPadding];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
 
   const plotChart = plot({
-    color: { legend: true },
     style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
@@ -100,7 +100,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       labelArrow: false,
       tickFormat,
       tickSize: 0,
-      ticks: CHART_AXIS.yTicks
+      ticks: yTicks
     },
     x: { type: "time", label: null, ticks: CHART_AXIS.xTicks },
     marks: [

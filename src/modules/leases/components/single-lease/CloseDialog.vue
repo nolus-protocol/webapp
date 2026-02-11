@@ -72,20 +72,20 @@
           <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
           <template v-if="lease">
             <template v-if="sliderValue == 0">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="list-sparkle"
-                  class="fill-icon-secondary"
+                  class="mt-0.5 shrink-0 fill-icon-secondary"
                 />
                 {{ $t("message.preview-input") }}
               </div>
             </template>
 
             <template v-if="sliderValue > 0 && sliderValue < midPosition">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
@@ -100,20 +100,20 @@
                 ></p>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="info"
-                  class="fill-icon-secondary"
+                  class="mt-0.5 shrink-0 fill-icon-secondary"
                 />
                 {{ $t("message.preview-closed-debt") }} {{ remaining }}
               </div>
             </template>
 
             <template v-if="sliderValue == midPosition">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
@@ -128,28 +128,28 @@
                 ></p>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed") }}
               </div>
             </template>
 
             <template v-if="sliderValue > midPosition && sliderValue < 100">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
@@ -164,19 +164,19 @@
                 ></p>
               </div>
 
-              <!-- <div class="flex items-center gap-2 text-14">
+              <!-- <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed-paid") }}
                 <strong>{{ payout }} {{ lpn }}</strong>
               </div> -->
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <div>
                   <strong>{{ payout }} {{ lpn }}</strong> {{ $t("message.and") }} <strong>{{ positionLeft }}</strong>
@@ -184,20 +184,20 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed") }}
               </div>
             </template>
 
             <template v-if="sliderValue >= 100">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
@@ -212,10 +212,10 @@
                 ></p>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <div>
                   <strong>{{ payout }} {{ lpn }}</strong>
@@ -223,10 +223,10 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed") }}
               </div>
@@ -266,7 +266,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd, formatPriceUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatPriceUsd, formatTokenBalance, formatPercent } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -427,7 +427,7 @@ const debtData = computed(() => {
       const asset = d.quo(price);
       const value = new Dec(amount.value).mul(new Dec(swapFee.value));
       return {
-        fee: `${formatNumber(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)}% (${formatDecAsUsd(value)})`,
+        fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
         asset: currecy.shortName,
         price: formatPriceUsd(price.toString(MAX_DECIMALS)),
         debt: `${formatTokenBalance(asset)} ${currecy.shortName}`
@@ -437,7 +437,7 @@ const debtData = computed(() => {
       const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
       let lpn = getLpnByProtocol(lease.value.protocol);
       return {
-        fee: `${formatNumber(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)}% (${formatDecAsUsd(value)})`,
+        fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
         asset: currecy.shortName,
         price: formatPriceUsd(price.toString(MAX_DECIMALS)),
         debt: ` ${formatTokenBalance(asset)} ${lpn.shortName}`
@@ -679,19 +679,19 @@ function isAmountValid() {
 
       if (amountInStable.lt(minAmountTemp)) {
         amountErrorMsg.value = i18n.t("message.min-amount-allowed", {
-          amount: minAmountTemp.quo(price).toString(Number(currencyData.decimal_digits)),
+          amount: formatTokenBalance(minAmountTemp.quo(price)),
           currency: currencyData.shortName
         });
         isValid = false;
       } else if (value.gt(debtAmount)) {
         amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-          maxAmount: Number(debtAmount.toString(Number(currencyData.decimal_digits))),
+          maxAmount: formatTokenBalance(debtAmount),
           symbol: currencyData.shortName
         });
         isValid = false;
       } else if (!value.equals(debtAmount) && debtAmount.sub(value).mul(price).lte(minAmont)) {
         amountErrorMsg.value = i18n.t("message.lease-min-amount", {
-          amount: Number(minAmont.quo(price).toString(Number(currencyData.decimal_digits))),
+          amount: formatTokenBalance(minAmont.quo(price)),
           symbol: currencyData.shortName
         });
         isValid = false;

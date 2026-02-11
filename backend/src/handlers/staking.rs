@@ -148,14 +148,7 @@ pub struct StakingParams {
 pub async fn get_validators(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<Validator>>, AppError> {
-    let validators =
-        state
-            .data_cache
-            .validators
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Validators not yet available".to_string(),
-            })?;
+    let validators = state.data_cache.validators.load_or_unavailable("Validators")?;
 
     Ok(Json(validators))
 }
@@ -203,6 +196,7 @@ pub async fn get_positions(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressQuery>,
 ) -> Result<Json<StakingPositionsResponse>, AppError> {
+    crate::validation::validate_bech32_address(&query.address, "address")?;
     debug!("Getting staking positions for: {}", query.address);
 
     // Fetch delegations, rewards, unbonding, and validators in parallel

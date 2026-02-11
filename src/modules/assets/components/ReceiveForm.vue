@@ -114,7 +114,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTickerForNetwork, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { coin } from "@cosmjs/stargate";
@@ -137,7 +137,7 @@ const assets = computed(() => {
     if (!currency) continue; // Skip deprecated/removed denoms
 
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = formatNumber(value.toString(), asset.decimal_digits!);
+    const balance = formatTokenBalance(value);
 
     const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const stable = price.mul(value);

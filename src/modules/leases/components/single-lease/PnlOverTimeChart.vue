@@ -16,8 +16,8 @@
     class="flex justify-center"
     v-if="chart?.isLegendVisible"
   >
-    <div class="flex items-center">
-      <span class="btn-gradient m-2 block h-[8px] w-[20px] rounded"></span>
+    <div class="flex items-center text-sm">
+      <span class="btn-gradient m-2 block h-[4px] w-[12px] rounded"></span>
       {{ $t("message.pnl-in-usdc") }}
     </div>
   </div>
@@ -32,7 +32,7 @@ import { pointer, select, type Selection } from "d3";
 import { CHART_RANGES } from "@/config/global";
 import { useI18n } from "vue-i18n";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
 import type { LeaseInfo } from "@/common/api";
 import { useAnalyticsStore } from "@/common/stores";
 
@@ -105,7 +105,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const amounts = data.value.map((d) => d.amount);
   const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
   const plotChart = plot({
     width: chartWidth,
     height: chartHeight,
@@ -119,7 +120,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       labelArrow: false,
       tickFormat,
       tickSize: 0,
-      ticks: CHART_AXIS.yTicks
+      ticks: yTicks
     },
     x: {
       label: null,

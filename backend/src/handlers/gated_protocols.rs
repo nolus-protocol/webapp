@@ -79,14 +79,7 @@ pub struct ProtocolCurrenciesResponse {
 pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
-    let response =
-        state
-            .data_cache
-            .gated_protocols
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Protocols not yet available".to_string(),
-            })?;
+    let response = state.data_cache.gated_protocols.load_or_unavailable("Protocols")?;
 
     Ok(Json(response))
 }
@@ -102,14 +95,7 @@ pub async fn get_protocol_currencies(
     Path(protocol): Path<String>,
 ) -> Result<Json<ProtocolCurrenciesResponse>, AppError> {
     // Read gated config from cache
-    let gated =
-        state
-            .data_cache
-            .gated_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gated config not yet available".to_string(),
-            })?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
     let lease_rules = gated.lease_rules;
@@ -119,14 +105,7 @@ pub async fn get_protocol_currencies(
     let etl_protocols = state.etl_client.fetch_protocols().await?;
 
     // Read prices from cache
-    let prices_response =
-        state
-            .data_cache
-            .prices
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Prices not yet available".to_string(),
-            })?;
+    let prices_response = state.data_cache.prices.load_or_unavailable("Prices")?;
 
     // Verify protocol exists and is configured
     let configured_protocols =
@@ -239,14 +218,7 @@ pub async fn get_network_protocols(
     Path(network): Path<String>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
     // Read gated config from cache
-    let gated =
-        state
-            .data_cache
-            .gated_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gated config not yet available".to_string(),
-            })?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
 

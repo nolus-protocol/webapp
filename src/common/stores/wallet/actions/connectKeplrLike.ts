@@ -51,11 +51,12 @@ export async function connectKeplrLike(
       const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
       await nolusWalletOfflineSigner.useAccount();
 
-      WalletManager.saveWalletConnectMechanism(mechanism);
-      WalletManager.setPubKey(Buffer.from((nolusWalletOfflineSigner?.pubKey ?? "") as string).toString("hex"));
-
       store.wallet = nolusWalletOfflineSigner;
       applyNolusWalletOverrides(store.wallet);
+
+      // Save mechanism only after wallet is fully set up
+      WalletManager.saveWalletConnectMechanism(mechanism);
+      WalletManager.setPubKey(Buffer.from((nolusWalletOfflineSigner?.pubKey ?? "") as string).toString("hex"));
     }
   }
 

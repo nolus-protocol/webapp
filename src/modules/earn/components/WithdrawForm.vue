@@ -195,24 +195,33 @@ async function fetchDepositBalance() {
 
     for (const lpn of lpns ?? []) {
       async function fn() {
-        const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
-        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-        const [_currency, protocol] = lpn.key.split("@");
+        try {
+          const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
+          const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+          const [_currency, protocol] = lpn.key.split("@");
 
-        const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
-        const [depositBalance, price] = await Promise.all([
-          lppClient.getLenderDeposit(walletAddress as string),
-          lppClient.getPrice()
-        ]);
+          const contract = configStore.contracts[protocol]?.lpp;
+          if (!contract) return null;
 
-        const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        const amount = new Dec(depositBalance.amount).mul(calculatedPrice);
+          const lppClient = new Lpp(cosmWasmClient, contract);
+          const [depositBalance, price] = await Promise.all([
+            lppClient.getLenderDeposit(walletAddress as string),
+            lppClient.getPrice()
+          ]);
 
-        return { coin: new Coin(lpn.ibcData, amount.roundUp().toString()), key: lpn.key };
+          const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
+          const amount = new Dec(depositBalance.amount).mul(calculatedPrice);
+
+          return { coin: new Coin(lpn.ibcData, amount.roundUp().toString()), key: lpn.key };
+        } catch (e) {
+          console.error(`[WithdrawForm] Failed to fetch deposit balance for ${lpn.key}:`, e);
+          return null;
+        }
       }
       data.push(fn());
     }
-    lpnBalances.value = await Promise.all(data);
+    const results = await Promise.all(data);
+    lpnBalances.value = results.filter((r): r is NonNullable<typeof r> => r !== null);
   } catch (e) {
     Logger.error(e);
   }

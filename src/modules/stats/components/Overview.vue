@@ -8,7 +8,7 @@
           value: tvl,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           animatedReveal: true
         }"
         :loading="loading"
@@ -19,7 +19,7 @@
           value: txVolume,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
-          fontSize: 20,
+          fontSize: 24,
           animatedReveal: true
         }"
         :loading="loading"
@@ -30,7 +30,7 @@
           value: realized_pnl,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
-          fontSize: 20,
+          fontSize: 24,
           animatedReveal: true
         }"
         :loading="loading"
@@ -41,7 +41,7 @@
         :amount="{
           value: protocolRevenue,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: 20,
+          fontSize: 24,
           compact: true,
           animatedReveal: true
         }"
@@ -56,7 +56,7 @@
           compact: true,
           hasSpace: true,
           isDenomPrefix: false,
-          fontSize: 20,
+          fontSize: 24,
           animatedReveal: true
         }"
         :loading="loading"
@@ -65,11 +65,11 @@
 
     <div class="flex">
       <div class="flex flex-1 justify-center">
-        <div class="flex items-center">
-          <span class="m-2 block h-[8px] w-[20px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
+        <div class="flex items-center text-sm">
+          <span class="m-2 block h-[4px] w-[12px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
         </div>
-        <div class="flex items-center">
-          <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.borrowed-chart") }}
+        <div class="flex items-center text-sm">
+          <span class="m-2 block h-[4px] w-[12px] rounded bg-blue-500"></span>{{ $t("message.borrowed-chart") }}
         </div>
       </div>
 
@@ -100,13 +100,11 @@ import SupplyBorrowedChart from "./SupplyBorrowedChart.vue";
 import LeasesMonthlyChart from "@/modules/stats/components/LeasesMonthlyChart.vue";
 
 import { Widget, Dropdown } from "web-components";
-import { isMobile } from "@/common/utils";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
 import { useConfigStore, useStatsStore } from "@/common/stores";
 
-const mobile = isMobile();
 const i18n = useI18n();
 const configStore = useConfigStore();
 const statsStore = useStatsStore();

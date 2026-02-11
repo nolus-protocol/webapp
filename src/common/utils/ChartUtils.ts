@@ -6,7 +6,7 @@ const mobile = isMobile();
 export const CHART_AXIS = {
   fontSize: mobile ? "12px" : "14px",
   xTicks: mobile ? 4 : 6,
-  yTicks: mobile ? 3 : 4
+  yTicks: mobile ? 4 : 5
 };
 
 export function getChartWidth(plotContainer: HTMLElement): number {
@@ -17,16 +17,33 @@ const measureCanvas = document.createElement("canvas").getContext("2d")!;
 
 export function computeMarginLeft(
   yDomain: [number, number],
-  tickFormat: (d: number) => string
+  tickFormat: (d: number) => string,
+  ticks?: number[]
 ): number {
   measureCanvas.font = `${CHART_AXIS.fontSize} system-ui, sans-serif`;
-  const minLabel = tickFormat(yDomain[0]);
-  const maxLabel = tickFormat(yDomain[1]);
-  const maxWidth = Math.max(
-    measureCanvas.measureText(minLabel).width,
-    measureCanvas.measureText(maxLabel).width
-  );
+  const values = ticks ?? [yDomain[0], yDomain[1]];
+  let maxWidth = 0;
+  for (const v of values) {
+    const w = measureCanvas.measureText(tickFormat(v)).width;
+    if (w > maxWidth) maxWidth = w;
+  }
   return Math.ceil(maxWidth) + 12;
+}
+
+/**
+ * Generate exactly `count` evenly-spaced tick values within a domain.
+ * Observable Plot's `ticks: N` is only a hint — passing an explicit array
+ * guarantees the exact number of ticks rendered.
+ */
+export function computeYTicks(yDomain: [number, number], count: number = CHART_AXIS.yTicks): number[] {
+  const [min, max] = yDomain;
+  if (count <= 1 || min === max) return [min];
+  const step = (max - min) / (count - 1);
+  const ticks: number[] = [];
+  for (let i = 0; i < count; i++) {
+    ticks.push(min + step * i);
+  }
+  return ticks;
 }
 
 export function computeMarginLeftForLabels(labels: string[]): number {

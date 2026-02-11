@@ -108,14 +108,7 @@ pub struct NetworkPoolsResponse {
 pub async fn get_networks(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<NetworksResponse>, AppError> {
-    let response =
-        state
-            .data_cache
-            .gated_networks
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Networks not yet available".to_string(),
-            })?;
+    let response = state.data_cache.gated_networks.load_or_unavailable("Networks")?;
 
     Ok(Json(response))
 }
@@ -127,14 +120,7 @@ pub async fn get_network(
     Path(network): Path<String>,
 ) -> Result<Json<NetworkResponse>, AppError> {
     // Read gated config from cache
-    let gated =
-        state
-            .data_cache
-            .gated_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gated config not yet available".to_string(),
-            })?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
     let network_config = gated.network_config;
 
     let settings = network_config
@@ -170,14 +156,7 @@ pub async fn get_network_pools(
     Path(network): Path<String>,
 ) -> Result<Json<NetworkPoolsResponse>, AppError> {
     // Read gated config from cache
-    let gated =
-        state
-            .data_cache
-            .gated_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gated config not yet available".to_string(),
-            })?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
 

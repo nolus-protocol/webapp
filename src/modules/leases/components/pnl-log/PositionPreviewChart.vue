@@ -10,7 +10,7 @@
 
 <script lang="ts" setup>
 import { line } from "@observablehq/plot";
-import { CHART_AXIS } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, computeYTicks } from "@/common/utils/ChartUtils";
 
 const aapl = [
   { Date: "2020-01-01", Close: 292.92 },
@@ -25,6 +25,10 @@ const aapl = [
   { Date: "2020-04-14", Close: 312.68 }
 ];
 
+const closes = aapl.map((d) => d.Close);
+const yDomain: [number, number] = [Math.min(...closes), Math.max(...closes)];
+const yTicks = computeYTicks(yDomain);
+
 const chartHTML = line(aapl, { x: "Date", y: "Close", stroke: "#3470E2", strokeWidth: 4 }).plot({
   width: 960,
   height: 350,
@@ -37,7 +41,7 @@ const chartHTML = line(aapl, { x: "Date", y: "Close", stroke: "#3470E2", strokeW
     labelArrow: false,
     tickFormat: (d) => `$${d}`,
     tickSize: 0,
-    ticks: CHART_AXIS.yTicks
+    ticks: yTicks
   },
   x: {
     label: null,

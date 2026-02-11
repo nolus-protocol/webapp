@@ -15,7 +15,7 @@ import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createNumberTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createNumberTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
 import { PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, ref, watch } from "vue";
@@ -66,10 +66,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const amounts = data.value.map((d) => d.amount);
   const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
   const tickFormat = createNumberTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
 
   const plotChart = plot({
-    color: { legend: true },
     style: { fontSize: CHART_AXIS.fontSize },
     marginTop,
     width: chartWidth,
@@ -83,7 +83,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       label: i18n.t("message.earn-chart-y"),
       round: true,
       tickFormat,
-      ticks: CHART_AXIS.yTicks
+      ticks: yTicks
     },
     x: { tickRotate: 15, type: "linear", tickFormat: (d) => `${d}y.`, ticks: CHART_AXIS.xTicks },
     marks: [

@@ -28,14 +28,7 @@ pub struct HiddenProposalsResponse {
 pub async fn get_hidden_proposals(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<HiddenProposalsResponse>, AppError> {
-    let gated =
-        state
-            .data_cache
-            .gated_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gated config not yet available".to_string(),
-            })?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
     let ui_settings = gated.ui_settings;
 
     Ok(Json(HiddenProposalsResponse {

@@ -25,16 +25,9 @@
               value: pnl.toString(2),
               denom: NATIVE_CURRENCY.symbol,
               animatedReveal: true,
-              fontSize: mobile ? 24 : 32,
-              compact: mobile
-            }"
-            :pnl-status="{
-              positive: pnlPercent.isPositive() || pnlPercent.isZero(),
-              value: `${pnlPercent.isPositive() || pnlPercent.isZero() ? '+' : '-'}${pnlPercent.abs().toString(2)}%`,
-              badge: {
-                content: pnlPercent.toString(),
-                base: false
-              }
+              fontSize: 24,
+              compact: mobile,
+              class: pnlPercent.isPositive() || pnlPercent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
             :loading="leasesStore.loading"
             :loadingWidth="'80px'"

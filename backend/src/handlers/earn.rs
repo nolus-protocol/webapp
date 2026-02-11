@@ -125,22 +125,9 @@ pub async fn get_pools(
     debug!("Getting all earn pools");
 
     // Read filter context and pools from cache
-    let filter_ctx =
-        state
-            .data_cache
-            .filter_context
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Filter context not yet available".to_string(),
-            })?;
+    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
 
-    let pools = state
-        .data_cache
-        .pools
-        .load()
-        .ok_or_else(|| AppError::ServiceUnavailable {
-            message: "Earn pools not yet available".to_string(),
-        })?;
+    let pools = state.data_cache.pools.load_or_unavailable("Earn pools")?;
 
     // Load network config from cache for pool icons
     let gated = state.data_cache.gated_config.load();
@@ -177,14 +164,7 @@ pub async fn get_pool(
     debug!("Getting pool for protocol: {}", protocol);
 
     // Read filter context from cache and check if protocol is configured
-    let filter_ctx =
-        state
-            .data_cache
-            .filter_context
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Filter context not yet available".to_string(),
-            })?;
+    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
     if !filter_ctx.is_earn_position_visible(&protocol) {
         return Err(AppError::NotFound {
             resource: format!("Pool for protocol: {}", protocol),
@@ -212,17 +192,11 @@ pub async fn get_positions(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressQuery>,
 ) -> Result<Json<EarnPositionsResponse>, AppError> {
+    crate::validation::validate_bech32_address(&query.address, "address")?;
     debug!("Getting earn positions for owner: {}", query.address);
 
     // Read filter context from cache
-    let filter_ctx =
-        state
-            .data_cache
-            .filter_context
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Filter context not yet available".to_string(),
-            })?;
+    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
 
     let admin_address = &state.config.protocols.admin_contract;
 

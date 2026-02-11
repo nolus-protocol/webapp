@@ -37,14 +37,7 @@ pub struct GasFeeConfigResponse {
 pub async fn get_gas_fee_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<GasFeeConfigResponse>, AppError> {
-    let config =
-        state
-            .data_cache
-            .gas_fee_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gas fee config not yet available".to_string(),
-            })?;
+    let config = state.data_cache.gas_fee_config.load_or_unavailable("Gas fee config")?;
 
     Ok(Json(config))
 }

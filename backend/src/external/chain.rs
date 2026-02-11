@@ -14,7 +14,7 @@ use crate::error::AppError;
 
 /// Maximum concurrent LCD/REST requests to the chain node.
 /// Prevents burst overload on cold start and during cache refresh cycles.
-const MAX_CONCURRENT_CHAIN_QUERIES: usize = 12;
+const MAX_CONCURRENT_CHAIN_QUERIES: usize = 32;
 
 /// Client for querying Cosmos chains via RPC/REST
 #[derive(Clone)]

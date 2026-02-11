@@ -135,7 +135,7 @@ import {
   WalletUtils
 } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
-import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
@@ -157,7 +157,7 @@ const assets = computed(() => {
     if (!currency) continue; // Skip deprecated/removed denoms
 
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = formatNumber(value.toString(), asset.decimal_digits!);
+    const balance = formatTokenBalance(value);
     const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const stable = price.mul(value);
 

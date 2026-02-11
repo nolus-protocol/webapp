@@ -156,6 +156,10 @@ The `entry-client.ts` watcher skips if `connectionStore.walletAddress === newAdd
 - **Real-time prices**: Prices are fetched once via REST on startup, then kept current via WebSocket subscription (~6s cadence). No frontend polling.
 - **Wallet-aware empty states**: Components use the `useWalletConnected()` composable (`src/common/composables/useWalletConnected.ts`) to determine wallet connection state for showing empty states. Wallet state is NOT passed as props (`isVisible`, `showEmpty`) — each widget calls the composable directly. This distinguishes "no wallet" (EmptyState without action buttons) from "wallet connected, no data" (EmptyState with action buttons like Receive, Open Position, etc.). The `EmptyState` component itself is purely presentational with no wallet awareness.
 - **Side effects in composable**: Wallet lifecycle events (keystorechange listeners, initial wallet connection, APR loading) are extracted from `view.vue` into the `useWalletEvents` composable (`src/common/composables/useWalletEvents.ts`). `view.vue` is a pure layout component.
+- **Keystorechange debounce**: Rapid wallet switches (Keplr fires multiple keystorechange events) are guarded by an in-flight mutex in `createKeystoreHandler()`. If a connection is already in progress, subsequent events are dropped. The next event after completion runs normally.
+- **Ledger transport cleanup**: If `nolusLedgerWallet()` or `useAccount()` throws after the Bluetooth/USB transport is created, the transport handle is closed in a `catch` block to prevent resource leaks.
+- **Wallet mechanism save order**: `WalletManager.saveWalletConnectMechanism()` and `setPubKey()` are called only **after** `applyNolusWalletOverrides()` succeeds, so a partially-failed connection never persists a mechanism to localStorage.
+- **Connection cleanup order**: `connectionStore.cleanup()` disconnects the wallet **first** (triggering store watchers to send WS unsubscribe messages while the connection is still open), **then** disconnects the WebSocket. This ensures unsubscribe messages reach the server.
 
 ### Key Files
 
@@ -1960,6 +1964,27 @@ onUnmounted(() => {
   unsubscribe();
 });
 ```
+
+### Reconnect Data Refresh
+
+When the WebSocket reconnects after a disconnect (e.g., network outage), user-specific stores may show stale data from the pre-disconnect period. The `connectionStore` tracks reconnections via a `wsReconnectCount` ref that increments on each `"disconnected" → "connected"` transition. User-specific stores (balances, leases, earn) watch this counter and re-fetch their data:
+
+```typescript
+// In connectionStore
+const wsReconnectCount = ref(0);
+
+// In WS state callback
+if (state === "connected" && wasDisconnected && walletAddress.value) {
+  wsReconnectCount.value++;
+}
+
+// In balancesStore, leasesStore, earnStore
+watch(() => connectionStore.wsReconnectCount, () => {
+  if (address.value) fetchData();
+});
+```
+
+This keeps the architecture clean: `connectionStore` doesn't import user-specific stores — stores self-register via watchers (same pattern as `walletAddress` watchers).
 
 ---
 

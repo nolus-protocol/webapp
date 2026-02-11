@@ -15,7 +15,8 @@
         denom: asset?.shortName,
         decimals: asset?.decimal_digits,
         around: true,
-        tooltip: true
+        tooltip: true,
+        fontSize: 24
       }"
       :secondary="{
         value: stable,

@@ -8,7 +8,7 @@
           value: openPositionValue,
           denom: NATIVE_CURRENCY.symbol,
           compact: true,
-          fontSize: mobile ? 24 : 32
+          fontSize: 24
         }"
         :loading="loading"
       />
@@ -20,7 +20,7 @@
         :amount="{
           value: openInterest,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: 20,
+          fontSize: 24,
           compact: true
         }"
         :loading="loading"
@@ -35,12 +35,10 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { Widget } from "web-components";
-import { isMobile } from "@/common/utils";
 import { computed, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useConfigStore, useStatsStore } from "@/common/stores";
 
-const mobile = isMobile();
 const configStore = useConfigStore();
 const statsStore = useStatsStore();
 

@@ -7,6 +7,19 @@
 import { Dec, CoinPretty } from "@keplr-wallet/unit";
 import { DECIMALS_AMOUNT, MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
 
+// Intl.NumberFormat construction is expensive — cache instances by options signature.
+const formatterCache = new Map<string, Intl.NumberFormat>();
+
+function getFormatter(locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
+  const key = `${locale}|${options.minimumFractionDigits ?? ""}|${options.maximumFractionDigits ?? ""}|${options.notation ?? ""}|${options.compactDisplay ?? ""}`;
+  let fmt = formatterCache.get(key);
+  if (!fmt) {
+    fmt = new Intl.NumberFormat(locale, options);
+    formatterCache.set(key, fmt);
+  }
+  return fmt;
+}
+
 /**
  * Format a number with specified decimals and optional symbol
  */
@@ -15,7 +28,7 @@ export function formatNumber(amount: number | string, decimals: number, symbol?:
   if (isNaN(numValue)) return `${symbol ?? ""}0.${"0".repeat(Math.max(decimals, 0))}`;
   const sign = numValue < 0 ? "-" : "";
 
-  const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
+  const formatted = getFormatter(NATIVE_CURRENCY.locale, {
     maximumFractionDigits: decimals,
     minimumFractionDigits: decimals
   })
@@ -47,7 +60,7 @@ export function tokenFormatOptions(maxDecimals: number): Intl.NumberFormatOption
  * Matches the AnimateNumber tokenFormatOptions output for non-animated paths.
  */
 export function formatToken(amount: number, maxDecimals: number): string {
-  return new Intl.NumberFormat(NATIVE_CURRENCY.locale, tokenFormatOptions(maxDecimals)).format(amount);
+  return getFormatter(NATIVE_CURRENCY.locale, tokenFormatOptions(maxDecimals)).format(amount);
 }
 
 /**
@@ -77,7 +90,14 @@ export function formatDecAsUsd(amount: Dec): string {
  * Format a number with compact notation (1K, 1M, etc.)
  */
 export function formatCompact(amount: number | string, locale: string = NATIVE_CURRENCY.locale): string {
-  return new Intl.NumberFormat(locale, compactFormatOptions).format(Number(amount));
+  return getFormatter(locale, compactFormatOptions).format(Number(amount));
+}
+
+/**
+ * Format a percentage value with locale-aware formatting: "5.25%", "0.00%"
+ */
+export function formatPercent(amount: number | string, decimals: number = 2): string {
+  return `${formatNumber(amount, decimals)}%`;
 }
 
 /**
@@ -145,7 +165,7 @@ function formatNumberTrimmed(amount: string, minDecimals: number, maxDecimals: n
   const numValue = Number(amount);
   const sign = numValue < 0 ? "-" : "";
 
-  const formatted = new Intl.NumberFormat(NATIVE_CURRENCY.locale, {
+  const formatted = getFormatter(NATIVE_CURRENCY.locale, {
     minimumFractionDigits: minDecimals,
     maximumFractionDigits: maxDecimals
   }).format(Math.abs(numValue));

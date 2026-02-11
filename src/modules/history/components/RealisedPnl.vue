@@ -8,7 +8,7 @@
             value: pnl,
             denom: NATIVE_CURRENCY.symbol,
             decimals: NORMAL_DECIMALS,
-            fontSize: mobile ? 24 : 32,
+            fontSize: 24,
             animatedReveal: true,
             compact: mobile
           }"
@@ -22,7 +22,7 @@
           :amount="{
             value: tx_volume,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: 20,
+            fontSize: 24,
             decimals: NORMAL_DECIMALS,
             animatedReveal: true,
             compact: mobile
@@ -38,7 +38,7 @@
           :amount="{
             value: win_rate,
             denom: '%',
-            fontSize: 20,
+            fontSize: 24,
             decimals: NORMAL_DECIMALS,
             isDenomPrefix: false,
             animatedReveal: true

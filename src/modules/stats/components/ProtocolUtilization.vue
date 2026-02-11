@@ -8,7 +8,7 @@
         denom: NATIVE_CURRENCY.symbol,
         decimals: 0,
         compact: true,
-        fontSize: mobile ? 24 : 32
+        fontSize: 24
       }"
     />
     <Table
@@ -41,7 +41,7 @@ import { computed, h } from "vue";
 import { useEarnStore } from "@/common/stores/earn";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { formatNumber, formatPercent } from "@/common/utils/NumberFormatUtils";
 import type { UtilizationProps } from "../types";
 
 const mobile = isMobile();
@@ -75,7 +75,7 @@ const columns = computed<TableColumnProps[]>(() => mobile
     ]
 );
 function buildRow(ticker: string, subValue: string, icon: string, utilization: string, deposit: string, protocolKey: string) {
-  const apr = `${formatNumber(earnStore.getProtocolApr(protocolKey), 2)}%`;
+  const apr = formatPercent(earnStore.getProtocolApr(protocolKey));
 
   if (mobile) {
     return {

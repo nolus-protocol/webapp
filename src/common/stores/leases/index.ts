@@ -6,7 +6,7 @@
  */
 
 import { defineStore } from "pinia";
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import {
   BackendApi,
@@ -23,7 +23,7 @@ import {
 } from "@/common/api";
 import { usePricesStore } from "../prices";
 import { useConfigStore } from "../config";
-import { useConnectionStore } from "../connection";
+import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
 import { LeaseCalculator, type LeaseDisplayData } from "@/common/utils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 
@@ -300,18 +300,7 @@ export const useLeasesStore = defineStore("leases", () => {
   // Self-register: watch wallet address changes from connectionStore.
   // { immediate: true } ensures stores created after wallet is already
   // connected will still load data (the watcher fires with current value).
-  const connectionStore = useConnectionStore();
-  watch(
-    () => connectionStore.walletAddress,
-    (newAddress, oldAddress) => {
-      if (newAddress && newAddress !== oldAddress) {
-        setOwner(newAddress);
-      } else if (!newAddress && oldAddress) {
-        cleanup();
-      }
-    },
-    { immediate: true }
-  );
+  useWalletWatcher(setOwner, cleanup, fetchLeases);
 
   return {
     // State

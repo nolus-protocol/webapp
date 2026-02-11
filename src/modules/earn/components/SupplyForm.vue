@@ -293,20 +293,25 @@ async function fetchDepositCapacity() {
     const [_currency, protocol] = lpn.key!.split("@");
 
     const fn = async () => {
-      const contract = configStore.contracts[protocol]?.lpp;
-      if (!contract) {
-        value[protocol] = false;
-        return;
-      }
-      const lppClient = new Lpp(cosmWasmClient, contract);
-      const depositCapacity = await lppClient.getDepositCapacity();
+      try {
+        const contract = configStore.contracts[protocol]?.lpp;
+        if (!contract) {
+          value[protocol] = false;
+          return;
+        }
+        const lppClient = new Lpp(cosmWasmClient, contract);
+        const depositCapacity = await lppClient.getDepositCapacity();
 
-      if (Number(depositCapacity?.amount) == 0) {
+        if (Number(depositCapacity?.amount) == 0) {
+          value[protocol] = false;
+          maxSupply.value[protocol] = new Int(0);
+        } else {
+          value[protocol] = true;
+          maxSupply.value[protocol] = new Int(depositCapacity?.amount ?? -1);
+        }
+      } catch (e) {
+        console.error(`[SupplyForm] Failed to fetch deposit capacity for ${protocol}:`, e);
         value[protocol] = false;
-        maxSupply.value[protocol] = new Int(0);
-      } else {
-        value[protocol] = true;
-        maxSupply.value[protocol] = new Int(depositCapacity?.amount ?? -1);
       }
     };
 

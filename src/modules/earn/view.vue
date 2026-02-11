@@ -42,7 +42,7 @@ import { EarnAssetsDialog } from "./enums";
 import { computed, h, provide, ref, watch } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
 
-import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd, formatPercent } from "@/common/utils/NumberFormatUtils";
 import { isMobile } from "@/common/utils";
 import { NORMAL_DECIMALS } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -167,7 +167,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
         stable_balance: mobile ? formatMobileUsd(stableBalance) : formatUsd(stableBalance.toString(2)),
         stable_balance_number: parseFloat(stableBalance.toString(2)),
         // pool.apy is already in percentage format from backend (e.g., 5.25 for 5.25%)
-        apr: new Dec(pool.apy).toString(2),
+        apr: formatPercent(pool.apy),
         currency,
         isOpen
       };
@@ -179,7 +179,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
           items: [
             {
               value: item.currency?.shortName ?? item.protocol,
-              subValue: `${item.apr}%`,
+              subValue: item.apr,
               subValueClass: "text-typography-success",
               image: item.currency?.icon,
               variant: "left"
@@ -220,7 +220,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
             subValue: item.stable_balance,
             variant: "right"
           },
-          { value: `${item.apr}%`, class: "text-typography-success" },
+          { value: item.apr, class: "text-typography-success" },
           { component: statusComponent }
         ]
       };

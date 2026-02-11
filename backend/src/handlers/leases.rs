@@ -16,6 +16,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::Duration;
 use tracing::{debug, error, warn};
 
 use crate::error::AppError;
@@ -257,14 +258,7 @@ pub async fn get_lease_config(
 ) -> Result<Json<LeaseConfigResponse>, AppError> {
     debug!("Fetching lease config for protocol: {}", protocol);
 
-    let lease_configs =
-        state
-            .data_cache
-            .lease_configs
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Lease configs not yet available".to_string(),
-            })?;
+    let lease_configs = state.data_cache.lease_configs.load_or_unavailable("Lease configs")?;
 
     let config = lease_configs
         .get(&protocol)
@@ -297,17 +291,11 @@ pub async fn get_leases(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressWithProtocolQuery>,
 ) -> Result<Json<LeasesResponse>, AppError> {
+    crate::validation::validate_bech32_address(&query.address, "address")?;
     debug!("Getting leases for owner: {}", query.address);
 
     // Read filter context from cache
-    let filter_ctx =
-        state
-            .data_cache
-            .filter_context
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Filter context not yet available".to_string(),
-            })?;
+    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
 
     let admin_address = &state.config.protocols.admin_contract;
 
@@ -371,16 +359,29 @@ pub async fn get_leases(
                     }
                 };
 
-                // Fetch all lease details in parallel
+                // Fetch all lease details in parallel with per-lease timeout
                 let lease_futures: Vec<_> = lease_addresses
                     .into_iter()
                     .map(|lease_address| {
                         let state = state.clone();
                         let protocol = protocol.clone();
                         async move {
-                            fetch_lease_info(&state, &lease_address, &protocol)
-                                .await
-                                .ok()
+                            match tokio::time::timeout(
+                                Duration::from_secs(10),
+                                fetch_lease_info(&state, &lease_address, &protocol),
+                            )
+                            .await
+                            {
+                                Ok(Ok(lease)) => Some(lease),
+                                Ok(Err(e)) => {
+                                    warn!("Failed to fetch lease {}: {}", lease_address, e);
+                                    None
+                                }
+                                Err(_) => {
+                                    warn!("Timeout fetching lease {}", lease_address);
+                                    None
+                                }
+                            }
                         }
                     })
                     .collect();
@@ -763,78 +764,33 @@ async fn fetch_lease_info(
             etl_data,
             etl_info,
         ),
-        LeaseStatusResponse::PaidOff(paid_off) => LeaseInfo {
-            address: lease_address.to_string(),
-            protocol: protocol.to_string(),
-            status: LeaseStatusType::PaidOff,
-            amount: LeaseAssetInfo {
-                ticker: paid_off.paid_off.amount.ticker.clone(),
-                amount: paid_off.paid_off.amount.amount.clone(),
-                amount_usd: None,
-            },
-            debt: build_empty_debt(""),
-            interest: LeaseInterestInfo {
-                loan_rate: 0,
-                margin_rate: 0,
-                annual_rate_percent: 0.0,
-            },
-            liquidation_price: None,
-            opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
-            pnl: None,
-            close_policy: None,
-            overdue_collect_in: None,
-            in_progress: None,
-            opening_info: None,
-            etl_data: etl_info,
-        },
-        LeaseStatusResponse::Closed(_) => LeaseInfo {
-            address: lease_address.to_string(),
-            protocol: protocol.to_string(),
-            status: LeaseStatusType::Closed,
-            amount: LeaseAssetInfo {
-                ticker: String::new(),
-                amount: "0".to_string(),
-                amount_usd: None,
-            },
-            debt: build_empty_debt(""),
-            interest: LeaseInterestInfo {
-                loan_rate: 0,
-                margin_rate: 0,
-                annual_rate_percent: 0.0,
-            },
-            liquidation_price: None,
-            opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
-            pnl: None,
-            close_policy: None,
-            overdue_collect_in: None,
-            in_progress: None,
-            opening_info: None,
-            etl_data: etl_info,
-        },
-        LeaseStatusResponse::Liquidated(_) => LeaseInfo {
-            address: lease_address.to_string(),
-            protocol: protocol.to_string(),
-            status: LeaseStatusType::Liquidated,
-            amount: LeaseAssetInfo {
-                ticker: String::new(),
-                amount: "0".to_string(),
-                amount_usd: None,
-            },
-            debt: build_empty_debt(""),
-            interest: LeaseInterestInfo {
-                loan_rate: 0,
-                margin_rate: 0,
-                annual_rate_percent: 0.0,
-            },
-            liquidation_price: None,
-            opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
-            pnl: None,
-            close_policy: None,
-            overdue_collect_in: None,
-            in_progress: None,
-            opening_info: None,
-            etl_data: etl_info,
-        },
+        LeaseStatusResponse::PaidOff(paid_off) => {
+            let a = &paid_off.paid_off.amount;
+            build_terminal_lease_info(
+                lease_address,
+                protocol,
+                LeaseStatusType::PaidOff,
+                Some((&a.ticker, &a.amount)),
+                etl_data.as_ref(),
+                etl_info,
+            )
+        }
+        LeaseStatusResponse::Closed(_) => build_terminal_lease_info(
+            lease_address,
+            protocol,
+            LeaseStatusType::Closed,
+            None,
+            etl_data.as_ref(),
+            etl_info,
+        ),
+        LeaseStatusResponse::Liquidated(_) => build_terminal_lease_info(
+            lease_address,
+            protocol,
+            LeaseStatusType::Liquidated,
+            None,
+            etl_data.as_ref(),
+            etl_info,
+        ),
     };
 
     Ok(lease_info)
@@ -944,6 +900,52 @@ fn build_closing_lease_info(
         close_policy: None,
         overdue_collect_in: None,
         in_progress: Some(LeaseInProgress::Close {}),
+        opening_info: None,
+        etl_data: etl_info,
+    }
+}
+
+/// Build lease info for terminal states (PaidOff, Closed, Liquidated).
+/// These all share the same shape: zeroed debt/interest, no PnL, no close policy.
+/// PaidOff provides an amount (the final asset snapshot); Closed/Liquidated do not.
+fn build_terminal_lease_info(
+    lease_address: &str,
+    protocol: &str,
+    status: LeaseStatusType,
+    amount: Option<(&str, &str)>,
+    etl_data: Option<&crate::external::etl::EtlLeaseOpening>,
+    etl_info: Option<LeaseEtlData>,
+) -> LeaseInfo {
+    let asset = match amount {
+        Some((ticker, amt)) => LeaseAssetInfo {
+            ticker: ticker.to_string(),
+            amount: amt.to_string(),
+            amount_usd: None,
+        },
+        None => LeaseAssetInfo {
+            ticker: String::new(),
+            amount: "0".to_string(),
+            amount_usd: None,
+        },
+    };
+
+    LeaseInfo {
+        address: lease_address.to_string(),
+        protocol: protocol.to_string(),
+        status,
+        amount: asset,
+        debt: build_empty_debt(""),
+        interest: LeaseInterestInfo {
+            loan_rate: 0,
+            margin_rate: 0,
+            annual_rate_percent: 0.0,
+        },
+        liquidation_price: None,
+        opened_at: etl_data.and_then(|d| d.lease.timestamp.clone()),
+        pnl: None,
+        close_policy: None,
+        overdue_collect_in: None,
+        in_progress: None,
         opening_info: None,
         etl_data: etl_info,
     }

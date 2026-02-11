@@ -14,7 +14,8 @@
         denom: totalAsset?.shortName ?? downPaymentAsset?.shortName,
         decimals: totalAsset?.decimal_digits ?? downPaymentAsset?.decimal_digits ?? 6,
         around: true,
-        tooltip: true
+        tooltip: true,
+        fontSize: 24
       }"
       :secondary="{
         value: totalLoan,

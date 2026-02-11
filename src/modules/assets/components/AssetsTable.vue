@@ -19,7 +19,7 @@
         value: total.toString(2),
         hide: hide,
         denom: NATIVE_CURRENCY.symbol,
-        fontSize: mobile ? 24 : 32,
+        fontSize: 24,
         animatedReveal: true,
         compact: mobile
       }"
@@ -47,7 +47,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { formatNumber, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatPercent, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, type ResolvedAsset } from "@/common/composables";
 
@@ -128,10 +128,10 @@ function setAvailableAssets() {
 
 function getYield(asset: ResolvedAsset): string | undefined {
   if (asset.isEarnable) {
-    return `${formatNumber(asset.apr, 2)}%`;
+    return formatPercent(asset.apr);
   }
   if (asset.isNative) {
-    return `${formatNumber(asset.stakingApr, 2)}%`;
+    return formatPercent(asset.stakingApr);
   }
 }
 

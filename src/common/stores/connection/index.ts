@@ -23,6 +23,7 @@ export const useConnectionStore = defineStore("connection", () => {
   const appInitialized = ref(false);
   const initializing = ref(false);
   const error = ref<string | null>(null);
+  const wsReconnectCount = ref(0);
 
   // WebSocket state subscription
   let wsStateUnsubscribe: Unsubscribe | null = null;
@@ -48,7 +49,13 @@ export const useConnectionStore = defineStore("connection", () => {
     try {
       // Subscribe to WebSocket state changes
       wsStateUnsubscribe = WebSocketClient.onConnectionStateChange((state) => {
+        const wasDisconnected = wsState.value !== "connected";
         wsState.value = state;
+
+        // Trigger user data refresh after reconnection to avoid stale state
+        if (state === "connected" && wasDisconnected && walletAddress.value) {
+          wsReconnectCount.value++;
+        }
       });
 
       // Connect WebSocket
@@ -61,8 +68,9 @@ export const useConnectionStore = defineStore("connection", () => {
       const earnStore = useEarnStore();
       const statsStore = useStatsStore();
 
+      // Config must initialize first — other stores depend on currency/protocol data
+      await configStore.initialize();
       await Promise.all([
-        configStore.initialize(),
         pricesStore.initialize(),
         stakingStore.initialize(),
         earnStore.initialize(),
@@ -104,15 +112,16 @@ export const useConnectionStore = defineStore("connection", () => {
       wsStateUnsubscribe = null;
     }
 
-    WebSocketClient.disconnect();
-
-    // Cleanup global stores
+    // Disconnect wallet FIRST — user-specific stores react via watchers
+    // and send WS unsubscribe messages while connection is still open
     const pricesStore = usePricesStore();
     const statsStore = useStatsStore();
     pricesStore.cleanup();
     statsStore.cleanup();
-
     disconnectWallet();
+
+    // THEN disconnect WebSocket
+    WebSocketClient.disconnect();
 
     appInitialized.value = false;
     wsState.value = "disconnected";
@@ -125,6 +134,7 @@ export const useConnectionStore = defineStore("connection", () => {
     appInitialized,
     initializing,
     error,
+    wsReconnectCount,
 
     // Computed
     isWsConnected,

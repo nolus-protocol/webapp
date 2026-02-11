@@ -13,7 +13,7 @@
           denom: NATIVE_ASSET.label,
           decimals: NATIVE_ASSET.decimal_digits,
           class: 'leading-[36px]',
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           animatedReveal: true,
           compact: mobile
         }"
@@ -32,7 +32,7 @@
           isDenomPrefix: false,
           decimals: 2,
           class: 'leading-[36px]',
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           animatedReveal: true
         }"
       />
@@ -47,7 +47,7 @@
           class: 'leading-[36px]',
           denom: '%',
           isDenomPrefix: false,
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           animatedReveal: true
         }"
       />
@@ -109,9 +109,6 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import { NATIVE_ASSET } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import type { IObjectKeys } from "@/common/types";
-import { isMobile } from "@/common/utils";
-
-const mobile = isMobile();
 
 const props = defineProps<{
   stableDelegated: string;

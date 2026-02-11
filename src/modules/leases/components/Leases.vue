@@ -46,19 +46,11 @@
             :amount="{
               value: pnl.toString(2),
               denom: NATIVE_CURRENCY.symbol,
-              fontSize: mobile ? 24 : 32,
+              fontSize: 24,
               animatedReveal: true,
               compact: mobile,
               class:
                 pnl_percent.isPositive() || pnl_percent.isZero() ? 'text-typography-success' : 'text-typography-error'
-            }"
-            :pnl-status="mobile ? undefined : {
-              positive: pnl_percent.isPositive() || pnl_percent.isZero(),
-              value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
-              badge: {
-                content: pnl_percent.toString(),
-                base: false
-              }
             }"
           />
           <BigNumber
@@ -66,7 +58,7 @@
             :amount="{
               value: activeLeases.toString(2),
               denom: NATIVE_CURRENCY.symbol,
-              fontSize: 20,
+              fontSize: 24,
               animatedReveal: true,
               compact: mobile,
               hide: hide
@@ -78,7 +70,7 @@
             :amount="{
               value: debt.toString(2),
               denom: NATIVE_CURRENCY.symbol,
-              fontSize: 20,
+              fontSize: 24,
               animatedReveal: true,
               hide: hide
             }"

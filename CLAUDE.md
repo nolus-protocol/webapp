@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Task | Command |
 |------|---------|
-| Build frontend | `npm run build -- --mode spa` |
+| Build frontend | `npm run build` |
+| Build frontend (dev) | `npm run build:dev` |
 | Build backend | `cd backend && cargo build --release` |
 | Run server | `cd backend && nohup env STATIC_DIR=../dist ./target/release/nolus-backend > /tmp/nolus-backend.log 2>&1 &` — must use `nohup` or the process dies when the shell session ends, producing `ERR_EMPTY_RESPONSE` on all API calls. Logs go to `/tmp/nolus-backend.log`. |
 | Dev server (Vite) | `npm run serve` (requires backend running separately) |
@@ -21,6 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Format backend | `cd backend && cargo fmt` |
 | Lint backend | `cd backend && cargo clippy` |
 | Type check backend | `cd backend && cargo check` |
+| Preview prod build | `npm run preview` (serves `dist/` on port 8080) |
 
 ## Architecture
 
@@ -77,11 +79,12 @@ src/
 ├── common/
 │   ├── api/              # BackendApi (REST), WebSocketClient (real-time)
 │   ├── stores/           # Pinia stores: prices, config, balances, leases, earn, staking, etc.
-│   ├── composables/      # Vue composables (useWalletEvents, useNetworkCurrency, useValidation, useAsyncOperation, useBlockInfo)
+│   ├── composables/      # Vue composables (useWalletEvents, useWalletWatcher, useNetworkCurrency, useValidation, useAsyncOperation, useBlockInfo)
 │   ├── components/       # Shared Vue components
 │   └── utils/            # Utilities (LeaseUtils, CurrencyLookup, PriceLookup, etc.)
 ├── modules/              # Feature modules (dashboard, leases, earn, stake, vote, etc.)
 │   └── <module>/view.vue # Layout wrapper with <router-view />, children in components/
+├── push/                 # Service worker for push notifications (worker.ts, IndexedDB, locale fetching)
 └── test/setup.ts         # Vitest setup (mocks fetch, WebSocket, Pinia)
 
 backend/
@@ -94,6 +97,7 @@ backend/
 │   ├── chain_events.rs   # CometBFT WebSocket client, event parsing, broadcast channels
 │   ├── data_cache.rs     # Cached<T>, AppDataCache (lock-free background-refresh cache)
 │   ├── refresh.rs        # Background refresh tasks (timer-based + event-driven)
+│   ├── validation.rs     # Input validation (bech32 address validation at handler boundaries)
 │   └── middleware/       # Rate limiting (token bucket + eviction), auth, cache-control
 └── config/
     ├── gated/            # Gated propagation config files (currency-display, network-config, etc.)
@@ -104,9 +108,8 @@ backend/
 
 | File | Purpose |
 |------|---------|
-| `.env.spa` | Local dev (backend serves frontend) |
-| `.env.serve` | Vite dev server mode (frontend only) |
-| `backend/.env` | Backend configuration (API keys, URLs) |
+| `.env` | Frontend env vars (`VITE_BACKEND_URL`, `VITE_WS_URL`, `VITE_APP_URL`) |
+| `backend/.env` | Backend configuration (API keys, URLs). See `backend/.env.example` for template |
 
 ### Required Environment Variables (backend/.env)
 
@@ -139,6 +142,14 @@ The same ticker (e.g., `USDC_NOBLE`) can exist on multiple networks with differe
 ### Gas Fee BFF Pattern
 
 Gas prices and gas multiplier are served from the backend (`/api/fees/gas-config`) instead of the browser querying the chain's tax module directly. `NolusWalletOverride.ts` patches `gasPrices()`, `simulateTx()`, `simulateMultiTx()`, and `getGasInfo()` on each NolusWallet instance to use the backend-cached data. The gas multiplier is configured per network in `backend/config/gated/network-config.json` (NOLUS: 3.5, OSMOSIS: 3.5, NEUTRON: 2.5). All wallet connect actions (`connectKeplr`, `connectLeap`, `connectLedger`, `connectPhantom`, `connectSolflare`) call `applyNolusWalletOverrides(wallet)` after creating the wallet.
+
+### XSS Protection for Markdown Rendering
+
+Governance proposals contain user-submitted Markdown (title, summary) rendered via `marked.parse()` + `v-html`. All Markdown-to-HTML conversion goes through `parseMarkdownSafe()` (`src/common/utils/sanitize.ts`) which sanitizes output with DOMPurify before rendering. **Never use `marked.parse()` directly with `v-html`** — always use `parseMarkdownSafe()`.
+
+### WebSocket Reconnect Data Refresh
+
+When the WebSocket reconnects after a disconnect, `connectionStore` increments `wsReconnectCount`. User-specific stores (balances, leases, earn) watch this counter and re-fetch their data to avoid showing stale state from the pre-disconnect period.
 
 ### Wallet Connection Architecture
 
@@ -203,21 +214,24 @@ Staking forms (`DelegateForm`, `UndelegateForm`) call `stakingStore.fetchPositio
 
 ### Centralized Number Formatting
 
-All `Intl.NumberFormat` calls live in `src/common/utils/NumberFormatUtils.ts` and `src/common/utils/ChartUtils.ts` (chart axis ticks only). No other file should use `new Intl.NumberFormat()` directly. Key exports:
+All `Intl.NumberFormat` calls live in `src/common/utils/NumberFormatUtils.ts` and `src/common/utils/ChartUtils.ts` (chart axis ticks only). No other file should use `new Intl.NumberFormat()` directly. See `docs/number-formatting.md` for the full decision tree and anti-patterns. Key exports:
 
 - `formatNumber(amount, decimals, symbol?)` — standard locale-aware formatting
 - `formatUsd(amount)` — shorthand for `formatNumber(amount, 2, "$")`
 - `formatDecAsUsd(dec)` — format a `Dec` as USD in one call (replaces the `${NATIVE_CURRENCY.symbol}${formatNumber(stable.toString(2), 2)}` boilerplate)
 - `formatCompact(amount)` — compact notation (1K, 1M, etc.)
-- `formatTokenBalance(dec)` — adaptive decimals based on amount size, trailing zeros trimmed
+- `formatPercent(amount, decimals?)` — locale-aware percentage: `formatPercent(5.25)` → `"5.25%"`. Use for all APR, APY, commission, utilization, and swap fee displays
+- `formatTokenBalance(dec)` — adaptive decimals based on amount size, trailing zeros trimmed. Use for token amounts in displays AND error messages
 - `formatPrice(amount, decimals?)` — format a price with adaptive decimals (2-6 based on magnitude)
 - `formatPriceDec(dec)` — format a `Dec` as a price string with adaptive decimals
-- `formatPriceUsd(amount)` — format a price with adaptive decimals and `$` prefix (handles negative sign)
+- `formatPriceUsd(amount)` — format a price with adaptive decimals and `$` prefix (handles negative sign). Use for price values in displays AND error messages
 - `formatPriceDecUsd(dec)` — `Dec` variant of `formatPriceUsd`
 - `formatCoinPretty(coin)` — format a `CoinPretty` as `"1,234.56 USDC"` (replaces `coin.toString()` which uses no locale formatting)
 - `getAdaptivePriceDecimals(price)` — returns 2-6 decimals based on price magnitude (used by chart tooltips, lease details)
 - `currencyFormatOptions(decimals)` / `compactFormatOptions` — `Intl.NumberFormatOptions` objects for `AnimateNumber` `:format` prop (keeps animated and static formatting in sync)
 - `tokenFormatOptions(maxDecimals)` — format option object for AnimateNumber in TOKEN contexts
+
+**Important:** Error/validation messages must use the same formatters as display. Never use raw `Dec.toString()`, `Number()`, or `.toFixed()` for user-facing numbers — always use `formatTokenBalance()` for token amounts or `formatPriceUsd()` for prices.
 
 Amount display is split into two components: `TokenAmount.vue` (receives raw on-chain micro-units via `microAmount`, converts with `Dec(amount, decimals)`, formats with adaptive precision) and `FormattedAmount.vue` (receives human-readable numbers via `value`, formats with fixed decimals). `BigNumber.vue` uses a discriminated union (`AmountDisplayProps`) with `isTokenAmount()` type guard to render the correct child. `AnimateNumber` receives shared format option objects rather than inline literals.
 
@@ -231,9 +245,12 @@ All charts use Observable Plot (`@observablehq/plot`) with shared configuration 
 
 - `CHART_AXIS` — shared axis config (tick counts, font size, mobile-aware)
 - `getChartWidth(plotContainer)` — measures container via `parentElement.clientWidth`
-- `computeMarginLeft(yDomain, tickFormat, ticks)` — dynamic left margin via Canvas 2D `measureText`
+- `computeMarginLeft(yDomain, tickFormat, ticks?)` — dynamic left margin via Canvas 2D `measureText`. Pass explicit `ticks` array for accurate measurement.
+- `computeYTicks(yDomain, count?)` — generates an explicit array of exactly `count` evenly-spaced tick values (default: `CHART_AXIS.yTicks`). Use for all numeric Y axes.
 - `createUsdTickFormat(yDomain)` — factory: returns a tick formatter based on data range (compact `$1.5K`/`$2M` for >=1K, 2-decimal `$7.00` for >=1, adaptive for sub-dollar)
 - `createNumberTickFormat(yDomain)` — same logic without `$` prefix (for token amount charts)
+
+**Y-axis ticks:** Use `computeYTicks(yDomain)` to generate an explicit tick array, then pass it to both `computeMarginLeft(yDomain, tickFormat, yTicks)` and `ticks: yTicks` in the Plot config. Observable Plot treats `ticks: N` as a hint (not strict count), so explicit arrays are required for exact tick control. Categorical Y axes (e.g., horizontal bar charts like RealisedPnl, LoansChart) don't need `computeYTicks`.
 
 Chart.vue uses a `ResizeObserver` to re-render charts when the container resizes. Charts fill their container width — no hardcoded widths.
 
@@ -341,6 +358,11 @@ Key sub-routes: `/positions/open/long`, `/positions/open/short`, `/positions/:id
 - **No optional fields for migration** - Required fields are required
 - **Fail loudly** - Errors should be obvious, not silently swallowed
 
+## Git Hooks & CI
+
+- **Husky pre-commit**: Runs `npm run build` before every commit. Commits will fail if the build fails.
+- **CLAUDE.md and docs/ are gitignored** — these are local-only files, not committed to the repo.
+
 ## Code Style
 
 - **Frontend**: Use Composition API with `<script setup>`, prefer `ref`/`computed` over `reactive`
@@ -355,3 +377,4 @@ Extended documentation is available in the `docs/` folder:
 - `backend api enrichments and proxy.md` - Gated propagation system + transaction enrichment details
 - `translations.md` - Translation management system
 - `protocol architecture.md` - Protocol and contract architecture
+- `number-formatting.md` - Number formatting decision tree, formatter selection guide, and anti-patterns

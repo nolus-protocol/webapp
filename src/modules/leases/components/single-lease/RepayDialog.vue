@@ -63,43 +63,43 @@
         <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
           <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
           <template v-if="sliderValue == 0">
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="list-sparkle"
-                class="fill-icon-secondary"
+                class="mt-0.5 shrink-0 fill-icon-secondary"
               />
               {{ $t("message.preview-input") }}
             </div>
           </template>
           <template v-if="sliderValue > 0 && sliderValue < 100">
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="check-solid"
-                class="fill-icon-success"
+                class="mt-0.5 shrink-0 fill-icon-success"
               />
               <p :innerHTML="$t('message.debt-pay-off', { data: detbPartial.payment })"></p>
             </div>
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="check-solid"
-                class="fill-icon-success"
+                class="mt-0.5 shrink-0 fill-icon-success"
               />
               <p :innerHTML="$t('message.repay-liquidation-price', { data: liquidation })"></p>
             </div>
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="info"
-                class="fill-icon-secondary"
+                class="mt-0.5 shrink-0 fill-icon-secondary"
               />
               {{ $t("message.outstanding-debt-rest") }}
               {{ detbPartial.rest }}
             </div>
           </template>
           <template v-if="sliderValue >= 100">
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="check-solid"
-                class="fill-icon-success"
+                class="mt-0.5 shrink-0 fill-icon-success"
               />
               {{ $t("message.debt-paid") }}
               <strong>{{ debtData }}</strong>
@@ -503,7 +503,7 @@ function isAmountValid() {
 
       if (debt.gt(minAmm) && amountInStable.lt(minAmount)) {
         amountErrorMsg.value = i18n.t("message.min-amount-allowed", {
-          amount: minAmountCurrency.toString(Number(coinData!.decimal_digits)),
+          amount: formatTokenBalance(minAmountCurrency),
           currency: coinData!.shortName
         });
         isValid = false;

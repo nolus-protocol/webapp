@@ -19,8 +19,12 @@ export function useWalletEvents(): void {
   const connectionStore = useConnectionStore();
   const earnStore = useEarnStore();
 
+  let keystoreInFlight = false;
+
   function createKeystoreHandler(connectAction: () => Promise<void>) {
     return async () => {
+      if (keystoreInFlight) return;
+      keystoreInFlight = true;
       try {
         await IntercomService.disconnect();
         await connectAction();
@@ -30,6 +34,8 @@ export function useWalletEvents(): void {
         await loadNetwork();
       } catch (error: Error | any) {
         Logger.error(error);
+      } finally {
+        keystoreInFlight = false;
       }
     };
   }

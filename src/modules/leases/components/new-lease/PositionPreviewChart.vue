@@ -17,7 +17,7 @@ import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
 import { plot, barY, axisX, text, ruleY } from "@observablehq/plot";
-import { CHART_AXIS } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, computeYTicks } from "@/common/utils/ChartUtils";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { select, pointer, type Selection } from "d3";
@@ -92,9 +92,13 @@ async function setStats() {
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
 
+  const values = responses.value.map((d) => d.value);
+  const yDomain: [number, number] = [0, Math.max(...values)];
+  const yTicks = computeYTicks(yDomain);
+
   const nextChart = plot({
     className: "position-preview-chart",
-    y: { label: null, tickFormat: (d) => `$${d}`, tickSize: 0, line: true, ticks: CHART_AXIS.yTicks },
+    y: { label: null, tickFormat: (d) => `$${d}`, tickSize: 0, line: true, ticks: yTicks },
     marginBottom,
     marginLeft,
     marginRight,

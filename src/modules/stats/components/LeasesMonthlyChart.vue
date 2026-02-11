@@ -12,7 +12,7 @@
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { ref, watch } from "vue";
@@ -69,7 +69,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const amounts = loans.value.map((d) => d.amount);
   const yDomain: [number, number] = [Math.min(0, ...amounts), Math.max(...amounts)];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
 
   const plotChart = rectY(
     loans.value,
@@ -82,13 +83,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginLeft: marginLeft,
     marginBottom: marginBottom,
     marginRight: marginRight,
-    color: { legend: true },
     y: {
       grid: true,
       type: "linear",
       label: null,
       tickFormat,
-      ticks: CHART_AXIS.yTicks
+      ticks: yTicks
     },
     x: { label: null, interval: "months", ticks: CHART_AXIS.xTicks },
     marks: [ruleY([0])]

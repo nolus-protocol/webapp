@@ -22,37 +22,43 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
 
   NolusClient.setInstance(networkConfig.rpc);
 
-  while (!ledgerWallet && !breakLoop) {
-    try {
-      const isConnectedViaLedgerBluetooth =
-        WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
-      const transport =
-        payload.isBluetooth || isConnectedViaLedgerBluetooth
-          ? await BluetoothTransport.create()
-          : await TransportWebUSB.create();
+  try {
+    while (!ledgerWallet && !breakLoop) {
+      let transport = null;
+      try {
+        const isConnectedViaLedgerBluetooth =
+          WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
+        transport =
+          payload.isBluetooth || isConnectedViaLedgerBluetooth
+            ? await BluetoothTransport.create()
+            : await TransportWebUSB.create();
 
-      ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
-        new LedgerSigner(transport, {
-          prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
-          hdPaths: paths as any
-        })
-      );
+        ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
+          new LedgerSigner(transport, {
+            prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
+            hdPaths: paths as any
+          })
+        );
 
-      await ledgerWallet.useAccount();
-      this.wallet = ledgerWallet;
-      applyNolusWalletOverrides(this.wallet);
+        await ledgerWallet.useAccount();
+        this.wallet = ledgerWallet;
+        applyNolusWalletOverrides(this.wallet);
 
-      WalletManager.saveWalletConnectMechanism(
-        payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER
-      );
-      WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
-    } catch (e: Error | any) {
-      breakLoop = true;
-      throw new Error(e);
+        WalletManager.saveWalletConnectMechanism(
+          payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER
+        );
+        WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
+      } catch (e: Error | any) {
+        if (transport) {
+          try { await transport.close(); } catch { /* ignore close errors */ }
+        }
+        breakLoop = true;
+        throw new Error(e);
+      }
     }
+
+    IntercomService.load(this.wallet?.address as string, "ledger");
+  } finally {
+    clearTimeout(to);
   }
-
-  IntercomService.load(this.wallet?.address as string, "ledger");
-
-  clearTimeout(to);
 }

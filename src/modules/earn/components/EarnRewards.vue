@@ -16,7 +16,8 @@
         :amount="{
           value: stableRewards,
           denom: NATIVE_CURRENCY.symbol,
-          compact: mobile
+          compact: mobile,
+          fontSize: 24
         }"
       />
     </div>

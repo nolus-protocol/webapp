@@ -154,6 +154,16 @@ impl IntoResponse for AppError {
     }
 }
 
+impl AppError {
+    /// Whether this error is transient and worth retrying (external API / chain errors)
+    pub fn is_transient(&self) -> bool {
+        matches!(
+            self,
+            AppError::ExternalApi { .. } | AppError::ChainRpc { .. }
+        )
+    }
+}
+
 // Convenience conversion from anyhow::Error
 impl From<anyhow::Error> for AppError {
     fn from(err: anyhow::Error) -> Self {

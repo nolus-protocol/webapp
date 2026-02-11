@@ -10,7 +10,7 @@
         <template v-if="animatedReveal">
           <AnimateNumber
             :value="isMounted ? numberAmount : 0"
-            :format="compact ? compactFormatOptions : tokenFormatOptions(adaptiveDecimals)"
+            :format="useCompact ? compactFormatOptions : tokenFormatOptions(adaptiveDecimals)"
           />
         </template>
         <template v-else>
@@ -65,9 +65,12 @@ const numberAmount = computed(() => dec.value.toString(props.decimals));
 
 const adaptiveDecimals = computed(() => getDecimals(dec.value));
 
+// Only use compact formatting for large values; small values need full precision
+const useCompact = computed(() => props.compact && dec.value.gte(new Dec(1000)));
+
 const formatted = computed(() => {
   const numValue = Number(dec.value.toString(props.decimals));
-  return props.compact ? formatCompact(numValue) : formatToken(numValue, adaptiveDecimals.value);
+  return useCompact.value ? formatCompact(numValue) : formatToken(numValue, adaptiveDecimals.value);
 });
 
 onMounted(() => {

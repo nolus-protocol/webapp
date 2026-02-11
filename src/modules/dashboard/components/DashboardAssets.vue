@@ -36,7 +36,7 @@
         :amount="{
           value: total.toString(2),
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           animatedReveal: true,
           compact: mobile
         }"
@@ -70,7 +70,10 @@
         ]"
       />
     </template>
-    <div class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3">
+    <div
+      v-if="!isEmpty"
+      class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3"
+    >
       <Button
         :label="$t('message.view-all-assets')"
         class="w-full"
@@ -98,7 +101,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { formatNumber, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { formatPercent, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, useWalletConnected, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
@@ -125,14 +128,33 @@ const columns = computed<TableColumnProps[]>(() => [
   }
 ]);
 
+const MIN_DISPLAY_ASSETS = 4;
+const MAX_DISPLAY_ASSETS = 5;
+
 const filteredAssets = computed(() => {
-  return getNetworkAssets()
+  const allAssets = getNetworkAssets();
+  const withBalance = allAssets
     .filter((a) => parseFloat(a.balance) > 0)
-    .sort((a, b) => b.balanceUsd - a.balanceUsd)
-    .slice(0, 5);
+    .sort((a, b) => b.balanceUsd - a.balanceUsd);
+
+  if (withBalance.length >= MAX_DISPLAY_ASSETS) {
+    return withBalance.slice(0, MAX_DISPLAY_ASSETS);
+  }
+
+  if (!walletConnected.value) {
+    return withBalance;
+  }
+
+  const usedTickers = new Set(withBalance.map((a) => a.currency.ticker));
+  const zeroBalance = allAssets
+    .filter((a) => parseFloat(a.balance) === 0 && !usedTickers.has(a.currency.ticker))
+    .sort((a, b) => a.currency.shortName.localeCompare(b.currency.shortName));
+
+  const target = Math.max(MIN_DISPLAY_ASSETS, withBalance.length);
+  return [...withBalance, ...zeroBalance.slice(0, target - withBalance.length)];
 });
 
-const isEmpty = computed(() => filteredAssets.value.length === 0);
+const isEmpty = computed(() => !walletConnected.value && filteredAssets.value.length === 0);
 
 watch(
   () => [wallet.wallet, pricesStore.prices, balancesStore.balances],
@@ -158,10 +180,10 @@ function setAvailableAssets() {
 
 function getYield(asset: ResolvedAsset): string | undefined {
   if (asset.isEarnable) {
-    return `${formatNumber(asset.apr, 2)}%`;
+    return formatPercent(asset.apr);
   }
   if (asset.isNative) {
-    return `${formatNumber(asset.stakingApr, 2)}%`;
+    return formatPercent(asset.stakingApr);
   }
 }
 

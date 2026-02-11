@@ -35,7 +35,7 @@ import { Tooltip } from "web-components";
 import type { LeaseInfo } from "@/common/api";
 import { LeaseUtils } from "@/common/utils";
 import { formatPriceUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { plot, lineY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
@@ -219,7 +219,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const padding = range * 0.2 || maxPrice * 0.05;
   const yDomain: [number, number] = [Math.max(0, domainMin - padding), maxPrice + padding];
   const tickFormat = createUsdTickFormat(yDomain);
-  marginLeft = computeMarginLeft(yDomain, tickFormat);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
 
   const plotChart = plot({
     color: { domain: likert.order, legend: false },
@@ -238,7 +239,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       labelArrow: false,
       tickFormat,
       tickSize: 0,
-      ticks: CHART_AXIS.yTicks
+      ticks: yTicks
     },
     x: {
       label: null,

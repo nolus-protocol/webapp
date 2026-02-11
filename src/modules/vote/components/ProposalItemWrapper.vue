@@ -27,7 +27,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, StringUtils } from "@/common/utils";
 
 import { Proposal as ProposalItem } from "web-components";
-import { marked } from "marked";
+import { parseMarkdownSafe } from "@/common/utils/sanitize";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps({
@@ -57,11 +57,7 @@ const labels = ref({
 });
 
 const summary = computed(() => {
-  return marked.parse(props.state.summary, {
-    pedantic: true,
-    gfm: true,
-    breaks: true
-  });
+  return parseMarkdownSafe(props.state.summary);
 });
 
 const turnout = computed(() => {

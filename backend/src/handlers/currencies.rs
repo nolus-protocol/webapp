@@ -87,14 +87,7 @@ pub struct BalanceInfo {
 pub async fn get_currencies(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<CurrenciesResponse>, AppError> {
-    let response =
-        state
-            .data_cache
-            .currencies
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Currencies not yet available".to_string(),
-            })?;
+    let response = state.data_cache.currencies.load_or_unavailable("Currencies")?;
 
     Ok(Json(response))
 }
@@ -130,13 +123,7 @@ pub async fn get_currency(
 pub async fn get_prices(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<PricesResponse>, AppError> {
-    let response = state
-        .data_cache
-        .prices
-        .load()
-        .ok_or_else(|| AppError::ServiceUnavailable {
-            message: "Prices not yet available".to_string(),
-        })?;
+    let response = state.data_cache.prices.load_or_unavailable("Prices")?;
 
     Ok(Json(response))
 }
@@ -163,33 +150,12 @@ pub async fn get_balances(
     }
 
     // Read filter context from cache
-    let filter_ctx =
-        state
-            .data_cache
-            .filter_context
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Filter context not yet available".to_string(),
-            })?;
+    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
 
     // Read currencies and prices from cache, fetch balances from chain
-    let currencies_response =
-        state
-            .data_cache
-            .currencies
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Currencies not yet available".to_string(),
-            })?;
+    let currencies_response = state.data_cache.currencies.load_or_unavailable("Currencies")?;
 
-    let prices_response =
-        state
-            .data_cache
-            .prices
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Prices not yet available".to_string(),
-            })?;
+    let prices_response = state.data_cache.prices.load_or_unavailable("Prices")?;
 
     let bank_balances = state.chain_client.get_all_balances(&query.address).await?;
     let prices = &prices_response.prices;

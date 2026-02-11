@@ -46,19 +46,19 @@
         <div class="flex flex-col gap-3 px-6 py-4 text-typography-default">
           <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
           <template v-if="amount.length == 0 || amount == '0'">
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="list-sparkle"
-                class="fill-icon-secondary"
+                class="mt-0.5 shrink-0 fill-icon-secondary"
               />
               {{ $t("message.preview-input") }}
             </div>
           </template>
           <template v-else>
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="check-solid"
-                class="fill-icon-success"
+                class="mt-0.5 shrink-0 fill-icon-success"
               />
               <p
                 class="flex-1"
@@ -70,10 +70,10 @@
                 "
               ></p>
             </div>
-            <div class="flex items-center gap-2 text-14">
+            <div class="flex items-start gap-2 text-14">
               <SvgIcon
                 name="check-solid"
-                class="fill-icon-success"
+                class="mt-0.5 shrink-0 fill-icon-success"
               />
               {{ $t("message.stoppings-payout", { amount: `${payout}` }) }}
             </div>
@@ -308,7 +308,7 @@ function isAmountValid() {
       if (positionType === "Long") {
         if (a.lte(price)) {
           amountErrorMsg.value = i18n.t("message.take-profit-min-amount-error", {
-            amount: formatNumber(Number(price.toString(Number(currencyData.decimal_digits))), Number(currencyData.decimal_digits), NATIVE_CURRENCY.symbol),
+            amount: formatPriceUsd(price.toString(Number(currencyData.decimal_digits))),
             symbol: ""
           });
           isValid = false;
@@ -316,7 +316,7 @@ function isAmountValid() {
       } else {
         if (a.gt(price)) {
           amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-            maxAmount: formatNumber(Number(price.toString(Number(currencyData.decimal_digits))), Number(currencyData.decimal_digits), NATIVE_CURRENCY.symbol),
+            maxAmount: formatPriceUsd(price.toString(Number(currencyData.decimal_digits))),
             symbol: ""
           });
           isValid = false;

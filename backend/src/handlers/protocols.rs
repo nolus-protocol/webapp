@@ -57,14 +57,7 @@ pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
     // Read app_config from cache and convert to ProtocolsResponse
-    let app_config =
-        state
-            .data_cache
-            .app_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Protocols not yet available".to_string(),
-            })?;
+    let app_config = state.data_cache.app_config.load_or_unavailable("Protocols")?;
 
     let mut protocols = HashMap::new();
     let mut active_count = 0u32;

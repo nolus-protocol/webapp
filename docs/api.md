@@ -456,6 +456,10 @@ Returns all leases for an owner.
 
 **Example:** `GET /api/leases?owner=nolus1abc...`
 
+**Validation:** The `owner` parameter is validated as a valid bech32 address. Returns HTTP 400 if empty or malformed.
+
+**Per-lease timeout:** Individual lease queries are wrapped in a 10-second timeout. If a single lease fetch hangs or fails, it is skipped (logged as warning) and the remaining leases are still returned.
+
 **Response:**
 ```json
 {
@@ -556,6 +560,8 @@ Returns earn positions for an owner.
 |-----------|------|----------|-------------|
 | `address` | string | Yes | Owner wallet address |
 
+**Validation:** The `address` parameter is validated as a valid bech32 address. Returns HTTP 400 if empty or malformed.
+
 **Response:**
 ```json
 {
@@ -625,6 +631,8 @@ Returns staking positions for a delegator.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `address` | string | Yes | Delegator wallet address |
+
+**Validation:** The `address` parameter is validated as a valid bech32 address. Returns HTTP 400 if empty or malformed.
 
 **Response:**
 ```json

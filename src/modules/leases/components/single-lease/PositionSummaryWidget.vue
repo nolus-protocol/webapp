@@ -34,7 +34,7 @@
             microAmount: amount,
             denom: asset?.shortName ?? '',
             decimals: assetLoan?.decimal_digits ?? 0,
-            fontSize: mobile ? 24 : 32,
+            fontSize: 24,
             animatedReveal: true,
             compact: mobile
           }"
@@ -136,7 +136,7 @@
             value: pnl.amount.toString(2),
             denom: '$',
             class: pnl.status ? 'text-typography-success' : 'text-typography-error',
-            fontSize: mobile ? 24 : 32,
+            fontSize: 24,
             animatedReveal: true,
             compact: mobile
           }"

@@ -23,13 +23,11 @@
         >
           <TokenAmount
             v-if="amount && isTokenAmount(amount)"
-            :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
           <FormattedAmount
             v-else-if="amount"
-            :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
@@ -37,13 +35,11 @@
         <template v-else>
           <TokenAmount
             v-if="amount && isTokenAmount(amount)"
-            :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
           <FormattedAmount
             v-else-if="amount"
-            :font-size="32"
             v-bind="amount"
             class="flex break-keep font-semibold text-typography-default"
           />
@@ -163,7 +159,7 @@ import { Dec } from "@keplr-wallet/unit";
 const props = defineProps<IBigNumber>();
 
 const amountFontSize = computed(() => {
-  return props.amount?.fontSize ?? 32;
+  return props.amount?.fontSize ?? 16;
 });
 
 const amount_tooltip = computed(() => {

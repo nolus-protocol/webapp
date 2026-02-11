@@ -93,14 +93,7 @@ pub struct ProtocolAssetDetail {
 pub async fn get_assets(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<AssetsResponse>, AppError> {
-    let response =
-        state
-            .data_cache
-            .gated_assets
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Assets not yet available".to_string(),
-            })?;
+    let response = state.data_cache.gated_assets.load_or_unavailable("Assets")?;
 
     Ok(Json(response))
 }
@@ -143,14 +136,7 @@ pub async fn get_asset(
     debug!("Fetching asset: {}", ticker);
 
     // Load gated configs from cache
-    let gated =
-        state
-            .data_cache
-            .gated_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gated config not yet available".to_string(),
-            })?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
 
@@ -159,14 +145,7 @@ pub async fn get_asset(
     let etl_protocols = state.etl_client.fetch_protocols().await?;
 
     // Read prices from cache
-    let prices_response =
-        state
-            .data_cache
-            .prices
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Prices not yet available".to_string(),
-            })?;
+    let prices_response = state.data_cache.prices.load_or_unavailable("Prices")?;
 
     // Find the currency
     let etl_currency = etl_currencies
@@ -257,14 +236,7 @@ pub async fn get_network_assets(
     Path(network): Path<String>,
 ) -> Result<Json<AssetsResponse>, AppError> {
     // Read gated config from cache
-    let gated =
-        state
-            .data_cache
-            .gated_config
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Gated config not yet available".to_string(),
-            })?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
 
@@ -282,14 +254,7 @@ pub async fn get_network_assets(
     let etl_protocols = state.etl_client.fetch_protocols().await?;
 
     // Read prices from cache
-    let prices_response =
-        state
-            .data_cache
-            .prices
-            .load()
-            .ok_or_else(|| AppError::ServiceUnavailable {
-                message: "Prices not yet available".to_string(),
-            })?;
+    let prices_response = state.data_cache.prices.load_or_unavailable("Prices")?;
 
     // Filter currencies for this network
     let filtered_currencies = PropagationFilter::filter_currencies_for_network(

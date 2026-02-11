@@ -108,7 +108,13 @@ impl ChainEventClient {
                         "CometBFT WebSocket error: {}. Reconnecting in {}s",
                         e, backoff_secs
                     );
-                    tokio::time::sleep(Duration::from_secs(backoff_secs)).await;
+                    // Jitter prevents thundering herd in multi-instance deployments
+                    let jitter = (std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .subsec_nanos()
+                        % 4) as u64;
+                    tokio::time::sleep(Duration::from_secs(backoff_secs + jitter)).await;
                     backoff_secs = (backoff_secs * 2).min(30);
                 }
             }

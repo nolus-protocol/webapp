@@ -149,11 +149,7 @@ pub struct StatsOverviewBatch {
 pub async fn batch_stats_overview(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<StatsOverviewBatch>, crate::error::AppError> {
-    let response = state.data_cache.stats_overview.load().ok_or_else(|| {
-        crate::error::AppError::ServiceUnavailable {
-            message: "Stats overview not yet available".to_string(),
-        }
-    })?;
+    let response = state.data_cache.stats_overview.load_or_unavailable("Stats overview")?;
 
     Ok(Json(response))
 }
@@ -170,11 +166,7 @@ pub struct LoansStatsBatch {
 pub async fn batch_loans_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<LoansStatsBatch>, crate::error::AppError> {
-    let response = state.data_cache.loans_stats.load().ok_or_else(|| {
-        crate::error::AppError::ServiceUnavailable {
-            message: "Loans stats not yet available".to_string(),
-        }
-    })?;
+    let response = state.data_cache.loans_stats.load_or_unavailable("Loans stats")?;
 
     Ok(Json(response))
 }
@@ -296,24 +288,15 @@ async fn proxy_post(client: &Client, url: &str, body: serde_json::Value) -> impl
                     body,
                 )
                     .into_response(),
-                Err(e) => (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(serde_json::json!({
-                        "error": "Failed to read response",
-                        "message": e.to_string()
-                    })),
-                )
+                Err(e) => AppError::Internal(format!("Failed to read ETL response: {}", e))
                     .into_response(),
             }
         }
-        Err(e) => (
-            StatusCode::BAD_GATEWAY,
-            Json(serde_json::json!({
-                "error": "ETL API request failed",
-                "message": e.to_string()
-            })),
-        )
-            .into_response(),
+        Err(e) => AppError::ExternalApi {
+            api: "ETL".to_string(),
+            message: e.to_string(),
+        }
+        .into_response(),
     }
 }
 

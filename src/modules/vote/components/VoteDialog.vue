@@ -94,7 +94,7 @@
 
 <script lang="ts" setup>
 import { computed, inject, onBeforeUnmount, ref, watch } from "vue";
-import { marked } from "marked";
+import { parseMarkdownSafe } from "@/common/utils/sanitize";
 import type { FinalTallyResult, Proposal } from "@/modules/vote/types";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
@@ -148,11 +148,7 @@ watch(
   () => props.proposal,
   async () => {
     isVotingPeriod.value = (props.proposal.status as ProposalStatus) === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD;
-    description.value = marked.parse(props.proposal.summary, {
-      pedantic: false,
-      gfm: true,
-      breaks: true
-    });
+    description.value = parseMarkdownSafe(props.proposal.summary);
 
     quorum.value = props.quorumTokens.mul(new Dec(100)).toString(2);
   },

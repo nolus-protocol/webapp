@@ -23,7 +23,7 @@
         :amount="{
           value: stableRewards,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: mobile ? 24 : 32,
+          fontSize: 24,
           compact: mobile
         }"
       />
@@ -53,7 +53,7 @@
 <script lang="ts" setup>
 import { Asset, Button, ToastType, Widget } from "web-components";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { isMobile, Logger, walletOperation } from "@/common/utils";
+import { Logger, walletOperation } from "@/common/utils";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
@@ -67,8 +67,6 @@ import { useI18n } from "vue-i18n";
 import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-
-const mobile = isMobile();
 
 defineProps<{
   rewards?: {

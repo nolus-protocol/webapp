@@ -12,6 +12,8 @@ use arc_swap::ArcSwap;
 use std::sync::Arc;
 use std::time::Instant;
 
+use crate::error::AppError;
+
 use crate::config_store::gated_types::{
     CurrencyDisplayConfig, GatedNetworkConfig, LeaseRulesConfig, SwapSettingsConfig,
     UiSettingsConfig,
@@ -79,6 +81,14 @@ impl<T: Clone> Cached<T> {
     /// Check if cache has a value
     pub fn is_populated(&self) -> bool {
         self.inner.load().value.is_some()
+    }
+
+    /// Load value or return 503 ServiceUnavailable.
+    /// Use in handlers that require cached data to be populated.
+    pub fn load_or_unavailable(&self, name: &str) -> Result<T, AppError> {
+        self.load().ok_or_else(|| AppError::ServiceUnavailable {
+            message: format!("{} not yet available", name),
+        })
     }
 }
 
