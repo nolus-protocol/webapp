@@ -44,7 +44,7 @@ impl PropagationValidator {
         etl_networks
             .into_iter()
             .filter(|network| {
-                !config.networks.contains_key(network) || !config.networks[network].is_configured()
+                !config.networks.contains_key(&network.to_uppercase()) || !config.networks[&network.to_uppercase()].is_configured()
             })
             .collect()
     }
@@ -73,7 +73,7 @@ impl PropagationValidator {
                     .map(|n| {
                         network_config
                             .networks
-                            .get(n)
+                            .get(&n.to_uppercase())
                             .map(|s| s.is_configured())
                             .unwrap_or(false)
                     })

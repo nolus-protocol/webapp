@@ -110,7 +110,7 @@ pub async fn list_protocols(
                 .and_then(|config| {
                     p.network
                         .as_ref()
-                        .and_then(|n| config.networks.get(n).map(|s| s.is_configured()))
+                        .and_then(|n| config.networks.get(&n.to_uppercase()).map(|s| s.is_configured()))
                 })
                 .unwrap_or(false);
 
@@ -200,7 +200,7 @@ pub async fn list_networks(
         .map(|network| {
             let config = network_config
                 .as_ref()
-                .and_then(|c| c.networks.get(network));
+                .and_then(|c| c.networks.get(&network.to_uppercase()));
 
             AdminNetworkResponse {
                 network: network.clone(),
