@@ -18,23 +18,32 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build SSR
+      - name: Build frontend (SPA)
+        env:
+          VITE_BACKEND_URL: https://app-dev.nolus.io
+          VITE_WS_URL: wss://app-dev.nolus.io/ws
         run: |
           npm install
           npm run build
+
+      - name: Build Rust backend
+        run: |
+          cd backend
+          cargo build --release
 
       - name: Prepare deployment bundle
         run: |
           mkdir -p deploy-bundle
           cp -r dist/ deploy-bundle/
-          cp -r server/ deploy-bundle/
-          cp package.json deploy-bundle/
-          cd deploy-bundle && npm install --production --ignore-scripts
+          cp backend/target/release/nolus-backend deploy-bundle/
+          cp -r backend/config/ deploy-bundle/
 
       - name: Deploy via rclone
         run: |
-          rclone sync deploy-bundle/ :sftp,host=10.133.133.11,user=deploy,key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app-dev/ --verbose
+          rclone sync deploy-bundle/ :sftp,host=10.133.133.11,user=deploy,key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app-dev/ \
+            --filter "- .env" \
+            --verbose
 
-      - name: Restart SSR server
+      - name: Restart backend
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no deploy@10.133.133.11 "sudo systemctl restart webapp-dev"
