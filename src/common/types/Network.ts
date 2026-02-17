@@ -13,27 +13,6 @@ export interface Network {
   icon: string;
 }
 
-export interface EvmNetwork {
-  estimation: { duration: number; type: string };
-  explorer: string;
-  fees: { transfer: number };
-  gasMultiplier: number;
-  key: string;
-  label: string;
-  name: string;
-  native: boolean;
-  prefix: string;
-  symbol: string;
-  value: string;
-  chain_type: ChainType;
-  icon: string;
-  nativeCurrency: {
-    name: string;
-    symbol: string;
-    decimals: number;
-  };
-}
-
 export interface NetworkData {
   prefix: string;
   gasMultiplier: number;

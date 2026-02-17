@@ -12,28 +12,17 @@
         <span class="text-16 font-semibold text-typography-default">{{ title }}</span>
         <span class="text-xs font-normal text-typography-secondary">{{ time }}</span>
       </div>
-      <div
-        class="flex items-center gap-1 text-xs font-normal text-typography-secondary"
-        v-if="route"
-      >
-        {{ $t("message.route") }}:
-        <Stepper
-          :variant="StepperVariant.SMALL"
-          v-bind="route"
-        />
-      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { type SmallStepperProps, Stepper, StepperVariant, SvgIcon } from "web-components";
+import { SvgIcon } from "web-components";
 
 export type ActivityItemProps = {
   type: "leases" | "earn" | "assets" | string;
   title: string;
   time?: string;
-  route?: SmallStepperProps;
   coinMinimalDenom?: string;
 };
 

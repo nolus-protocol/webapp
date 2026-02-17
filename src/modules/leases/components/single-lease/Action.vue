@@ -24,17 +24,16 @@
         return isOpen;
       }
     "
-    class="max-w-[160px]"
+    class="popover-dropdown !h-fit !w-auto !max-w-[160px] !rounded-xl !border !border-border-default"
   >
     <template #content>
-      <Collect
-        v-if="showCollect"
-        :lease="lease"
-        class="button-secondary flex !min-h-[unset] w-full justify-start rounded-none border-none !px-3 !py-3 text-16 !font-medium"
-        severity="secondary"
-        size="large"
-        @click="close"
-      />
+      <button
+        v-if="showDetails"
+        class="button-secondary w-full border-none px-3 py-3 text-left"
+        @click="viewDetails"
+      >
+        {{ $t("message.details") }}
+      </button>
       <button
         v-if="showClose"
         class="button-secondary w-full border-none px-3 py-3 text-left"
@@ -43,13 +42,7 @@
         {{ $t("message.close") }}
       </button>
       <button
-        class="button-secondary w-full border-none px-3 py-3 text-left"
-        @click="sharePnl"
-      >
-        {{ $t("message.share-position") }}
-      </button>
-      <button
-        v-if="getStatus(lease) == TEMPLATES.opened"
+        v-if="getLeaseStatus(lease) == TEMPLATES.opened"
         @click="repay"
         class="button-secondary w-full border-none px-3 py-3 text-left"
       >
@@ -57,25 +50,24 @@
       </button>
       <button
         class="button-secondary w-full border-none px-3 py-3 text-left"
-        @click="history"
+        @click="sharePnl"
       >
-        {{ $t("message.history") }}
+        {{ $t("message.share-position") }}
       </button>
     </template>
   </Popover>
 </template>
 
 <script lang="ts" setup>
-import Collect from "./Collect.vue";
 import { onMounted, ref } from "vue";
 import { Button, Popover } from "web-components";
-import type { LeaseData } from "@/common/types";
+import type { LeaseInfo } from "@/common/api";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
-import { getStatus, TEMPLATES } from "../common";
+import { getLeaseStatus, TEMPLATES } from "../common";
 import { SingleLeaseDialog } from "../../enums";
 
-export type IAction = { lease: LeaseData; showCollect: boolean; showClose: boolean; opened: boolean };
+export type IAction = { lease: LeaseInfo; showClose: boolean; opened: boolean; showDetails?: boolean };
 
 const props = defineProps<IAction>();
 
@@ -88,25 +80,23 @@ onMounted(() => {
   isOpen.value = props.opened;
 });
 
+function viewDetails() {
+  router.push(`/${RouteNames.LEASES}/${props.lease.address}`);
+  close();
+}
+
 function sharePnl() {
   emit("sharePnl");
   close();
 }
 
 function repay() {
-  router.push(`/${RouteNames.LEASES}/repay/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}`);
+  router.push(`/${RouteNames.LEASES}/repay/${props.lease.address}`);
   close();
 }
 
 function onClose() {
-  router.push(
-    `/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}`
-  );
-  close();
-}
-
-function history() {
-  router.push(`/${RouteNames.LEASES}/${props.lease.protocol.toLocaleLowerCase()}/${props.lease.leaseAddress}#history`);
+  router.push(`/${RouteNames.LEASES}/${SingleLeaseDialog.CLOSE}/${props.lease.address}`);
   close();
 }
 

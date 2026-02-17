@@ -2,13 +2,15 @@
   <Table
     v-if="validators?.length > 0"
     :columns="columns"
-    tableClasses="min-w-[470px]"
+    tableClasses="md:min-w-[470px]"
+    :scrollable="!mobile"
   >
     <template v-slot:body>
       <TableRow
         v-for="(row, index) in validators"
         :key="index"
         :items="row.items"
+        :scrollable="!mobile"
       />
     </template>
     <template v-slot:footer>
@@ -56,15 +58,23 @@ import { Button, Table, type TableColumnProps, TableRow, type TableRowItemProps 
 import EmptyState from "@/common/components/EmptyState.vue";
 import { NETWORK } from "@/config/global";
 import { computed } from "vue";
+import { isMobile } from "@/common/utils";
 
 const i18n = useI18n();
+const mobile = isMobile();
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
-  { label: i18n.t("message.amount-delegated"), class: "md:flex" },
-  { label: i18n.t("message.comm"), class: "md:flex max-w-[100px]" },
-  { label: i18n.t("message.status"), class: "max-w-[140px]" }
-]);
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
+      { label: i18n.t("message.amount-delegated") }
+    ]
+  : [
+      { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
+      { label: i18n.t("message.amount-delegated") },
+      { label: i18n.t("message.comm"), class: "max-w-[100px]" },
+      { label: i18n.t("message.status"), class: "max-w-[140px]" }
+    ]
+);
 
 function openLink() {
   window.open(NETWORK.staking, "_blank");

@@ -132,7 +132,7 @@
             label: $t('message.stepper-transfer-position'),
             icon: getIconByProtocol()!,
             token: {
-              balance: AssetUtils.formatNumber(stepperTransfer.toString(), assets[selectedCurrency]?.decimal_digits),
+              balance: formatTokenBalance(stepperTransfer),
               symbol: assets[selectedCurrency]?.label
             },
             meta: () => h('div', `${NATIVE_NETWORK.label} > ${protocolName}`)
@@ -177,8 +177,8 @@ import {
   Button,
   Dropdown,
   Radio,
-  Size,
   Slider,
+  Size,
   type AssetItemProps,
   AssetItem,
   ToastType,
@@ -187,24 +187,25 @@ import {
 } from "web-components";
 import { RouteNames } from "@/router";
 import { tabs } from "../types";
-
 import LongLeaseDetails from "@/modules/leases/components/new-lease/LongLeaseDetails.vue";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useApplicationStore } from "@/common/stores/application";
-import { useOracleStore } from "@/common/stores/oracle";
-import { AppUtils, AssetUtils, getMicroAmount, Logger, walletOperation } from "@/common/utils";
-import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useConfigStore } from "@/common/stores/config";
+import { usePricesStore } from "@/common/stores/prices";
+import { useHistoryStore } from "@/common/stores/history";
+import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
+import { NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
 import {
-  Contracts,
   INTEREST_DECIMALS,
   MAX_POSITION,
   MIN_POSITION,
   PERCENT,
   PERMILLE,
   POSITIONS,
-  PositionTypes,
-  ProtocolsConfig,
   SORT_LEASE,
   WASM_EVENTS
 } from "@/config/global";
@@ -213,21 +214,19 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { useI18n } from "vue-i18n";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { useAdminStore } from "@/common/stores/admin";
 import { Leaser, type LeaseApply } from "@nolus/nolusjs/build/contracts";
 import { useRouter } from "vue-router";
 
 const activeTabIdx = 0;
 const walletStore = useWalletStore();
-const app = useApplicationStore();
-const oracle = useOracleStore();
-const admin = useAdminStore();
+const balancesStore = useBalancesStore();
+const configStore = useConfigStore();
+const pricesStore = usePricesStore();
+const historyStore = useHistoryStore();
 const i18n = useI18n();
 const router = useRouter();
 const showDetails = ref(false);
 
-const freeInterest = ref<string[]>();
-const ignoreLeaseAssets = ref<string[]>();
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
@@ -241,9 +240,9 @@ const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
 const leaseApply = ref<LeaseApply | null>();
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -253,12 +252,8 @@ watch(
 );
 
 async function onInit() {
-  const [freeInterestv, ignoreLeaseAssetsv] = await Promise.all([
-    AppUtils.getFreeInterest(),
-    AppUtils.getIgnoreLeaseLongAssets()
-  ]);
-  freeInterest.value = freeInterestv;
-  ignoreLeaseAssets.value = ignoreLeaseAssetsv;
+  // Free interest is handled by a 3rd party service
+  // Asset filtering (ignore_long) is now done by the backend in /api/protocols/{protocol}/currencies
 }
 
 watch(
@@ -274,13 +269,22 @@ watch(
 );
 
 const totalBalances = computed(() => {
-  let currencies: ExternalCurrency[] = [];
-  for (const protocol in ProtocolsConfig) {
-    if (ProtocolsConfig[protocol].type == PositionTypes.long) {
-      for (const c of ProtocolsConfig[protocol].currencies) {
-        const item = app.currenciesData?.[`${c}@${protocol}`];
-        let balance = walletStore.balances.find((c) => c.balance.denom == item?.ibcData);
-        currencies.push({ ...item, balance: balance?.balance } as ExternalCurrency);
+  const currencies: ExternalCurrency[] = [];
+  // Use long protocols from gated protocols API
+  const longProtocols = configStore.longProtocolsForCurrentNetwork;
+
+  for (const protocol of longProtocols) {
+    // Get cached currencies for this protocol
+    const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol.protocol);
+
+    for (const currency of protocolCurrencies) {
+      // Find matching currency in currenciesData to get full info
+      const key = `${currency.ticker}@${protocol.protocol}`;
+      const currencyInfo = configStore.currenciesData?.[key];
+
+      if (currencyInfo) {
+        const balance = balancesStore.balances.find((b) => b.denom === currencyInfo.ibcData);
+        currencies.push({ ...currencyInfo, balance: balance } as ExternalCurrency);
       }
     }
   }
@@ -288,13 +292,13 @@ const totalBalances = computed(() => {
 });
 
 const isShortEnabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
-  return protocols.short;
+  // Use dynamic check from config store instead of hardcoded protocolsFilter
+  return configStore.hasShortProtocols(configStore.protocolFilter);
 });
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
-  return protocols.disabled;
+  // Use dynamic check from config store instead of hardcoded protocolsFilter
+  return configStore.isNetworkDisabled(configStore.protocolFilter);
 });
 
 const currency = computed(() => {
@@ -303,11 +307,12 @@ const currency = computed(() => {
 
 const assets = computed(() => {
   const data = [];
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
+  // Use dynamic protocols from config store instead of hardcoded protocolsFilter.hold
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
   const b = ((balances.value as ExternalCurrency[]) ?? []).filter((item) => {
     const [_, p] = item.key.split("@");
 
-    if (protocols.hold.includes(p)) {
+    if (activeProtocols.includes(p)) {
       return true;
     }
     return false;
@@ -315,9 +320,9 @@ const assets = computed(() => {
 
   for (const asset of b) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
+    const balance = formatTokenBalance(value);
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
-    const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
+    const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
     const stable = price.mul(value);
 
     data.push({
@@ -339,7 +344,7 @@ const assets = computed(() => {
       ticker: asset.ticker!,
       key: asset.key,
       stable,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: formatDecAsUsd(stable)
     });
   }
   return data.sort((a, b) => {
@@ -348,35 +353,27 @@ const assets = computed(() => {
 });
 
 const coinList = computed(() => {
-  const list = balances.value
-    .filter((item) => {
-      let [ticker, protocol] = item.key.split("@");
+  if (!currency.value?.key) {
+    return [];
+  }
 
-      const [_currency, downPaymentProtocol] = currency.value?.key.split("@");
-      if (downPaymentProtocol != protocol) {
-        return false;
-      }
+  const [_ticker, downPaymentProtocol] = currency.value.key.split("@");
 
-      if (!app.lease?.[protocol].includes(ticker)) {
-        return false;
-      }
+  // Get currencies for the selected protocol that can be leased (group === "lease")
+  const protocolCurrencies = configStore.getCachedProtocolCurrencies(downPaymentProtocol);
+  const leaseCurrencies = protocolCurrencies.filter((c) => c.group === "lease");
 
-      if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
-        return false;
-      }
-
-      return app.leasesCurrencies.includes(ticker);
-    })
-    .map((item) => {
-      return {
-        decimal_digits: item.decimal_digits,
-        key: item.key,
-        ticker: item.ticker,
-        label: item.shortName as string,
-        value: item.ibcData,
-        icon: item.icon as string
-      };
-    });
+  // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
+  const list = leaseCurrencies.map((item) => {
+    return {
+      decimal_digits: item.decimals,
+      key: `${item.ticker}@${downPaymentProtocol}`,
+      ticker: item.ticker,
+      label: item.shortName,
+      value: item.bank_symbol,
+      icon: item.icon
+    };
+  });
 
   const sortOrder = new Map(SORT_LEASE.map((t, i) => [t, i]));
 
@@ -393,33 +390,33 @@ const coinList = computed(() => {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return formatUsd(0);
   }
-  const price = new Dec(oracle.prices?.[asset.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 
 const balances = computed(() => {
+  // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
   return totalBalances.value.filter((item) => {
     if (!item.key) {
       return false;
     }
 
     const [ticker, protocol] = item.key?.split("@") ?? [];
-    let cticker = ticker;
 
-    if (!ProtocolsConfig[protocol].lease) {
-      return false;
+    // Get protocol currencies from cache and check if this is valid collateral
+    const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol);
+    const currencyInfo = protocolCurrencies.find((c) => c.ticker === ticker);
+
+    // Valid collateral: LPN, native, or lease currencies
+    if (currencyInfo) {
+      return currencyInfo.group === "lpn" || currencyInfo.group === "native" || currencyInfo.group === "lease";
     }
 
-    if (ignoreLeaseAssets.value?.includes(ticker) || ignoreLeaseAssets.value?.includes(`${ticker}@${protocol}`)) {
-      return false;
-    }
-
-    const lpns = ((app.lpn ?? []) as ExternalCurrency[]).map((item) => item.key as string);
-    return lpns.includes(item.key as string) || app.leasesCurrencies.includes(cticker);
+    return false;
   });
 });
 
@@ -428,7 +425,7 @@ const swapAmount = computed(() => {
   const currency = coinList.value[selectedLoanCurrency.value];
   const a = new Dec(total?.amount ?? 0, currency.decimal_digits);
 
-  return `${AssetUtils.formatNumber(a.toString(), currency.decimal_digits)} ${currency.label}`;
+  return `${formatTokenBalance(a)} ${currency.label}`;
 });
 
 function handleAmountChange(event: string) {
@@ -455,16 +452,17 @@ async function validateMinMaxValues(): Promise<boolean> {
     const currentBalance = selectedDownPaymentCurrency;
 
     const [c, p] = selectedCurrency.key.split("@");
-    const range = (await AppUtils.getDownpaymentRange(p))[c];
+    const range = (await getDownpaymentRange(p))[c];
     if (currentBalance) {
       if (downPaymentAmount || downPaymentAmount !== "") {
-        const price = oracle.prices[selectedDownPaymentCurrency.key as string];
+        const priceData = pricesStore.prices[selectedDownPaymentCurrency.key as string];
+        const priceAmount = priceData?.price ?? "0";
 
         const max = new Dec(range?.max ?? 0);
         const min = new Dec(range?.min ?? 0);
 
-        const leaseMax = max.quo(new Dec(price.amount));
-        const leaseMin = min.quo(new Dec(price.amount));
+        const leaseMax = max.quo(new Dec(priceAmount));
+        const leaseMin = min.quo(new Dec(priceAmount));
 
         const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
           downPaymentAmount,
@@ -472,15 +470,15 @@ async function validateMinMaxValues(): Promise<boolean> {
           currentBalance.decimal_digits
         );
         const balance = CurrencyUtils.calculateBalance(
-          price.amount,
+          priceAmount,
           downPaymentAmountInMinimalDenom,
           currentBalance.decimal_digits
         ).toDec();
 
         if (balance.lt(min)) {
           amountErrorMsg.value = i18n.t("message.lease-min-error", {
-            minAmount: leaseMin.toString(selectedDownPaymentCurrency.decimal_digits),
-            maxAmount: leaseMax.toString(selectedDownPaymentCurrency.decimal_digits),
+            minAmount: formatTokenBalance(leaseMin),
+            maxAmount: formatTokenBalance(leaseMax),
             symbol: selectedDownPaymentCurrency.shortName
           });
           isValid = false;
@@ -488,8 +486,8 @@ async function validateMinMaxValues(): Promise<boolean> {
 
         if (balance.gt(max)) {
           amountErrorMsg.value = i18n.t("message.lease-max-error", {
-            minAmount: leaseMin.toString(selectedDownPaymentCurrency.decimal_digits),
-            maxAmount: leaseMax.toString(selectedDownPaymentCurrency.decimal_digits),
+            minAmount: formatTokenBalance(leaseMin),
+            maxAmount: formatTokenBalance(leaseMax),
             symbol: selectedDownPaymentCurrency.shortName
           });
           isValid = false;
@@ -522,7 +520,7 @@ function isDownPaymentAmountValid() {
     const isLowerThanOrEqualsToZero = new Dec(downPaymentAmountInMinimalDenom.amount || "0").lte(new Dec(0));
 
     const isGreaterThanWalletBalance = new Int(downPaymentAmountInMinimalDenom.amount.toString() || "0").gt(
-      selectedDownPaymentCurrency?.balance?.amount
+      new Int(selectedDownPaymentCurrency?.balance?.amount ?? "0")
     );
 
     if (isLowerThanOrEqualsToZero) {
@@ -561,7 +559,7 @@ async function calculate() {
       let [leaseTicker] = lease.key.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
+      const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
@@ -617,11 +615,10 @@ async function openLease() {
       ];
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const admin = useAdminStore();
 
       let [leaseTicker, protocol] = selectedCurrency.key.split("@");
 
-      const leaserClient = new Leaser(cosmWasmClient, admin.contracts![protocol].leaser);
+      const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
       const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
         wallet,
@@ -637,14 +634,15 @@ async function openLease() {
       });
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
-      walletStore.loadActivities();
+      balancesStore.fetchBalances();
+      historyStore.loadActivities();
       reload();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.currently-opening")
       });
 
-      router.push(`/${RouteNames.LEASES}/${protocol.toLowerCase()}/${data.value}`);
+      router.push(`/${RouteNames.LEASES}/${data.value}`);
     } catch (error: Error | any) {
       amountErrorMsg.value = error.toString();
       Logger.error(error);
@@ -657,13 +655,16 @@ async function openLease() {
 function getIconByProtocol() {
   try {
     const selectedDownPaymentCurrency = currency.value;
-    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
 
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
-        return Contracts.protocolsFilter[key].image;
-      }
+    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
+    const networkName = configStore.getNetworkNameByProtocol(protocol);
+    if (networkName) {
+      // Use the network value to find the network and get its icon
+      const network = configStore.getNetworkByValue(networkName);
+      return network?.icon;
     }
+    return null;
   } catch (error) {
     console.error("Invalid address format:", error);
     return null;
@@ -673,13 +674,10 @@ function getIconByProtocol() {
 const protocolName = computed(() => {
   try {
     const selectedDownPaymentCurrency = currency.value;
-    let [_, protocol] = selectedDownPaymentCurrency.key.split("@");
+    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
 
-    for (const key in Contracts.protocolsFilter) {
-      if (Contracts.protocolsFilter[key].hold.includes(protocol)) {
-        return Contracts.protocolsFilter[key].name;
-      }
-    }
+    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
+    return configStore.getNetworkNameByProtocol(protocol) ?? null;
   } catch (error) {
     console.error("Invalid address format:", error);
     return null;
@@ -688,8 +686,8 @@ const protocolName = computed(() => {
 
 const borrowStable = computed(() => {
   let [_, protocol] = currency.value.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(protocol);
-  const price = new Dec(oracle.prices?.[lpn.key!]?.amount ?? 0);
+  const lpn = getLpnByProtocol(protocol);
+  const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
   const v = leaseApply.value?.borrow?.amount ?? "0";
   const stable = price.mul(new Dec(v, lpn.decimal_digits));
   return stable;

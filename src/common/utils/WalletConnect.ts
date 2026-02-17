@@ -5,15 +5,11 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { AssetUtils, WalletManager } from ".";
+import { WalletManager } from ".";
+import { getCurrencyByDenom } from "./CurrencyLookup";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
-import {
-  authenticateEvmPhantom,
-  authenticateMetamask,
-  authenticateSolFlare,
-  authenticateWalletConnect
-} from "@/networks/cosm/WalletFactory";
+import { authenticateEvmPhantom, authenticateSolFlare } from "@/networks/cosm/WalletFactory";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -35,7 +31,7 @@ export const validateAmount = (amount: string, denom: string, balance: number) =
     return i18n.global.t("message.invalid-amount");
   }
 
-  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const asset = getCurrencyByDenom(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
   const zero = CurrencyUtils.convertDenomToMinimalDenom("0", asset.ibcData, asset.decimal_digits).amount.toDec();
 
@@ -83,104 +79,46 @@ export const validateAmountV2 = (amount: string, amount2: string) => {
   return "";
 };
 
-export const walletOperation = async (operation: () => void) => {
-  const walletStore = useWalletStore();
-  switch (WalletManager.getWalletConnectMechanism()) {
-    case WalletConnectMechanism.KEPLR: {
-      await walletStore[WalletActions.CONNECT_KEPLR]();
-      break;
-    }
-    case WalletConnectMechanism.LEAP: {
-      await walletStore[WalletActions.CONNECT_LEAP]();
-      break;
-    }
-    case WalletConnectMechanism.WALLET_WC: {
-      await walletStore[WalletActions.CONNECT_WC]();
-      break;
-    }
-    case WalletConnectMechanism.EVM_METAMASK: {
-      await walletStore[WalletActions.CONNECT_EVM_METAMASK]();
-      break;
-    }
-    case WalletConnectMechanism.EVM_PHANTOM: {
-      await walletStore[WalletActions.CONNECT_EVM_PHANTOM]();
-      break;
-    }
-    case WalletConnectMechanism.SOL_SOLFLARE: {
-      await walletStore[WalletActions.CONNECT_SOL_SOLFLARE]();
-      break;
-    }
-    case WalletConnectMechanism.LEDGER: {
-      await walletStore[WalletActions.CONNECT_LEDGER]();
-      break;
-    }
-    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
-      await walletStore[WalletActions.CONNECT_LEDGER]();
-      break;
-    }
-  }
-
-  operation();
+const walletActionMap: Record<WalletConnectMechanism, WalletActions> = {
+  [WalletConnectMechanism.KEPLR]: WalletActions.CONNECT_KEPLR,
+  [WalletConnectMechanism.LEAP]: WalletActions.CONNECT_LEAP,
+  [WalletConnectMechanism.EVM_PHANTOM]: WalletActions.CONNECT_EVM_PHANTOM,
+  [WalletConnectMechanism.SOL_SOLFLARE]: WalletActions.CONNECT_SOL_SOLFLARE,
+  [WalletConnectMechanism.LEDGER]: WalletActions.CONNECT_LEDGER,
+  [WalletConnectMechanism.LEDGER_BLUETOOTH]: WalletActions.CONNECT_LEDGER
 };
 
-export const externalWalletOperation = async (
-  operation: (wallet: BaseWallet) => void,
-  wallet: Wallet,
-  networkData: NetworkData
-) => {
-  switch (WalletManager.getWalletConnectMechanism()) {
-    case WalletConnectMechanism.KEPLR: {
-      return operation(await authenticateKeplr(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEAP: {
-      return operation(await authenticateLeap(wallet, networkData));
-    }
-    case WalletConnectMechanism.WALLET_WC: {
-      return operation(await authenticateWalletConnect(wallet, networkData));
-    }
-    case WalletConnectMechanism.WALLET_WC: {
-      return operation(await authenticateMetamask(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEDGER: {
-      return operation(await authenticateLedger(wallet, networkData));
-    }
-    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
-      return operation(await authenticateLedger(wallet, networkData));
-    }
+const externalWalletMap: Record<
+  WalletConnectMechanism,
+  (wallet: Wallet, network: NetworkData) => Promise<BaseWallet | undefined>
+> = {
+  [WalletConnectMechanism.KEPLR]: authenticateKeplr,
+  [WalletConnectMechanism.LEAP]: authenticateLeap,
+  [WalletConnectMechanism.EVM_PHANTOM]: authenticateEvmPhantom,
+  [WalletConnectMechanism.SOL_SOLFLARE]: authenticateSolFlare,
+  [WalletConnectMechanism.LEDGER]: authenticateLedger,
+  [WalletConnectMechanism.LEDGER_BLUETOOTH]: authenticateLedger
+};
+
+export const walletOperation = async (operation: () => void | Promise<void>) => {
+  const walletStore = useWalletStore();
+  const mechanism = WalletManager.getWalletConnectMechanism();
+  if (mechanism) {
+    const action = walletActionMap[mechanism];
+    await walletStore[action]();
   }
+  await operation();
 };
 
 export const externalWallet = async (wallet: Wallet, networkData: NetworkData) => {
-  switch (WalletManager.getWalletConnectMechanism()) {
-    case WalletConnectMechanism.KEPLR: {
-      return await authenticateKeplr(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEAP: {
-      return await authenticateLeap(wallet, networkData);
-    }
-    case WalletConnectMechanism.WALLET_WC: {
-      return await authenticateWalletConnect(wallet, networkData);
-    }
-    case WalletConnectMechanism.EVM_METAMASK: {
-      return await authenticateMetamask(wallet, networkData);
-    }
-    case WalletConnectMechanism.EVM_PHANTOM: {
-      return await authenticateEvmPhantom(wallet, networkData);
-    }
-    case WalletConnectMechanism.SOL_SOLFLARE: {
-      return await authenticateSolFlare(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEDGER: {
-      return await authenticateLedger(wallet, networkData);
-    }
-    case WalletConnectMechanism.LEDGER_BLUETOOTH: {
-      return await authenticateLedger(wallet, networkData);
-    }
+  const mechanism = WalletManager.getWalletConnectMechanism();
+  if (mechanism) {
+    return await externalWalletMap[mechanism](wallet, networkData);
   }
 };
 
 export const getMicroAmount = (denom: string, amount: string) => {
-  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const asset = getCurrencyByDenom(denom);
   const mAmount = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
   return { coinMinimalDenom: asset.ibcData, coinDecimals: asset.decimal_digits, mAmount };
@@ -205,7 +143,7 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
     return result;
   }
 
-  const asset = AssetUtils.getCurrencyByDenom(denom);
+  const asset = getCurrencyByDenom(denom);
   const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
 
   const funds: Coin[] = [
@@ -225,11 +163,5 @@ export const transferCurrency = async (denom: string, amount: string, receiverAd
   return result;
 };
 
-const removeComma = (n: string) => {
-  const re = new RegExp(",", "g");
-  return n.replace(re, "");
-};
-
-const removeSpace = (n: string) => {
-  return n.replace(" ", "");
-};
+const removeComma = (n: string) => n.replace(/,/g, "");
+const removeSpace = (n: string) => n.replace(/\s/g, "");

@@ -16,8 +16,8 @@
     class="flex justify-center"
     v-if="chart?.isLegendVisible"
   >
-    <div class="flex items-center">
-      <span class="btn-gradient m-2 block h-[8px] w-[20px] rounded"></span>
+    <div class="flex items-center text-sm">
+      <span class="btn-gradient m-2 block h-[4px] w-[12px] rounded"></span>
       {{ $t("message.pnl-in-usdc") }}
     </div>
   </div>
@@ -29,16 +29,18 @@ import { ref, watch } from "vue";
 import { plot, line } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
 
-import { CHART_RANGES, NATIVE_CURRENCY } from "@/config/global";
+import { CHART_RANGES } from "@/config/global";
 import { useI18n } from "vue-i18n";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
-import type { LeaseData } from "@/common/types";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import type { LeaseInfo } from "@/common/api";
+import { useAnalyticsStore } from "@/common/stores";
 
 type ChartData = { amount: number; date: Date };
 
 const chartHeight = 250;
-const marginLeft = 75;
-const chartWidth = isMobile() ? 350 : 550;
+let chartWidth: number;
+let marginLeft: number;
 const marginRight = 20;
 const marginBottom = 40;
 
@@ -60,7 +62,8 @@ const data = ref<ChartData[]>([
   }
 ]);
 const chart = ref<typeof Chart>();
-const props = defineProps<{ lease?: LeaseData }>();
+const props = defineProps<{ lease?: LeaseInfo | null }>();
+const analyticsStore = useAnalyticsStore();
 
 const gradientHTML = `
 <svg xmlns="http://www.w3.org/2000/svg" width="502" height="83" viewBox="0 0 502 83" fill="none">
@@ -75,10 +78,10 @@ const gradientHTML = `
 `;
 
 async function setData() {
-  if (props.lease?.leaseAddress) {
-    const response = await EtlApi.fetchPnlOverTime(props.lease?.leaseAddress, chartTimeRange.value.days);
-    if (response.length > 0) {
-      data.value = response.map((d) => ({
+  if (props.lease?.address) {
+    await analyticsStore.fetchPnlOverTime(props.lease.address, chartTimeRange.value.days);
+    if (analyticsStore.pnlOverTime.length > 0) {
+      data.value = analyticsStore.pnlOverTime.map((d) => ({
         date: new Date(d.date),
         amount: Number(d.amount)
       }));
@@ -98,27 +101,32 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+  const amounts = data.value.map((d) => d.amount);
+  const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
+  const tickFormat = createUsdTickFormat(yDomain);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
   const plotChart = plot({
     width: chartWidth,
     height: chartHeight,
     marginLeft,
     marginRight,
     marginBottom,
-    style: {
-      width: "100%",
-      height: "100%"
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     y: {
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => `${AssetUtils.formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`,
-      tickSize: 0
+      tickFormat,
+      tickSize: 0,
+      ticks: yTicks
     },
     x: {
       label: null,
       type: "time",
-      tickSize: 0
+      tickSize: 0,
+      ticks: CHART_AXIS.xTicks
     },
     marks: [
       line(data.value, {
@@ -127,12 +135,23 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         stroke: "url(#gradient)",
         strokeWidth: 2,
         strokeLinecap: "round",
-        curve: "basis"
+        curve: "basis",
+        clip: "frame"
       })
     ]
   });
 
   plotContainer.appendChild(plotChart);
+
+  const crosshair = select(plotChart)
+    .append("line")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.15)
+    .attr("stroke-width", 1)
+    .attr("y1", 0)
+    .attr("y2", chartHeight - marginBottom)
+    .style("display", "none");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [x] = pointer(event, plotChart);
@@ -140,9 +159,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
 
       if (closestData) {
-        tooltip.html(
-          `<strong>${i18n.t("message.amount")}:</strong> ${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
-        );
+        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+
+        tooltip.html(`<strong>${i18n.t("message.amount")}:</strong> ${formatUsd(closestData.amount)}`);
 
         const node = tooltip.node()!.getBoundingClientRect();
         const height = node.height;
@@ -155,6 +174,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       }
     })
     .on("mouseleave", () => {
+      crosshair.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }

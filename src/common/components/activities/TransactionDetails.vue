@@ -74,14 +74,11 @@
             v-if="fee"
           >
             <span class="text-14 text-typography-secondary">{{ $t("message.fees") }}</span>
-            <CurrencyComponent
-              :amount="fee.amount"
+            <TokenAmount
+              :micro-amount="fee.amount"
               :denom="fee.denom"
-              :type="CURRENCY_VIEW_TYPES.TOKEN"
               :decimals="fee.decimals"
-              :has-space="true"
               :font-size="16"
-              :font-size-small="16"
               class="flex font-semibold"
             />
           </div>
@@ -111,15 +108,7 @@
             </div>
           </div>
         </div>
-        <template v-if="data?.historyData?.routeDetails">
-          <p class="font-semibold text-typography-default">
-            {{ $t("message.transactions-summary") }}
-          </p>
-          <Stepper
-            v-bind="data?.historyData?.routeDetails"
-            :variant="StepperVariant.MEDIUM"
-          />
-        </template>
+
       </div>
     </template>
   </Dialog>
@@ -127,16 +116,17 @@
 
 <script lang="ts" setup>
 import nlsIcon from "@/assets/icons/networks/nolus.svg?url";
-import CurrencyComponent from "@/common/components/CurrencyComponent.vue";
+import TokenAmount from "@/common/components/TokenAmount.vue";
 import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { Button, Dialog, ToastType } from "web-components";
 import type { ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
-import { AssetUtils, StringUtils } from "@/common/utils";
+import { StringUtils } from "@/common/utils";
+import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
-import { CONFIRM_STEP, CURRENCY_VIEW_TYPES } from "@/common/types";
+import { CONFIRM_STEP } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
-import { StepperVariant, Stepper, Alert, AlertType } from "web-components";
+import { Alert, AlertType } from "web-components";
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
@@ -150,7 +140,7 @@ onBeforeUnmount(() => {
 
 const fee = computed(() => {
   if (data.value?.fee_denom) {
-    const currencty = AssetUtils.getCurrencyByDenom(data.value.fee_denom);
+    const currencty = getCurrencyByDenom(data.value.fee_denom);
     return {
       denom: currencty.shortName,
       amount: data.value.fee_amount,
@@ -175,6 +165,12 @@ const status = computed(() => {
       };
     }
     default: {
+      if (data.value?.code != null && data.value.code !== 0) {
+        return {
+          title: i18n.t(`message.failed`),
+          class: "text-typography-error"
+        };
+      }
       return {
         title: i18n.t(`message.completed`),
         class: "text-typography-success"

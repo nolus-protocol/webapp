@@ -5,20 +5,11 @@ import "@/assets/styles/global.scss";
 import { createPinia } from "pinia";
 import { setupI18n } from "@/i18n";
 import { router } from "@/router";
-import { createSSRApp, createApp as createClientApp } from "vue";
-import { Mode } from "./config/global";
+import { createApp as createVueApp } from "vue";
 import App from "@/App.vue";
-import type { IObjectKeys } from "./common/types";
 
-if (import.meta.env.VITE_MODE == Mode.prod && !import.meta.env.SSR) {
-  console.log = () => null;
-}
-
-export const createApp = (data: IObjectKeys) => {
-  const isServer = import.meta.env.SSR;
-  const app = (isServer ? createSSRApp : createClientApp)(App);
-  app.provide("ssrContext", data);
-
+export const createApp = () => {
+  const app = createVueApp(App);
   const pinia = createPinia();
 
   app.use(router);

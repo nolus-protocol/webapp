@@ -1,6 +1,7 @@
 import type { WalletConnectMechanism } from "@/common/types";
 import { useWalletStore } from "../stores/wallet";
-import { Contracts, DefaultProtocolFilter, isDev } from "@/config/global";
+import { useConfigStore } from "../stores/config";
+import { DefaultProtocolFilter } from "@/config/global";
 
 export class WalletManager {
   public static WALLET_CONNECT_MECHANISM = "wallet_connect_mechanism";
@@ -31,9 +32,9 @@ export class WalletManager {
   }
 
   public static getProtocolFilter(): string {
-    const filters = Object.keys(Contracts.protocolsFilter).map((item) => item);
-    const item = localStorage.getItem(this.PROTOCOL_FILTER)!;
-    if (filters.includes(item)) {
+    const configStore = useConfigStore();
+    const item = localStorage.getItem(this.PROTOCOL_FILTER);
+    if (item && configStore.isValidNetworkFilter(item)) {
       return item;
     }
     return DefaultProtocolFilter;
@@ -45,15 +46,7 @@ export class WalletManager {
 
   public static getWalletAddress(): string {
     const wallet = useWalletStore();
-
-    let address = wallet.wallet?.address ?? "";
-    const searchParamAddress = new URLSearchParams(window.location.search).get("address");
-
-    if (isDev() && searchParamAddress) {
-      address = searchParamAddress;
-    }
-
-    return address;
+    return wallet.wallet?.address ?? "";
   }
 
   public static setSmallBalances(bool: boolean) {

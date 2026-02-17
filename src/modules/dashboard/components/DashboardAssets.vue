@@ -1,60 +1,79 @@
 <template>
   <Widget class="!p-0">
     <WidgetHeader
-      :label="$t('message.assets')"
-      :icon="{ name: 'assets', class: 'fill-icon-link' }"
-      :badge="{ content: filteredAssets.length.toString() }"
+      :label="walletConnected && !isEmpty ? $t('message.assets') : ''"
+      :icon="walletConnected && !isEmpty ? { name: 'assets', class: 'fill-icon-link' } : undefined"
+      :badge="walletConnected && !isEmpty ? { content: filteredAssets.length.toString() } : undefined"
       class="px-6 pt-6"
     >
-      <div class="flex flex-wrap gap-2">
-        <Button
-          v-if="isVisible"
-          :label="$t('message.swap')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${AssetsDialog.SWAP}`)"
-        />
-        <Button
-          :label="$t('message.receive')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${AssetsDialog.RECEIVE}`)"
-        />
-        <Button
-          v-if="isVisible"
-          :label="$t('message.send')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${AssetsDialog.SEND}`)"
-        />
-      </div>
-    </WidgetHeader>
-    <BigNumber
-      :label="$t('message.total-value')"
-      class="px-6"
-      :amount="{
-        amount: total.toString(2),
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
-        denom: NATIVE_CURRENCY.symbol,
-        fontSize: isMobile() ? 20 : 32,
-        animatedReveal: true
-      }"
-    />
-    <Table
-      :columns="columns"
-      class="px-6"
-      :scrollable="false"
-    >
-      <template v-slot:body>
-        <TableRow
-          v-for="(row, index) in assets"
-          :key="index"
-          :items="row.items"
-          :scrollable="false"
-        />
+      <template v-if="walletConnected && !isEmpty">
+        <div class="flex flex-wrap gap-2">
+          <Button
+            :label="$t('message.swap')"
+            severity="secondary"
+            size="large"
+            @click="() => router.push(`/${AssetsDialog.SWAP}`)"
+          />
+          <Button
+            :label="$t('message.receive')"
+            severity="secondary"
+            size="large"
+            @click="() => router.push(`/${AssetsDialog.RECEIVE}`)"
+          />
+          <Button
+            :label="$t('message.send')"
+            severity="secondary"
+            size="large"
+            @click="() => router.push(`/${AssetsDialog.SEND}`)"
+          />
+        </div>
       </template>
-    </Table>
-    <div class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3">
+    </WidgetHeader>
+    <template v-if="walletConnected && !isEmpty">
+      <BigNumber
+        :label="$t('message.total-value')"
+        class="px-6"
+        :amount="{
+          value: total.toString(2),
+          denom: NATIVE_CURRENCY.symbol,
+          fontSize: 24,
+          animatedReveal: true,
+          compact: mobile
+        }"
+      />
+      <Table
+        :columns="columns"
+        class="px-6"
+        :scrollable="false"
+      >
+        <template v-slot:body>
+          <TableRow
+            v-for="(row, index) in assets"
+            :key="index"
+            :items="row.items"
+            :scrollable="false"
+          />
+        </template>
+      </Table>
+    </template>
+    <template v-else>
+      <EmptyState
+        :slider="[
+          {
+            image: { name: 'deposit-assets' },
+            title: $t('message.assets'),
+            description: $t('message.deposit-assets'),
+            button: wallet.wallet
+              ? { name: $t('message.receive'), icon: 'plus', url: `/${AssetsDialog.RECEIVE}` }
+              : undefined
+          }
+        ]"
+      />
+    </template>
+    <div
+      v-if="!isEmpty"
+      class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3"
+    >
       <Button
         :label="$t('message.view-all-assets')"
         class="w-full"
@@ -70,32 +89,33 @@
 import type { TableColumnProps, TableRowItemProps } from "web-components";
 import { Button, Table, TableRow, Widget } from "web-components";
 import { RouteNames } from "@/router";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
+import EmptyState from "@/common/components/EmptyState.vue";
 
 import { AssetsDialog } from "@/modules/assets/enums";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
+import { useBalancesStore } from "@/common/stores/balances";
+import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
-import { Coin, Dec } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, isMobile, Logger, WalletManager } from "@/common/utils";
-import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
+import { Dec } from "@keplr-wallet/unit";
+import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { formatPercent, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { NATIVE_CURRENCY } from "@/config/global";
+import { useNetworkCurrency, useWalletConnected, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
 
+const mobile = isMobile();
 const i18n = useI18n();
 const wallet = useWalletStore();
-const oracle = useOracleStore();
-const app = useApplicationStore();
+const balancesStore = useBalancesStore();
+const pricesStore = usePricesStore();
+const { getNetworkAssets } = useNetworkCurrency();
+const walletConnected = useWalletConnected();
 const router = useRouter();
 const total = ref(new Dec(0));
 const hide = ref(WalletManager.getHideBalances());
-
-defineProps<{ isVisible: boolean }>();
 
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.assets"), variant: "left" },
@@ -108,29 +128,36 @@ const columns = computed<TableColumnProps[]>(() => [
   }
 ]);
 
+const MIN_DISPLAY_ASSETS = 4;
+const MAX_DISPLAY_ASSETS = 5;
+
 const filteredAssets = computed(() => {
-  const balances = wallet.currencies;
-  return balances
-    .sort((a, b) => {
-      const aAssetBalance = CurrencyUtils.calculateBalance(
-        oracle.prices[a.key]?.amount,
-        new Coin(a.balance.denom, a.balance.amount.toString()),
-        a.decimal_digits as number
-      ).toDec();
+  const allAssets = getNetworkAssets();
+  const withBalance = allAssets
+    .filter((a) => parseFloat(a.balance) > 0)
+    .sort((a, b) => b.balanceUsd - a.balanceUsd);
 
-      const bAssetBalance = CurrencyUtils.calculateBalance(
-        oracle.prices[b.key]?.amount,
-        new Coin(b.balance.denom, b.balance.amount.toString()),
-        b.decimal_digits as number
-      ).toDec();
+  if (withBalance.length >= MAX_DISPLAY_ASSETS) {
+    return withBalance.slice(0, MAX_DISPLAY_ASSETS);
+  }
 
-      return Number(bAssetBalance.sub(aAssetBalance).toString(8));
-    })
-    .slice(0, 5);
+  if (!walletConnected.value) {
+    return withBalance;
+  }
+
+  const usedTickers = new Set(withBalance.map((a) => a.currency.ticker));
+  const zeroBalance = allAssets
+    .filter((a) => parseFloat(a.balance) === 0 && !usedTickers.has(a.currency.ticker))
+    .sort((a, b) => a.currency.shortName.localeCompare(b.currency.shortName));
+
+  const target = Math.max(MIN_DISPLAY_ASSETS, withBalance.length);
+  return [...withBalance, ...zeroBalance.slice(0, target - withBalance.length)];
 });
 
+const isEmpty = computed(() => !walletConnected.value && filteredAssets.value.length === 0);
+
 watch(
-  () => [wallet.wallet, oracle.prices, wallet.balances],
+  () => [wallet.wallet, pricesStore.prices, balancesStore.balances],
   async () => {
     try {
       setAvailableAssets();
@@ -144,77 +171,46 @@ watch(
 );
 
 function setAvailableAssets() {
-  let totalAssets = new Dec(0);
-  wallet.currencies.forEach((asset) => {
-    const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
-    const assetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[asset.key]?.amount ?? 0,
-      new Coin(currency.ibcData, asset.balance.amount.toString()),
-      Number(currency.decimal_digits)
-    );
-    totalAssets = totalAssets.add(assetBalance.toDec());
-  });
-  total.value = totalAssets;
+  let totalAssets = 0;
+  for (const asset of getNetworkAssets()) {
+    totalAssets += asset.balanceUsd;
+  }
+  total.value = new Dec(totalAssets.toFixed(2));
 }
 
-function isEarn(denom: string) {
-  const curency = AssetUtils.getCurrencyByDenom(denom);
-  const [_, protocol] = curency.key.split("@");
-  if (!ProtocolsConfig[protocol].rewards) {
-    return false;
+function getYield(asset: ResolvedAsset): string | undefined {
+  if (asset.isEarnable) {
+    return formatPercent(asset.apr);
   }
-
-  const lpns = (app.lpn ?? []).map((item) => item.ticker);
-  return lpns.includes(curency.ticker);
-}
-
-function getApr(key: string) {
-  let [ticker] = key.split("@");
-  let asset = (app.lpn ?? []).find((item) => item.key == key);
-  if (!asset) {
-    asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
-  }
-  const [_, protocol] = asset?.key.split("@") ?? [];
-  return AssetUtils.formatNumber(app.apr?.[protocol] ?? 0, 2);
-}
-
-function apr(denom: string, key: string) {
-  if (isEarn(denom)) {
-    return `${getApr(key)}%`;
-  }
-
-  if (app.native?.ibcData == denom) {
-    return `${AssetUtils.formatNumber(wallet.apr, 2)}%`;
+  if (asset.isNative) {
+    return formatPercent(asset.stakingApr);
   }
 }
 
 const assets = computed<TableRowItemProps[]>(() => {
   return filteredAssets.value.map((item) => {
-    const stable_b = CurrencyUtils.calculateBalance(
-      oracle.prices[item.key]?.amount,
-      new Coin(item.balance.denom, item.balance.amount.toString()),
-      item.decimal_digits
-    ).toDec();
-
-    const price = AssetUtils.formatNumber(oracle.prices[item.key]?.amount ?? 0, 4);
-    const balance = AssetUtils.formatNumber(new Dec(item.balance.amount, item.decimal_digits).toString(3), 3);
-    const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
+    const c = item.currency;
+    const price = formatPriceUsd(item.price);
+    const balanceDec = new Dec(item.balance, c.decimal_digits);
+    const stableDec = new Dec(item.balanceUsd.toFixed(2));
+    const balance = mobile ? formatMobileAmount(balanceDec) : formatTokenBalance(balanceDec);
+    const stable_balance = mobile ? formatMobileUsd(stableDec) : formatUsd(item.balanceUsd);
     return {
       items: [
         {
-          value: item.shortName,
-          subValue: item.name,
-          image: item.icon,
+          value: c.shortName,
+          subValue: c.name,
+          image: c.icon,
           variant: "left",
           textClass: "line-clamp-1 [display:-webkit-box]"
         },
-        { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "md:flex hidden" },
+        { value: price, class: "md:flex hidden" },
         {
           value: hide.value ? "****" : `${balance}`,
-          subValue: hide.value ? "****" : `${NATIVE_CURRENCY.symbol}${stable_balance}`,
+          subValue: hide.value ? "****" : stable_balance,
           variant: "right"
         },
-        { value: apr(item.ibcData, item.key), class: "text-typography-success md:flex hidden" }
+        { value: getYield(item), class: "text-typography-success md:flex hidden" }
       ]
     };
   });

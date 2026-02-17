@@ -1,23 +1,20 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.earn')">
-      <div
-        class="flex gap-2"
+      <Button
         v-if="wallet.wallet"
-      >
-        <Button
-          :label="$t('message.supply')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.SUPPLY}`)"
-        />
-        <Button
-          :label="$t('message.withdraw-title')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.WITHDRAW}`)"
-        />
-      </div>
+        :label="$t('message.supply')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.SUPPLY}`)"
+      />
+      <Button
+        v-if="wallet.wallet"
+        :label="$t('message.withdraw-title')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.EARN}/${EarnAssetsDialog.WITHDRAW}`)"
+      />
     </ListHeader>
     <div class="flex flex-col gap-8 lg:flex-row">
       <EarnAssets
@@ -25,7 +22,7 @@
         :anualYield="anualYield"
         :earningsAmount="earningsAmount"
         :items="assetsRows"
-        class="order-2 overflow-x-auto md:overflow-auto lg:order-none lg:flex-[60%]"
+        class="order-2 overflow-auto lg:order-none lg:flex-[60%]"
         :onSearch="onSearch"
       />
     </div>
@@ -42,252 +39,161 @@ import { RouteNames } from "@/router";
 import { EarnAssets } from "./components";
 import { EarnAssetsDialog } from "./enums";
 
-import { computed, h, onUnmounted, provide, ref, watch } from "vue";
+import { computed, h, provide, ref, watch } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
-import type { Asset } from "./types";
-import { claimRewardsMsg, Lpp, type ContractData } from "@nolus/nolusjs/build/contracts";
 
-import { AssetUtils, EtlApi, Logger, WalletManager } from "@/common/utils";
-import {
-  Contracts,
-  NATIVE_ASSET,
-  NATIVE_CURRENCY,
-  NORMAL_DECIMALS,
-  PERCENT,
-  ProtocolsConfig,
-  SORT_PROTOCOLS,
-  UPDATE_REWARDS_INTERVAL
-} from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
-import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
-import { Coin, Dec } from "@keplr-wallet/unit";
+import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd, formatPercent } from "@/common/utils/NumberFormatUtils";
+import { isMobile } from "@/common/utils";
+import { NORMAL_DECIMALS } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useAdminStore } from "@/common/stores/admin";
-import { useOracleStore } from "@/common/stores/oracle";
-import { Intercom } from "@/common/utils/Intercom";
+import { useEarnStore } from "@/common/stores/earn";
+import { usePricesStore } from "@/common/stores/prices";
+import { useConfigStore } from "@/common/stores/config";
+import { useAnalyticsStore } from "@/common/stores/analytics";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import { Dec } from "@keplr-wallet/unit";
 
-let interval: NodeJS.Timeout | undefined;
-const lpnAsset = ref<Asset[] | []>([]);
-const application = useApplicationStore();
+const mobile = isMobile();
 const wallet = useWalletStore();
-const admin = useAdminStore();
-const oracle = useOracleStore();
+const earnStore = useEarnStore();
+const pricesStore = usePricesStore();
+const configStore = useConfigStore();
+const analyticsStore = useAnalyticsStore();
 const i18n = useI18n();
 const router = useRouter();
-const stableAmount = ref("0.00");
-const earningsAmount = ref("0.00");
-
-const lpnReward = ref<
-  {
-    amount: string;
-    stableAmount: string;
-    icon: string;
-  }[]
->([]);
-const lpnRewardStable = ref("0.00");
-const claimContractData = ref([] as ContractData[]);
 const search = ref("");
 
-watch(
-  () => application.init,
-  () => {
-    if (application.init) {
-      onInit();
-    }
-  },
-  {
-    immediate: true
-  }
-);
-
-async function onInit() {
-  try {
-    await Promise.allSettled([loadLPNCurrency(), loadEarnings()]);
-    interval = setInterval(async () => {
-      await Promise.allSettled([loadLPNCurrency(), loadEarnings()]);
-    }, UPDATE_REWARDS_INTERVAL);
-  } catch (e: Error | any) {
-    Logger.error(e);
-  }
-}
-
-onUnmounted(() => {
-  clearInterval(interval);
-});
-
-watch(
-  () => [wallet.balances, application.protocolFilter],
-  async (value) => {
-    await Promise.allSettled([loadLPNCurrency(), loadEarnings()]);
-  }
-);
+// Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
 
 function onSearch(data: string) {
   search.value = data;
 }
 
-async function loadEarnings() {
-  if (wallet.wallet?.address) {
-    const res = await EtlApi.featchEarnings(wallet.wallet?.address);
-    earningsAmount.value = res.earnings;
-  }
-}
-
-async function loadLPNCurrency() {
-  const lpnCurrencies: Asset[] = [];
-  const protocols = Contracts.protocolsFilter[application.protocolFilter];
-
-  const lpns = application.lpn?.filter((item) => {
-    const c = application.currenciesData![item.key!];
-    const [_currency, protocol] = c.key!.split("@");
-
-    if (protocols.hold.includes(protocol)) {
-      return true;
-    }
-    return false;
-  });
-  const promises = [];
-  const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const claimContract: ContractData[] = [];
-  let usdAmount = new Dec(0);
-
-  for (const lpn of lpns ?? []) {
-    const index = wallet.balances.findIndex((item) => item.balance.denom == lpn.ibcData);
-    if (index > -1) {
-      const fn = async () => {
-        const c = application.currenciesData![lpn.key!];
-        const [_currency, protocol] = c.key!.split("@");
-        const contract = admin.contracts![protocol].lpp;
-        const lppClient = new Lpp(cosmWasmClient, contract);
-        let s = true;
-        claimContract.push({
-          contractAddress: contract,
-          msg: claimRewardsMsg()
-        });
-
-        const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
-
-        const [depositBalance, price, supply] = await Promise.all([
-          lppClient.getLenderDeposit(walletAddress as string),
-          lppClient.getPrice(),
-          lppClient.getDepositCapacity()
-        ]);
-        if (Number(supply?.amount) == 0 || !ProtocolsConfig[protocol].supply) {
-          s = false;
-        }
-
-        const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        const amount = new Dec(depositBalance.amount).mul(calculatedPrice).roundUp();
-        usdAmount = usdAmount.add(
-          new Dec(oracle.prices?.[lpn.key]?.amount ?? 0).mul(new Dec(amount, lpn.decimal_digits))
-        );
-        const currency = {
-          key: c.key,
-          supply: s,
-          balance: {
-            ...wallet.balances[index].balance
-          }
-        };
-        currency.balance.amount = amount.toString();
-        lpnCurrencies.push(currency);
-      };
-      promises.push(fn());
+// Total value of user's earn positions in USD
+const stableAmount = computed(() => {
+  let total = new Dec(0);
+  for (const position of earnStore.positions) {
+    const pool = earnStore.getPool(position.protocol);
+    if (pool) {
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
+      if (currency) {
+        const price = pricesStore.getPriceAsNumber(currency.key);
+        const amount = new Dec(position.deposited_lpn, currency.decimal_digits);
+        total = total.add(amount.mul(new Dec(price)));
+      }
     }
   }
 
-  await Promise.allSettled(promises);
-  const items = [];
-  Intercom.update({
-    LentAmountUSD: usdAmount.toString()
+  // Update Intercom
+  IntercomService.updateEarn({
+    depositedUsd: total.toString(),
+    poolsCount: earnStore.positions.length
   });
 
-  for (const protocol of SORT_PROTOCOLS) {
-    const index = lpnCurrencies.findIndex((item) => {
-      const [_key, pr] = item.key.split("@");
-      return pr == protocol;
-    });
-    if (index > -1) {
-      items.push(lpnCurrencies[index]);
-      lpnCurrencies.splice(index, 1);
-    }
-  }
+  return total.toString(2);
+});
 
-  stableAmount.value = usdAmount.toString(2);
-  claimContractData.value = claimContract;
-  lpnAsset.value = [...items, ...lpnCurrencies].filter((item) => {
-    const [_, p] = item.key.split("@");
-    if (Contracts.ignoreProtocolsInEarn.includes(p)) {
-      return false;
-    }
-    return true;
-  });
-}
+// Total earnings (rewards) from ETL via analytics store
+const earningsAmount = computed(() => {
+  return analyticsStore.earnings?.earnings ?? "0.00";
+});
 
+// Projected annual yield based on current positions and APYs
 const anualYield = computed(() => {
   let amount = new Dec(0);
-  for (const balance of lpnAsset.value) {
-    const c = application.currenciesData![balance.key!];
-    const [_ticker, protocol] = balance.key?.split("@") ?? [];
-    const apr = new Dec((application.apr?.[protocol] ?? 0) / PERCENT);
-
-    const stable_b = CurrencyUtils.calculateBalance(
-      oracle.prices[balance.key]?.amount,
-      new Coin(balance.balance.denom, balance.balance.amount.toString()),
-      c.decimal_digits
-    ).toDec();
-    amount = amount.add(stable_b.mul(apr));
+  for (const position of earnStore.positions) {
+    const pool = earnStore.getPool(position.protocol);
+    if (pool) {
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
+      if (currency) {
+        const price = pricesStore.getPriceAsNumber(currency.key);
+        const deposited = new Dec(position.deposited_lpn, currency.decimal_digits);
+        const valueUsd = deposited.mul(new Dec(price));
+        // pool.apy is in percentage format (e.g., 5.25 for 5.25%), divide by 100 for calculation
+        const apy = new Dec(pool.apy).quo(new Dec(100));
+        amount = amount.add(valueUsd.mul(apy));
+      }
+    }
   }
   return amount.toString(NORMAL_DECIMALS);
 });
 
+// Table rows for earn assets display
 const assetsRows = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
-  return lpnAsset.value
-    .filter((item) => {
-      if (param.length == 0) {
-        return true;
-      }
-      const c = application.currenciesData![item.key];
-      if (
-        item.key.toLowerCase().includes(param) ||
-        item.balance.denom.toLowerCase().includes(param) ||
-        c.shortName?.toLowerCase()?.includes(param)
-      ) {
-        return true;
-      }
 
-      return false;
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+
+  // Map pools to display rows, filtering by network and search
+  return earnStore.pools
+    .filter((pool) => {
+      // Filter by selected network
+      if (!activeProtocols.includes(pool.protocol)) return false;
+
+      if (param.length === 0) return true;
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
+      if (!currency) return false;
+      return (
+        pool.protocol.toLowerCase().includes(param) ||
+        currency.ticker.toLowerCase().includes(param) ||
+        currency.shortName.toLowerCase().includes(param) ||
+        currency.name.toLowerCase().includes(param)
+      );
     })
-    .map((item) => {
-      const c = application.currenciesData![item.key!];
+    .map((pool) => {
+      const key = `${pool.currency}@${pool.protocol}`;
+      const currency = configStore.currenciesData[key];
+      const position = earnStore.getPosition(pool.protocol);
 
-      const stable_b = CurrencyUtils.calculateBalance(
-        oracle.prices[item.key]?.amount,
-        new Coin(item.balance.denom, item.balance.amount.toString()),
-        c.decimal_digits
-      ).toDec();
+      // Get user's deposit amount for this pool
+      const depositedAmount = position ? new Dec(position.deposited_lpn, currency?.decimal_digits ?? 6) : new Dec(0);
+      const price = currency ? pricesStore.getPriceAsNumber(currency.key) : 0;
+      const stableBalance = depositedAmount.mul(new Dec(price));
 
-      const balance = AssetUtils.formatNumber(new Dec(item.balance.amount, c.decimal_digits).toString(3), 3);
-      const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
-      const [_ticker, protocol] = item.key?.split("@") ?? [];
-      const apr = new Dec(application.apr?.[protocol] ?? 0).toString(2);
+      // Check if pool is accepting deposits
+      // deposit_capacity is null (unlimited) or a string amount from the LPP contract
+      // When deposit_capacity is "0", the pool is full and cannot accept new deposits
+      const isOpen =
+        pool.deposit_capacity === null || pool.deposit_capacity === undefined || Number(pool.deposit_capacity) > 0;
 
       return {
-        supply: item.supply,
-        balance,
-        stable_balance,
-        stable_balance_number: Number(stable_b.toString(2)),
-        apr,
-        currency: c
+        protocol: pool.protocol,
+        balance: mobile ? formatMobileAmount(depositedAmount) : formatTokenBalance(depositedAmount),
+        stable_balance: mobile ? formatMobileUsd(stableBalance) : formatUsd(stableBalance.toString(2)),
+        stable_balance_number: parseFloat(stableBalance.toString(2)),
+        // pool.apy is already in percentage format from backend (e.g., 5.25 for 5.25%)
+        apr: formatPercent(pool.apy),
+        currency,
+        isOpen
       };
     })
-    .sort((a, b) => {
-      return Number(b.stable_balance_number) - Number(a.stable_balance_number);
-    })
+    .sort((a, b) => b.stable_balance_number - a.stable_balance_number)
     .map((item) => {
-      const v = item.supply
+      if (mobile) {
+        return {
+          items: [
+            {
+              value: item.currency?.shortName ?? item.protocol,
+              subValue: item.apr,
+              subValueClass: "text-typography-success",
+              image: item.currency?.icon,
+              variant: "left"
+            },
+            {
+              value: `${item.balance}`,
+              subValue: item.stable_balance,
+              variant: "right"
+            }
+          ]
+        };
+      }
+
+      const statusComponent = item.isOpen
         ? () =>
             h<LabelProps>(PausedLabel, {
               value: i18n.t("message.open"),
@@ -304,68 +210,23 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
       return {
         items: [
           {
-            value: item.currency.shortName,
-            subValue: item.currency.name,
-            image: item.currency.icon,
+            value: item.currency?.shortName ?? item.protocol,
+            subValue: item.currency?.name ?? "",
+            image: item.currency?.icon,
             variant: "left"
           },
-          { value: `${item.balance}`, subValue: `${NATIVE_CURRENCY.symbol}${item.stable_balance}`, variant: "right" },
-          { value: `${item.apr}%`, class: "text-typography-success" },
-          { component: v }
+          {
+            value: `${item.balance}`,
+            subValue: item.stable_balance,
+            variant: "right"
+          },
+          { value: item.apr, class: "text-typography-success" },
+          { component: statusComponent }
         ]
       };
     });
 });
 
-async function loadRewards() {
-  try {
-    const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-    const promises = [];
-    let rewards = new Dec(0);
-    let stable = new Dec(0);
-    const data: {
-      amount: string;
-      stableAmount: string;
-      icon: string;
-    }[] = [];
-
-    for (const protocolKey in admin.contracts) {
-      if (ProtocolsConfig[protocolKey].rewards) {
-        const fn = async () => {
-          try {
-            const contract = admin.contracts![protocolKey].lpp;
-            const lppClient = new Lpp(cosmWasmClient, contract);
-            const walletAddress = wallet.wallet?.address ?? WalletManager.getWalletAddress();
-
-            const lenderRewards = await lppClient.getLenderRewards(walletAddress);
-            const c = application.currenciesData![`${NATIVE_ASSET.ticker}@${protocolKey}`];
-
-            const a = new Dec(lenderRewards.rewards.amount, c.decimal_digits);
-            const s = new Dec(oracle.prices[`${NATIVE_ASSET.ticker}@${protocolKey}`].amount).mul(a);
-
-            stable = stable.add(s);
-            rewards = rewards.add(a);
-          } catch (e) {}
-        };
-        promises.push(fn());
-      }
-    }
-
-    await Promise.allSettled(promises);
-
-    data.push({
-      amount: `${AssetUtils.formatNumber(rewards.toString(), NATIVE_ASSET.decimal_digits)} ${NATIVE_ASSET.label}`,
-      stableAmount: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(2), 2)}`,
-      icon: NATIVE_ASSET.icon
-    });
-    lpnReward.value = data;
-    lpnRewardStable.value = stable.toString(2);
-  } catch (e) {
-    Logger.error(e);
-  }
-
-  return new Dec(0);
-}
-
-provide("loadLPNCurrency", loadLPNCurrency);
+// Provide refresh function for child components
+provide("loadLPNCurrency", () => earnStore.refresh());
 </script>

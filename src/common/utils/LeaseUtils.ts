@@ -1,10 +1,11 @@
 import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
-import type { LeaseAttributes } from "../types/LeaseData";
+import type { LeaseAttributes } from "../types/LeaseAttributes";
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { AssetUtils, EtlApi } from ".";
-import { useApplicationStore } from "../stores/application";
+import { PERCENT, PERMILLE } from "@/config/global";
+import { BackendApi } from "@/common/api";
+import { getCurrencyByTickerForProtocol, getProtocolByContract, getLpnByProtocol } from "./CurrencyLookup";
+import { useConfigStore } from "../stores/config";
 
 export class LeaseUtils {
   public static calculateLiquidation(unit: Dec, price: Dec) {
@@ -21,9 +22,9 @@ export class LeaseUtils {
     return amountForTwoMinuts;
   }
 
-  public static getDebt(data: OpenedLeaseInfo | undefined) {
+  public static getDebt(data: OpenedLeaseInfo | undefined, protocol: string) {
     if (data) {
-      const item = AssetUtils.getCurrencyByTicker(data.principal_due.ticker!);
+      const item = getCurrencyByTickerForProtocol(data.principal_due.ticker!, protocol);
       const amount = new Dec(data.principal_due.amount)
         .add(new Dec(data.overdue_margin.amount))
         .add(new Dec(data.overdue_interest.amount))
@@ -59,7 +60,7 @@ export class LeaseUtils {
 
   public static async getLeaseData(leaseAddress: string): Promise<LeaseAttributes> {
     try {
-      const result = await EtlApi.fetchLeaseOpening(leaseAddress);
+      const result = await BackendApi.getLeaseOpening(leaseAddress);
 
       if (!result) {
         const item = {
@@ -78,24 +79,20 @@ export class LeaseUtils {
       }
 
       const downpaymentTicker = result.lease.LS_cltr_symbol;
-      const downPaymentCurrency = AssetUtils.getCurrencyByTicker(downpaymentTicker);
-
-      const contract = AssetUtils.getProtocolByContract(result.lease.LS_loan_pool_id);
-      const lpn = AssetUtils.getLpnByProtocol(contract);
+      const contract = getProtocolByContract(result.lease.LS_loan_pool_id);
+      const downPaymentCurrency = getCurrencyByTickerForProtocol(downpaymentTicker, contract);
+      const lpn = getLpnByProtocol(contract);
       let leasePositionTicker = result.lease.LS_asset_symbol;
       let l_c = result.lease.LS_asset_symbol;
 
-      switch (ProtocolsConfig[contract].type) {
-        case PositionTypes.short: {
-          leasePositionTicker = lpn.ticker;
-          break;
-        }
+      const configStore = useConfigStore();
+      if (configStore.isShortPosition(contract)) {
+        leasePositionTicker = lpn.ticker;
       }
 
       const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
       const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
-      const app = useApplicationStore();
-      const currency = app.currenciesData![`${l_c}@${contract}`];
+      const currency = configStore.currenciesData[`${l_c}@${contract}`];
 
       return {
         history: result?.history ?? [],

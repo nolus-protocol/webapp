@@ -4,9 +4,9 @@ import { WalletManager } from "@/common/utils";
 import { NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
 import { Buffer } from "buffer";
-import { Intercom } from "@/common/utils/Intercom";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { SolanaWallet } from "@/networks/sol";
-import { SolflareName } from "@/config/global";
+import { applyNolusWalletOverrides } from "@/networks/cosm/NolusWalletOverride";
 
 export async function connectSolflare(this: Store) {
   const sol = new SolanaWallet();
@@ -20,8 +20,7 @@ export async function connectSolflare(this: Store) {
   WalletManager.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
 
   this.wallet = nolusWalletOfflineSigner;
-  this.walletName = SolflareName;
-  await this.UPDATE_BALANCES();
-  this.loadActivities();
-  Intercom.load(this.wallet.address);
+  applyNolusWalletOverrides(this.wallet);
+
+  IntercomService.load(this.wallet.address, "solflare");
 }

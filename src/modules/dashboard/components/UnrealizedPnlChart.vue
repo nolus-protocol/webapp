@@ -21,12 +21,13 @@
 
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
-import { lineY, plot, ruleY } from "@observablehq/plot";
+import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
-import { NATIVE_CURRENCY } from "@/config/global";
-import { useWalletStore } from "@/common/stores/wallet";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+
+import { useWalletStore, useAnalyticsStore } from "@/common/stores";
 import { ref, watch } from "vue";
 
 type ChartData = { position?: number; debt?: number; date: Date };
@@ -34,19 +35,34 @@ type ChartData = { position?: number; debt?: number; date: Date };
 const data_position = ref<ChartData[]>([]);
 
 const chartHeight = 250;
-const marginLeft = 75;
-const chartWidth = isMobile() ? 450 : 950;
+let chartWidth: number;
+let marginLeft: number;
 const marginRight = 30;
 const marginBottom = 50;
 
 const i18n = useI18n();
 const wallet = useWalletStore();
+const analyticsStore = useAnalyticsStore();
 const chart = ref<typeof Chart>();
 
+// Watch for position/debt data changes from analytics store
 watch(
-  () => wallet.wallet,
+  () => analyticsStore.positionDebtValue,
+  (response) => {
+    if (response) {
+      processPositionDebtData(response);
+    }
+  },
+  { immediate: true }
+);
+
+// Watch for wallet changes to trigger fetch
+watch(
+  () => wallet.wallet?.address,
   () => {
-    loadData();
+    if (wallet.wallet?.address) {
+      loadData();
+    }
   },
   { immediate: true }
 );
@@ -55,35 +71,57 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+
+  // Compute Y domain from data to show volatility clearly
+  const allValues = data_position.value.flatMap((d) => [d.position ?? 0, d.debt ?? 0]);
+  const minVal = Math.min(...allValues);
+  const maxVal = Math.max(...allValues);
+  const valRange = maxVal - minVal;
+  const valPadding = valRange * 0.2 || maxVal * 0.05;
+  const yDomain: [number, number] = [Math.max(0, minVal - valPadding), maxVal + valPadding];
+  const tickFormat = createUsdTickFormat(yDomain);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
+
   const plotChart = plot({
-    color: { legend: true },
-    style: { width: "100%" },
+    style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
-    marginLeft: marginLeft,
+    marginLeft,
     marginRight: marginRight,
     marginBottom: marginBottom,
     y: {
       type: "linear",
+      domain: yDomain,
+      clamp: true,
       grid: true,
-      label: i18n.t("message.days-unrealized-pnL"),
-      tickFormat: (d) => `${AssetUtils.formatNumber(d, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
+      label: null,
+      labelArrow: false,
+      tickFormat,
+      tickSize: 0,
+      ticks: yTicks
     },
-    x: { type: "time", label: i18n.t("message.date-capitalize") },
+    x: { type: "time", label: null, ticks: CHART_AXIS.xTicks },
     marks: [
-      ruleY([0]),
       lineY(data_position.value, {
         x: "date",
         y: "position",
         stroke: "#3470E2",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom",
+        clip: "frame"
       }),
       lineY(data_position.value, {
         x: "date",
         y: "debt",
         stroke: "#FF5F3A",
-        strokeDasharray: "3, 3",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        strokeDasharray: "6, 4",
+        curve: "catmull-rom",
+        clip: "frame"
       })
     ]
   });
@@ -92,16 +130,27 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   select(plotChart).selectAll("path").transition().duration(400).attr("opacity", 1);
 
+  const crosshair = select(plotChart)
+    .append("line")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.15)
+    .attr("stroke-width", 1)
+    .attr("y1", 0)
+    .attr("y2", chartHeight - marginBottom)
+    .style("display", "none");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [x] = pointer(event, plotChart);
 
       const closestData = getClosestDataPoint(x);
       if (closestData) {
+        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+
         tooltip.html(
-          `<strong>${i18n.t("message.value-label")}</strong> ${AssetUtils.formatNumber(closestData?.position ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}
+          `<strong>${i18n.t("message.value-label")}</strong> ${formatUsd(closestData?.position ?? 0)}
           <br>
-          <strong>${i18n.t("message.debt-label")}</strong> ${AssetUtils.formatNumber(closestData?.debt ?? 0, NATIVE_CURRENCY.maximumFractionDigits, NATIVE_CURRENCY.symbol)}`
+          <strong>${i18n.t("message.debt-label")}</strong> ${formatUsd(closestData?.debt ?? 0)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();
@@ -110,11 +159,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
         tooltip
           .style("opacity", 1)
-          .style("left", `${event.pageX - width / 2}px`) // Using native event
-          .style("top", `${event.pageY - height - 10}px`); // Using native event
+          .style("left", `${event.pageX - width / 2}px`)
+          .style("top", `${event.pageY - height - 10}px`);
       }
     })
     .on("mouseleave", () => {
+      crosshair.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }
@@ -148,39 +198,42 @@ function getClosestDataPoint(cPosition: number) {
   return closest;
 }
 
+function processPositionDebtData(response: any) {
+  const data: { [key: string]: { position?: string; debt?: string } } = {};
+
+  for (const item of response.position || []) {
+    data[new Date(item.time).toISOString()] = { position: item.amount };
+  }
+
+  for (const item of response.debt || []) {
+    const d = new Date(item.time).toISOString();
+    if (data[d]) {
+      data[d].debt = item.amount;
+    } else {
+      data[d] = { debt: item.amount };
+    }
+  }
+
+  const dates = Object.keys(data)
+    .map((item) => new Date(item))
+    .sort((a, b) => a.getTime() - b.getTime());
+  const items = [];
+
+  for (const date of dates) {
+    const d = data[date.toISOString()];
+    items.push({
+      date,
+      debt: d?.debt ? Number(d?.debt) : 0,
+      position: d?.position ? Number(d?.position) : 0
+    });
+  }
+  data_position.value = items;
+  chart.value?.update();
+}
+
 async function loadData() {
   if (wallet.wallet?.address) {
-    const response = await EtlApi.fetchPositionDebtValue(wallet.wallet?.address);
-    const data: { [key: string]: { position?: string; debt?: string } } = {};
-
-    for (const item of response.position) {
-      data[new Date(item.time).toISOString()] = { position: item.amount };
-    }
-
-    for (const item of response.debt) {
-      const d = new Date(item.time).toISOString();
-      if (data[d]) {
-        data[d].debt = item.amount;
-      } else {
-        data[d] = { debt: item.amount };
-      }
-    }
-
-    const dates = Object.keys(data)
-      .map((item) => new Date(item))
-      .sort((a, b) => a.getTime() - b.getTime());
-    const items = [];
-
-    for (const date of dates) {
-      const d = data[date.toISOString()];
-      items.push({
-        date,
-        debt: d?.debt ? Number(d?.debt) : 0,
-        position: d?.position ? Number(d?.position) : 0
-      });
-    }
-    data_position.value = items;
-    chart.value?.update();
+    await analyticsStore.fetchPositionDebtValue();
   }
 }
 </script>

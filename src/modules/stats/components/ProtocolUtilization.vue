@@ -4,22 +4,24 @@
     <BigNumber
       :label="$t('message.supplied-funds')"
       :amount="{
-        amount: suppliedFunds,
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
+        value: suppliedFundsValue,
         denom: NATIVE_CURRENCY.symbol,
         decimals: 0,
-        fontSize: isMobile() ? 20 : 32
+        compact: true,
+        fontSize: 24
       }"
     />
     <Table
       :columns="columns"
-      table-classes="min-w-[420px]"
+      :table-classes="mobile ? '' : 'min-w-[420px]'"
+      :scrollable="!mobile"
     >
       <template v-slot:body>
         <TableRow
-          v-for="(row, index) in assets"
+          v-for="(row, index) in tableRows"
           :key="index"
           :items="row.items"
+          :scrollable="!mobile"
         />
       </template>
     </Table>
@@ -28,335 +30,135 @@
 
 <script lang="ts" setup>
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
-import ChartUtilizaiton from "./ChartUtilizaiton.vue";
+import ChartUtilization from "./ChartUtilization.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
-import { AppUtils, EtlApi, isMobile, Logger } from "@/common/utils";
+import { isMobile } from "@/common/utils";
+import { getProtocols } from "@/common/utils/ConfigService";
 
-import { computed, h, ref, watch } from "vue";
-import { useApplicationStore } from "@/common/stores/application";
+import { computed, h } from "vue";
+import { useEarnStore } from "@/common/stores/earn";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-
-const osmoUsdc =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-usdc.svg";
-const neutronUsdc =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/neutron-usdc.svg";
-const osmosisSol =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-allsol.svg";
-const osmosisBtc =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-allbtc.svg";
-const osmosisStAtom =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-statom.svg";
-const osmosisAkt =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-akt.svg";
-const osmosisAtom =
-  "https://raw.githubusercontent.com/nolus-protocol/webapp/refs/heads/main/src/assets/icons/osmosis-atom.svg";
-
+import { formatNumber, formatPercent } from "@/common/utils/NumberFormatUtils";
 import type { UtilizationProps } from "../types";
 
+const mobile = isMobile();
 const i18n = useI18n();
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.asset"), variant: "left" },
-  { label: "", class: "hidden md:flex" },
-  { label: i18n.t("message.current-utilization"), class: "hidden md:flex" },
-  {
-    label: i18n.t("message.deposit-suspension"),
-    tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
-    class: "whitespace-pre max-w-[200px]"
-  },
-  {
-    label: i18n.t("message.yield"),
-    tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
-  }
-]);
-const assets = computed<TableRowItemProps[]>(() => {
-  return [
-    {
-      items: [
-        {
-          value: "USDC",
-          subValue: i18n.t("message.utilization_sub_osmosis_usdc"),
-          image: osmoUsdc,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
-              value: utilizationLevelOsmosis.value,
-              icon: osmoUsdc,
-              deposit: depositOsmosis.value
-            }),
-          class: "hidden md:flex w-full min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositNeutron.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_noble]) ?? 0).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "USDC",
-          subValue: i18n.t("message.utilization_sub_neutron_usdc"),
-          image: neutronUsdc,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
-              value: utilizationLevelNeutron.value,
-              icon: neutronUsdc,
-              deposit: depositNeutron.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelNeutron.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositOsmosis.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().neutron_noble]) ?? 0).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "SOL",
-          subValue: i18n.t("message.utilization_sub_osmosis_sol"),
-          image: osmosisSol,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
-              value: utilizationLevelOsmosisAllSol.value,
-              icon: osmosisSol,
-              deposit: depositAllSol.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAllSol.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllSol.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_sol]) ?? 0).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    {
-      items: [
-        {
-          value: "BTC",
-          subValue: i18n.t("message.utilization_sub_osmosis_btc"),
-          image: osmosisBtc,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
-              value: utilizationLevelOsmosisAllBtc.value,
-              icon: osmosisBtc,
-              deposit: depositAllBtc.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAllBtc.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAllBtc.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_all_btc]) ?? 0).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-    // {
-    //   items: [
-    //     {
-    //       value: "stAtom",
-    //       subValue: i18n.t("message.utilization_sub_osmosis_statom"),
-    // image: osmosisStAtom,
-    //       variant: "left"
-    //     },
-    //     {
-    //       component: () =>
-    //         h<UtilizationProps>(ChartUtilizaiton, {
-    //           value: utilizationLevelOsmosis.value,
-    //           icon: osmosisStAtom,
-    //           deposit: depositStAtom.value
-    //         }),
-    //       class: "hidden md:flex min-w-[200]"
-    //     },
-    //     { value: `${utilizationLevelOsmosis.value}%`, class: "hidden md:flex font-semibold" },
-    //     { value: `${depositStAtom.value}%` },
-    //     {
-    //       value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_st_atom]) ?? 0).toFixed(2)}%`,
-    //       class: "text-typography-success"
-    //     }
-    //   ]
-    // },
-    {
-      items: [
-        {
-          value: "AKT",
-          subValue: i18n.t("message.utilization_sub_osmosis_akt"),
-          image: osmosisAkt,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
-              value: utilizationLevelOsmosisAkt.value,
-              icon: osmosisAkt,
-              deposit: depositAkt.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAkt.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAkt.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_akt]) ?? 0).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    },
-
-    {
-      items: [
-        {
-          value: "ATOM",
-          subValue: i18n.t("message.utilization_sub_osmosis_atom"),
-          image: osmosisAtom,
-          variant: "left",
-          class: "break-all"
-        },
-        {
-          component: () =>
-            h<UtilizationProps>(ChartUtilizaiton, {
-              value: utilizationLevelOsmosisAtom.value,
-              icon: osmosisAtom,
-              deposit: depositAtom.value
-            }),
-          class: "hidden md:flex min-w-[200]"
-        },
-        { value: `${utilizationLevelOsmosisAtom.value}%`, class: "hidden md:flex font-semibold" },
-        { value: `${depositAtom.value}%`, class: "max-w-[200px]" },
-        {
-          value: `${(Number(app.apr?.[AppUtils.getProtocols().osmosis_osmosis_atom]) ?? 0).toFixed(2)}%`,
-          class: "text-typography-success"
-        }
-      ]
-    }
-  ] as TableRowItemProps[];
-});
-
-const utilizationLevelNeutron = ref("0");
-const depositNeutron = ref("");
-
-const utilizationLevelOsmosis = ref("0");
-const depositOsmosis = ref("");
-
-// const utilizationLevelOsmosisStAtom = ref("0");
-// const depositStAtom = ref("");
-
-const utilizationLevelOsmosisAllBtc = ref("0");
-const depositAllBtc = ref("");
-
-const utilizationLevelOsmosisAllSol = ref("0");
-const depositAllSol = ref("");
-
-const utilizationLevelOsmosisAkt = ref("0");
-const depositAkt = ref("");
-
-const utilizationLevelOsmosisAtom = ref("0");
-const depositAtom = ref("");
-
-const suppliedFunds = ref("0");
-
-const app = useApplicationStore();
-
-watch(
-  () => app.init,
-  () => {
-    if (app.init) {
-      onInit();
-    }
-  },
-  {
-    immediate: true
-  }
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.asset"), variant: "left" },
+      {
+        label: i18n.t("message.deposit-suspension"),
+        tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") }
+      },
+      {
+        label: i18n.t("message.yield"),
+        tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+      }
+    ]
+  : [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: "" },
+      { label: i18n.t("message.current-utilization") },
+      {
+        label: i18n.t("message.deposit-suspension"),
+        tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
+        class: "whitespace-pre max-w-[200px]"
+      },
+      {
+        label: i18n.t("message.yield"),
+        tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+      }
+    ]
 );
+function buildRow(ticker: string, subValue: string, icon: string, utilization: string, deposit: string, protocolKey: string) {
+  const apr = formatPercent(earnStore.getProtocolApr(protocolKey));
 
-async function onInit() {
-  await Promise.all([
-    fetchPoolsData(),
-    setSuppliedFunds()
-  ]).catch((e) => Logger.error(e));
-}
-
-async function setSuppliedFunds() {
-  const data = await EtlApi.fetchSuppliedFunds();
-  suppliedFunds.value = data.amount;
-}
-
-async function fetchPoolsData() {
-  const response = await fetch(`${EtlApi.getApiUrl()}/pools`);
-  const data = await response.json();
-
-  // Create a map for easy lookup by protocol name
-  const poolsMap: { [key: string]: { utilization: string; deposit_suspension: string } } = {};
-  for (const pool of data.protocols) {
-    poolsMap[pool.protocol] = {
-      utilization: pool.utilization,
-      deposit_suspension: pool.deposit_suspension
+  if (mobile) {
+    return {
+      items: [
+        { value: ticker, subValue, image: icon, variant: "left", class: "break-all" },
+        { value: `${deposit}%` },
+        { value: apr, class: "text-typography-success" }
+      ]
     };
   }
 
-  // Set utilization and deposit suspension for each protocol
-  const neutron = poolsMap[AppUtils.getProtocols().neutron_noble];
-  if (neutron) {
-    utilizationLevelNeutron.value = Number(neutron.utilization).toFixed(2);
-    depositNeutron.value = neutron.deposit_suspension;
-  }
-
-  const osmosis = poolsMap[AppUtils.getProtocols().osmosis_noble];
-  if (osmosis) {
-    utilizationLevelOsmosis.value = Number(osmosis.utilization).toFixed(2);
-    depositOsmosis.value = osmosis.deposit_suspension;
-  }
-
-  const allBtc = poolsMap[AppUtils.getProtocols().osmosis_osmosis_all_btc];
-  if (allBtc) {
-    utilizationLevelOsmosisAllBtc.value = Number(allBtc.utilization).toFixed(2);
-    depositAllBtc.value = allBtc.deposit_suspension;
-  }
-
-  const allSol = poolsMap[AppUtils.getProtocols().osmosis_osmosis_all_sol];
-  if (allSol) {
-    utilizationLevelOsmosisAllSol.value = Number(allSol.utilization).toFixed(2);
-    depositAllSol.value = allSol.deposit_suspension;
-  }
-
-  const akt = poolsMap[AppUtils.getProtocols().osmosis_osmosis_akt];
-  if (akt) {
-    utilizationLevelOsmosisAkt.value = Number(akt.utilization).toFixed(2);
-    depositAkt.value = akt.deposit_suspension;
-  }
-
-  const atom = poolsMap[AppUtils.getProtocols().osmosis_osmosis_atom];
-  if (atom) {
-    utilizationLevelOsmosisAtom.value = Number(atom.utilization).toFixed(2);
-    depositAtom.value = atom.deposit_suspension;
-  }
+  return {
+    items: [
+      { value: ticker, subValue, image: icon, variant: "left", class: "break-all" },
+      {
+        component: () => h<UtilizationProps>(ChartUtilization, { value: utilization, icon, deposit }),
+        class: "w-full min-w-[200]"
+      },
+      { value: `${utilization}%`, class: "font-semibold" },
+      { value: `${deposit}%`, class: "max-w-[200px]" },
+      { value: apr, class: "text-typography-success" }
+    ]
+  };
 }
+
+const tableRows = computed<TableRowItemProps[]>(() => {
+  const p = getProtocols();
+  return [
+    buildRow("USDC", i18n.t("message.utilization_sub_osmosis_usdc"), iconOsmosis.value, utilizationLevelOsmosis.value, depositOsmosis.value, p.osmosis_noble),
+    buildRow("USDC", i18n.t("message.utilization_sub_neutron_usdc"), iconNeutron.value, utilizationLevelNeutron.value, depositNeutron.value, p.neutron_noble),
+    buildRow("SOL", i18n.t("message.utilization_sub_osmosis_sol"), iconAllSol.value, utilizationLevelOsmosisAllSol.value, depositAllSol.value, p.osmosis_osmosis_all_sol),
+    buildRow("BTC", i18n.t("message.utilization_sub_osmosis_btc"), iconAllBtc.value, utilizationLevelOsmosisAllBtc.value, depositAllBtc.value, p.osmosis_osmosis_all_btc),
+    buildRow("AKT", i18n.t("message.utilization_sub_osmosis_akt"), iconAkt.value, utilizationLevelOsmosisAkt.value, depositAkt.value, p.osmosis_osmosis_akt),
+    buildRow("ATOM", i18n.t("message.utilization_sub_osmosis_atom"), iconAtom.value, utilizationLevelOsmosisAtom.value, depositAtom.value, p.osmosis_osmosis_atom)
+  ] as TableRowItemProps[];
+});
+
+const earnStore = useEarnStore();
+
+// Compute supplied funds from ETL supplied-funds endpoint
+const suppliedFundsValue = computed(() => {
+  return earnStore.suppliedFunds?.amount ?? "0";
+});
+
+// Helper to get pool data by protocol
+function getPoolData(protocolKey: string) {
+  const pool = earnStore.getPool(protocolKey);
+  const etlPool = earnStore.getEtlPool(protocolKey);
+
+  // Utilization from earn pool (already 0-100 range from backend)
+  const utilization = pool ? formatNumber(pool.utilization, 2) : "0";
+
+  // Deposit suspension threshold from ETL pools endpoint
+  const depositSuspension = etlPool?.deposit_suspension ?? "90";
+
+  // Icon from pool (comes from network-config.json via backend)
+  const icon = pool?.icon ?? "";
+
+  return { utilization, depositSuspension, icon };
+}
+
+// Computed values for each protocol
+const utilizationLevelNeutron = computed(() => getPoolData(getProtocols().neutron_noble).utilization);
+const depositNeutron = computed(() => getPoolData(getProtocols().neutron_noble).depositSuspension);
+const iconNeutron = computed(() => getPoolData(getProtocols().neutron_noble).icon);
+
+const utilizationLevelOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).utilization);
+const depositOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).depositSuspension);
+const iconOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).icon);
+
+const utilizationLevelOsmosisAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).utilization);
+const depositAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).depositSuspension);
+const iconAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).icon);
+
+const utilizationLevelOsmosisAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).utilization);
+const depositAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).depositSuspension);
+const iconAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).icon);
+
+const utilizationLevelOsmosisAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).utilization);
+const depositAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).depositSuspension);
+const iconAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).icon);
+
+const utilizationLevelOsmosisAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).utilization);
+const depositAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).depositSuspension);
+const iconAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).icon);
 </script>

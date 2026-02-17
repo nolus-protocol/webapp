@@ -14,9 +14,10 @@
       <BigNumber
         :label="$t('message.unclaimed-rewards')"
         :amount="{
-          amount: stableRewards,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
-          denom: NATIVE_CURRENCY.symbol
+          value: stableRewards,
+          denom: NATIVE_CURRENCY.symbol,
+          compact: mobile,
+          fontSize: 24
         }"
       />
     </div>
@@ -35,8 +36,10 @@
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { Button, Widget, Asset } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
+import { isMobile } from "@/common/utils";
+
+const mobile = isMobile();
 
 defineProps<{
   rewards: {

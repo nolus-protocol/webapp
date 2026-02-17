@@ -12,34 +12,16 @@
       </div>
     </div>
   </div>
-  <Widget
-    v-if="!showSkeleton"
-    class="overflow-auto"
-  >
-    <EmptyState
-      v-if="leasesHistory.length == 0"
-      :slider="[
-        {
-          image: { name: 'new-lease' },
-          title: $t('message.start-lease'),
-          description: $t('message.start-lease-description'),
-          link: {
-            label: $t('message.learn-new-leases'),
-            url: '#',
-            tooltip: { content: $t('message.learn-new-leases') }
-          }
-        }
-      ]"
-    />
-    <template v-else>
+  <Widget class="overflow-auto">
+    <template v-if="walletConnected && !emptyState">
       <div class="flex flex-col justify-between gap-2 md:flex-row md:items-center">
         <BigNumber
           :label="$t('message.realized-pnl')"
           :amount="{
-            amount: pnl.toString(),
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: pnl.toString(2),
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: isMobile() ? 20 : 32
+            fontSize: 24,
+            compact: mobile
           }"
         />
         <Button
@@ -53,16 +35,34 @@
       <!-- <PositionPreviewChart /> -->
       <Table
         :columns="leasesHistory.length > 0 ? columns : []"
-        table-classes="min-w-[660px]"
+        :table-classes="mobile ? '' : 'min-w-[660px]'"
+        :scrollable="!mobile"
       >
         <template v-slot:body>
           <TableRow
             v-for="(row, index) in leasesHistory"
             :key="index"
             :items="row.items"
+            :scrollable="!mobile"
           />
         </template>
       </Table>
+    </template>
+    <template v-else>
+      <EmptyState
+        :slider="[
+          {
+            image: { name: 'new-lease' },
+            title: $t('message.start-lease'),
+            description: $t('message.start-lease-description'),
+            link: {
+              label: $t('message.learn-new-leases'),
+              url: `/${RouteNames.LEASES}/learn-leases`,
+              tooltip: { content: $t('message.learn-new-leases') }
+            }
+          }
+        ]"
+      />
     </template>
   </Widget>
   <div class="my-4 flex justify-center">
@@ -73,7 +73,7 @@
       class="mx-auto"
       severity="secondary"
       size="medium"
-      @click="loadLoans"
+      @click="loadMore"
     />
   </div>
 </template>
@@ -93,173 +93,182 @@ import {
 } from "web-components";
 import { computed, h, ref, watch } from "vue";
 import BigNumber from "@/common/components/BigNumber.vue";
-import { CURRENCY_VIEW_TYPES, type IObjectKeys } from "@/common/types";
-import { NATIVE_CURRENCY, NORMAL_DECIMALS, PositionTypes, ProtocolsConfig } from "@/config/global";
+import type { IObjectKeys } from "@/common/types";
+import { NATIVE_CURRENCY } from "@/config/global";
 import type { ILoan } from "./types";
-import { AssetUtils, EtlApi, getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
-import { useWalletStore } from "@/common/stores/wallet";
+import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTickerForProtocol, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
+import { useAnalyticsStore } from "@/common/stores";
 import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
 import { useRouter } from "vue-router";
 import EmptyState from "@/common/components/EmptyState.vue";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
+import { useWalletConnected } from "@/common/composables";
+import { useConnectionStore } from "@/common/stores/connection";
 
+const mobile = isMobile();
 const i18n = useI18n();
-const wallet = useWalletStore();
-const app = useApplicationStore();
-const pnl = ref(new Dec(0));
+const analyticsStore = useAnalyticsStore();
+const configStore = useConfigStore();
+const connectionStore = useConnectionStore();
+const walletConnected = useWalletConnected();
+const router = useRouter();
+
+// Realized PnL from analytics store
+const pnl = computed(() => {
+  const realized = analyticsStore.realizedPnl?.realized_pnl;
+  return realized ? new Dec(realized) : new Dec(0);
+});
 
 const limit = 10;
 let skip = 0;
 const loadingPnl = ref(false);
 
-const loading = ref(false);
+const loading = computed(() => analyticsStore.realizedPnlListLoading);
 const loaded = ref(false);
-const showSkeleton = ref(true);
-const router = useRouter();
-
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
-  { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
-  { label: i18n.t("message.asset"), variant: "left" },
-  { label: i18n.t("message.action") },
-  { label: i18n.t("message.realized") },
-  { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
-]);
 
 const loans = ref([] as ILoan[]);
+
+const emptyState = computed(() => {
+  return !loading.value && loans.value.length === 0;
+});
+
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.realized") }
+    ]
+  : [
+      { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
+      { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.action") },
+      { label: i18n.t("message.realized") },
+      { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
+    ]
+);
+
 const filename = "data.csv";
 const delimiter = ",";
 
+// Watch wallet address (from connectionStore) + config initialization.
+// This follows the same pattern as DashboardLeases: the store self-loads
+// via connectionStore.walletAddress watcher, and the component triggers
+// paginated fetches when both dependencies are ready.
 watch(
-  () => app.init,
-  () => {
-    if (app.init) {
-      onInit();
+  [() => connectionStore.walletAddress, () => configStore.initialized],
+  ([address, initialized], [oldAddress]) => {
+    if (!initialized) return;
+
+    if (address && address !== oldAddress) {
+      skip = 0;
+      loans.value = [];
+      loaded.value = false;
+      loadMore();
     }
   },
-  {
-    immediate: true
-  }
-);
-
-async function onInit() {
-  loadLoans();
-  setRealizedPnl();
-}
-
-watch(
-  () => wallet.wallet,
-  () => {
-    skip = 0;
-    loadLoans();
-    setRealizedPnl();
-  }
+  { immediate: true }
 );
 
 function goBack() {
   router.push({ path: `/${RouteNames.HISTORY}` });
 }
 
-async function loadLoans() {
+async function loadMore() {
   try {
-    if (wallet.wallet?.address) {
-      loading.value = true;
-      const res = await EtlApi.fetchPNL(wallet.wallet?.address, skip, limit);
-      loans.value = [...loans.value, ...res] as ILoan[];
-      const loadedSender = res.length < limit;
-      if (loadedSender) {
-        loaded.value = true;
-      }
-      skip += limit;
-    } else {
-      loans.value = [];
+    if (!connectionStore.walletAddress || !configStore.initialized) return;
+
+    const res = await analyticsStore.fetchPnlList(skip, limit);
+    loans.value = [...loans.value, ...res] as ILoan[];
+    if (res.length < limit) {
+      loaded.value = true;
     }
-    showSkeleton.value = false;
+    skip += limit;
   } catch (e: Error | any) {
     Logger.error(e);
-  } finally {
-    setTimeout(() => {
-      loading.value = false;
-    }, 200);
   }
 }
 
 const leasesHistory = computed(() => {
-  return loans.value.map((item) => {
-    const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
-    const ticker = item.LS_asset_symbol;
-    let currency = AssetUtils.getCurrencyByTicker(ticker);
+  return loans.value
+    .filter((item) => configStore.getProtocolByContract(item.LS_loan_pool_id))
+    .map((item) => {
+      const protocol = getProtocolByContract(item.LS_loan_pool_id);
+      const ticker = item.LS_asset_symbol;
+      const positionType = configStore.getPositionType(protocol);
+      let currency =
+        positionType === "Short" ? getLpnByProtocol(protocol) : getCurrencyByTickerForProtocol(ticker, protocol);
 
-    switch (ProtocolsConfig[protocol].type) {
-      case PositionTypes.short: {
-        currency = AssetUtils.getLpnByProtocol(protocol);
-        break;
+      const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
+      let pnl_amount = formatUsd(pnl.toString(2));
+      let pnl_status = pnl.isZero() || pnl.isPositive();
+
+      const raw = item.LS_timestamp;
+      const date = new Date(raw);
+      const typeLabel = positionType === "Short" ? i18n.t("message.short") : i18n.t("message.long");
+
+      if (mobile) {
+        return {
+          items: [
+            {
+              image: currency.icon,
+              value: currency.shortName,
+              subValue: typeLabel,
+              subValueClass: positionType === "Short" ? "text-typography-error" : "text-typography-success",
+              variant: "left"
+            },
+            {
+              value: pnl_amount,
+              class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
+            }
+          ]
+        };
       }
-    }
 
-    const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
-    let pnl_amount = AssetUtils.formatNumber(item.LS_pnl, NORMAL_DECIMALS, NATIVE_CURRENCY.symbol);
-    let pnl_status = pnl.isZero() || pnl.isPositive();
-
-    const raw = item.LS_timestamp;
-    const date = new Date(raw);
-
-    return {
-      items: [
-        {
-          value: `#${item.LS_contract_id.slice(-8)}`,
-          class: "text-typography-link cursor-pointer max-w-[120px]",
-          variant: "left"
-        },
-        {
-          component: getType(item),
-          class: "max-w-[200px] cursor-pointer",
-          variant: "left"
-        },
-        {
-          image: currency.icon,
-          value: currency.shortName,
-          subValue: currency.name,
-          variant: "left"
-        },
-        {
-          value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
-        },
-        {
-          value: pnl_amount,
-          class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
-        },
-        {
-          value: getCreatedAtForHuman(date) as string,
-          class: "max-w-[200px]"
-        }
-      ]
-    };
-  }) as TableRowItemProps[];
+      return {
+        items: [
+          {
+            value: `#${item.LS_contract_id.slice(-8)}`,
+            class: "text-typography-link cursor-pointer max-w-[120px]",
+            variant: "left"
+          },
+          {
+            component: getType(item),
+            class: "max-w-[200px] cursor-pointer",
+            variant: "left"
+          },
+          {
+            image: currency.icon,
+            value: currency.shortName,
+            subValue: currency.name,
+            variant: "left"
+          },
+          {
+            value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
+          },
+          {
+            value: pnl_amount,
+            class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
+          },
+          {
+            value: getCreatedAtForHuman(date) as string,
+            class: "max-w-[200px]"
+          }
+        ]
+      };
+    }) as TableRowItemProps[];
 });
 
 function getType(item: ILoan) {
-  const protocol = AssetUtils.getProtocolByContract(item.LS_loan_pool_id);
+  const protocol = getProtocolByContract(item.LS_loan_pool_id);
+  const positionType = configStore.getPositionType(protocol);
 
-  switch (ProtocolsConfig[protocol].type) {
-    case PositionTypes.short: {
-      return () =>
-        h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "error" });
-    }
-    case PositionTypes.long: {
-      return () =>
-        h<LabelProps>(Label, { value: i18n.t(`message.${ProtocolsConfig[protocol].type}`), variant: "success" });
-    }
-  }
-}
-
-async function setRealizedPnl() {
-  try {
-    const data = await EtlApi.fetchRealizedPNL(wallet?.wallet?.address);
-    pnl.value = new Dec(data.realized_pnl);
-  } catch (error) {
-    console.error(error);
+  if (positionType === "Short") {
+    return () => h<LabelProps>(Label, { value: i18n.t("message.short"), variant: "error" });
+  } else {
+    return () => h<LabelProps>(Label, { value: i18n.t("message.long"), variant: "success" });
   }
 }
 
@@ -283,13 +292,15 @@ function jsonToCsv(rows: IObjectKeys[]) {
 }
 
 async function downloadCsv() {
-  if (!wallet.wallet?.address) {
+  if (!connectionStore.walletAddress) {
     return;
   }
 
   loadingPnl.value = true;
 
-  const data = await EtlApi.fetchRealizedPNLData(wallet.wallet?.address);
+  // Use analyticsStore to fetch realized PnL data
+  await analyticsStore.fetchRealizedPnlData();
+  const data = analyticsStore.realizedPnlData ?? [];
   const csv = "\uFEFF" + jsonToCsv(data);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);

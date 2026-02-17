@@ -13,10 +13,11 @@
 import Chart from "@/common/components/Chart.vue";
 
 import type { ExternalCurrency } from "@/common/types";
-import { AssetUtils } from "@/common/utils";
+import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
 import { plot, barY, axisX, text, ruleY } from "@observablehq/plot";
+import { CHART_AXIS, computeYTicks } from "@/common/utils/ChartUtils";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { select, pointer, type Selection } from "d3";
@@ -44,13 +45,13 @@ const responses = ref<{ name: string; value: number; ticker: string; price: stri
     name: i18n.t("message.borrowed-taxes"),
     value: zero,
     ticker: `${new Dec(props.borrowAmount, props.borrowAsset?.decimal_digits ?? 0).toString(props.borrowAsset?.decimal_digits ?? 0)} ${props.borrowAsset?.shortName ?? ""}`,
-    price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.borrowStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+    price: formatDecAsUsd(props.borrowStable)
   },
   {
     name: i18n.t("message.downpayment"),
     value: zero,
     ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset?.decimal_digits ?? 0).toString(props.downPaymentAsset?.decimal_digits ?? 0)} ${props.downPaymentAsset?.shortName ?? ""}`,
-    price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.downPaymentStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+    price: formatDecAsUsd(props.downPaymentStable)
   }
 ]);
 
@@ -77,13 +78,13 @@ async function setStats() {
       name: i18n.t("message.borrowed-taxes"),
       value: v1 == 0 ? zero : v1,
       ticker: `${new Dec(props.borrowAmount, props.borrowAsset?.decimal_digits ?? 0).toString(props.borrowAsset?.decimal_digits ?? 0)} ${props.borrowAsset?.shortName ?? ""}`,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.borrowStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: formatDecAsUsd(props.borrowStable)
     },
     {
       name: i18n.t("message.downpayment"),
       value: v2 == 0 ? zero : v2,
       ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset?.decimal_digits ?? 0).toString(props.downPaymentAsset?.decimal_digits ?? 0)} ${props.downPaymentAsset?.shortName ?? ""}`,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(props.downPaymentStable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: formatDecAsUsd(props.downPaymentStable)
     }
   ];
 }
@@ -91,9 +92,13 @@ async function setStats() {
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
 
+  const values = responses.value.map((d) => d.value);
+  const yDomain: [number, number] = [0, Math.max(...values)];
+  const yTicks = computeYTicks(yDomain);
+
   const nextChart = plot({
     className: "position-preview-chart",
-    y: { label: null, ticks: 3, tickFormat: (d) => `$${d}`, tickSize: 0, line: true },
+    y: { label: null, tickFormat: (d) => `$${d}`, tickSize: 0, line: true, ticks: yTicks },
     marginBottom,
     marginLeft,
     marginRight,
@@ -144,7 +149,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x, width);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> $${AssetUtils.formatNumber(
+          `<strong>${i18n.t("message.amount")}</strong> $${formatNumber(
             closestData.value,
             NATIVE_CURRENCY.maximumFractionDigits
           )}`

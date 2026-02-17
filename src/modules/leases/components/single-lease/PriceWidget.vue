@@ -32,13 +32,15 @@
 import { ref } from "vue";
 import { Dropdown, Widget } from "web-components";
 import { CHART_RANGES } from "@/config/global";
-import type { LeaseData } from "@/common/types";
+import type { LeaseInfo } from "@/common/api";
+import type { LeaseDisplayData } from "@/common/stores/leases";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import PriceOverTimeChart from "./PriceOverTimeChart.vue";
 
 defineProps<{
-  lease?: LeaseData;
+  lease?: LeaseInfo | null;
+  displayData?: LeaseDisplayData | null;
 }>();
 
 const chartTimeRange = ref(CHART_RANGES["1"]);

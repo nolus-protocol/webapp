@@ -88,29 +88,29 @@ import {
   SvgIcon
 } from "web-components";
 import { computed, inject, ref, watch } from "vue";
-import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { useWalletStore, WalletActions } from "@/common/stores/wallet";
+import { NATIVE_NETWORK } from "../../../config/global/network";
+import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { AssetUtils, getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
-import { useApplicationStore } from "@/common/stores/application";
+import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
+import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { usePricesStore } from "@/common/stores/prices";
+import { useConfigStore } from "@/common/stores/config";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
-import { Contracts } from "@/config/global";
+
+import { useHistoryStore } from "@/common/stores/history";
 import { useI18n } from "vue-i18n";
 
-const assets = computed(() => {
-  const protocols = Contracts.protocolsFilter[application.protocolFilter];
-  const lpns = application.lpn?.filter((item) => {
-    const c = application.currenciesData![item.key!];
-    const [_currency, protocol] = c.key!.split("@");
+const configStore = useConfigStore();
 
-    if (protocols.hold.includes(protocol)) {
-      return true;
-    }
-    return false;
+const assets = computed(() => {
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+  const lpns = configStore.lpn?.filter((item) => {
+    const c = configStore.currenciesData![item.key!];
+    const [_currency, protocol] = c.key!.split("@");
+    return activeProtocols.includes(protocol);
   });
 
   const data = [];
@@ -118,9 +118,9 @@ const assets = computed(() => {
   for (const lpn of lpns ?? []) {
     const asset = lpnBalances.value.find((item) => item.key == lpn.key);
     const value = new Dec(asset?.coin?.amount.toString() ?? 0, lpn.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), lpn.decimal_digits);
+    const balance = formatTokenBalance(value);
 
-    const price = new Dec(oracle.prices?.[lpn.key]?.amount ?? 0);
+    const price = new Dec(pricesStore.prices[lpn.key]?.price ?? 0);
     const stable = price.mul(value);
 
     data.push({
@@ -131,7 +131,7 @@ const assets = computed(() => {
       balance: { value: balance, ticker: lpn.shortName },
       stable,
       decimal_digits: lpn.decimal_digits,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: formatDecAsUsd(stable)
     });
   }
 
@@ -142,9 +142,9 @@ const assets = computed(() => {
 
 const i18n = useI18n();
 const walletStore = useWalletStore();
-const oracle = useOracleStore();
-const application = useApplicationStore();
-const admin = useAdminStore();
+const balancesStore = useBalancesStore();
+const pricesStore = usePricesStore();
+const historyStore = useHistoryStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -163,12 +163,12 @@ const lpnBalances = ref<
 
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = application.currenciesData?.[currency?.value];
+  const asset = configStore.currenciesData?.[currency?.value];
 
-  const price = new Dec(oracle.prices?.[asset?.key]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset?.key]?.price ?? 0);
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 
 const isEmpty = computed(() => {
@@ -190,29 +190,38 @@ watch(
 
 async function fetchDepositBalance() {
   try {
-    const lpns = application.lpn;
+    const lpns = configStore.lpn;
     const data = [];
 
     for (const lpn of lpns ?? []) {
       async function fn() {
-        const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
-        const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-        const [_currency, protocol] = lpn.key.split("@");
+        try {
+          const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
+          const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
+          const [_currency, protocol] = lpn.key.split("@");
 
-        const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
-        const [depositBalance, price] = await Promise.all([
-          lppClient.getLenderDeposit(walletAddress as string),
-          lppClient.getPrice()
-        ]);
+          const contract = configStore.contracts[protocol]?.lpp;
+          if (!contract) return null;
 
-        const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
-        const amount = new Dec(depositBalance.amount).mul(calculatedPrice);
+          const lppClient = new Lpp(cosmWasmClient, contract);
+          const [depositBalance, price] = await Promise.all([
+            lppClient.getLenderDeposit(walletAddress as string),
+            lppClient.getPrice()
+          ]);
 
-        return { coin: new Coin(lpn.ibcData, amount.roundUp().toString()), key: lpn.key };
+          const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
+          const amount = new Dec(depositBalance.amount).mul(calculatedPrice);
+
+          return { coin: new Coin(lpn.ibcData, amount.roundUp().toString()), key: lpn.key };
+        } catch (e) {
+          console.error(`[WithdrawForm] Failed to fetch deposit balance for ${lpn.key}:`, e);
+          return null;
+        }
       }
       data.push(fn());
     }
-    lpnBalances.value = await Promise.all(data);
+    const results = await Promise.all(data);
+    lpnBalances.value = results.filter((r): r is NonNullable<typeof r> => r !== null);
   } catch (e) {
     Logger.error(e);
   }
@@ -240,16 +249,16 @@ async function onNextClick() {
 
 async function onValidateAmount() {
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
+  const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
   const [_currency, protocol] = currency.key.split("@");
-  const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+  const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
   const data = await lppClient.getLppBalance();
   const amount = CurrencyUtils.convertDenomToMinimalDenom(input.value, currency.ibcData, currency.decimal_digits);
   const balance = new Int(data.balance.amount);
   if (amount.amount.gt(balance)) {
     const total = new Dec(data.balance.amount, currency.decimal_digits);
     error.value = i18n.t("message.withdraw-lpp-balance-error", {
-      balance: `${total.toString(currency.decimal_digits)} ${currency.shortName}`
+      balance: `${formatTokenBalance(total)} ${currency.shortName}`
     });
   }
 }
@@ -260,14 +269,14 @@ async function transferAmount() {
     try {
       loading.value = true;
 
-      const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
+      const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
       const microAmount = getMicroAmount(currency.ibcData, input.value);
       const asset = lpnBalances.value.find((item) => item.key == currency.key)!;
 
       const [_currency, protocol] = currency.key.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+      const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
       const price = await lppClient.getPrice();
 
       const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
@@ -286,8 +295,8 @@ async function transferAmount() {
       );
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadLPNCurrency(), walletStore[WalletActions.UPDATE_BALANCES]()]);
-      walletStore.loadActivities();
+      await Promise.all([loadLPNCurrency(), balancesStore.fetchBalances()]);
+      historyStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

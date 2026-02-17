@@ -4,7 +4,7 @@
       :items="items"
       :onSearch="onSearch"
     >
-      <div class="my-2 flex flex-col gap-8 md:flex-row">
+      <div class="my-2 flex flex-row flex-wrap gap-4 md:gap-8">
         <BigNumber
           :label="$t('message.total-value')"
           :labelTooltip="{
@@ -12,11 +12,11 @@
             content: $t('message.total-value-tooltip')
           }"
           :amount="{
-            amount: stableAmount,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: stableAmount,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: isMobile() ? 20 : 32,
-            animatedReveal: true
+            fontSize: 24,
+            animatedReveal: true,
+            compact: mobile
           }"
         />
 
@@ -27,25 +27,25 @@
             content: $t('message.earn-yield-tooltip')
           }"
           :amount="{
-            amount: earningsAmount,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: earningsAmount,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: 20,
-            animatedReveal: true
+            fontSize: 24,
+            animatedReveal: true,
+            compact: mobile
           }"
         />
 
         <BigNumber
+          class="hidden md:block"
           :label="$t('message.project-anual-return')"
           :labelTooltip="{
             position: 'top',
             content: $t('message.project-anual-return-tooltip')
           }"
           :amount="{
-            amount: anualYield,
-            type: CURRENCY_VIEW_TYPES.CURRENCY,
+            value: anualYield,
             denom: NATIVE_CURRENCY.symbol,
-            fontSize: 20,
+            fontSize: 24,
             animatedReveal: true
           }"
         />
@@ -66,10 +66,11 @@
 <script lang="ts" setup>
 import { SvgIcon, type TableRowItemProps, Widget } from "web-components";
 import EarnAssetsTable from "@/modules/earn/components/EarnAssetsTable.vue";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { isMobile } from "@/common/utils";
+
+const mobile = isMobile();
 
 defineProps<{
   items: TableRowItemProps[];

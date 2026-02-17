@@ -56,9 +56,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { nextTick, ref } from "vue";
 import { Button, Dialog } from "web-components";
-import { AssetUtils, Logger } from "@/common/utils";
+import { Logger } from "@/common/utils";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
 
 import arrowup from "@/assets/icons/arrowup.svg?url";
@@ -67,16 +69,17 @@ import shareImageOne from "@/assets/icons/share-image-1.svg?url";
 import shareImageTwo from "@/assets/icons/share-image-2.png?url";
 import shareImageThree from "@/assets/icons/share-image-3.png?url";
 import shareImageFour from "@/assets/icons/share-image-4.png?url";
-import type { LeaseData } from "@/common/types";
-import { NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
-import { useOracleStore } from "@/common/stores/oracle";
+import type { LeaseInfo } from "@/common/api";
+import type { LeaseDisplayData } from "@/common/stores/leases";
+import { NATIVE_CURRENCY } from "@/config/global";
+import { useConfigStore } from "@/common/stores/config";
+import { usePricesStore } from "@/common/stores/prices";
 
 const dialog = ref<typeof Dialog | null>(null);
 const canvas = ref<HTMLCanvasElement>();
 const i18n = useI18n();
-const app = useApplicationStore();
-const oracle = useOracleStore();
+const configStore = useConfigStore();
+const pricesStore = usePricesStore();
 const imageIndex = ref(0);
 const images = [shareImageOne, shareImageTwo, shareImageThree, shareImageFour];
 const canvasRefs = ref<{ [key: string]: HTMLCanvasElement }>({});
@@ -88,60 +91,59 @@ const colors = {
   gray: "#c1cad7"
 };
 
-let leaseData: LeaseData | null;
+let leaseData: LeaseInfo | null;
+let leaseDisplayData: LeaseDisplayData | null;
 
 const asset = () => {
-  if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
-    const item = app.currenciesData?.[leaseData.leaseData?.leasePositionTicker as string];
+  if (!leaseData) return undefined;
+
+  // For opening status with ETL data
+  if (leaseData.status === "opening" && leaseData.etl_data?.lease_position_ticker) {
+    const item = configStore.currenciesData?.[`${leaseData.etl_data.lease_position_ticker}@${leaseData.protocol}`];
     return item;
   }
 
-  switch (ProtocolsConfig[leaseData?.protocol!]?.type) {
-    case PositionTypes.long: {
-      const ticker =
-        leaseData?.leaseStatus?.opened?.amount.ticker ||
-        leaseData?.leaseStatus?.closing?.amount.ticker ||
-        leaseData?.leaseStatus?.opening?.downpayment.ticker;
-      const item = AssetUtils.getCurrencyByTicker(ticker as string);
+  const positionType = configStore.getPositionType(leaseData.protocol);
 
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
-    }
-    case PositionTypes.short: {
-      const item = AssetUtils.getCurrencyByTicker(leaseData?.leaseData?.leasePositionTicker as string);
-
-      const asset = AssetUtils.getCurrencyByDenom(item?.ibcData as string);
-      return asset;
-    }
+  if (positionType === "Long") {
+    const ticker = leaseData.amount.ticker;
+    const item = getCurrencyByTicker(ticker as string);
+    const assetData = getCurrencyByDenom(item?.ibcData as string);
+    return assetData;
+  } else {
+    const ticker = leaseData.etl_data?.lease_position_ticker ?? leaseData.amount.ticker;
+    const item = getCurrencyByTicker(ticker as string);
+    const assetData = getCurrencyByDenom(item?.ibcData as string);
+    return assetData;
   }
 };
 
 const currentPrice = () => {
-  switch (ProtocolsConfig[leaseData?.protocol!]?.type) {
-    case PositionTypes.long: {
-      if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
-        const item = app.currenciesData?.[leaseData?.leaseData?.leasePositionTicker as string];
-        return AssetUtils.formatNumber(
-          oracle.prices[item?.ibcData as string]?.amount ?? "0",
-          NATIVE_CURRENCY.maximumFractionDigits
-        );
-      }
-      break;
+  if (!leaseData) return "0";
+
+  const positionType = configStore.getPositionType(leaseData.protocol);
+
+  if (positionType === "Long") {
+    if (leaseData.status === "opening" && leaseData.etl_data?.lease_position_ticker) {
+      const item = configStore.currenciesData?.[`${leaseData.etl_data.lease_position_ticker}@${leaseData.protocol}`];
+      return formatNumber(
+        pricesStore.prices[item?.ibcData as string]?.price ?? "0",
+        NATIVE_CURRENCY.maximumFractionDigits
+      );
     }
-    case PositionTypes.short: {
-      if (leaseData?.leaseStatus?.opening && leaseData?.leaseData) {
-        return AssetUtils.formatNumber(
-          oracle.prices[`${leaseData.leaseStatus.opening.loan.ticker}@${leaseData.protocol}`]?.amount ?? "0",
-          NATIVE_CURRENCY.maximumFractionDigits
-        );
-      }
+  } else {
+    if (leaseData.status === "opening" && leaseData.debt?.ticker) {
+      return formatNumber(
+        pricesStore.prices[`${leaseData.debt.ticker}@${leaseData.protocol}`]?.price ?? "0",
+        NATIVE_CURRENCY.maximumFractionDigits
+      );
     }
   }
 
-  const ticker = leaseData?.leaseData?.leasePositionTicker;
+  const ticker = leaseData.etl_data?.lease_position_ticker ?? leaseData.amount.ticker;
 
-  return AssetUtils.formatNumber(
-    oracle.prices[`${ticker}@${leaseData?.protocol}`]?.amount ?? "0",
+  return formatNumber(
+    pricesStore.prices[`${ticker}@${leaseData.protocol}`]?.price ?? "0",
     NATIVE_CURRENCY.maximumFractionDigits
   );
 };
@@ -331,7 +333,7 @@ function roundedRect(
     height: number;
   }
 ) {
-  const num = Number(leaseData?.pnlPercent.toString(2));
+  const num = Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
 
   if (num < 0) {
     ctx.strokeStyle = colors.red;
@@ -364,7 +366,7 @@ function roundedRect(
 
 async function setArrow(ctx: CanvasRenderingContext2D) {
   const image = new Image();
-  const num = Number(leaseData?.pnlPercent.toString(2));
+  const num = Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
 
   const data = await fetch(num < 0 ? arrowdown : arrowup);
   const blob = await data.blob();
@@ -378,19 +380,15 @@ async function setArrow(ctx: CanvasRenderingContext2D) {
 
 async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
   ctx.font = "600 30px 'Garet'";
-  return ctx.measureText(
-    `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase()
-  ).width;
+  const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
+  return ctx.measureText(`${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase()).width;
 }
 
 async function setBuyText(ctx: CanvasRenderingContext2D) {
   ctx.font = "600 30px 'Garet'";
   ctx.fillStyle = "white";
-  ctx.fillText(
-    `${i18n.t(`message.${ProtocolsConfig[leaseData?.protocol!].type}`)} ${i18n.t("message.buy-position")}`.toUpperCase(),
-    150,
-    270
-  );
+  const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
+  ctx.fillText(`${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(), 150, 270);
 }
 
 async function setAsset(ctx: CanvasRenderingContext2D) {
@@ -428,7 +426,7 @@ function setPricePerSymbol(ctx: CanvasRenderingContext2D) {
 }
 
 function setPosition(ctx: CanvasRenderingContext2D) {
-  const pos = Number(leaseData?.pnlPercent.toString(2));
+  const pos = Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
   const symbol = pos < 0 ? "-" : "+";
   let [a, d] = Math.abs(pos).toFixed(2).split(".");
 
@@ -438,7 +436,7 @@ function setPosition(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = colors.green;
   }
 
-  const amount = `${symbol}${new Intl.NumberFormat().format(Number(a))}`;
+  const amount = `${symbol}${formatNumber(a, 0)}`;
 
   ctx.font = "600 72px 'Garet'";
   ctx.fillText(amount, 90, 545);
@@ -501,9 +499,11 @@ function share() {
 }
 
 defineExpose({
-  show: (data: LeaseData) => {
+  show: async (data: LeaseInfo, displayData?: LeaseDisplayData) => {
     leaseData = data;
+    leaseDisplayData = displayData ?? null;
     dialog?.value?.show();
+    await nextTick();
     generateCanvas();
 
     for (const key in canvasRefs.value) {

@@ -1,10 +1,14 @@
 import type { Store } from "../types";
-import { AppUtils } from "@/common/utils";
+import { useBalancesStore } from "../../balances";
 
+/**
+ * Initialize ignored assets in balances store
+ *
+ * Note: Asset filtering (ignore_all, ignore_long, ignore_short) is now
+ * handled by the backend in /api/protocols/{protocol}/currencies endpoint.
+ * This action now just initializes the local state as empty.
+ */
 export async function ignoreAssets(this: Store) {
-  try {
-    this.ignoreCurrencies = await AppUtils.getIgnoreAssets();
-  } catch (error) {
-    this.ignoreCurrencies = [];
-  }
+  const balancesStore = useBalancesStore();
+  balancesStore.setIgnoredCurrencies([]);
 }

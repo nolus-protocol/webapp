@@ -31,54 +31,16 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
-import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { AppUtils, Logger } from "@/common/utils";
-import { UPDATE_BLOCK_INTERVAL } from "@/config/global";
 import { RouteNames } from "@/router";
-
 import DesktopMenu from "@/common/components/menus/DesktopMenu.vue";
 import { SvgIcon } from "web-components";
+import { useBlockInfo } from "@/common/composables/useBlockInfo";
 
-const block = ref(0);
-const version = ref("");
-
-let blockInterval: NodeJS.Timeout | undefined;
-
-onMounted(() => {
-  setBlock();
-  setVersion();
-
-  blockInterval = setInterval(() => {
-    setBlock();
-    blockInterval;
-  }, UPDATE_BLOCK_INTERVAL);
-});
-
-async function setBlock() {
-  try {
-    const nolusClient = NolusClient.getInstance();
-    block.value = await nolusClient.getBlockHeight();
-  } catch (error: Error | any) {
-    Logger.error(error);
-  }
-}
-
-async function setVersion() {
-  try {
-    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-
-    const data = await fetch(`${url}/abci_info`);
-    const res = await data.json();
-    version.value = res?.result?.response.version;
-  } catch (error: Error | any) {
-    Logger.error(error);
-  }
-}
+const { block, version } = useBlockInfo();
 </script>
 
 <style lang="scss" scoped>
-.router-link-exact-active {
+.router-link-active {
   @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
 
   svg {
@@ -86,11 +48,9 @@ async function setVersion() {
   }
 }
 
-.router-link:not(.router-link-exact-active) {
+.router-link:not(.router-link-active) {
   &:hover {
     @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
-
-   
   }
 }
 </style>

@@ -1,15 +1,14 @@
 <template>
   <Widget>
     <WidgetHeader :label="$t('message.leased-assets-total')" />
-    <div class="flex flex-col gap-4 md:flex-row md:gap-8">
+    <div class="flex flex-row flex-wrap gap-4 md:gap-8">
       <BigNumber
         :label="$t('message.open-posiitons-value')"
         :amount="{
-          amount: openPositionValue,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: openPositionValue,
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 0,
-          fontSize: isMobile() ? 20 : 32
+          compact: true,
+          fontSize: 24
         }"
         :loading="loading"
       />
@@ -19,11 +18,10 @@
           content: $t('message.open-interest-tooltip')
         }"
         :amount="{
-          amount: openInterest,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: openInterest,
           denom: NATIVE_CURRENCY.symbol,
-          fontSize: 20,
-          decimals: 0
+          fontSize: 24,
+          compact: true
         }"
         :loading="loading"
       />
@@ -37,42 +35,27 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import LoansChart from "@/modules/stats/components/LoansChart.vue";
 import { Widget } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { EtlApi, isMobile, Logger } from "@/common/utils";
-import { ref, watch } from "vue";
+import { computed, watch } from "vue";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore, useStatsStore } from "@/common/stores";
 
-const loading = ref(true);
-const openPositionValue = ref("0");
-const openInterest = ref("0");
-const app = useApplicationStore();
+const configStore = useConfigStore();
+const statsStore = useStatsStore();
+
+// Computed properties from store
+const openPositionValue = computed(() => statsStore.loansStats.openPositionValue?.open_position_value ?? "0");
+const openInterest = computed(() => statsStore.loansStats.openInterest?.open_interest ?? "0");
+const loading = computed(() => statsStore.loansStatsLoading && !statsStore.hasLoansStats);
 
 watch(
-  () => app.init,
+  () => configStore.initialized,
   () => {
-    if (app.init) {
-      onInit();
+    if (configStore.initialized && !statsStore.initialized) {
+      statsStore.initialize();
     }
   },
   {
     immediate: true
   }
 );
-
-async function onInit() {
-  await Promise.all([setOpenPositonsValue(), setOpenInterest()]).catch((e) => Logger.error(e));
-}
-
-async function setOpenPositonsValue() {
-  const data = await EtlApi.fetchOpenPositionValue();
-  openPositionValue.value = data.open_position_value;
-  loading.value = false;
-}
-
-async function setOpenInterest() {
-  const data = await EtlApi.fetchOpenInterest();
-  openInterest.value = data.open_interest;
-  loading.value = false;
-}
 </script>

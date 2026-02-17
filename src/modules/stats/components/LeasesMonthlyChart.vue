@@ -11,59 +11,86 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
-import { NATIVE_CURRENCY } from "@/config/global";
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { useStatsStore } from "@/common/stores";
+
+const props = defineProps<{
+  period: string;
+}>();
 
 const chartHeight = 300;
-const chartWidth = isMobile() ? 350 : 950;
+let chartWidth: number;
 const marginBottom = 50;
-const marginLeft = 30;
+let marginLeft: number;
 const marginRight = 30;
 const chart = ref<typeof Chart>();
 
 const i18n = useI18n();
 const loans = ref<{ amount: number; date: Date }[]>([]);
+const statsStore = useStatsStore();
+
+// Watch for monthlyLeases changes from store
+watch(
+  () => statsStore.monthlyLeases,
+  (response) => {
+    if (response && response.length > 0) {
+      loans.value = response
+        .map((d) => ({
+          date: new Date(d.date as string),
+          amount: d.amount as number
+        }))
+        .reverse();
+      chart.value?.update();
+    }
+  },
+  { immediate: true }
+);
+
+// Re-fetch when period changes from parent
+watch(
+  () => props.period,
+  () => setStats()
+);
 
 async function setStats() {
-  const response = await EtlApi.fetchLeaseMonthly();
-  loans.value = response
-    .map((d) => ({
-      date: new Date(d.date),
-      amount: d.amount
-    }))
-    .reverse();
-
-  chart.value?.update();
+  await statsStore.fetchMonthlyLeases(props.period);
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+
+  const amounts = loans.value.map((d) => d.amount);
+  const yDomain: [number, number] = [Math.min(0, ...amounts), Math.max(...amounts)];
+  const tickFormat = createUsdTickFormat(yDomain);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
+
   const plotChart = rectY(
     loans.value,
     // @ts-ignore
     binX({ y: "sum" }, { x: "date", y: "amount", fill: "#19A96C", thresholds: timeMonth })
   ).plot({
-    style: {
-      width: "100%"
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
     marginBottom: marginBottom,
     marginRight: marginRight,
-    color: { legend: true },
     y: {
       grid: true,
       type: "linear",
-      label: i18n.t("message.leases-monthly"),
-      tickFormat: (d) => `$${d / 1e6}M`
+      label: null,
+      tickFormat,
+      ticks: yTicks
     },
-    x: { label: null, interval: "months" },
+    x: { label: null, interval: "months", ticks: CHART_AXIS.xTicks },
     marks: [ruleY([0])]
   });
 
@@ -77,7 +104,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> $${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.amount")}</strong> ${formatUsd(closestData.amount)}`
         );
 
         const node = tooltip?.node()!.getBoundingClientRect();

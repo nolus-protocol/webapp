@@ -15,6 +15,9 @@
 
 <script lang="ts" setup>
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useHistoryStore } from "@/common/stores/history";
+import { useStakingStore } from "@/common/stores/staking";
 import { Logger, NetworkUtils, Utils } from "@/common/utils";
 import { NATIVE_ASSET, STAKING } from "@/config/global";
 import { inject, ref } from "vue";
@@ -25,10 +28,12 @@ import { Decimal } from "@cosmjs/math";
 
 const loading = ref(false);
 const wallet = useWalletStore();
+const balancesStore = useBalancesStore();
+const historyStore = useHistoryStore();
+const stakingStore = useStakingStore();
 const i18n = useI18n();
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
-const onReload = inject("onReload", () => {});
 
 const props = defineProps<{
   src: string;
@@ -90,8 +95,8 @@ async function delegate() {
     const { txBytes } = await wallet.wallet.simulateRedelegateTx(delegations);
     await wallet.wallet.broadcastTx(txBytes as Uint8Array);
 
-    await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES()]);
-    wallet.loadActivities();
+    await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
+    historyStore.loadActivities();
 
     onShowToast({
       type: ToastType.success,
@@ -101,7 +106,6 @@ async function delegate() {
     Logger.error(err);
   } finally {
     loading.value = false;
-    onReload();
   }
 }
 
@@ -142,9 +146,5 @@ async function getValidators() {
   }
 
   return loadedValidators;
-}
-
-function loadDelegated(): any {
-  throw new Error("Function not implemented.");
 }
 </script>

@@ -1,56 +1,40 @@
 import type { Keplr } from "@keplr-wallet/types";
-import type { Window as KeplrWindow } from "@keplr-wallet/types/build/window";
 
 import { KeyUtils } from "@nolus/nolusjs";
 import { WalletManager } from ".";
 import { Wallet, NETWORK_DATA } from "@/networks";
-import { AppUtils } from "./AppUtils";
+import { fetchEndpoints } from "./EndpointService";
 
-export class WalletUtils {
-  public static async getKeplr(): Promise<Keplr | undefined> {
-    const keplrWindow = window as KeplrWindow;
+function getExtension(prop: "keplr" | "leap"): Promise<Keplr | undefined> {
+  const ext = (window as any)[prop];
 
-    if (keplrWindow.keplr) {
-      return keplrWindow.keplr;
-    }
-
-    if (document.readyState === "complete") {
-      return keplrWindow.keplr;
-    }
-
-    return new Promise((resolve) => {
-      const documentStateChange = (event: Event) => {
-        if (event.target && (event.target as Document).readyState === "complete") {
-          resolve(keplrWindow.keplr);
-          document.removeEventListener("readystatechange", documentStateChange);
-        }
-      };
-
-      document.addEventListener("readystatechange", documentStateChange);
-    });
+  if (ext) {
+    return Promise.resolve(ext);
   }
 
-  public static async getLeap(): Promise<Keplr | undefined> {
-    const leapWindow = window as any;
+  if (document.readyState === "complete") {
+    return Promise.resolve((window as any)[prop]);
+  }
 
-    if (leapWindow.leap) {
-      return leapWindow.leap;
-    }
+  return new Promise((resolve) => {
+    const documentStateChange = (event: Event) => {
+      if (event.target && (event.target as Document).readyState === "complete") {
+        resolve((window as any)[prop]);
+        document.removeEventListener("readystatechange", documentStateChange);
+      }
+    };
 
-    if (document.readyState === "complete") {
-      return leapWindow.leap;
-    }
+    document.addEventListener("readystatechange", documentStateChange);
+  });
+}
 
-    return new Promise((resolve) => {
-      const documentStateChange = (event: Event) => {
-        if (event.target && (event.target as Document).readyState === "complete") {
-          resolve(leapWindow.leap);
-          document.removeEventListener("readystatechange", documentStateChange);
-        }
-      };
+export class WalletUtils {
+  public static getKeplr(): Promise<Keplr | undefined> {
+    return getExtension("keplr");
+  }
 
-      document.addEventListener("readystatechange", documentStateChange);
-    });
+  public static getLeap(): Promise<Keplr | undefined> {
+    return getExtension("leap");
   }
 
   public static isAuth(): boolean {
@@ -61,7 +45,7 @@ export class WalletUtils {
 
   public static async getWallet(key: string): Promise<Wallet> {
     const network = NETWORK_DATA;
-    const node = await AppUtils.fetchEndpoints(network.supportedNetworks[key].key);
+    const node = await fetchEndpoints(network.supportedNetworks[key].key);
     const client = await Wallet.getInstance(node.rpc, node.api);
     return client;
   }

@@ -17,25 +17,18 @@ export const LeasesRouter: RouteRecordRaw = {
       },
       children: [
         {
-          path: "close/:protocol/:id",
+          path: "close/:id",
           component: () => import("./components/single-lease/CloseDialog.vue"),
           meta: {
             key: RouteNames.LEASES
           }
         },
         {
-          path: "repay/:protocol/:id",
+          path: "repay/:id",
           meta: {
             key: RouteNames.LEASES
           },
           component: () => import("./components/single-lease/RepayDialog.vue")
-        },
-        {
-          path: `learn-leases`,
-          component: () => import("@/common/components/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}`
-          }
         }
       ]
     },
@@ -67,18 +60,7 @@ export const LeasesRouter: RouteRecordRaw = {
       ]
     },
     {
-      path: "pnl-log",
-      name: `${RouteNames.LEASES}-pnl-log`,
-      component: () => import("./components/PnlLog.vue"),
-      meta: {
-        title: "Nolus Protocol - Pnl log",
-        key: `${RouteNames.LEASES}-pnl-log`,
-        description:
-          "Explore lease positions with the Nolus Protocol. Streamline tracking, management, and insights for your leasing activities"
-      }
-    },
-    {
-      path: `:protocol/:id`,
+      path: `:id`,
       name: `${RouteNames.LEASES}-single`,
       component: () => import("./components/SingleLease.vue"),
       meta: {
@@ -113,48 +95,6 @@ export const LeasesRouter: RouteRecordRaw = {
             key: `${RouteNames.LEASES}-single`
           },
           component: () => import("./components/single-lease/TakeProfitDialog.vue")
-        },
-        {
-          path: `learn-health`,
-          component: () => import("./components/single-lease/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}-single`
-          }
-        },
-        {
-          path: `learn-summary`,
-          component: () => import("@/common/components/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}-single`
-          }
-        },
-        {
-          path: `learn-health`,
-          component: () => import("@/common/components/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}-single`
-          }
-        },
-        {
-          path: `interest-collection`,
-          component: () => import("@/common/components/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}-single`
-          }
-        },
-        {
-          path: `liquidation-partial`,
-          component: () => import("@/common/components/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}-single`
-          }
-        },
-        {
-          path: `liquidation-full`,
-          component: () => import("@/common/components/EmptyRoute.vue"),
-          meta: {
-            key: `${RouteNames.LEASES}-single`
-          }
         }
       ]
     }

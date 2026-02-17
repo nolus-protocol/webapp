@@ -1,5 +1,5 @@
 <template>
-  <TableRow :items="transactionData.items" />
+  <TableRow :items="transactionData.items" :scrollable="!mobile" />
   <TransactionDetails ref="transactionDialogRef" />
 </template>
 
@@ -13,9 +13,10 @@ import { Label, type LabelProps, TableRow, type TableRowItemProps } from "web-co
 import TransactionDetails from "@/common/components/activities/TransactionDetails.vue";
 import Action, { type IAction } from "@/modules/history/components/Action.vue";
 import { CONFIRM_STEP } from "@/common/types";
-import { getCreatedAtForHuman } from "@/common/utils";
+import { getCreatedAtForHuman, isMobile } from "@/common/utils";
 
 const i18n = useI18n();
+const mobile = isMobile();
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
 
 interface Props {
@@ -23,40 +24,57 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const transactionData = computed(
-  () =>
-    ({
+const transactionData = computed<TableRowItemProps>(() => {
+  if (mobile) {
+    return {
       items: [
         {
           value: props.transaction.historyData.action,
-          variant: "left",
-          class: "max-w-[100px] capitalize"
-        },
-        {
-          value: props.transaction.historyData.msg,
+          subValue: props.transaction.historyData.msg,
           click: onActivityClick,
-          class: "text-typography-link cursor-pointer font-semibold break-all",
-          variant: "left"
+          variant: "left",
+          class: "capitalize cursor-pointer",
+          subValueClass: "text-typography-link font-semibold break-all"
         },
         {
-          value: getTimeStamp(),
-          class: "max-w-[180px]"
-        },
-        {
-          component: () => h<LabelProps>(Label, getStatus()),
-          class: "max-w-[150px]"
-        },
-        {
-          component: () =>
-            h<IAction>(Action, {
-              transaction: props.transaction,
-              onClick: onActivityClick
-            }),
-          class: "max-w-[120px]"
+          value: getTimeStamp()
         }
       ]
-    }) as TableRowItemProps
-);
+    };
+  }
+
+  return {
+    items: [
+      {
+        value: props.transaction.historyData.action,
+        variant: "left",
+        class: "max-w-[100px] capitalize"
+      },
+      {
+        value: props.transaction.historyData.msg,
+        click: onActivityClick,
+        class: "text-typography-link cursor-pointer font-semibold break-all",
+        variant: "left"
+      },
+      {
+        value: getTimeStamp(),
+        class: "max-w-[180px]"
+      },
+      {
+        component: () => h<LabelProps>(Label, getStatus()),
+        class: "max-w-[150px]"
+      },
+      {
+        component: () =>
+          h<IAction>(Action, {
+            transaction: props.transaction,
+            onClick: onActivityClick
+          }),
+        class: "max-w-[120px]"
+      }
+    ]
+  };
+});
 
 function getTimeStamp() {
   if (props.transaction.historyData.skipRoute) {
@@ -76,6 +94,9 @@ function getStatus() {
     case CONFIRM_STEP.ERROR: {
       return { value: i18n.t(`message.error`), variant: "error" } as any;
     }
+  }
+  if (props.transaction.code != null && props.transaction.code !== 0) {
+    return { value: i18n.t(`message.failed`), variant: "error" } as any;
   }
   return { value: i18n.t(`message.completed`), variant: "success" } as any;
 }

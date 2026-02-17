@@ -11,76 +11,97 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { isMobile } from "@/common/utils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, getChartWidth } from "@/common/utils/ChartUtils";
+import { getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
 import { select, pointer, type Selection } from "d3";
-import { ref } from "vue";
-import { NATIVE_CURRENCY } from "@/config/global";
+import { ref, watch } from "vue";
+import { useConfigStore, useStatsStore } from "@/common/stores";
+
+const mobile = isMobile();
 const chartHeight = 500;
 const marginTop = 20;
 const marginBottom = 30;
-const marginLeft = isMobile() ? 50 : 100;
-const width = isMobile() ? 450 : 950;
+const marginLeft = mobile ? 55 : 70;
+let chartWidth: number;
 
 const chart = ref<typeof Chart>();
-const loans = ref<{ percentage: number; ticker: string; loan: string }[]>([]);
+const loans = ref<{ ticker: string; loan: number }[]>([]);
+const configStore = useConfigStore();
+const statsStore = useStatsStore();
 
-async function setStats() {
-  const data = await fetch(`${EtlApi.getApiUrl()}/leased-assets`);
-  const items: { loan: string; asset: string }[] = await data.json();
-  let total = 0;
+// Watch both leasedAssets and configStore.initialized — currency names
+// require the config store to be populated for friendly name resolution
+watch(
+  [() => statsStore.leasedAssets, () => configStore.initialized],
+  ([items]) => {
+    if (items) {
+      processLeasedAssets(items as { loan: string; asset: string }[]);
+    }
+  },
+  { immediate: true }
+);
 
-  for (const i of items) {
-    total += Number(i.loan);
-  }
-
+function processLeasedAssets(items: { loan: string; asset: string }[]) {
   loans.value = items
     .map((item) => {
       const [key, protocol] = item.asset.split(" ");
       let shortName = key;
       try {
-        const currency = AssetUtils.getCurrencyByTicker(key);
+        const currency = getCurrencyByTickerForNetwork(key);
         shortName = currency?.shortName ?? key;
       } catch {
         // Currency not found in registry, use ticker as-is
       }
 
-      const loan = (Number(item.loan) / total) * 100;
       return {
         ticker: `${shortName}${protocol ? ` ${protocol}` : ""}`,
-        percentage: loan,
-        loan: item.loan
+        loan: Number(item.loan)
       };
     })
-    .sort((a, b) => b.percentage - a.percentage);
+    .sort((a, b) => b.loan - a.loan);
 
   chart.value?.update();
+}
+
+async function setStats() {
+  // Data is now fetched by statsStore, just trigger a refresh if needed
+  if (!statsStore.leasedAssets) {
+    await statsStore.fetchLeasedAssets();
+  }
 }
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+
+  const loanValues = loans.value.map((d) => d.loan);
+  const xDomain: [number, number] = [0, Math.max(...loanValues)];
+  const tickFormat = createUsdTickFormat(xDomain);
 
   const plotChart = plot({
-    width,
+    width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
     marginTop: marginTop,
     marginBottom: marginBottom,
-    style: {
-      width: "100%"
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     x: {
-      percent: true,
-      label: null
+      label: null,
+      tickFormat,
+      ticks: CHART_AXIS.xTicks
     },
     y: {
-      label: null
+      label: null,
+      ticks: CHART_AXIS.yTicks
     },
     marks: [
       ruleX([0]),
       barX(loans.value, {
-        x: "percentage",
+        x: "loan",
         y: "ticker",
         rx2: 2,
         fill: "#3470E2",
@@ -100,7 +121,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
         tooltip.html(
-          `<strong>${nearestData.ticker}:</strong> $${AssetUtils.formatNumber(nearestData.loan, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${nearestData.ticker}:</strong> ${formatUsd(nearestData.loan)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

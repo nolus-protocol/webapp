@@ -88,43 +88,47 @@ import {
   ToastType
 } from "web-components";
 import { computed, inject, ref, watch } from "vue";
-import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
-import { useWalletStore, WalletActions } from "@/common/stores/wallet";
+import { NATIVE_NETWORK } from "../../../config/global/network";
+import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
 import { Dec, Int } from "@keplr-wallet/unit";
-import { AssetUtils, getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
-import { useApplicationStore } from "@/common/stores/application";
-import { ProtocolsConfig, SORT_PROTOCOLS, Contracts } from "@/config/global";
+import { getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
+import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { usePricesStore } from "@/common/stores/prices";
+import { useConfigStore } from "@/common/stores/config";
+import { useEarnStore } from "@/common/stores/earn";
+import { SORT_PROTOCOLS } from "@/config/global";
+import { useHistoryStore } from "@/common/stores/history";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
 import { Lpp } from "@nolus/nolusjs/build/contracts";
-import { useAdminStore } from "@/common/stores/admin";
 import { h } from "vue";
+
+const pricesStore = usePricesStore();
 import Info from "./Info.vue";
 import { useI18n } from "vue-i18n";
 import EarnChart from "./EarnChart.vue";
 
+const configStore = useConfigStore();
+const earnStore = useEarnStore();
+
 const assets = computed(() => {
   try {
-    const protocols = Contracts.protocolsFilter[application.protocolFilter];
-    const lpns = application.lpn?.filter((item) => {
-      const c = application.currenciesData![item.key!];
+    const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+    const lpns = configStore.lpn?.filter((item) => {
+      const c = configStore.currenciesData![item.key!];
       const [_currency, protocol] = c.key!.split("@");
-
-      if (protocols.hold.includes(protocol)) {
-        return true;
-      }
-      return false;
+      return activeProtocols.includes(protocol);
     });
 
     const data = [];
 
     for (const lpn of lpns ?? []) {
       const [_, p] = lpn.key.split("@");
-      const asset = AssetUtils.getBalance(lpn.ibcData);
-      const value = new Dec(asset.balance.amount, lpn.decimal_digits);
+      const amount = balancesStore.getBalance(lpn.ibcData);
+      const value = new Dec(amount, lpn.decimal_digits);
 
-      const balance = AssetUtils.formatNumber(value.toString(), lpn.decimal_digits);
-      const price = new Dec(oracle.prices?.[lpn.key]?.amount ?? 0);
+      const balance = formatTokenBalance(value);
+      const price = new Dec(pricesStore.prices?.[lpn.key]?.price ?? "0");
       const stable = price.mul(value);
       data.push({
         key: lpn.key,
@@ -137,7 +141,7 @@ const assets = computed(() => {
         balance: { value: balance, ticker: lpn.shortName },
         stable,
         decimal_digits: lpn.decimal_digits,
-        price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+        price: formatDecAsUsd(stable)
       });
     }
     let items = [];
@@ -166,9 +170,8 @@ const assets = computed(() => {
 });
 
 const walletStore = useWalletStore();
-const oracle = useOracleStore();
-const application = useApplicationStore();
-const admin = useAdminStore();
+const balancesStore = useBalancesStore();
+const historyStore = useHistoryStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
@@ -185,18 +188,18 @@ const selectedCurrency = ref(0);
 
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = application.currenciesData?.[currency?.value];
+  const asset = configStore.currenciesData?.[currency?.value];
 
-  const price = new Dec(oracle.prices?.[asset?.key]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices?.[asset?.key]?.price ?? "0");
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 
 watch(
-  () => application.init,
+  () => configStore.initialized,
   () => {
-    if (application.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -212,7 +215,7 @@ async function onInit() {
 const apr = computed(() => {
   let [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
 
-  const a = application.apr?.[protocol];
+  const a = earnStore.getProtocolApr(protocol);
   return a;
 });
 
@@ -227,7 +230,7 @@ const decAmount = computed(() => {
 
 const amountStr = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  return `${AssetUtils.formatNumber(decAmount.value.toString(), currency.decimal_digits)} ${currency.label} (${stable.value})`;
+  return `${formatTokenBalance(decAmount.value)} ${currency.label} (${stable.value})`;
 });
 
 async function onNextClick() {
@@ -249,13 +252,13 @@ async function transferAmount() {
   if (wallet && error.value === "") {
     try {
       loading.value = true;
-      const currency = application.currenciesData![assets.value[selectedCurrency.value].value];
+      const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
       const microAmount = getMicroAmount(currency.ibcData, input.value);
 
       const [_currency, protocol] = currency.key.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(cosmWasmClient, admin.contracts![protocol].lpp);
+      const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
 
       const { txHash, txBytes, usedFee } = await lppClient.simulateDepositTx(wallet, [
         {
@@ -265,8 +268,8 @@ async function transferAmount() {
       ]);
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([walletStore[WalletActions.UPDATE_BALANCES](), loadLPNCurrency()]);
-      walletStore.loadActivities();
+      await Promise.all([balancesStore.fetchBalances(), loadLPNCurrency()]);
+      historyStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,
@@ -282,7 +285,7 @@ async function transferAmount() {
 }
 
 async function fetchDepositCapacity() {
-  const lpns = application.lpn;
+  const lpns = configStore.lpn;
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const value: { [key: string]: boolean } = {};
   const data = [];
@@ -290,20 +293,25 @@ async function fetchDepositCapacity() {
     const [_currency, protocol] = lpn.key!.split("@");
 
     const fn = async () => {
-      if (!ProtocolsConfig[protocol].supply) {
-        value[protocol] = false;
-        return;
-      }
-      const contract = admin.contracts![protocol].lpp;
-      const lppClient = new Lpp(cosmWasmClient, contract);
-      const supply = await lppClient.getDepositCapacity();
+      try {
+        const contract = configStore.contracts[protocol]?.lpp;
+        if (!contract) {
+          value[protocol] = false;
+          return;
+        }
+        const lppClient = new Lpp(cosmWasmClient, contract);
+        const depositCapacity = await lppClient.getDepositCapacity();
 
-      if (Number(supply?.amount) == 0 || !ProtocolsConfig[protocol].supply) {
+        if (Number(depositCapacity?.amount) == 0) {
+          value[protocol] = false;
+          maxSupply.value[protocol] = new Int(0);
+        } else {
+          value[protocol] = true;
+          maxSupply.value[protocol] = new Int(depositCapacity?.amount ?? -1);
+        }
+      } catch (e) {
+        console.error(`[SupplyForm] Failed to fetch deposit capacity for ${protocol}:`, e);
         value[protocol] = false;
-        maxSupply.value[protocol] = new Int(0);
-      } else {
-        value[protocol] = true;
-        maxSupply.value[protocol] = new Int(supply?.amount ?? -1);
       }
     };
 

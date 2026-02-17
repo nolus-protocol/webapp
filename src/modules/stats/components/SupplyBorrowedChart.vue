@@ -1,33 +1,4 @@
 <template>
-  <div class="flex">
-    <div class="flex flex-1 justify-center">
-      <div class="flex items-center">
-        <span class="m-2 block h-[8px] w-[20px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
-      </div>
-      <div class="flex items-center">
-        <span class="m-2 block h-[8px] w-[20px] rounded bg-blue-500"></span>{{ $t("message.borrowed-chart") }}
-      </div>
-    </div>
-
-    <div class="flex items-center gap-3">
-      <span>{{ $t("message.period") }}:</span>
-      <Dropdown
-        id="period"
-        :on-select="
-          (data) => {
-            chartTimeRange = data;
-            loadData();
-          }
-        "
-        :options="options"
-        :selected="options[0]"
-        class="w-20"
-        dropdownPosition="right"
-        dropdownClassName="min-w-10"
-      />
-    </div>
-  </div>
-
   <Chart
     ref="chart"
     :updateChart="updateChart"
@@ -39,43 +10,79 @@
 
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
-import { lineY, plot, ruleY } from "@observablehq/plot";
+import { lineY, plot } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils, EtlApi, isMobile } from "@/common/utils";
+import { isMobile } from "@/common/utils";
+import { formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
 import { useI18n } from "vue-i18n";
-import { NATIVE_CURRENCY } from "@/config/global";
-import { ref } from "vue";
-import { Dropdown } from "web-components";
+
+import { ref, watch } from "vue";
+import { useStatsStore } from "@/common/stores";
+
+const props = defineProps<{
+  period: string;
+}>();
 
 type ChartData = { date: Date; borrowed: number; supplied: number };
 
+const mobile = isMobile();
 const chartHeight = 250;
-const marginLeft = 40;
-const chartWidth = isMobile() ? 450 : 950;
+let chartWidth: number;
+let marginLeft: number;
 const marginRight = 30;
 const marginBottom = 50;
 
 const data = ref<ChartData[]>([]);
 const i18n = useI18n();
 const chart = ref<typeof Chart>();
+const statsStore = useStatsStore();
 
-const options = ref([
-  { label: `3${i18n.t("message.month_abr")}`, value: "3m" },
-  { label: `6${i18n.t("message.month_abr")}`, value: "6m" },
-  { label: `12${i18n.t("message.month_abr")}`, value: "12m" },
-  { label: i18n.t("message.all"), value: "all" }
-]);
+// Watch for supplyBorrowHistory changes from store
+watch(
+  () => statsStore.supplyBorrowHistory,
+  (response) => {
+    if (response && response.length > 0) {
+      data.value = response
+        .map((d) => ({
+          date: new Date(d.lp_pool_timestamp as string),
+          borrowed: d.borrowed as number,
+          supplied: d.supplied as number
+        }))
+        .reverse();
+      chart.value?.update();
+    }
+  },
+  { immediate: true }
+);
 
-const chartTimeRange = ref(options.value[0]);
+// Re-fetch when period changes from parent
+watch(
+  () => props.period,
+  () => loadData()
+);
 
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+
+  // Downsample to ~200 points for a smoother chart
+  const maxPoints = 200;
+  const chartData =
+    data.value.length > maxPoints
+      ? data.value.filter((_, i) => i % Math.ceil(data.value.length / maxPoints) === 0)
+      : data.value;
+
+  const allValues = chartData.flatMap((d) => [d.borrowed, d.supplied]);
+  const yDomain: [number, number] = [Math.min(...allValues), Math.max(...allValues)];
+  const tickFormat = createUsdTickFormat(yDomain);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
 
   const plotChart = plot({
-    color: { legend: true },
-    style: { width: "100%" },
+    style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
     height: chartHeight,
     marginLeft: marginLeft,
@@ -84,25 +91,30 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       grid: true,
-      ticks: 4,
-      label: i18n.t("message.amount-$"),
+      label: null,
       tickSize: 0,
-      tickFormat: (d) => `$${d / 1e6}M`
+      tickFormat,
+      ticks: yTicks
     },
-    x: { type: "time", label: i18n.t("message.date-capitalize") },
+    x: { type: "time", label: null, ticks: CHART_AXIS.xTicks },
     marks: [
-      ruleY([0]),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "date",
         y: "borrowed",
         stroke: "#3470E2",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom",
+        clip: "frame"
       }),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "date",
         y: "supplied",
         stroke: "#19A96C",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom",
+        clip: "frame"
       })
     ]
   });
@@ -111,6 +123,15 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   select(plotChart).selectAll("path").transition().duration(400).attr("opacity", 1);
 
+  const crosshair = select(plotChart)
+    .append("line")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.15)
+    .attr("stroke-width", 1)
+    .attr("y1", 0)
+    .attr("y2", chartHeight - marginBottom)
+    .style("display", "none");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [x] = pointer(event, plotChart);
@@ -118,8 +139,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
 
       if (closestData) {
+        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+
         tooltip.html(
-          `<strong>${i18n.t("message.supplied")}:</strong> $${AssetUtils.formatNumber(closestData.supplied, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.borrowed-chart")}:</strong> $${AssetUtils.formatNumber(closestData.borrowed, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.supplied")}:</strong> ${formatUsd(closestData.supplied)}<br><strong>${i18n.t("message.borrowed-chart")}:</strong> ${formatUsd(closestData.borrowed)}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();
@@ -128,11 +151,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
         tooltip
           .style("opacity", 1)
-          .style("left", `${event.pageX - width / 2}px`) // Using native event
-          .style("top", `${event.pageY - height - 10}px`); // Using native event
+          .style("left", `${event.pageX - width / 2}px`)
+          .style("top", `${event.pageY - height - 10}px`);
       }
     })
     .on("mouseleave", () => {
+      crosshair.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }
@@ -167,16 +191,7 @@ function getClosestDataPoint(cPosition: number) {
 }
 
 async function loadData() {
-  const response = await EtlApi.fetchTimeSeries(chartTimeRange.value.value);
-  data.value = response
-    .map((d) => ({
-      date: new Date(d.lp_pool_timestamp),
-      borrowed: d.borrowed,
-      supplied: d.supplied
-    }))
-    .reverse();
-
-  chart.value?.update();
+  await statsStore.fetchSupplyBorrowHistory(props.period);
 }
 </script>
 

@@ -1,0 +1,14 @@
+{
+  "api_url": "https://api.skip.money",
+  "blacklist": [],
+  "slippage": 1,
+  "gas_multiplier": 2,
+  "fee": 35,
+  "fee_address": "",
+  "timeoutSeconds": "60",
+  "swap_currencies": {
+    "osmosis": "USDC_NOBLE",
+    "neutron": "USDC_NOBLE"
+  },
+  "swap_to_currency": "NLS"
+}

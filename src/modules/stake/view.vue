@@ -1,46 +1,42 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.stake')">
-      <div
-        class="flex gap-2"
-        v-if="wallet.wallet"
-      >
-        <Button
-          :label="$t('message.delegate')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.DELEGATE}`)"
-        />
-        <Button
-          :label="$t('message.undelegate')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.UNDELEGATE}`)"
-        />
-      </div>
+      <Button
+        v-if="walletConnected"
+        :label="$t('message.delegate')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.DELEGATE}`)"
+      />
+      <Button
+        v-if="walletConnected"
+        :label="$t('message.undelegate')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.STAKE}/${StakeDialog.UNDELEGATE}`)"
+      />
     </ListHeader>
     <div class="flex flex-col gap-8 lg:flex-row">
       <div class="order-2 lg:order-none lg:flex-[60%]">
         <DelegationOverview
           :delegated="delegated"
           :stableDelegated="stableDelegated"
-          :validators="validators"
+          :validators="validatorRows"
           :showEmpty="showEmpty"
           :unboundingDelegations="unboundingDelegations"
         />
-
+      </div>
+      <div class="order-1 flex flex-col gap-8 lg:order-none lg:flex-[40%]">
+        <StakingRewards
+          :rewards="rewards"
+          :stableRewards="stableRewards"
+          :showEmpty="showEmpty"
+        />
         <VestedOverview
           v-if="vestedTokens.length > 0"
           :vestedTokens="vestedTokens"
-          class="mt-8"
         />
       </div>
-      <StakingRewards
-        :rewards="rewards"
-        :stableRewards="stableRewards"
-        :showEmpty="showEmpty"
-        class="order-1 lg:order-none lg:flex-[40%]"
-      />
     </div>
     <router-view></router-view>
   </div>
@@ -56,195 +52,182 @@ import VestedOverview from "./components/VestedOverview.vue";
 
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
-import { h, onUnmounted, provide, ref, watch } from "vue";
-import { AssetUtils, Logger, NetworkUtils } from "@/common/utils";
-import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT, UPDATE_REWARDS_INTERVAL } from "@/config/global";
+import { computed, h, ref, watch } from "vue";
+import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd, formatPercent } from "@/common/utils/NumberFormatUtils";
+import { isMobile } from "@/common/utils";
+import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useStakingStore } from "@/common/stores/staking";
+import { usePricesStore } from "@/common/stores/prices";
+import { useConfigStore } from "@/common/stores/config";
 import { Dec } from "@keplr-wallet/unit";
-import { coin } from "@cosmjs/stargate";
-import { Intercom } from "@/common/utils/Intercom";
-import { useOracleStore } from "@/common/stores/oracle";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
+import { useWalletConnected } from "@/common/composables";
 import RedelegateButton from "./components/RedelegateButton.vue";
-import { useApplicationStore } from "@/common/stores/application";
 
-let interval: NodeJS.Timeout | undefined;
+const mobile = isMobile();
 const wallet = useWalletStore();
-const oracle = useOracleStore();
-const app = useApplicationStore();
+const stakingStore = useStakingStore();
+const pricesStore = usePricesStore();
+const configStore = useConfigStore();
 
 const i18n = useI18n();
 const router = useRouter();
+const walletConnected = useWalletConnected();
 
-const delegated = ref(`0`);
-const stableDelegated = ref("0.00");
-const validators = ref<TableRowItemProps[]>([]);
-const stableRewards = ref("0.00");
-const showEmpty = ref(false);
-const rewards = ref<
-  {
-    amount: string;
-    stableAmount: string;
-    icon: string;
-  }[]
->();
-const unboundingDelegations = ref<IObjectKeys[]>([]);
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
-provide("onReload", async () => {
-  await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
-});
-
+// Watch for wallet connection changes (staking store is managed by connectionStore)
 watch(
-  () => app.init,
-  () => {
-    if (app.init) {
-      onInit();
+  () => wallet.wallet?.address,
+  async (address) => {
+    if (address) {
+      await loadVested();
+    } else {
+      vestedTokens.value = [];
     }
   },
-  {
-    immediate: true
-  }
+  { immediate: true }
 );
-
-async function onInit() {
-  try {
-    await Promise.all([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
-
-    interval = setInterval(async () => {
-      await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
-    }, UPDATE_REWARDS_INTERVAL);
-  } catch (e: Error | any) {
-    Logger.error(e);
-  }
-}
-
-onUnmounted(() => {
-  clearInterval(interval);
-});
-
-watch(
-  () => wallet.wallet,
-  async (value) => {
-    await Promise.allSettled([loadDelegated(), loadDelegator(), loadUnboundingDelegations(), loadVested()]);
-  }
-);
-
-async function loadUnboundingDelegations() {
-  unboundingDelegations.value = await NetworkUtils.loadUnboundingDelegations();
-}
 
 async function loadVested() {
   vestedTokens.value = await wallet.LOAD_VESTED_TOKENS();
 }
 
-async function loadDelegator() {
-  const delegator = await NetworkUtils.loadDelegator();
-  const data: {
-    amount: string;
-    stableAmount: string;
-    icon: string;
-  }[] = [];
-  let stable = new Dec(0);
-  (delegator?.total ?? [])?.forEach((item: IObjectKeys) => {
-    const currency = AssetUtils.getCurrencyByDenom(item.denom);
-    const total = new Dec(new Dec(item?.amount ?? 0).truncate(), currency.decimal_digits);
-    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
-    const s = price.mul(total);
+// Get native currency for price calculations
+const nativeCurrency = computed(() => {
+  return configStore.getCurrencyByTicker(NATIVE_ASSET.ticker);
+});
 
-    data.push({
-      amount: `${AssetUtils.formatNumber(total.toString(), currency.decimal_digits)} ${currency.shortName}`,
-      stableAmount: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(s.toString(2), 2)}`,
-      icon: currency.icon
-    });
+const nativePrice = computed(() => {
+  if (!nativeCurrency.value) return 0;
+  return pricesStore.getPriceAsNumber(nativeCurrency.value.key);
+});
 
-    stable = stable.add(s);
+// Total delegated amount
+const delegated = computed(() => {
+  return stakingStore.totalStaked;
+});
+
+// Total delegated in USD
+const stableDelegated = computed(() => {
+  const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
+  const stable = amount.mul(new Dec(nativePrice.value));
+
+  // Update Intercom
+  IntercomService.updateStaking({
+    delegatedNls: amount.toString(),
+    delegatedUsd: stable.toString(),
+    validatorsCount: stakingStore.delegations.length
   });
 
-  rewards.value = data;
-  stableRewards.value = stable.toString(NATIVE_CURRENCY.maximumFractionDigits);
-}
+  return stable.toString(2);
+});
 
-async function loadDelegated() {
-  const delegations = (await NetworkUtils.loadDelegations())
+// Show empty state
+const showEmpty = computed(() => {
+  return !walletConnected.value || !stakingStore.hasPositions;
+});
+
+// Total rewards
+const rewards = computed(() => {
+  if (!stakingStore.hasPositions) return [];
+
+  // Use totalRewards from store (already aggregated by backend)
+  const rewardsAmount = new Dec(stakingStore.totalRewards, NATIVE_ASSET.decimal_digits);
+  const stableAmount = rewardsAmount.mul(new Dec(nativePrice.value));
+
+  return [
+    {
+      amount: `${formatTokenBalance(rewardsAmount)} ${NATIVE_ASSET.label}`,
+      stableAmount: formatUsd(stableAmount.toString(2)),
+      icon: NATIVE_ASSET.icon
+    }
+  ];
+});
+
+// Total rewards in USD
+const stableRewards = computed(() => {
+  const rewardsAmount = new Dec(stakingStore.totalRewards, NATIVE_ASSET.decimal_digits);
+  const total = rewardsAmount.mul(new Dec(nativePrice.value));
+  return total.toString(2);
+});
+
+// Unbonding delegations
+const unboundingDelegations = computed<IObjectKeys[]>(() => {
+  // Unbonding positions are now separate in the store
+  return stakingStore.unbonding.map((u) => ({
+    validator_address: u.validator_address,
+    entries: u.entries.map((entry) => ({
+      completion_time: entry.completion_time,
+      balance: entry.balance
+    }))
+  }));
+});
+
+// Validator table rows
+const validatorRows = computed<TableRowItemProps[]>(() => {
+  return stakingStore.delegations
+    .filter((position) => new Dec(position.balance.amount).gte(new Dec(1000)))
     .sort((a, b) => {
-      const ab = new Dec(a.balance.amount);
-      const bb = new Dec(b.balance.amount);
-      return Number(bb.sub(ab).toString(8));
+      const amountA = new Dec(a.balance.amount);
+      const amountB = new Dec(b.balance.amount);
+      return Number(amountB.sub(amountA).toString(8));
     })
-    .filter((item) => {
-      if (new Dec(item.balance.amount).isZero()) {
-        return false;
+    .map((position) => {
+      const validator = stakingStore.getValidator(position.validator_address);
+      const amount = new Dec(position.balance.amount, NATIVE_ASSET.decimal_digits);
+      const stable = amount.mul(new Dec(nativePrice.value));
+      const amountLabel = mobile ? formatMobileAmount(amount) : formatTokenBalance(amount);
+      const stableLabel = mobile ? formatMobileUsd(stable) : formatUsd(stable.toString());
+
+      // Commission rate as percentage
+      const rate = validator ? formatPercent(new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2)) : formatPercent(0);
+
+      const isJailed = validator?.jailed ?? false;
+
+      if (mobile) {
+        return {
+          items: [
+            {
+              value: position.validator_moniker,
+              variant: "left",
+              class: "break-all"
+            },
+            {
+              value: `${amountLabel} ${NATIVE_ASSET.label}`,
+              subValue: stableLabel,
+              variant: "right"
+            }
+          ]
+        };
       }
-      return true;
-    });
-  const promises = [];
-  let decimalDelegated = new Dec(0);
-
-  const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-  const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
-  for (const item of delegations) {
-    const d = new Dec(item.balance.amount);
-    decimalDelegated = decimalDelegated.add(d);
-
-    async function fn() {
-      const validator = (await NetworkUtils.loadValidator(item.delegation.validator_address)).validator;
-      const rate = new Dec(validator.commission.commission_rates.rate).mul(new Dec(PERCENT)).toString(0);
-      const amount = new Dec(item.balance.amount, NATIVE_ASSET.decimal_digits);
-      const stable = amount.mul(price);
-      const amount_label = AssetUtils.formatNumber(amount.toString(), 3);
-      const stable_label = AssetUtils.formatNumber(stable.toString(), 2);
 
       return {
         items: [
           {
-            value: validator.description.moniker,
-            subValue: validator.description.website,
+            value: position.validator_moniker,
+            subValue: validator?.website ?? "",
             variant: "left",
             class: "break-all"
           },
           {
-            value: `${amount_label} ${NATIVE_ASSET.label}`,
-            subValue: `${NATIVE_CURRENCY.symbol}${stable_label}`,
-            variant: "right",
-            class: "md:flex"
+            value: `${amountLabel} ${NATIVE_ASSET.label}`,
+            subValue: stableLabel,
+            variant: "right"
           },
-          { value: `${rate}%`, class: "md:flex max-w-[100px]" },
+          { value: rate, class: "max-w-[100px]" },
           {
             class: "max-w-[140px]",
             component: () =>
-              validator.jailed
-                ? h(RedelegateButton, { src: item.delegation.validator_address, amount: item.balance.amount })
+              isJailed
+                ? h(RedelegateButton, { src: position.validator_address, amount: position.balance.amount })
                 : h<LabelProps>(Label, { value: i18n.t("message.active"), variant: "secondary" })
           }
         ]
       };
-    }
-
-    promises.push(fn());
-  }
-
-  const d = { balance: coin(decimalDelegated.truncate().toString(), NATIVE_ASSET.denom) };
-  const amount = new Dec(d.balance.amount);
-  const stable = new Dec(d.balance.amount, NATIVE_ASSET.decimal_digits).mul(price);
-
-  delegated.value = amount.truncate().toString();
-  stableDelegated.value = stable.toString(2);
-
-  if (promises.length == 0) {
-    showEmpty.value = true;
-  } else {
-    showEmpty.value = false;
-  }
-
-  const data = (await Promise.all(promises)) as TableRowItemProps[];
-  validators.value = data;
-
-  Intercom.update({
-    Nlsamountdelegated: new Dec(d.balance.amount ?? 0, NATIVE_ASSET.decimal_digits).toString()
-  });
-}
-
-provide("loadRewards", loadDelegator);
+    });
+});
 </script>

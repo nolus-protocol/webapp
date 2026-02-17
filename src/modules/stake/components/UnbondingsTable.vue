@@ -2,15 +2,15 @@
   <Table
     v-if="unboundingDelegations?.length > 0"
     :columns="columns"
+    :scrollable="!mobile"
   >
     <template v-slot:body>
-      <div class="thin-scroll max-h-[600px] overflow-auto pr-2">
-        <TableRow
-          v-for="(row, index) in assets"
-          :key="index"
-          :items="row.items"
-        />
-      </div>
+      <TableRow
+        v-for="(row, index) in assets"
+        :key="index"
+        :items="row.items"
+        :scrollable="!mobile"
+      />
     </template>
   </Table>
 </template>
@@ -20,20 +20,29 @@ import { useI18n } from "vue-i18n";
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
 import type { IObjectKeys } from "@/common/types";
 import { computed } from "vue";
-import { NATIVE_ASSET, NATIVE_CURRENCY } from "@/config/global";
-import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, datePraser } from "@/common/utils";
+import { NATIVE_ASSET } from "@/config/global";
+import { usePricesStore } from "@/common/stores/prices";
+import { dateParser, isMobile } from "@/common/utils";
+import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { Coin, Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 
 const i18n = useI18n();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
+const mobile = isMobile();
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.asset"), variant: "left" },
-  { label: i18n.t("message.amount-undelegate"), class: "max-w-[200px]" },
-  { label: i18n.t("message.time-left"), class: "hidden md:flex max-w-[120px]" }
-]);
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.amount-undelegate") }
+    ]
+  : [
+      { label: i18n.t("message.asset"), variant: "left" },
+      { label: i18n.t("message.amount-undelegate"), class: "max-w-[200px]" },
+      { label: i18n.t("message.time-left"), class: "max-w-[120px]" }
+    ]
+);
 
 const props = defineProps<{
   unboundingDelegations: IObjectKeys[];
@@ -42,12 +51,12 @@ const props = defineProps<{
 
 const assets = computed(() => {
   const data: TableRowItemProps[] = [];
-  const asset = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-  const price = oracle.prices[asset.key]?.amount;
+  const asset = getCurrencyByTicker(NATIVE_ASSET.ticker);
+  const price = pricesStore.prices[asset.key]?.price;
 
   for (const validator of props.unboundingDelegations) {
     for (const item of validator.entries) {
-      const balance = AssetUtils.formatNumber(new Dec(item.balance, asset.decimal_digits).toString(3), 3);
+      const amountDec = new Dec(item.balance, asset.decimal_digits);
 
       const stable_b = CurrencyUtils.calculateBalance(
         price,
@@ -55,25 +64,44 @@ const assets = computed(() => {
         asset.decimal_digits
       ).toDec();
 
-      const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
+      const balanceLabel = mobile ? formatMobileAmount(amountDec) : formatTokenBalance(amountDec);
+      const stableLabel = mobile ? formatMobileUsd(stable_b) : formatUsd(stable_b.toString(2));
 
-      data.push({
-        items: [
-          {
-            value: asset.name,
-            subValue: asset.shortName,
-            image: asset.icon,
-            variant: "left"
-          },
-          {
-            value: `${balance}`,
-            subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`,
-            variant: "right",
-            class: " max-w-[200px]"
-          },
-          { value: datePraser(item.completion_time, true), class: "hidden md:flex max-w-[120px]" }
-        ]
-      });
+      if (mobile) {
+        data.push({
+          items: [
+            {
+              value: asset.shortName,
+              subValue: dateParser(item.completion_time, true),
+              image: asset.icon,
+              variant: "left"
+            },
+            {
+              value: balanceLabel,
+              subValue: stableLabel,
+              variant: "right"
+            }
+          ]
+        });
+      } else {
+        data.push({
+          items: [
+            {
+              value: asset.name,
+              subValue: asset.shortName,
+              image: asset.icon,
+              variant: "left"
+            },
+            {
+              value: balanceLabel,
+              subValue: stableLabel,
+              variant: "right",
+              class: "max-w-[200px]"
+            },
+            { value: dateParser(item.completion_time, true), class: "max-w-[120px]" }
+          ]
+        });
+      }
     }
   }
 

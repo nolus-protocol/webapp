@@ -48,25 +48,23 @@ import { h, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { type DropdownOption, Dropdown } from "web-components";
 import { WalletManager } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 
 import { setLang } from "@/i18n";
 import { APPEARANCE, languages } from "@/config/global";
-import { AppUtils, ThemeManager } from "@/common/utils";
-import { ApplicationActions, useApplicationStore } from "@/common/stores/application";
-import { useRouter } from "vue-router";
-import { Contracts } from "@/config/global";
+import { setTheme, getTheme, type Theme } from "@/common/utils/ThemeManager";
+import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
+import { useConfigStore } from "@/common/stores/config";
 
 import DarkIcon from "@/assets/icons/theme/dark.svg";
 import LightIcon from "@/assets/icons/theme/light.svg";
 import SyncIcon from "@/assets/icons/theme/sync.svg";
 
 const i18n = useI18n();
-const lang = AppUtils.getLang();
-const themeData = ThemeManager.getThemeData();
-const application = useApplicationStore();
-const oracle = useOracleStore();
-const router = useRouter();
+const lang = getLanguage();
+const themeData = getTheme();
+const configStore = useConfigStore();
+const pricesStore = usePricesStore();
 
 const selectedAppearance = ref({
   label: i18n.t(`message.${themeData}`),
@@ -84,14 +82,7 @@ const ThemeIcons = {
   sync: h(SyncIcon)
 };
 
-const options = Object.keys(Contracts.protocolsFilter).map((item) => {
-  const protocol = Contracts.protocolsFilter[item];
-  return {
-    value: protocol.key,
-    label: protocol.name,
-    icon: protocol.image
-  };
-});
+const options = configStore.getNetworkFilterOptions();
 const option = options.find((item) => item.value == WalletManager.getProtocolFilter());
 
 const languagesOptions = ref(
@@ -114,22 +105,17 @@ const appearance = ref(
 );
 
 function onUpdateTheme(theme: string) {
-  ThemeManager.saveThemeData(theme);
-  application[ApplicationActions.SET_THEME](theme);
+  if (theme === "light" || theme === "dark" || theme === "sync") {
+    setTheme(theme as Theme);
+  }
+  selectedAppearance.value = {
+    label: i18n.t(`message.${theme}`),
+    value: theme
+  };
 }
 
-watch(
-  () => application.theme,
-  (value) => {
-    selectedAppearance.value = {
-      label: i18n.t(`message.${value}`),
-      value: `${value}`
-    };
-  }
-);
-
 async function setLanguage(item: DropdownOption) {
-  AppUtils.setLang(`${item.value}`);
+  setLangUtil(`${item.value}`);
   await setLang(`${item.value}`);
 
   appearance.value = Object.keys(APPEARANCE).map((key) => {
@@ -147,9 +133,8 @@ async function setLanguage(item: DropdownOption) {
 }
 
 async function onSelect(item: { value: string; label: string; icon: string }) {
-  application.setProtcolFilter(item.value);
-  await oracle.GET_PRICES();
-  router.push("/");
+  configStore.setProtocolFilter(item.value);
+  await pricesStore.fetchPrices();
 }
 </script>
 

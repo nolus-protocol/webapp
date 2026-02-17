@@ -14,12 +14,14 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils } from "@/common/utils";
-import { NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createNumberTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import { PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { computed, ref, watch } from "vue";
 import { Dec, Int } from "@keplr-wallet/unit";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
+import { useEarnStore } from "@/common/stores/earn";
 
 type ChartData = { amount: number; date: number };
 
@@ -28,20 +30,21 @@ const data = ref<ChartData[]>([]);
 const period = 7;
 
 const chartHeight = 250;
-const marginLeft = 50;
-const chartWidth = 400;
+let marginLeft: number;
+let chartWidth: number;
 const marginRight = 30;
 const marginBottom = 65;
 const marginTop = 50;
 
 const i18n = useI18n();
 const wallet = useWalletStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
+const earnStore = useEarnStore();
 const chart = ref<typeof Chart>();
 const props = defineProps<{ amount: Dec; currencyKey: string }>();
 
 const currency = computed(() => {
-  return app.currenciesData![props.currencyKey];
+  return configStore.currenciesData![props.currencyKey];
 });
 
 watch(
@@ -58,9 +61,16 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+
+  const amounts = data.value.map((d) => d.amount);
+  const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
+  const tickFormat = createNumberTickFormat(yDomain);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
+
   const plotChart = plot({
-    color: { legend: true },
-    style: { width: "100%" },
+    style: { fontSize: CHART_AXIS.fontSize },
     marginTop,
     width: chartWidth,
     height: chartHeight,
@@ -71,15 +81,18 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "linear",
       grid: true,
       label: i18n.t("message.earn-chart-y"),
-      round: true
+      round: true,
+      tickFormat,
+      ticks: yTicks
     },
-    x: { ticks: 9, tickRotate: 15, type: "linear", tickFormat: (d) => `${d}y.` },
+    x: { tickRotate: 15, type: "linear", tickFormat: (d) => `${d}y.`, ticks: CHART_AXIS.xTicks },
     marks: [
       lineY(data.value, {
         x: "date",
         y: "amount",
         stroke: "#3470E2",
-        curve: "basis"
+        curve: "basis",
+        clip: "frame"
       })
     ]
   });
@@ -95,7 +108,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> ${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)} ${currency.value?.shortName}`
+          `<strong>${i18n.t("message.amount")}</strong> ${formatNumber(closestData.amount, 2)} ${currency.value?.shortName}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();
@@ -162,6 +175,6 @@ async function loadData() {
 
 function getApr(key: string) {
   let [_, protocol] = key.split("@");
-  return (app.apr?.[protocol] ?? 0) / PERCENT;
+  return earnStore.getProtocolApr(protocol) / PERCENT;
 }
 </script>

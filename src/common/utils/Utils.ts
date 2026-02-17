@@ -7,15 +7,9 @@ export class Utils {
 }
 
 export const isTablet = () => {
-  if (import.meta.env.SSR) {
-    return false;
-  }
   return screen?.width < 1024 || window?.innerWidth < 1024;
 };
 
 export const isMobile = () => {
-  if (import.meta.env.SSR) {
-    return false;
-  }
   return screen?.width < 768 || window?.innerWidth < 768;
 };

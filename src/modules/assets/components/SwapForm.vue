@@ -86,13 +86,13 @@
             label: $t('message.swap'),
             icon: NATIVE_NETWORK.icon,
             // token: {
-            //   balance: AssetUtils.formatNumber(amount, selectedAsset?.decimal_digits),
+            //   balance: formatNumber(amount, selectedAsset?.decimal_digits),
             //   symbol: selectedAsset?.label
             // },
             tokenComponent: () =>
               h(
                 'div',
-                `${AssetUtils.formatNumber(amount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedAsset?.label} > ${AssetUtils.formatNumber(swapToAmount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedSecondCurrencyOption?.label}`
+                `${formatNumber(amount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedAsset?.label} > ${formatNumber(swapToAmount, NATIVE_CURRENCY.maximumFractionDigits)} ${selectedSecondCurrencyOption?.label}`
               ),
             meta: () => h('div', `${NATIVE_NETWORK.label}`)
           }
@@ -123,26 +123,22 @@ import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOptio
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
-import {
-  AppUtils,
-  AssetUtils,
-  externalWallet,
-  Logger,
-  validateAmountV2,
-  walletOperation,
-  WalletUtils
-} from "@/common/utils";
+import { useBalancesStore } from "@/common/stores/balances";
+import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
+import { getSkipRouteConfig } from "@/common/utils/ConfigService";
+import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { useOracleStore } from "@/common/stores/oracle";
+import { usePricesStore } from "@/common/stores/prices";
 import { h } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { MultipleCurrencyEventType, type IObjectKeys, type SkipRouteConfigType } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { type BaseWallet } from "@/networks";
 import { SwapStatus } from "../enums";
-import { NETWORK_DATA, SUPPORTED_NETWORKS_DATA } from "@/networks/config";
+import { NETWORK_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
-import { useApplicationStore } from "@/common/stores/application";
+import { useConfigStore } from "@/common/stores/config";
+import { useHistoryStore } from "@/common/stores/history";
 import { StepperVariant, Stepper } from "web-components";
 import type { RouteResponse } from "@/common/types/skipRoute";
 import { WalletTypes } from "@/networks/types";
@@ -153,8 +149,10 @@ const timeOut = 600;
 const id = Date.now();
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
-const applicaiton = useApplicationStore();
+const balancesStore = useBalancesStore();
+const pricesStore = usePricesStore();
+const configStore = useConfigStore();
+const historyStore = useHistoryStore();
 const i18n = useI18n();
 
 const blacklist = ref<string[]>([]);
@@ -192,9 +190,9 @@ const assets = computed(() => {
 
   for (const asset of balances.value ?? []) {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = AssetUtils.formatNumber(value.toString(), asset.decimal_digits);
+    const balance = formatTokenBalance(value);
 
-    const price = new Dec(oracle.prices?.[asset.key]?.amount ?? 0);
+    const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
     const stable = price.mul(value);
 
     data.push({
@@ -206,7 +204,7 @@ const assets = computed(() => {
       decimal_digits: asset.decimal_digits,
       balance: { value: balance, ticker: asset.shortName },
       stable,
-      price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`
+      price: formatDecAsUsd(stable)
     });
   }
 
@@ -216,27 +214,31 @@ const assets = computed(() => {
 });
 
 const firstCalculatedBalance = computed(() => {
-  const price = new Dec(oracle.prices?.[selectedFirstCurrencyOption.value?.value!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[selectedFirstCurrencyOption.value?.value!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 
 const secondCalculatedBalance = computed(() => {
-  const price = new Dec(oracle.prices?.[selectedSecondCurrencyOption.value?.value!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[selectedSecondCurrencyOption.value?.value!]?.price ?? 0);
   const v = swapToAmount?.value?.length ? swapToAmount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 
 const selectedAsset = computed(() => {
-  const item = assets.value.find((item) => item.value == selectedFirstCurrencyOption.value?.value)!;
-  return item;
+  if (!selectedFirstCurrencyOption.value) return undefined;
+  return (
+    assets.value.find((item) => item.value == selectedFirstCurrencyOption.value?.value) ??
+    assets.value.find((item) => item.ibcData == selectedFirstCurrencyOption.value?.ibcData) ??
+    selectedFirstCurrencyOption.value
+  );
 });
 
 const balances = computed(() => {
-  return wallet.currencies.filter((item) => {
-    if (wallet.ignoreCurrencies.includes(item.ticker as string)) {
+  return balancesStore.filteredBalances.filter((item) => {
+    if (balancesStore.ignoredCurrencies.includes(item.ticker as string)) {
       return false;
     }
     return !blacklist.value.includes(item.ibcData);
@@ -244,9 +246,9 @@ const balances = computed(() => {
 });
 
 watch(
-  () => applicaiton.init,
+  () => configStore.initialized,
   () => {
-    if (applicaiton.init) {
+    if (configStore.initialized) {
       onInit();
     }
   },
@@ -257,8 +259,8 @@ watch(
 
 async function onInit() {
   try {
-    const config = await AppUtils.getSkipRouteConfig();
-    const protocol = applicaiton.protocolFilter.toLowerCase();
+    const config = await getSkipRouteConfig();
+    const protocol = configStore.protocolFilter.toLowerCase();
     blacklist.value = config.blacklist;
     selectedFirstCurrencyOption.value = assets.value.find(
       (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
@@ -318,7 +320,7 @@ async function setSwapFee() {
   const asset = selectedSecondCurrencyOption.value;
 
   if (asset) {
-    const config = await AppUtils.getSkipRouteConfig();
+    const config = await getSkipRouteConfig();
     const fee = new Dec(config.fee).quo(new Dec(10000)).mul(new Dec(amount, asset.decimal_digits));
     const coin = CurrencyUtils.convertDenomToMinimalDenom(fee.toString(), asset.ibcData, asset.decimal_digits);
     swapFee.value = CurrencyUtils.convertMinimalDenomToDenom(
@@ -369,12 +371,21 @@ async function setRoute(token: Coin, revert = false) {
     try {
       loading.value = true;
       error.value = "";
+
+      const config = await getSkipRouteConfig();
+      const network = configStore.protocolFilter.toLowerCase();
+      const venue = config.swap_venues.find((v) => v.chain_id.startsWith(network));
+      const options = venue ? { swap_venues: [venue] } : {};
+
       if (revert) {
         route = await SkipRouter.getRoute(
           selectedFirstCurrencyOption.value!.ibcData,
           selectedSecondCurrencyOption.value!.ibcData,
           token.amount.toString(),
-          revert
+          revert,
+          undefined,
+          undefined,
+          options
         );
         firstInputAmount.value = new Dec(route?.amount_in, selectedFirstCurrencyOption.value!.decimal_digits).toString(
           selectedFirstCurrencyOption.value!.decimal_digits
@@ -385,7 +396,10 @@ async function setRoute(token: Coin, revert = false) {
           selectedFirstCurrencyOption.value!.ibcData,
           selectedSecondCurrencyOption.value!.ibcData,
           token.amount.toString(),
-          revert
+          revert,
+          undefined,
+          undefined,
+          options
         );
         secondInputAmount.value = new Dec(
           route?.amount_out,
@@ -450,8 +464,8 @@ async function onSwap() {
       await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainid);
 
       element.status = SwapStatus.success;
-      await wallet.UPDATE_BALANCES();
-      wallet.loadActivities();
+      await balancesStore.fetchBalances();
+      historyStore.loadActivities();
       onClose();
     });
 
@@ -484,10 +498,12 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     return route!.chain_ids.includes(item.chain_id);
   });
 
+  const supportedNetworks = configStore.supportedNetworksData;
   for (const chain of chains) {
-    for (const key in SUPPORTED_NETWORKS_DATA) {
-      if (SUPPORTED_NETWORKS_DATA[key].value == chain.chain_name) {
-        chainToParse[key] = SUPPORTED_NETWORKS_DATA[key];
+    for (const key in supportedNetworks) {
+      const networkData = supportedNetworks[key];
+      if (networkData?.value == chain.chain_name) {
+        chainToParse[key] = networkData;
       }
     }
   }

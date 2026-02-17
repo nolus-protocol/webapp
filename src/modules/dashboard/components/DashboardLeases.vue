@@ -1,11 +1,11 @@
 <template>
   <Widget class="overflow-auto">
     <WidgetHeader
-      :label="isVisible && !emptyState ? $t('message.dashboard-lease-title') : ''"
-      :icon="isVisible && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
-      :badge="isVisible && !emptyState ? { content: leases.length.toString() } : undefined"
+      :label="walletConnected && !emptyState ? $t('message.dashboard-lease-title') : ''"
+      :icon="walletConnected && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
+      :badge="walletConnected && !emptyState ? { content: networkFilteredLeases.length.toString() } : undefined"
     >
-      <template v-if="isVisible && !emptyState">
+      <template v-if="walletConnected && !emptyState">
         <Button
           v-if="wallet.wallet"
           :label="$t('message.view-details')"
@@ -16,27 +16,20 @@
       </template>
     </WidgetHeader>
     <div>
-      <template v-if="isVisible && !emptyState">
+      <template v-if="walletConnected && !emptyState">
         <div class="mb-6 flex gap-8">
           <BigNumber
             :label="$t('message.unrealized-pnl')"
             :amount="{
               hide: hide,
-              amount: pnl.toString(),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              value: pnl.toString(2),
               denom: NATIVE_CURRENCY.symbol,
               animatedReveal: true,
-              fontSize: isMobile() ? 20 : 32
+              fontSize: 24,
+              compact: mobile,
+              class: pnlPercent.isPositive() || pnlPercent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
-            :pnl-status="{
-              positive: pnl_percent.isPositive() || pnl_percent.isZero(),
-              value: `${pnl_percent.isPositive() || pnl_percent.isZero() ? '+' : '-'}${pnl_percent.abs().toString(2)}%`,
-              badge: {
-                content: pnl_percent.toString(),
-                base: false
-              }
-            }"
-            :loading="loaded"
+            :loading="leasesStore.loading"
             :loadingWidth="'80px'"
           />
         </div>
@@ -51,7 +44,7 @@
               description: $t('message.start-lease-description'),
               button:
                 wallet.wallet && !isProtocolDisabled
-                  ? { name: $t('message.open-position'), icon: 'plus', url: '/leases/open/long' }
+                  ? { name: $t('message.open-position'), icon: 'plus', url: `/${RouteNames.LEASES}/open/long` }
                   : undefined,
               link: { label: $t('message.learn-new-leases'), url: `/learn-leases` }
             }
@@ -70,112 +63,105 @@ import EmptyState from "@/common/components/EmptyState.vue";
 
 import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
-import { useLeases } from "@/common/composables";
 import { computed, ref, watch } from "vue";
-import { Coin, Dec } from "@keplr-wallet/unit";
-import { Intercom } from "@/common/utils/Intercom";
+import { Dec } from "@keplr-wallet/unit";
+import { IntercomService } from "@/common/utils/IntercomService";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, isMobile, Logger, WalletManager } from "@/common/utils";
-import { useApplicationStore } from "@/common/stores/application";
-import { Contracts, NATIVE_CURRENCY } from "@/config/global";
+import { useLeasesStore } from "@/common/stores/leases";
+import { usePricesStore } from "@/common/stores/prices";
+import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { useWalletConnected } from "@/common/composables";
+import { useConfigStore } from "@/common/stores/config";
+import { NATIVE_CURRENCY } from "@/config/global";
 import { useRouter } from "vue-router";
 
-const { leases, getLeases } = useLeases((error: Error | any) => {});
-const pnl = ref(new Dec(0));
-const pnl_percent = ref(new Dec(0));
-const count = ref(0);
-
+const mobile = isMobile();
 const router = useRouter();
 const wallet = useWalletStore();
-const oracle = useOracleStore();
-const app = useApplicationStore();
-const loaded = ref(true);
+const leasesStore = useLeasesStore();
+const pricesStore = usePricesStore();
+const configStore = useConfigStore();
+const walletConnected = useWalletConnected();
+
 const hide = ref(WalletManager.getHideBalances());
 
-defineProps<{ isVisible: boolean }>();
+// Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
+
+const networkFilteredLeases = computed(() => {
+  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+  return leasesStore.openLeases.filter((lease) => {
+    if (activeProtocols.includes(lease.protocol)) return true;
+    const protocol = configStore.protocols[lease.protocol];
+    return protocol?.network?.toUpperCase() === configStore.protocolFilter;
+  });
+});
 
 const isProtocolDisabled = computed(() => {
-  const protocols = Contracts.protocolsFilter[app.protocolFilter];
-  return protocols.disabled;
+  return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
 });
-
-watch(
-  () => leases.value,
-  () => {
-    setLeases();
-  }
-);
-
-watch(
-  () => wallet.wallet,
-  () => {
-    getLeases();
-  }
-);
 
 const emptyState = computed(() => {
-  return !loaded.value && count.value == 0;
+  return !leasesStore.loading && networkFilteredLeases.value.length === 0;
 });
 
-function setLeases() {
-  try {
-    let db = new Dec(0);
-    let ls = new Dec(0);
-    let pl = new Dec(0);
-    let c = 0;
-
-    let am = new Dec(0);
-    let dp = new Dec(0);
-    let rp = new Dec(0);
-
-    for (const lease of leases.value) {
-      if (lease.leaseStatus?.opened) {
-        const ticker = lease.leaseStatus.opened.amount.ticker;
-        const dasset = app.currenciesData![`${ticker}@${lease.protocol}`];
-        const lpn = AssetUtils.getLpnByProtocol(lease.protocol);
-
-        const price = oracle.prices[lpn.key];
-        const downpayment = lease.leaseData?.downPayment ? lease.leaseData?.downPayment : new Dec(0);
-        const dDecimal = Number(dasset!.decimal_digits);
-        const l = CurrencyUtils.calculateBalance(
-          oracle.prices[dasset.key]?.amount,
-          new Coin(dasset.ibcData, lease.leaseStatus.opened.amount.amount),
-          dDecimal
-        ).toDec();
-
-        ls = ls.add(l);
-        lease.debt = lease.debt.mul(new Dec(price?.amount));
-
-        am = am.add(lease.pnlAmount as Dec);
-        dp = dp.add(downpayment as Dec);
-        rp = rp.add((lease.leaseData?.repayment_value ?? new Dec(0)) as Dec);
-
-        c++;
-      }
-      db = db.add(lease.debt as Dec);
-      pl = pl.add(lease.pnlAmount as Dec);
+// Calculate PnL from network-filtered open leases using LeaseCalculator
+const pnl = computed(() => {
+  let total = new Dec(0);
+  for (const lease of networkFilteredLeases.value) {
+    if (lease.status === "opened") {
+      const displayData = leasesStore.getLeaseDisplayData(lease);
+      total = total.add(displayData.pnlAmount);
     }
-    pnl.value = pl;
-    count.value = c;
-
-    const amount = dp.add(rp);
-
-    if (!(amount.isZero() || am.isZero())) {
-      pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
-    }
-
-    Intercom.update({
-      PositionsUnrealizedPnlUSD: pl.toString(),
-      PositionsDebtUSD: db.toString(),
-      Positionsvalueusd: ls.toString()
-    });
-  } catch (e) {
-    Logger.error(e);
-  } finally {
-    loaded.value = false;
   }
-}
+  return total;
+});
+
+// Calculate PnL percentage
+const pnlPercent = computed(() => {
+  let totalPnl = new Dec(0);
+  let totalDownpayment = new Dec(0);
+
+  for (const lease of networkFilteredLeases.value) {
+    if (lease.status === "opened") {
+      const displayData = leasesStore.getLeaseDisplayData(lease);
+      totalPnl = totalPnl.add(displayData.pnlAmount);
+      totalDownpayment = totalDownpayment.add(displayData.downPayment).add(displayData.repaymentValue);
+    }
+  }
+
+  if (totalDownpayment.isZero()) {
+    return new Dec(0);
+  }
+
+  return totalPnl.quo(totalDownpayment).mul(new Dec(100));
+});
+
+// Update Intercom with network-filtered lease stats
+watch(
+  [networkFilteredLeases, () => pricesStore.prices],
+  () => {
+    try {
+      let totalDebtUsd = new Dec(0);
+      let totalValueUsd = new Dec(0);
+      let totalPnl = new Dec(0);
+
+      for (const lease of networkFilteredLeases.value) {
+        const displayData = leasesStore.getLeaseDisplayData(lease);
+        totalDebtUsd = totalDebtUsd.add(displayData.totalDebtUsd);
+        totalValueUsd = totalValueUsd.add(displayData.assetValueUsd);
+        totalPnl = totalPnl.add(displayData.pnlAmount);
+      }
+
+      IntercomService.updatePositions({
+        count: networkFilteredLeases.value.length,
+        valueUsd: totalValueUsd.toString(),
+        debtUsd: totalDebtUsd.toString(),
+        unrealizedPnlUsd: totalPnl.toString()
+      });
+    } catch (e) {
+      Logger.error(e);
+    }
+  },
+  { deep: true }
+);
 </script>

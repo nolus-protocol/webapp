@@ -10,15 +10,6 @@ export class EnvNetworkUtils {
     localStorage.removeItem(CURRENT_NETWORK_KEY);
   }
 
-  public static getEnvNetworks(): string[] {
-    const envNetworks = import.meta.env.VITE_APP_NETWORKS;
-    if (envNetworks) {
-      return envNetworks.split(" ");
-    }
-
-    return [];
-  }
-
   public static getStoredNetworkName(): Networks {
     return (localStorage.getItem(CURRENT_NETWORK_KEY) || DEFAULT_PRIMARY_NETWORK) as Networks;
   }

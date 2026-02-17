@@ -13,7 +13,7 @@
           description: $t('message.position-strategy-empty-description'),
           link: {
             label: $t('message.position-strategy-empty-link'),
-            url: `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}/learn-summary`,
+            url: `/${RouteNames.LEASES}/${route.params.id}/learn-summary`,
             tooltip: { content: $t('message.position-strategy-empty-tooltip') }
           }
         }
@@ -50,8 +50,8 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
 import { Toggle, Widget } from "web-components";
-import { getStatus, TEMPLATES } from "../common";
-import type { LeaseData } from "@/common/types";
+import { getLeaseStatus, TEMPLATES } from "../common";
+import type { LeaseInfo } from "@/common/api";
 import { RouteNames } from "@/router";
 import { useRoute } from "vue-router";
 
@@ -63,7 +63,7 @@ import EmptyState from "@/common/components/EmptyState.vue";
 const route = useRoute();
 const strategyDialogRef = ref<typeof ActivateStrategyDialog | null>(null);
 const props = defineProps<{
-  lease?: LeaseData;
+  lease?: LeaseInfo | null;
 }>();
 
 const strategies = [
@@ -85,6 +85,6 @@ function show(index: number) {
 }
 
 const leaseStatus = computed(() => {
-  return getStatus(props.lease as LeaseData);
+  return getLeaseStatus(props.lease);
 });
 </script>

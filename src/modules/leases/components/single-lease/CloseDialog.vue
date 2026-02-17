@@ -9,7 +9,7 @@
         const path =
           route.matched[2].path == `/${RouteNames.LEASES}`
             ? `/${RouteNames.LEASES}`
-            : `/${RouteNames.LEASES}/${route.params.protocol}/${route.params.id}`;
+            : `/${RouteNames.LEASES}/${route.params.id}`;
         router.push(path);
       }
     "
@@ -72,27 +72,27 @@
           <span class="text-16 font-semibold">{{ $t("message.preview") }}</span>
           <template v-if="lease">
             <template v-if="sliderValue == 0">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="list-sparkle"
-                  class="fill-icon-secondary"
+                  class="mt-0.5 shrink-0 fill-icon-secondary"
                 />
                 {{ $t("message.preview-input") }}
               </div>
             </template>
 
             <template v-if="sliderValue > 0 && sliderValue < midPosition">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
                   :innerHTML="
                     $t('message.preview-closed-paid-partuial-debt', {
                       amount: paidDebt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -100,27 +100,27 @@
                 ></p>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="info"
-                  class="fill-icon-secondary"
+                  class="mt-0.5 shrink-0 fill-icon-secondary"
                 />
                 {{ $t("message.preview-closed-debt") }} {{ remaining }}
               </div>
             </template>
 
             <template v-if="sliderValue == midPosition">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -128,35 +128,35 @@
                 ></p>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed") }}
               </div>
             </template>
 
             <template v-if="sliderValue > midPosition && sliderValue < 100">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -164,19 +164,19 @@
                 ></p>
               </div>
 
-              <!-- <div class="flex items-center gap-2 text-14">
+              <!-- <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed-paid") }}
                 <strong>{{ payout }} {{ lpn }}</strong>
               </div> -->
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <div>
                   <strong>{{ payout }} {{ lpn }}</strong> {{ $t("message.and") }} <strong>{{ positionLeft }}</strong>
@@ -184,27 +184,27 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed") }}
               </div>
             </template>
 
             <template v-if="sliderValue >= 100">
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <p
                   class="flex-1"
                   :innerHTML="
                     $t('message.preview-closed-paid-debt', {
                       amount: debtData.debt,
-                      price: `${NATIVE_CURRENCY.symbol}${price}`,
+                      price: priceUsd,
                       asset: debtData.asset,
                       fee: debtData.fee
                     })
@@ -212,10 +212,10 @@
                 ></p>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <div>
                   <strong>{{ payout }} {{ lpn }}</strong>
@@ -223,10 +223,10 @@
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 text-14">
+              <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
-                  class="fill-icon-success"
+                  class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 {{ $t("message.preview-closed") }}
               </div>
@@ -260,29 +260,39 @@ import { AdvancedFormControl, Button, Dialog, Tooltip, Slider, SvgIcon, ToastTyp
 import { RouteNames } from "@/router";
 
 import { useWalletStore } from "@/common/stores/wallet";
-import { useApplicationStore } from "@/common/stores/application";
-import { useOracleStore } from "@/common/stores/oracle";
-import { AssetUtils, getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useConfigStore } from "@/common/stores/config";
+import { usePricesStore } from "@/common/stores/prices";
+import { useHistoryStore } from "@/common/stores/history";
+import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
+import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
+import { formatNumber, formatDecAsUsd, formatUsd, formatPriceUsd, formatTokenBalance, formatPercent } from "@/common/utils/NumberFormatUtils";
+import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE, PositionTypes, ProtocolsConfig } from "@/config/global";
+import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
-import { useLease, useLeaseConfig } from "@/common/composables";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useI18n } from "vue-i18n";
 import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
+import { getLeasePositionSpec } from "@/common/utils/LeaseConfigService";
+import type { AmountSpec } from "@/common/api/types/webapp";
+import type { LeaseInfo } from "@/common/api";
 
 const timeOut = 250;
 let time: NodeJS.Timeout;
 
 const route = useRoute();
 const router = useRouter();
-const oracle = useOracleStore();
+const pricesStore = usePricesStore();
 const walletStore = useWalletStore();
-const app = useApplicationStore();
+const configStore = useConfigStore();
+const balancesStore = useBalancesStore();
+const historyStore = useHistoryStore();
+const leasesStore = useLeasesStore();
 const i18n = useI18n();
 
 const amount = ref("");
@@ -297,21 +307,30 @@ const reload = inject("reload", () => {});
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
-const { lease } = useLease(
-  route.params.id as string,
-  route.params.protocol as string,
-  (error) => {
+const lease = ref<LeaseInfo | null>(null);
+const displayData = ref<LeaseDisplayData | null>(null);
+const minAsset = ref<AmountSpec | null>(null);
+
+async function fetchLease() {
+  try {
+    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
+    if (result) {
+      lease.value = result;
+      displayData.value = leasesStore.getLeaseDisplayData(result);
+      if (result.status === "closed") {
+        router.push(`/${RouteNames.LEASES}`);
+      }
+      const positionSpec = await getLeasePositionSpec(result.protocol);
+      minAsset.value = positionSpec.min_asset;
+    }
+  } catch (error) {
     Logger.error(error);
-  },
-  true
-);
-const { config } = useLeaseConfig(
-  (route.params.protocol as string).toUpperCase() as string,
-  (error: Error | any) => {}
-);
+  }
+}
 
 onMounted(() => {
   dialog?.value?.show();
+  fetchLease();
 });
 
 onBeforeUnmount(() => {
@@ -321,9 +340,9 @@ onBeforeUnmount(() => {
 const assets = computed(() => {
   const data = [];
 
-  if (lease.value) {
-    const ticker = lease.value?.leaseStatus?.opened?.amount?.ticker;
-    const asset = app.currenciesData![`${ticker}@${lease.value!.protocol}`];
+  if (lease.value && lease.value.status === "opened") {
+    const ticker = lease.value.amount.ticker;
+    const asset = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
 
     data.push({
@@ -347,59 +366,51 @@ const currency = computed(() => {
 });
 
 const price = computed(() => {
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-
-      return new Dec(oracle.prices[lpn?.key]?.amount, lpn?.decimal_digits).toString(lpn?.decimal_digits);
-    }
-    case PositionTypes.long: {
-      return new Dec(oracle.prices[currency.value?.key]?.amount, currency.value?.decimal_digits).toString(
-        currency.value?.decimal_digits
-      );
-    }
+  const positionType = configStore.getPositionType(lease.value!.protocol);
+  if (positionType === "Short") {
+    let lpn = getLpnByProtocol(lease.value!.protocol);
+    return new Dec(pricesStore.prices[lpn?.key]?.price, lpn?.decimal_digits).toString(lpn?.decimal_digits);
+  } else {
+    return new Dec(pricesStore.prices[currency.value?.key]?.price, currency.value?.decimal_digits).toString(
+      currency.value?.decimal_digits
+    );
   }
 });
 
+const priceUsd = computed(() => formatPriceUsd(price.value));
+
 const remaining = computed(() => {
   const data = getAmountValue(amount.value == "" ? "0" : amount.value);
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-      const price = new Dec(oracle.prices?.[lpn.key!]?.amount ?? 0);
-      const stable = data.amount.toDec().quo(price);
+  const positionType = configStore.getPositionType(lease.value!.protocol);
+  let lpn = getLpnByProtocol(lease.value!.protocol);
 
-      return `${AssetUtils.formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
-    }
-    case PositionTypes.long: {
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-      return `${AssetUtils.formatNumber(data.amountInStable.toDec().toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
-    }
+  if (positionType === "Short") {
+    const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
+    const stable = data.amount.toDec().quo(price);
+    return `${formatTokenBalance(stable)} ${lpn.shortName}`;
+  } else {
+    return `${formatTokenBalance(data.amountInStable.toDec())} ${lpn.shortName}`;
   }
 });
 
 const paidDebt = computed(() => {
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-      const price = new Dec(oracle.prices?.[lpn.key!]?.amount ?? 0);
-      const v = amount?.value?.length ? amount?.value : "0";
-      const stable = new Dec(v).quo(price);
+  const positionType = configStore.getPositionType(lease.value!.protocol);
+  let lpn = getLpnByProtocol(lease.value!.protocol);
 
-      return `${AssetUtils.formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
+  if (positionType === "Short") {
+    const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
+    const v = amount?.value?.length ? amount?.value : "0";
+    const stable = new Dec(v).quo(price);
+    return `${formatTokenBalance(stable)} ${lpn.shortName}`;
+  } else {
+    const asset = assets.value[selectedCurrency.value];
+    if (!asset) {
+      return formatUsd(0);
     }
-    case PositionTypes.long: {
-      const asset = assets.value[selectedCurrency.value];
-      if (!asset) {
-        return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
-      }
-      const price = new Dec(oracle.prices?.[asset.key!]?.amount ?? 0);
-      const v = amount?.value?.length ? amount?.value : "0";
-      const stable = price.mul(new Dec(v));
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-
-      return `${AssetUtils.formatNumber(stable.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`;
-    }
+    const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
+    const v = amount?.value?.length ? amount?.value : "0";
+    const stable = price.mul(new Dec(v));
+    return `${formatTokenBalance(stable)} ${lpn.shortName}`;
   }
 });
 
@@ -407,31 +418,30 @@ const debtData = computed(() => {
   const price = getPrice();
   const debt = getRepayment(100);
   const d = debt?.repayment;
-  if (price && d) {
-    const currecy = app.currenciesData![`${lease.value?.leaseData!.leasePositionTicker}@${lease.value!.protocol}`];
-    switch (ProtocolsConfig[lease.value!.protocol].type) {
-      case PositionTypes.short: {
-        const asset = d.quo(price);
-        const value = new Dec(amount.value).mul(new Dec(swapFee.value));
-        return {
-          fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
-          asset: currecy.shortName,
-          price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
-          debt: `${AssetUtils.formatNumber(asset.toString(), currecy.decimal_digits)} ${currecy.shortName}`
-        };
-      }
-      case PositionTypes.long: {
-        const asset = d.mul(price);
-        const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
-        let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
+  if (price && d && lease.value) {
+    const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
+    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const positionType = configStore.getPositionType(lease.value.protocol);
 
-        return {
-          fee: `${(swapFee.value * PERCENT).toFixed(NATIVE_CURRENCY.maximumFractionDigits)}% (${NATIVE_CURRENCY.symbol}${value.toString(NATIVE_CURRENCY.maximumFractionDigits)})`,
-          asset: currecy.shortName,
-          price: `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price.toString(MAX_DECIMALS), MAX_DECIMALS)}`,
-          debt: ` ${AssetUtils.formatNumber(asset.toString(lpn.decimal_digits), lpn.decimal_digits)} ${lpn.shortName}`
-        };
-      }
+    if (positionType === "Short") {
+      const asset = d.quo(price);
+      const value = new Dec(amount.value).mul(new Dec(swapFee.value));
+      return {
+        fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
+        asset: currecy.shortName,
+        price: formatPriceUsd(price.toString(MAX_DECIMALS)),
+        debt: `${formatTokenBalance(asset)} ${currecy.shortName}`
+      };
+    } else {
+      const asset = d.mul(price);
+      const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
+      let lpn = getLpnByProtocol(lease.value.protocol);
+      return {
+        fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
+        asset: currecy.shortName,
+        price: formatPriceUsd(price.toString(MAX_DECIMALS)),
+        debt: ` ${formatTokenBalance(asset)} ${lpn.shortName}`
+      };
     }
   }
 
@@ -439,7 +449,8 @@ const debtData = computed(() => {
 });
 
 const total = computed(() => {
-  return new Dec(lease.value?.leaseStatus.opened?.amount.amount ?? 0, currency.value?.decimal_digits);
+  if (!lease.value || lease.value.status !== "opened") return new Dec(0);
+  return new Dec(lease.value.amount.amount ?? 0, currency.value?.decimal_digits);
 });
 
 const debt = computed(() => {
@@ -474,22 +485,22 @@ const debt = computed(() => {
 
 const lpn = computed(() => {
   const [_key, protocol] = currency.value.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(protocol);
+  const lpnData = getLpnByProtocol(protocol);
 
-  for (const lpn of app.lpn ?? []) {
+  for (const lpn of configStore.lpn ?? []) {
     const [_, p] = lpn.key.split("@");
     if (p == protocol) {
       return lpn.shortName;
     }
   }
-  return lpn.shortName;
+  return lpnData.shortName;
 });
 
 const payout = computed(() => {
-  const leaseInfo = lease.value?.leaseStatus.opened!;
-  const ticker = leaseInfo.amount.ticker;
-  const currency = app.currenciesData![`${ticker!}@${lease.value?.protocol}`];
-  const price = new Dec(oracle.prices[currency!.key as string]?.amount ?? 0);
+  if (!lease.value || lease.value.status !== "opened") return "0.00";
+  const ticker = lease.value.amount.ticker;
+  const currencyData = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+  const price = new Dec(pricesStore.prices[currencyData!.key as string]?.price ?? 0);
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value).mul(price);
 
   const outStanding = getAmountValue("0").amountInStable.toDec();
@@ -499,26 +510,23 @@ const payout = computed(() => {
     return "0.00";
   }
 
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-      const price = new Dec(oracle.prices[lpn!.key as string].amount);
-      payOutValue = payOutValue.quo(price);
+  const positionType = configStore.getPositionType(lease.value.protocol);
+  let lpnData = getLpnByProtocol(lease.value.protocol);
 
-      break;
-    }
+  if (positionType === "Short") {
+    const lpnPrice = new Dec(pricesStore.prices[lpnData!.key as string].price);
+    payOutValue = payOutValue.quo(lpnPrice);
   }
-  let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
 
-  return payOutValue.toString(Number(lpn.decimal_digits));
+  return payOutValue.toString(Number(lpnData.decimal_digits));
 });
 
 const positionLeft = computed(() => {
-  const leaseInfo = lease.value?.leaseStatus.opened!;
+  if (!lease.value || lease.value.status !== "opened") return "0.00";
 
-  const ticker = leaseInfo.amount.ticker;
-  const currency = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
-  const a = new Dec(leaseInfo.amount.amount, Number(currency!.decimal_digits));
+  const ticker = lease.value.amount.ticker;
+  const currencyData = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+  const a = new Dec(lease.value.amount.amount, Number(currencyData!.decimal_digits));
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value);
   const left = a.sub(value);
 
@@ -526,7 +534,7 @@ const positionLeft = computed(() => {
     return "0.00";
   }
 
-  return `${left.toString(Number(currency!.decimal_digits))} ${currency!.shortName}`;
+  return `${left.toString(Number(currencyData!.decimal_digits))} ${currencyData!.shortName}`;
 });
 
 function onSetAmount(percent: number) {
@@ -537,12 +545,12 @@ function onSetAmount(percent: number) {
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
   if (!asset) {
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber("0.00", NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return formatUsd(0);
   }
-  const price = new Dec(oracle.prices?.[asset.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
-  return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+  return formatDecAsUsd(stable);
 });
 const midPosition = computed(() => {
   const d = debt.value?.amount.toDec() ?? new Dec(0);
@@ -569,39 +577,35 @@ function handleAmountChange(event: string) {
 }
 
 function outStandingDebt() {
-  const data = lease.value?.leaseStatus.opened;
+  if (!lease.value || lease.value.status !== "opened") return new Dec(0);
 
-  if (data) {
-    const debt = new Dec(data.principal_due.amount)
-      .add(new Dec(data.overdue_margin.amount))
-      .add(new Dec(data.overdue_interest.amount))
-      .add(new Dec(data.due_margin.amount))
-      .add(new Dec(data.due_interest.amount))
-      .add(additionalInterest().roundUpDec());
+  const debt = new Dec(lease.value.debt.principal)
+    .add(new Dec(lease.value.debt.overdue_margin))
+    .add(new Dec(lease.value.debt.overdue_interest))
+    .add(new Dec(lease.value.debt.due_margin))
+    .add(new Dec(lease.value.debt.due_interest))
+    .add(additionalInterest().roundUpDec());
 
-    return debt;
-  }
-  return new Dec(0);
+  return debt;
 }
 
 function additionalInterest() {
-  const data = lease.value?.leaseStatus.opened;
-  if (data) {
-    const principal_due = new Dec(data.principal_due.amount);
-    const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(new Dec(data.margin_interest_rate / PERCENT));
-    const debt = LeaseUtils.calculateAditionalDebt(principal_due, loanInterest);
+  if (!lease.value || lease.value.status !== "opened") return new Dec(0);
 
-    return debt;
-  }
+  const principal_due = new Dec(lease.value.debt.principal);
+  const loanInterest = new Dec(lease.value.interest.loan_rate / PERMILLE).add(
+    new Dec(lease.value.interest.margin_rate / PERCENT)
+  );
+  const debt = LeaseUtils.calculateAditionalDebt(principal_due, loanInterest);
 
-  return new Dec(0);
+  return debt;
 }
 
 async function setSwapFee() {
   clearTimeout(time);
   time = setTimeout(async () => {
     const lease_currency = currency.value;
-    let currecy = AssetUtils.getLpnByProtocol(lease.value?.protocol as string);
+    let lpnCurrency = getLpnByProtocol(lease.value?.protocol as string);
     let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
       debt.value!.amount.toDec().toString(),
       lease_currency.ibcData,
@@ -611,20 +615,17 @@ async function setSwapFee() {
     let amountIn = 0;
     let amountOut = 0;
 
-    switch (ProtocolsConfig[lease.value?.protocol!].type) {
-      case PositionTypes.short: {
-        const stable = ProtocolsConfig[lease.value!.protocol].stable;
-        const currecy = app.currenciesData![`${stable}@${lease.value!.protocol}`];
-        microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-          debt.value!.amount.toDec().toString(),
-          currecy.ibcData,
-          currecy.decimal_digits
-        ).amount.toString();
-        break;
-      }
+    const positionType = configStore.getPositionType(lease.value?.protocol!);
+    if (positionType === "Short" && lpnCurrency) {
+      microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+        debt.value!.amount.toDec().toString(),
+        lpnCurrency.ibcData,
+        lpnCurrency.decimal_digits
+      ).amount.toString();
     }
+
     const [r] = await Promise.all([
-      SkipRouter.getRoute(lease_currency.ibcData, currecy.ibcData, microAmount).then((data) => {
+      SkipRouter.getRoute(lease_currency.ibcData, lpnCurrency!.ibcData, microAmount).then((data) => {
         amountIn += Number(data.usd_amount_in ?? 0);
         amountOut += Number(data.usd_amount_out ?? 0);
 
@@ -648,37 +649,26 @@ async function setSwapFee() {
 function isAmountValid() {
   let isValid = true;
   amountErrorMsg.value = "";
-  if (lease.value) {
+  if (lease.value && lease.value.status === "opened") {
     const a = amount.value;
-    const currency = app.currenciesData![`${lease.value.leaseStatus.opened!.amount.ticker}@${lease.value!.protocol}`];
-    const debt = new Dec(lease.value.leaseStatus.opened!.amount.amount, Number(currency.decimal_digits));
-    const minAmountCurrency = AssetUtils.getCurrencyByTicker(
-      config.value?.config.lease_position_spec.min_asset.ticker as string
-    )!;
-    let minAmont = new Dec(
-      config.value?.config.lease_position_spec.min_asset.amount ?? 0,
-      Number(minAmountCurrency.decimal_digits)
-    );
+    const currencyData = configStore.currenciesData![`${lease.value.amount.ticker}@${lease.value.protocol}`];
+    const debtAmount = new Dec(lease.value.amount.amount, Number(currencyData.decimal_digits));
+    const minAssetTicker = minAsset.value!.ticker;
+    const minAmountCurrency = getCurrencyByTicker(minAssetTicker)!;
+    let minAmont = new Dec(minAsset.value!.amount, Number(minAmountCurrency.decimal_digits));
 
-    switch (ProtocolsConfig[lease.value!.protocol].type) {
-      case PositionTypes.short: {
-        const p = new Dec(
-          oracle.prices[
-            `${config.value?.config.lease_position_spec.min_asset.ticker as string}@${lease.value!.protocol}`
-          ].amount
-        );
-
-        minAmont = minAmont.mul(p);
-        break;
-      }
+    const positionType = configStore.getPositionType(lease.value.protocol);
+    if (positionType === "Short") {
+      const p = new Dec(pricesStore.prices[`${minAssetTicker}@${lease.value.protocol}`].price);
+      minAmont = minAmont.mul(p);
     }
-    const price = new Dec(oracle.prices[currency.key as string].amount);
+    const price = new Dec(pricesStore.prices[currencyData.key as string].price);
 
     const minAmountTemp = new Dec(minimumLeaseAmount);
     const amountInStable = new Dec(a.length == 0 ? "0" : a).mul(price);
     if (amount || amount !== "") {
-      const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(a, "", Number(currency.decimal_digits));
-      const value = new Dec(amountInMinimalDenom.amount, Number(currency.decimal_digits));
+      const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(a, "", Number(currencyData.decimal_digits));
+      const value = new Dec(amountInMinimalDenom.amount, Number(currencyData.decimal_digits));
 
       const isLowerThanOrEqualsToZero = new Dec(amountInMinimalDenom.amount || "0").lte(new Dec(0));
 
@@ -689,20 +679,20 @@ function isAmountValid() {
 
       if (amountInStable.lt(minAmountTemp)) {
         amountErrorMsg.value = i18n.t("message.min-amount-allowed", {
-          amount: minAmountTemp.quo(price).toString(Number(currency.decimal_digits)),
-          currency: currency.shortName
+          amount: formatTokenBalance(minAmountTemp.quo(price)),
+          currency: currencyData.shortName
         });
         isValid = false;
-      } else if (value.gt(debt)) {
+      } else if (value.gt(debtAmount)) {
         amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-          maxAmount: Number(debt.toString(Number(currency.decimal_digits))),
-          symbol: currency.shortName
+          maxAmount: formatTokenBalance(debtAmount),
+          symbol: currencyData.shortName
         });
         isValid = false;
-      } else if (!value.equals(debt) && debt.sub(value).mul(price).lte(minAmont)) {
+      } else if (!value.equals(debtAmount) && debtAmount.sub(value).mul(price).lte(minAmont)) {
         amountErrorMsg.value = i18n.t("message.lease-min-amount", {
-          amount: Number(minAmont.quo(price).toString(Number(currency.decimal_digits))),
-          symbol: currency.shortName
+          amount: formatTokenBalance(minAmont.quo(price)),
+          symbol: currencyData.shortName
         });
         isValid = false;
       }
@@ -716,22 +706,16 @@ function isAmountValid() {
 }
 
 function getPrice() {
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      return lease.value?.leaseData?.lpnPrice;
-    }
-    case PositionTypes.long: {
-      return lease.value?.leaseData?.price;
-    }
-  }
+  if (!lease.value || !displayData.value) return undefined;
+  return displayData.value.openingPrice;
 }
 
 function getRepayment(p: number) {
-  const data = lease.value?.leaseStatus.opened!;
+  if (!lease.value || lease.value.status !== "opened") return undefined;
 
   const amount = outStandingDebt();
-  const ticker = data.principal_due.ticker;
-  const c = app.currenciesData![`${ticker!}@${lease.value!.protocol}`];
+  const ticker = lease.value.debt.ticker;
+  const c = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
 
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
     amount.toString(),
@@ -748,29 +732,24 @@ function getRepayment(p: number) {
     repaymentInStable = repaymentInStable.add(repaymentInStable.mul(new Dec(swapFee.value)));
   }
 
-  switch (ProtocolsConfig[lease.value!.protocol].type) {
-    case PositionTypes.short: {
-      let lpn = AssetUtils.getLpnByProtocol(lease.value!.protocol);
-      const price = getPrice()!;
-      const selected_asset_price = new Dec(oracle.prices[selectedCurrency!.key as string].amount);
+  const positionType = configStore.getPositionType(lease.value.protocol);
+  const price = getPrice()!;
 
-      const repayment = repaymentInStable.mul(price);
-
-      return {
-        repayment: repayment.quo(selected_asset_price),
-        repaymentInStable: repayment,
-        selectedCurrencyInfo: selectedCurrency
-      };
-    }
-    case PositionTypes.long: {
-      const price = getPrice()!;
-      const repayment = repaymentInStable.quo(price);
-      return {
-        repayment,
-        repaymentInStable,
-        selectedCurrencyInfo: selectedCurrency
-      };
-    }
+  if (positionType === "Short") {
+    const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency!.key as string].price);
+    const repayment = repaymentInStable.mul(price);
+    return {
+      repayment: repayment.quo(selected_asset_price),
+      repaymentInStable: repayment,
+      selectedCurrencyInfo: selectedCurrency
+    };
+  } else {
+    const repayment = repaymentInStable.quo(price);
+    return {
+      repayment,
+      repaymentInStable,
+      selectedCurrencyInfo: selectedCurrency
+    };
   }
 }
 async function onSendClick() {
@@ -778,6 +757,8 @@ async function onSendClick() {
     disabled.value = true;
     await walletOperation(marketCloseLease);
   } catch (e: Error | any) {
+    Logger.error(e);
+    amountErrorMsg.value = (e as Error).message;
   } finally {
     disabled.value = false;
   }
@@ -785,19 +766,20 @@ async function onSendClick() {
 
 async function marketCloseLease() {
   const wallet = walletStore.wallet as NolusWallet;
-  if (wallet && isAmountValid()) {
+  if (wallet && isAmountValid() && lease.value) {
     try {
       loading.value = true;
       const funds: Coin[] = [];
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaseClient = new Lease(cosmWasmClient, lease?.value!.leaseAddress);
+      const leaseClient = new Lease(cosmWasmClient, lease.value.address);
 
       const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      balancesStore.fetchBalances();
       reload();
       dialog?.value?.close();
-      walletStore.loadActivities();
+      historyStore.loadActivities();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.toast-closed")
@@ -812,8 +794,10 @@ async function marketCloseLease() {
 }
 
 function getCurrency() {
+  if (!lease.value || lease.value.status !== "opened") return undefined;
+
   const microAmount = getMicroAmount(currency.value.ibcData, amount.value);
-  const a = new Int(lease.value?.leaseStatus.opened?.amount.amount ?? 0);
+  const a = new Int(lease.value.amount.amount ?? 0);
 
   if (a.equals(microAmount.mAmount.amount)) {
     return undefined;
@@ -847,20 +831,20 @@ watch(
 function getAmountValue(a: string) {
   const selectedCurrency = assets.value[0];
   const [_, protocolKey] = selectedCurrency.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(protocolKey);
+  const lpnData = getLpnByProtocol(protocolKey);
 
   let amount = new Dec(a);
-  const price = new Dec(oracle.prices[selectedCurrency!.key as string]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[selectedCurrency!.key as string]?.price ?? 0);
   const { repayment, repaymentInStable } = getRepayment(100)!;
 
   const amountInStableInt = amount
     .mul(price)
-    .mul(new Dec(10).pow(new Int(lpn.decimal_digits)))
+    .mul(new Dec(10).pow(new Int(lpnData.decimal_digits)))
     .truncate();
   const amountInt = amount.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
   const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
-  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(lpn.decimal_digits))).truncate();
+  const repaymentInStableInt = repaymentInStable.mul(new Dec(10).pow(new Int(lpnData.decimal_digits))).truncate();
 
   let vStable = repaymentInStableInt.sub(amountInStableInt);
   let v = repaymentInt.sub(amountInt);
@@ -876,9 +860,9 @@ function getAmountValue(a: string) {
   return {
     amountInStable: new CoinPretty(
       {
-        coinDenom: lpn.shortName,
-        coinMinimalDenom: lpn.ibcData,
-        coinDecimals: Number(lpn.decimal_digits)
+        coinDenom: lpnData.shortName,
+        coinMinimalDenom: lpnData.ibcData,
+        coinDecimals: Number(lpnData.decimal_digits)
       },
       vStable
     )

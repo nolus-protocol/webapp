@@ -32,33 +32,37 @@
 import Chart from "@/common/components/Chart.vue";
 import { Tooltip } from "web-components";
 
-import type { LeaseData } from "@/common/types";
-import { AssetUtils, EtlApi, isMobile, LeaseUtils } from "@/common/utils";
-import { MAX_DECIMALS, NATIVE_CURRENCY, PositionTypes, ProtocolsConfig } from "@/config/global";
-import { plot, lineY, ruleY } from "@observablehq/plot";
+import type { LeaseInfo } from "@/common/api";
+import { LeaseUtils } from "@/common/utils";
+import { formatPriceUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import { plot, lineY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { Dec } from "@keplr-wallet/unit";
-import { useApplicationStore } from "@/common/stores/application";
-import { useOracleStore } from "@/common/stores/oracle";
+import { useConfigStore } from "@/common/stores/config";
+import { usePricesStore } from "@/common/stores/prices";
+import { useAnalyticsStore } from "@/common/stores";
 
 type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
 const data = ref<ChartData[]>([]);
 const props = defineProps<{
-  lease?: LeaseData;
+  lease?: LeaseInfo | null;
   interval: string;
 }>();
 
 const chart = ref<typeof Chart>();
 const i18n = useI18n();
-const app = useApplicationStore();
-const oracle = useOracleStore();
+const configStore = useConfigStore();
+const pricesStore = usePricesStore();
+const analyticsStore = useAnalyticsStore();
 
 const chartHeight = 250;
-const marginLeft = 50;
-const chartWidth = isMobile() ? 350 : 950;
+let chartWidth: number;
+let marginLeft: number;
 const marginRight = 30;
 const marginBottom = 40;
 
@@ -74,16 +78,13 @@ watch(
 );
 
 const currency = computed(() => {
-  const c = app.currenciesData?.[`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
-  const price = oracle.prices![`${props.lease?.leaseData?.leasePositionTicker}@${props.lease?.protocol}`];
+  const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
+  const c = configStore.currenciesData?.[`${ticker}@${props.lease?.protocol}`];
+  const price = pricesStore.prices[`${ticker}@${props.lease?.protocol}`];
   return {
     name: c?.shortName,
-    price: price?.amount
-      ? `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price?.amount ?? 0, c?.decimal_digits)}`
-      : "",
-    pretty_price: price?.amount
-      ? `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(price?.amount ?? 0, MAX_DECIMALS)}`
-      : ""
+    price: price?.price ? formatPriceUsd(price?.price ?? 0) : "",
+    pretty_price: price?.price ? formatPriceUsd(price?.price ?? 0) : ""
   };
 });
 
@@ -105,7 +106,7 @@ async function setData() {
         return {
           Date: now,
           Price: price,
-          Liquidation: props.lease?.leaseStatus.opening ? null : l.amount.toString()
+          Liquidation: props.lease?.status === "opening" ? null : l.amount.toString()
         };
       })
       .reverse();
@@ -122,30 +123,23 @@ function getLiquidations() {
     date: Date;
   }[] = [];
 
-  const leaseData = props.lease?.leaseStatus?.opened;
   const protocolKey = props.lease?.protocol!;
 
-  if (leaseData) {
-    const historyElements = [...(props.lease?.leaseData?.history ?? [])].reverse();
+  if (props.lease?.status === "opened") {
+    const historyElements = [...(props.lease?.etl_data?.history ?? [])].reverse();
 
     for (const history of historyElements) {
       const ticker = history.symbol;
 
-      const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
-
-      asset = asset.add(new Dec(history.amount, unitAssetInfo.decimal_digits));
-
-      if (history.ls_amnt) {
-        const t = history.ls_amnt_symbol;
-        const unitAssetInfo2 = app.currenciesData![`${t}@${protocolKey}`];
-
-        asset2 = asset2.add(new Dec(history.ls_amnt, unitAssetInfo2.decimal_digits));
+      const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
+      if (unitAssetInfo) {
+        asset = asset.add(new Dec(history.amount ?? "0", unitAssetInfo.decimal_digits));
       }
 
       const l = parceLiquidaitons(asset, asset2);
       liquidations.push({
         amount: l,
-        date: new Date(history.time)
+        date: new Date(history.timestamp ?? Date.now())
       });
     }
   }
@@ -160,24 +154,21 @@ function getLiquidations() {
 
 function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
   let liquidation = new Dec(0);
-  const leaseData = props.lease?.leaseStatus?.opened;
-  if (leaseData) {
+  if (props.lease?.status === "opened") {
     const protocolKey = props.lease?.protocol!;
-    const ticker = leaseData.amount.ticker;
-    const stableTicker = leaseData.principal_due.ticker;
-    const unitAssetInfo = app.currenciesData![`${ticker!}@${protocolKey}`];
-    const stableAssetInfo = app.currenciesData![`${stableTicker!}@${protocolKey}`];
-    const unitAsset = new Dec(leaseData.amount.amount, Number(unitAssetInfo!.decimal_digits));
-    const stableAsset = new Dec(leaseData.principal_due.amount, Number(stableAssetInfo!.decimal_digits));
-    switch (ProtocolsConfig[protocolKey].type) {
-      case PositionTypes.long: {
-        liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
-        break;
-      }
-      case PositionTypes.short: {
-        liquidation = LeaseUtils.calculateLiquidationShort(unitAsset.add(uAsset), stableAsset.add(stableAdd));
-        break;
-      }
+    const ticker = props.lease?.amount.ticker;
+    const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
+    const lpn = getLpnByProtocol(protocolKey);
+    const stableAssetInfo = lpn ? configStore.currenciesData?.[lpn.key] : null;
+
+    const unitAsset = new Dec(props.lease.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
+    const stableAsset = new Dec(props.lease.debt.principal, Number(stableAssetInfo?.decimal_digits ?? 0));
+
+    const positionType = configStore.getPositionType(protocolKey);
+    if (positionType === "Long") {
+      liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
+    } else {
+      liquidation = LeaseUtils.calculateLiquidationShort(unitAsset.add(uAsset), stableAsset.add(stableAdd));
     }
   }
 
@@ -185,24 +176,21 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
 }
 
 async function loadData(intetval: string) {
-  switch (ProtocolsConfig[props.lease?.protocol!]?.type) {
-    case PositionTypes.long: {
-      let [key, protocol]: string[] = props.lease?.leaseData?.leasePositionTicker?.includes("@")
-        ? props.lease!.leaseData.leasePositionTicker.split("@")
-        : [props.lease?.leaseData?.leasePositionTicker as string, props.lease!.protocol];
+  const positionType = configStore.getPositionType(props.lease?.protocol!);
+  const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
 
-      const ticker = key;
-      const prices = await EtlApi.fetchPriceSeries(ticker, protocol, intetval);
+  if (positionType === "Long") {
+    let [key, protocol]: string[] = ticker?.includes("@")
+      ? ticker.split("@")
+      : [ticker as string, props.lease!.protocol];
 
-      return prices;
-    }
-    case PositionTypes.short: {
-      const lpn = AssetUtils.getLpnByProtocol(props.lease?.protocol!);
-      let [key, protocol] = lpn.key.split("@");
-      const prices = await EtlApi.fetchPriceSeries(key, protocol, intetval);
-
-      return prices;
-    }
+    const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
+    return prices;
+  } else {
+    const lpn = getLpnByProtocol(props.lease?.protocol!);
+    let [key, protocol] = lpn.key.split("@");
+    const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
+    return prices;
   }
 }
 
@@ -210,6 +198,30 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+
+  // Downsample to ~200 points for a smoother chart
+  const maxPoints = 200;
+  const chartData =
+    data.value.length > maxPoints
+      ? data.value.filter((_, i) => i % Math.ceil(data.value.length / maxPoints) === 0)
+      : data.value;
+
+  // Compute Y domain from price data only (liquidation may be far below)
+  const prices = chartData.map((d) => d.Price);
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  // Include liquidation in domain only if it's within 15% of the price range
+  const firstLiquidation = Number(chartData[0]?.Liquidation ?? 0);
+  const domainMin = firstLiquidation > 0 && firstLiquidation > minPrice * 0.85 ? firstLiquidation : minPrice;
+  const range = maxPrice - domainMin;
+  const padding = range * 0.2 || maxPrice * 0.05;
+  const yDomain: [number, number] = [Math.max(0, domainMin - padding), maxPrice + padding];
+  const tickFormat = createUsdTickFormat(yDomain);
+  const yTicks = computeYTicks(yDomain);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
+
   const plotChart = plot({
     color: { domain: likert.order, legend: false },
     width: chartWidth,
@@ -217,42 +229,56 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginLeft,
     marginRight,
     marginBottom,
-    style: {
-      width: "100%",
-      height: "100%"
-    },
+    style: { fontSize: CHART_AXIS.fontSize },
     y: {
       type: "linear",
+      domain: yDomain,
+      clamp: true,
       grid: true,
       label: null,
       labelArrow: false,
-      tickFormat: (d) => `$${d}`,
-      ticks: 4,
-      tickSize: 0
+      tickFormat,
+      tickSize: 0,
+      ticks: yTicks
     },
     x: {
       label: null,
-      type: "time"
+      type: "time",
+      ticks: CHART_AXIS.xTicks
     },
     marks: [
-      ruleY([0]),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "Date",
         y: "Price",
         stroke: "#3470E2",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        curve: "catmull-rom",
+        clip: "frame"
       }),
-      lineY(data.value, {
+      lineY(chartData, {
         x: "Date",
         y: "Liquidation",
         stroke: "#FF5F3A",
-        strokeDasharray: "3, 3",
-        curve: "basis"
+        strokeWidth: 2,
+        strokeLinecap: "round",
+        strokeDasharray: "6, 4",
+        curve: "catmull-rom",
+        clip: "frame"
       })
     ]
   });
 
   plotContainer.appendChild(plotChart);
+
+  const crosshair = select(plotChart)
+    .append("line")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.15)
+    .attr("stroke-width", 1)
+    .attr("y1", 0)
+    .attr("y2", chartHeight - marginBottom)
+    .style("display", "none");
 
   select(plotChart)
     .on("mousemove", (event) => {
@@ -261,8 +287,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
 
       if (closestData) {
+        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+
         tooltip.html(
-          `<strong>${i18n.t("message.price")}:</strong> $${AssetUtils.formatNumber(closestData.Price, NATIVE_CURRENCY.maximumFractionDigits)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> $${AssetUtils.formatNumber(closestData.Liquidation!, NATIVE_CURRENCY.maximumFractionDigits)}`
+          `<strong>${i18n.t("message.price")}:</strong> ${formatUsd(closestData.Price)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> ${formatUsd(Number(closestData.Liquidation!))}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();
@@ -271,11 +299,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
         tooltip
           .style("opacity", 1)
-          .style("left", `${event.pageX - width / 2}px`) // Using native event
-          .style("top", `${event.pageY - height - 10}px`); // Using native event
+          .style("left", `${event.pageX - width / 2}px`)
+          .style("top", `${event.pageY - height - 10}px`);
       }
     })
     .on("mouseleave", () => {
+      crosshair.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }

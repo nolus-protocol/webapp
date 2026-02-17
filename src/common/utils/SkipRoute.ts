@@ -1,63 +1,33 @@
 import type { IObjectKeys, SkipRouteConfigType } from "../types";
 import type { Chain, RouteRequest, RouteResponse, MessagesRequest, MessagesResponse } from "../types/skipRoute";
 
-import { AppUtils } from ".";
+import { fetchNetworkStatus, getSkipRouteConfig } from "./ConfigService";
+import { BackendApi } from "@/common/api";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
-import { MetaMaskWallet } from "@/networks/metamask";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
-import { MsgDepositForBurnWithCaller } from "@/networks/list/noble/tx";
 
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
   "/cosmwasm.wasm.v1.MsgExecuteContract" = "/cosmwasm.wasm.v1.MsgExecuteContract",
-  "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend",
-  "/circle.cctp.v1.MsgDepositForBurnWithCaller" = "/circle.cctp.v1.MsgDepositForBurnWithCaller"
+  "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend"
 }
 
+/**
+ * Swap class - Routes all Skip API calls through the Rust backend
+ */
 class Swap {
-  api_url: string;
-
-  constructor(data: { api_url: string }) {
-    this.api_url = data.api_url;
-  }
-
-  private async checkError(response: Response) {
-    const items = await response.json();
-
-    if (response.status != 200) {
-      throw items;
-    }
-
-    return items;
-  }
-
   async getChains(): Promise<Chain[]> {
-    const data = await fetch(`${this.api_url}/info/chains?include_evm=true&include_svm=true`);
-    const items = await this.checkError(data);
-    return items.chains;
+    const chains = await BackendApi.getSkipChains(true, true);
+    return chains as Chain[];
   }
 
   async getRoute(request: RouteRequest): Promise<RouteResponse> {
-    const data = await fetch(`${this.api_url}/fungible/route`, {
-      method: "POST",
-      body: JSON.stringify(request),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    return BackendApi.getSkipRoute(request as IObjectKeys) as Promise<RouteResponse>;
   }
 
   async getMessages(request: MessagesRequest): Promise<MessagesResponse> {
-    const data = await fetch(`${this.api_url}/fungible/msgs`, {
-      method: "POST",
-      body: JSON.stringify(request),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    return BackendApi.getSkipMessages(request as IObjectKeys) as Promise<MessagesResponse>;
   }
 
   async getTransactionStatus({
@@ -67,12 +37,11 @@ class Swap {
     chain_id: string;
     tx_hash: string;
   }): Promise<{ state: string; error: string }> {
-    const data = await fetch(`${this.api_url}/tx/status?chain_id=${chain_id}&tx_hash=${tx_hash}`, {
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    const status = await BackendApi.getSkipStatus(chain_id, tx_hash);
+    return {
+      state: status.state,
+      error: status.error || ""
+    };
   }
 
   async getTransactionTrack({
@@ -82,17 +51,11 @@ class Swap {
     chain_id: string;
     tx_hash: string;
   }): Promise<{ tx_hash: string; explorer_link: string }> {
-    const data = await fetch(`${this.api_url}/register`, {
-      method: "POST",
-      body: JSON.stringify({
-        chain_id,
-        tx_hash
-      }),
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-    return this.checkError(data);
+    const response = await BackendApi.trackSkipTransaction(chain_id, tx_hash);
+    return {
+      tx_hash: response.tx_hash,
+      explorer_link: response.explorer_link || ""
+    };
   }
 }
 
@@ -106,12 +69,10 @@ export class SkipRouter {
       return SkipRouter.client;
     }
 
-    const config = await AppUtils.getSkipRouteConfig();
+    // Initialize client (no longer needs api_url - uses BackendApi)
     const [client, status] = await Promise.all([
-      new Swap({
-        api_url: config.api_url
-      }),
-      SkipRouter.chainId ?? AppUtils.fetchNetworkStatus().then((status) => status.result.node_info.network)
+      new Swap(),
+      SkipRouter.chainId ?? fetchNetworkStatus().then((status) => status.result.node_info.network)
     ]);
 
     SkipRouter.chainId = status;
@@ -129,7 +90,7 @@ export class SkipRouter {
     destSourceId?: string,
     options: IObjectKeys = {}
   ) {
-    const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
+    const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
     const request: RouteRequest = {
       source_asset_denom: sourceDenom,
       source_asset_chain_id: sourceId ?? SkipRouter.chainId,
@@ -141,7 +102,8 @@ export class SkipRouter {
       allow_multi_tx: true,
       allow_unsafe: true,
       swap_venues: config.swap_venues,
-      experimental_features: ["stargate", "eureka", "hyperlane", "cctp"],
+      bridges: ["IBC"],
+      experimental_features: ["stargate", "eureka"],
       smart_swap_options: {
         split_routes: true,
         evm_swaps: true
@@ -159,11 +121,7 @@ export class SkipRouter {
     return route;
   }
 
-  static async submitRoute(
-    route: RouteResponse,
-    wallets: { [key: string]: BaseWallet | MetaMaskWallet },
-    callback: Function
-  ) {
+  static async submitRoute(route: RouteResponse, wallets: { [key: string]: BaseWallet }, callback: Function) {
     try {
       return await SkipRouter.transaction(route, wallets, callback);
     } catch (error) {
@@ -171,13 +129,9 @@ export class SkipRouter {
     }
   }
 
-  private static async transaction(
-    route: RouteResponse,
-    wallets: { [key: string]: BaseWallet | MetaMaskWallet },
-    callback: Function
-  ) {
+  private static async transaction(route: RouteResponse, wallets: { [key: string]: BaseWallet }, callback: Function) {
     try {
-      const [client, config] = await Promise.all([SkipRouter.getClient(), AppUtils.getSkipRouteConfig()]);
+      const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
       const addressList = [];
       const addresses: Record<string, string> = {};
 
@@ -227,44 +181,20 @@ export class SkipRouter {
       const response = await client.getMessages(request as MessagesRequest);
 
       for (const tx of response?.txs ?? []) {
-        const chainId = tx?.cosmos_tx?.chain_id ?? tx?.evm_tx?.chain_id;
-        const wallet = wallets[tx?.cosmos_tx?.chain_id ?? tx?.evm_tx?.chain_id];
+        const chainId = tx?.cosmos_tx?.chain_id;
+        const wallet = wallets[chainId];
 
-        switch (wallet.constructor) {
-          case MetaMaskWallet: {
-            const msg = tx.evm_tx;
-            const signer = await wallet.getSigner();
-            for (const t of msg.required_erc20_approvals!) {
-              await (wallet as any).setApprove(t);
-            }
-
-            const txData = await (signer as IObjectKeys).sendTransaction({
-              account: wallet.address,
-              to: msg.to as string,
-              data: `0x${msg.data}`,
-              value: msg.value === "" ? undefined : BigInt(msg.value!)
-            });
-
-            await callback(txData, wallet, chainId);
-
-            break;
-          }
-          default: {
-            const msgs = [];
-            for (const m of tx.cosmos_tx.msgs) {
-              const msgJSON = JSON.parse(m.msg);
-              const message = SkipRouter.getTx(m, msgJSON);
-              msgs.push({
-                msg: message,
-                msgTypeUrl: m.msg_type_url
-              });
-            }
-            const txData = await (wallet as BaseWallet).simulateMultiTx(msgs as any, "");
-            await callback(txData, wallet, chainId);
-
-            break;
-          }
+        const msgs = [];
+        for (const m of tx.cosmos_tx.msgs) {
+          const msgJSON = JSON.parse(m.msg);
+          const message = SkipRouter.getTx(m, msgJSON);
+          msgs.push({
+            msg: message,
+            msgTypeUrl: m.msg_type_url
+          });
         }
+        const txData = await wallet.simulateMultiTx(msgs as any, "");
+        await callback(txData, wallet, chainId);
       }
     } catch (error) {
       throw error;
@@ -361,17 +291,6 @@ export class SkipRouter {
           amount: msgJSON.amount
         });
       }
-      case Messages["/circle.cctp.v1.MsgDepositForBurnWithCaller"]: {
-        return MsgDepositForBurnWithCaller.fromPartial({
-          amount: msgJSON.amount,
-          burnToken: msgJSON.burn_token,
-          destinationCaller: msgJSON.destination_caller,
-          destinationDomain: msgJSON.destination_domain,
-          from: msgJSON.from,
-          mintRecipient: msgJSON.mint_recipient
-        });
-      }
-
       default: {
         throw new Error("Action not supported");
       }

@@ -27,7 +27,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, StringUtils } from "@/common/utils";
 
 import { Proposal as ProposalItem } from "web-components";
-import { marked } from "marked";
+import { parseMarkdownSafe } from "@/common/utils/sanitize";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps({
@@ -57,11 +57,7 @@ const labels = ref({
 });
 
 const summary = computed(() => {
-  return marked.parse(props.state.summary, {
-    pedantic: true,
-    gfm: true,
-    breaks: true
-  });
+  return parseMarkdownSafe(props.state.summary);
 });
 
 const turnout = computed(() => {
@@ -94,6 +90,17 @@ const emit = defineEmits<{
   }
   strong {
     @apply font-semibold;
+  }
+
+  // Override web-component's internal ProposalVotingLine tooltip
+  // to match the app's standard Tooltip style (dark bg, proper font size)
+  .bg-white.text-\[8px\] {
+    @apply border-0 bg-neutral-bg-inverted-2 text-xs text-typography-inverted;
+
+    // Remove bold/uppercase from label, keep vote color visible on dark bg
+    span[class*="font-bold"] {
+      @apply font-normal normal-case;
+    }
   }
 }
 </style>

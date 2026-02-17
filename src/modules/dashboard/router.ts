@@ -26,20 +26,6 @@ export const DashboardRouter: RouteRecordRaw = {
       meta: {
         key: RouteNames.DASHBOARD
       }
-    },
-    {
-      path: `learn-leases`,
-      component: () => import("@/common/components/EmptyRoute.vue"),
-      meta: {
-        key: RouteNames.DASHBOARD
-      }
-    },
-    {
-      path: `learn-wallet`,
-      component: () => import("@/common/components/EmptyRoute.vue"),
-      meta: {
-        key: RouteNames.DASHBOARD
-      }
     }
   ]
 };

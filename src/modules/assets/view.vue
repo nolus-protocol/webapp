@@ -1,31 +1,29 @@
 <template>
   <div class="flex flex-col gap-8">
     <ListHeader :title="$t('message.assets')">
-      <div
-        class="flex gap-2"
+      <Button
         v-if="wallet.wallet"
-      >
-        <Button
-          :label="$t('message.swap')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SWAP}`)"
-        />
-        <Button
-          :label="$t('message.receive')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.RECEIVE}`)"
-        />
-        <Button
-          :label="$t('message.send')"
-          severity="secondary"
-          size="large"
-          @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SEND}`)"
-        />
-      </div>
+        :label="$t('message.swap')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SWAP}`)"
+      />
+      <Button
+        v-if="wallet.wallet"
+        :label="$t('message.receive')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.RECEIVE}`)"
+      />
+      <Button
+        v-if="wallet.wallet"
+        :label="$t('message.send')"
+        severity="secondary"
+        size="large"
+        @click="() => router.push(`/${RouteNames.ASSETS}/${AssetsDialog.SEND}`)"
+      />
     </ListHeader>
-    <Widget class="overflow-x-auto md:overflow-auto">
+    <Widget class="overflow-auto">
       <AssetsTable />
     </Widget>
     <router-view></router-view>

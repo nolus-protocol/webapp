@@ -10,7 +10,7 @@
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
-      :error-msg="error"
+      :error-msg="validationError"
     >
       <template v-slot:label>
         <div class="flex items-center gap-1">
@@ -54,10 +54,9 @@
     <Button
       size="large"
       severity="primary"
-      :label="$t('message.delegate')"
+      :label="$t('message.undelegate')"
       @click="onNextClick"
-      :loading="loading"
-      :disabled="disabled"
+      :loading="disabled"
     />
     <p class="text-center text-12 text-typography-secondary">
       {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.delegateEstimation }}{{ $t("message.sec") }}
@@ -67,42 +66,39 @@
 
 <script lang="ts" setup>
 import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
-import { computed, inject, ref, watch } from "vue";
-import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
+import { computed, inject, ref } from "vue";
+import { NATIVE_ASSET, NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useStakingStore } from "@/common/stores/staking";
+import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils, formatDateTime, Logger, NetworkUtils, validateAmountV2, walletOperation } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
+import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
+import { useRouter } from "vue-router";
+import { RouteNames } from "@/router";
+import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import type { IObjectKeys } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { UNDELEGATE_DAYS } from "@/config/global";
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const balancesStore = useBalancesStore();
+const stakingStore = useStakingStore();
+const historyStore = useHistoryStore();
+const pricesStore = usePricesStore();
 const i18n = useI18n();
 
+const router = useRouter();
 const input = ref("0");
-const error = ref("");
-const loading = ref(false);
+const validationError = ref("");
 const disabled = ref(false);
-const loadDelegated = inject("loadDelegated", () => false);
-const delegatedData = ref<IObjectKeys[]>([]);
-const onClose = inject("close", () => {});
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
-watch(
-  () => wallet.wallet,
-  async () => {
-    const [delegated] = await Promise.all([NetworkUtils.loadDelegations()]);
-    delegatedData.value = delegated;
-  },
-  {
-    immediate: true
-  }
-);
+// Staking store positions are fetched by connectionStore.connectWallet()
 
 const date = computed(() => {
   const date = new Date();
@@ -111,14 +107,9 @@ const date = computed(() => {
 });
 
 const assets = computed(() => {
-  let amount = new Dec(0, NATIVE_ASSET.decimal_digits);
-
-  for (const item of delegatedData.value) {
-    const d = new Dec(item.balance.amount, NATIVE_ASSET.decimal_digits);
-    amount = amount.add(d);
-  }
-
-  const balance = AssetUtils.formatNumber(amount.toString(NATIVE_ASSET.decimal_digits), NATIVE_ASSET.decimal_digits);
+  // Use staking store delegations
+  const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
+  const balance = formatTokenBalance(amount);
 
   return [
     {
@@ -132,11 +123,11 @@ const assets = computed(() => {
 
 const stable = computed(() => {
   try {
-    const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const currency = getCurrencyByTicker(NATIVE_ASSET.ticker);
+    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return formatDecAsUsd(stable);
   } catch (e) {
     return "";
   }
@@ -156,8 +147,8 @@ function onInput(data: string) {
 
 async function onNextClick() {
   if (validateInputs().length == 0) {
+    disabled.value = true;
     try {
-      disabled.value = true;
       await walletOperation(undelegate);
     } catch (e) {
       Logger.error(e);
@@ -169,59 +160,49 @@ async function onNextClick() {
 
 function validateInputs() {
   const selectedCurrency = assets.value[0];
-  error.value = validateAmountV2(input.value, selectedCurrency.balance.value);
-  return error.value;
+  validationError.value = validateAmountV2(input.value, selectedCurrency.balance.value);
+  return validationError.value;
 }
 
 async function undelegate() {
-  if (wallet.wallet) {
-    try {
-      loading.value = true;
+  if (!wallet.wallet) return;
 
-      const amountToTransfer = CurrencyUtils.convertNolusToUNolus(input.value);
+  const amountToTransfer = CurrencyUtils.convertNolusToUNolus(input.value);
 
-      let amountToTransferDecimal = amountToTransfer.amount.toDec();
-      const transactions = [];
+  let amountToTransferDecimal = amountToTransfer.amount.toDec();
+  const transactions = [];
 
-      for (const item of delegatedData.value) {
-        const amount = new Dec(item.balance.amount);
+  for (const delegation of stakingStore.delegations) {
+    const amount = new Dec(delegation.balance.amount);
+    const rest = amountToTransferDecimal.sub(amount);
 
-        const rest = amountToTransferDecimal.sub(amount);
-
-        if (rest.isNegative() || rest.isZero()) {
-          const transfer = new Dec(amountToTransferDecimal.toString());
-          transactions.push({
-            validator: item.delegation.validator_address,
-            amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
-          });
-          break;
-        } else {
-          const transfer = new Dec(amount.toString());
-          transactions.push({
-            validator: item.delegation.validator_address,
-            amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
-          });
-        }
-
-        amountToTransferDecimal = rest;
-      }
-
-      const { txHash, txBytes, usedFee } = await wallet.wallet.simulateUndelegateTx(transactions);
-
-      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES()]);
-      wallet.loadActivities();
-      onClose();
-      onShowToast({
-        type: ToastType.success,
-        message: i18n.t("message.undelegate-successful")
+    if (rest.isNegative() || rest.isZero()) {
+      const transfer = new Dec(amountToTransferDecimal.toString());
+      transactions.push({
+        validator: delegation.validator_address,
+        amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
       });
-    } catch (err: Error | any) {
-      error.value = err.toString();
-      Logger.error(error);
-    } finally {
-      loading.value = false;
+      break;
+    } else {
+      const transfer = new Dec(amount.toString());
+      transactions.push({
+        validator: delegation.validator_address,
+        amount: coin(transfer.truncate().toString(), NATIVE_ASSET.denom)
+      });
     }
+
+    amountToTransferDecimal = rest;
   }
+
+  const { txBytes } = await wallet.wallet.simulateUndelegateTx(transactions);
+
+  await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+  await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
+  historyStore.loadActivities();
+  router.push(`/${RouteNames.STAKE}`);
+  onShowToast({
+    type: ToastType.success,
+    message: i18n.t("message.undelegate-successful")
+  });
 }
 </script>

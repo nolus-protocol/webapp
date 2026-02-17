@@ -2,12 +2,13 @@
   <Table
     :columns="columns"
     searchable
-    :size="isMobile() ? '' : `${assets.length} ${$t('message.assets')}`"
+    :size="mobile ? '' : `${assets.length} ${$t('message.assets')}`"
     :toggle="{ label: $t('message.show-small-balances'), value: smBalances }"
     @togle-value="setSmallBalancesState"
-    :hide-values="{ text: $t('message.toggle-values'), value: hide }"
+    :hide-values="mobile ? undefined : { text: $t('message.toggle-values'), value: hide }"
     @hide-value="onHide"
-    tableClasses="min-w-[530px]"
+    :tableClasses="mobile ? '' : 'min-w-[530px]'"
+    :scrollable="!mobile"
     @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
     header-classes="md:flex-row flex-col items-stretch md:items-center gap-4 md:gap-2"
     @onSearchClear="onSearch('')"
@@ -15,12 +16,12 @@
     <BigNumber
       :label="$t('message.assets-title')"
       :amount="{
-        amount: total.toString(2),
+        value: total.toString(2),
         hide: hide,
-        type: CURRENCY_VIEW_TYPES.CURRENCY,
         denom: NATIVE_CURRENCY.symbol,
-        fontSize: isMobile() ? 20 : 32,
-        animatedReveal: true
+        fontSize: 24,
+        animatedReveal: true,
+        compact: mobile
       }"
     />
 
@@ -29,6 +30,7 @@
         v-for="(row, index) in assets"
         :key="index"
         :items="row.items"
+        :scrollable="!mobile"
       />
     </template>
   </Table>
@@ -38,23 +40,23 @@
 import BigNumber from "@/common/components/BigNumber.vue";
 import type { TableColumnProps, TableRowItemProps } from "web-components";
 import { Table, TableRow } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
+import { useBalancesStore } from "@/common/stores/balances";
+import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { AssetUtils, Logger, WalletManager } from "@/common/utils";
-import { NATIVE_CURRENCY, ProtocolsConfig } from "@/config/global";
-import { useApplicationStore } from "@/common/stores/application";
-import type { ExternalCurrency } from "@/common/types";
-import { isMobile } from "@/common/utils";
+import { Dec } from "@keplr-wallet/unit";
+import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { formatPercent, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { NATIVE_CURRENCY } from "@/config/global";
+import { useNetworkCurrency, type ResolvedAsset } from "@/common/composables";
 
 const i18n = useI18n();
 const wallet = useWalletStore();
-const oracle = useOracleStore();
-const app = useApplicationStore();
+const balancesStore = useBalancesStore();
+const pricesStore = usePricesStore();
+const { getNetworkAssets } = useNetworkCurrency();
+const mobile = isMobile();
 const hide = ref(WalletManager.getHideBalances());
 const total = ref(new Dec(0));
 const smBalances = ref(WalletManager.getSmallBalances());
@@ -67,38 +69,34 @@ const showSmallBalances = computed(() => {
 });
 const search = ref("");
 
-const columns = computed<TableColumnProps[]>(() => [
-  { label: i18n.t("message.assets"), variant: "left" },
-  { label: i18n.t("message.price"), class: "md:flex" },
-  { label: i18n.t("message.balance") },
-  {
-    label: i18n.t("message.yield"),
-    tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") },
-    class: "md:flex"
-  }
-]);
+const columns = computed<TableColumnProps[]>(() => mobile
+  ? [
+      { label: i18n.t("message.assets"), variant: "left" },
+      { label: i18n.t("message.balance") }
+    ]
+  : [
+      { label: i18n.t("message.assets"), variant: "left" },
+      { label: i18n.t("message.price") },
+      { label: i18n.t("message.balance") },
+      {
+        label: i18n.t("message.yield"),
+        tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") }
+      }
+    ]
+);
 
 const filteredAssets = computed(() => {
-  const balances = showSmallBalances.value ? wallet.currencies : filterSmallBalances(wallet.currencies);
-  return balances.sort((a, b) => {
-    const aAssetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[a.key]?.amount,
-      new Coin(a.balance.denom, a.balance.amount.toString()),
-      a.decimal_digits as number
-    ).toDec();
+  const allAssets = getNetworkAssets();
 
-    const bAssetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[b.key]?.amount,
-      new Coin(b.balance.denom, b.balance.amount.toString()),
-      b.decimal_digits as number
-    ).toDec();
+  // Filter small balances if setting is off
+  const filtered = showSmallBalances.value ? allAssets : allAssets.filter((a) => parseFloat(a.balance) > 1);
 
-    return Number(bAssetBalance.sub(aAssetBalance).toString(8));
-  });
+  // Sort by USD balance value (descending)
+  return filtered.sort((a, b) => b.balanceUsd - a.balanceUsd);
 });
 
 watch(
-  () => [wallet.wallet, oracle.prices, wallet.balances],
+  () => [wallet.wallet, pricesStore.prices, balancesStore.balances],
   async () => {
     try {
       setAvailableAssets();
@@ -111,10 +109,6 @@ watch(
   }
 );
 
-function filterSmallBalances(balances: ExternalCurrency[]) {
-  return balances.filter((asset) => asset.balance.amount.gt(new Int("1")));
-}
-
 function onHide(data: boolean) {
   hide.value = data;
   WalletManager.setHideBalances(data);
@@ -125,47 +119,19 @@ function onSearch(data: string) {
 }
 
 function setAvailableAssets() {
-  let totalAssets = new Dec(0);
-  wallet.currencies.forEach((asset) => {
-    const currency = AssetUtils.getCurrencyByDenom(asset.balance.denom);
-    const assetBalance = CurrencyUtils.calculateBalance(
-      oracle.prices[asset.key]?.amount ?? "0",
-      new Coin(currency.ibcData, asset.balance.amount.toString()),
-      Number(currency.decimal_digits)
-    );
-    totalAssets = totalAssets.add(assetBalance.toDec());
-  });
-  total.value = totalAssets;
+  let totalAssets = 0;
+  for (const asset of filteredAssets.value) {
+    totalAssets += asset.balanceUsd;
+  }
+  total.value = new Dec(totalAssets.toFixed(2));
 }
 
-function isEarn(denom: string) {
-  const curency = AssetUtils.getCurrencyByDenom(denom);
-  const [_, protocol] = curency.key.split("@");
-  if (!ProtocolsConfig[protocol].rewards) {
-    return false;
+function getYield(asset: ResolvedAsset): string | undefined {
+  if (asset.isEarnable) {
+    return formatPercent(asset.apr);
   }
-
-  const lpns = (app.lpn ?? []).map((item) => item.ticker);
-  return lpns.includes(curency.ticker);
-}
-
-function getApr(key: string) {
-  let [ticker] = key.split("@");
-  let asset = (app.lpn ?? []).find((item) => item.key == key);
-  if (!asset) {
-    asset = (app.lpn ?? []).find((item) => item.ticker == ticker);
-  }
-  const [_, protocol] = asset?.key.split("@") ?? [];
-  return AssetUtils.formatNumber(app.apr?.[protocol] ?? 0, 2);
-}
-
-function apr(denom: string, key: string) {
-  if (isEarn(denom)) {
-    return `${getApr(key)}%`;
-  }
-
-  if (app.native?.ibcData == denom) {
-    return `${AssetUtils.formatNumber(wallet.apr, 2)}%`;
+  if (asset.isNative) {
+    return formatPercent(asset.stakingApr);
   }
 }
 
@@ -176,47 +142,51 @@ const assets = computed<TableRowItemProps[]>(() => {
       if (param.length == 0) {
         return true;
       }
-
-      if (
-        item.name.toLowerCase().includes(param) ||
-        item.shortName.toLowerCase().includes(param) ||
-        item.ibcData.toLowerCase().includes(param)
-      ) {
-        return true;
-      }
-
-      return false;
+      const c = item.currency;
+      return (
+        c.name.toLowerCase().includes(param) ||
+        c.shortName.toLowerCase().includes(param) ||
+        c.ibcData.toLowerCase().includes(param)
+      );
     })
     .map((item) => {
-      const stable_b = CurrencyUtils.calculateBalance(
-        oracle.prices[item.key]?.amount,
-        new Coin(item.balance.denom, item.balance.amount.toString()),
-        item.decimal_digits
-      ).toDec();
+      const c = item.currency;
+      const price = formatPriceUsd(item.price);
+      const balanceDec = new Dec(item.balance, c.decimal_digits);
+      const stableDec = new Dec(item.balanceUsd.toFixed(2));
+      const balance = mobile ? formatMobileAmount(balanceDec) : formatTokenBalance(balanceDec);
+      const stable_balance = mobile ? formatMobileUsd(stableDec) : formatUsd(item.balanceUsd);
 
-      const price = AssetUtils.formatNumber(oracle.prices[item.key]?.amount ?? 0, 4);
-      const balance = AssetUtils.formatNumber(new Dec(item.balance.amount, item.decimal_digits).toString(3), 3);
-      const stable_balance = AssetUtils.formatNumber(stable_b.toString(2), 2);
+      const balanceValue = hide.value
+        ? { value: "****", subValue: "****", variant: "right" }
+        : { value: `${balance}`, subValue: stable_balance, variant: "right" };
 
-      const value = { value: `${balance}`, subValue: `${NATIVE_CURRENCY.symbol}${stable_balance}`, variant: "right" };
-
-      if (hide.value) {
-        value.value = "****";
-        value.subValue = "****";
+      if (mobile) {
+        return {
+          items: [
+            {
+              value: c.shortName,
+              subValue: price,
+              image: c.icon,
+              variant: "left"
+            },
+            { ...balanceValue }
+          ]
+        } as TableRowItemProps;
       }
 
       return {
         items: [
           {
-            value: item.shortName,
-            subValue: item.name,
-            image: item.icon,
+            value: c.shortName,
+            subValue: c.name,
+            image: c.icon,
             variant: "left",
             textClass: "line-clamp-1 [display:-webkit-box]"
           },
-          { value: `${NATIVE_CURRENCY.symbol}${price}`, class: "md:flex" },
-          value,
-          { value: apr(item.ibcData, item.key), class: "text-typography-success md:flex" }
+          { value: price },
+          balanceValue,
+          { value: getYield(item), class: "text-typography-success" }
         ]
       } as TableRowItemProps;
     });

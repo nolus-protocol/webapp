@@ -10,23 +10,19 @@
     <BigNumber
       label="Size"
       :amount="{
-        amount: sizeAmount,
-        type: CURRENCY_VIEW_TYPES.TOKEN,
-        denom: assetLoan?.shortName,
-        maxDecimals: MAX_DECIMALS,
-        minimalDenom: '',
-        decimals: assetLoan?.decimal_digits,
-        hasSpace: true,
+        microAmount: sizeAmount,
+        denom: totalAsset?.shortName ?? downPaymentAsset?.shortName,
+        decimals: totalAsset?.decimal_digits ?? downPaymentAsset?.decimal_digits ?? 6,
         around: true,
-        tooltip: true
+        tooltip: true,
+        fontSize: 24
       }"
       :secondary="{
-        amount: totalLoan,
-        type: CURRENCY_VIEW_TYPES.TOKEN,
+        value: totalLoan,
         denom: asset?.shortName,
-        maxDecimals: assetLoan?.decimal_digits,
-        decimals: assetLoan?.decimal_digits,
-        hasSpace: true
+        isDenomPrefix: false,
+        hasSpace: true,
+        decimals: asset?.decimal_digits
       }"
     />
     <div class="flex flex-col gap-3">
@@ -48,20 +44,15 @@
             class="md:flex-[50%]"
             :label="$t('message.downpayment')"
             :amount="{
-              amount: downPaymentAmount,
+              microAmount: downPaymentAmount,
               decimals: downPaymentAsset.decimal_digits,
-              type: CURRENCY_VIEW_TYPES.TOKEN,
               denom: downPaymentAsset.shortName,
-              hasSpace: true,
               fontSize: 16
             }"
             :secondary="{
-              amount: downPaymentStable.toString(),
-              type: CURRENCY_VIEW_TYPES.CURRENCY,
+              value: downPaymentStable.toString(),
               denom: NATIVE_CURRENCY.symbol,
-              decimals: 2,
-              maxDecimals: 2,
-              minimalDenom: ''
+              decimals: 2
             }"
           />
           <div class="flex flex-col gap-y-3 md:flex-[50%]">
@@ -69,39 +60,29 @@
               class="md:flex-[50%]"
               :label="$t('message.borrow')"
               :amount="{
-                amount: borrowAmount,
+                microAmount: borrowAmount,
                 decimals: asset.decimal_digits,
-                type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
-                hasSpace: true,
                 fontSize: 16
               }"
               :secondary="{
-                amount: borrowStable.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: borrowStable.toString(),
                 denom: NATIVE_CURRENCY.symbol,
-                decimals: 2,
-                maxDecimals: 2,
-                minimalDenom: ''
+                decimals: 2
               }"
             />
             <BigNumber
               :label="$t('message.impact-and-dex-fees')"
               :amount="{
-                amount: swapFeeAmount.toString(),
+                microAmount: swapFeeAmount.truncate().toString(),
                 decimals: asset.decimal_digits,
-                type: CURRENCY_VIEW_TYPES.TOKEN,
                 denom: asset.shortName,
-                hasSpace: true,
                 fontSize: 16
               }"
               :secondary="{
-                amount: swapStableFee.toString(),
-                type: CURRENCY_VIEW_TYPES.CURRENCY,
+                value: swapStableFee.toString(),
                 denom: NATIVE_CURRENCY.symbol,
-                maxDecimals: 4,
-                decimals: 4,
-                minimalDenom: ''
+                decimals: 2
               }"
             />
           </div>
@@ -128,30 +109,27 @@
         class="md:flex-[50%]"
         :label="$t('message.lease-interest')"
         :amount="{
-          amount: annualInterestRate.toString(),
-          type: CURRENCY_VIEW_TYPES.TOKEN,
+          value: annualInterestRate.toString(),
           denom: '%',
-          maxDecimals: 0,
-          minimalDenom: '',
+          isDenomPrefix: false,
           decimals: 2,
           fontSize: 16,
-          class: { 'line-through': isFreeLease },
-          additional: isFreeLease
-            ? {
-                text: '0%',
-                class: 'text-typography-success'
-              }
-            : undefined
+          class: { 'line-through': isFreeLease }
         }"
+        :additional="isFreeLease
+          ? {
+              text: '0%',
+              class: 'text-typography-success'
+            }
+          : undefined"
       />
       <BigNumber
         class="md:flex-[50%]"
         :label="$t('message.price-per-symbol', { symbol: asset?.shortName })"
         :amount="{
-          amount: oracle.prices[loanCurrency]?.amount,
-          type: CURRENCY_VIEW_TYPES.CURRENCY,
+          value: pricesStore.prices[loanCurrency]?.price ?? '0',
           denom: NATIVE_CURRENCY.symbol,
-          decimals: 3,
+          decimals: currentPriceDecimals,
           fontSize: 16
         }"
       />
@@ -159,11 +137,9 @@
         class="md:flex-[50%]"
         :label="$t('message.partial-liquidation')"
         :amount="{
-          amount: percentLique,
-          type: CURRENCY_VIEW_TYPES.TOKEN,
+          value: percentLique,
           denom: `% ($${calculateLique})`,
-          maxDecimals: 0,
-          minimalDenom: '',
+          isDenomPrefix: false,
           decimals: 0,
           fontSize: 16
         }"
@@ -177,12 +153,14 @@ import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { Button, SvgIcon } from "web-components";
-import { CURRENCY_VIEW_TYPES } from "@/common/types";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY, PERCENT, ProtocolsConfig } from "@/config/global";
-import { useOracleStore } from "@/common/stores/oracle";
-import { useApplicationStore } from "@/common/stores/application";
-import { AppUtils, AssetUtils, LeaseUtils } from "@/common/utils";
+import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY } from "@/config/global";
+import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
+import { usePricesStore } from "@/common/stores/prices";
+import { useConfigStore } from "@/common/stores/config";
+import { LeaseUtils } from "@/common/utils";
+import { getCurrencyByTicker, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+
 import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
@@ -196,15 +174,14 @@ const props = defineProps<{
   downpaymenAmount: string;
   downpaymentCurrency: string;
 }>();
-const oracle = useOracleStore();
-const app = useApplicationStore();
+const pricesStore = usePricesStore();
+const configStore = useConfigStore();
 const showDetails = ref(false);
 const swapFee = ref(0);
 const swapStableFee = ref(0);
-const freeInterest = ref<string[]>([]);
 
 onMounted(async () => {
-  freeInterest.value = await AppUtils.getFreeInterest();
+  // Free interest is handled by a 3rd party service
 });
 
 onUnmounted(() => {
@@ -222,67 +199,72 @@ watch(
   }
 );
 
+/** The currency for lease.total (stable currency for shorts, e.g., USDC) */
+const totalAsset = computed(() => {
+  const ticker = props.lease?.total?.ticker;
+  if (!ticker) return null;
+  return getCurrencyByTicker(ticker);
+});
+
 const sizeAmount = computed(() => {
   if (!props.lease?.total?.amount) {
     return "0";
   }
-  const fee = new Dec(swapStableFee.value, asset.value.decimal_digits);
+  // For shorts, lease.total is in the stable currency (e.g., USDC)
+  const decimals = totalAsset.value?.decimal_digits ?? 6;
+  const fee = new Dec(swapStableFee.value, decimals);
   const total = new Dec(props.lease?.total.amount ?? "0").sub(fee);
   return total.truncate().toString();
 });
 
 const isFreeLease = computed(() => {
-  if (freeInterest.value.includes(props.loanCurrency)) {
-    return true;
-  }
+  // Free interest is handled by a 3rd party service
   return false;
 });
 
 const annualInterestRate = computed(() => {
-  return (
-    (((props.lease?.annual_interest_rate ?? 0) + (props.lease?.annual_interest_rate_margin ?? 0)) / MONTHS) * PERCENT
-  );
+  return ((props.lease?.annual_interest_rate ?? 0) + (props.lease?.annual_interest_rate_margin ?? 0)) / MONTHS;
 });
 
 const totalLoan = computed(() => {
   if (!props.lease?.total?.amount) {
     return "0";
   }
-  const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
   const v = props.lease?.total?.amount ?? "0";
   const amount = new Dec(v).quo(price).sub(swapFeeAmount.value);
-  return amount.toString(assetLoan.value.decimal_digits);
+  return amount.toString(asset.value.decimal_digits);
 });
 
 const assetLoan = computed(() => {
   const [t, p] = asset.value?.key?.split("@") ?? [];
-  const currency = app.currenciesData?.[`${ProtocolsConfig[p]?.stable}@${p}`];
-  return currency;
+  const lpn = getLpnByProtocol(p);
+  return lpn;
 });
 
 const asset = computed(() => {
-  const currency = app.currenciesData?.[props.loanCurrency];
+  const currency = configStore.currenciesData?.[props.loanCurrency];
   return currency;
 });
 
 const lpn = computed(() => {
   const [t, p] = loanAsset.value.key.split("@");
-  const lpn = AssetUtils.getLpnByProtocol(p);
+  const lpn = getLpnByProtocol(p);
   return lpn;
 });
 
 const downPaymentAsset = computed(() => {
-  const currency = app.currenciesData?.[props.downpaymentCurrency];
+  const currency = configStore.currenciesData?.[props.downpaymentCurrency];
   return currency;
 });
 
 const loanAsset = computed(() => {
-  const currency = app.currenciesData![props.loanCurrency];
+  const currency = configStore.currenciesData![props.loanCurrency];
   return currency;
 });
 
 const downPaymentAmount = computed(() => {
-  const price = new Dec(oracle.prices?.[downPaymentAsset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key!]?.price ?? 0);
   const decimals = new Dec(10 ** downPaymentAsset.value.decimal_digits);
   const v = downPaymentStable.value;
   const amount = v.quo(price).mul(decimals);
@@ -290,14 +272,14 @@ const downPaymentAmount = computed(() => {
 });
 
 const downPaymentStable = computed(() => {
-  const price = new Dec(oracle.prices?.[downPaymentAsset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key!]?.price ?? 0);
   const v = props.downpaymenAmount.length == 0 ? "0" : props.downpaymenAmount;
   const stable = price.mul(new Dec(v));
   return stable;
 });
 
 const borrowAmount = computed(() => {
-  const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
   const decimals = new Dec(10 ** lpn.value.decimal_digits);
   const v = borrowStable.value;
   const amount = v.quo(price).mul(decimals);
@@ -305,7 +287,7 @@ const borrowAmount = computed(() => {
 });
 
 const swapFeeAmount = computed(() => {
-  const price = new Dec(oracle.prices?.[asset.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
   const decimals = new Dec(10 ** lpn.value.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
@@ -313,10 +295,14 @@ const swapFeeAmount = computed(() => {
 });
 
 const borrowStable = computed(() => {
-  const price = new Dec(oracle.prices?.[lpn.value.key!]?.amount ?? 0);
+  const price = new Dec(pricesStore.prices[lpn.value.key!]?.price ?? 0);
   const v = props.lease?.borrow?.amount ?? "0";
   const stable = price.mul(new Dec(v, lpn.value.decimal_digits));
   return stable;
+});
+
+const currentPriceDecimals = computed(() => {
+  return getAdaptivePriceDecimals(Number(pricesStore.prices[props.loanCurrency]?.price ?? 0));
 });
 
 const calculateLique = computed(() => {
@@ -324,16 +310,16 @@ const calculateLique = computed(() => {
   if (d.isZero()) {
     return `${d.toString(2)}`;
   }
-  return `${d.toString(4)}`;
+  return formatPrice(d.toString(8));
 });
 
 const percentLique = computed(() => {
   try {
     const a = asset.value;
     const [_, protocol] = a?.key?.split("@") ?? [];
-    const lpn = AssetUtils.getLpnByProtocol(protocol);
+    const lpn = getLpnByProtocol(protocol);
 
-    const price = new Dec(oracle.prices[lpn.key]?.amount ?? "0", a.decimal_digits);
+    const price = new Dec(pricesStore.prices[lpn.key]?.price ?? "0", a.decimal_digits);
     const lprice = getLquidation();
 
     if (lprice.isZero() || price.isZero()) {
@@ -351,8 +337,8 @@ const percentLique = computed(() => {
 function getLquidation() {
   const lease = props.lease;
   if (lease) {
-    const unitAssetInfo = AssetUtils.getCurrencyByTicker(lease.borrow.ticker!);
-    const stableAssetInfo = AssetUtils.getCurrencyByTicker(lease.total.ticker!);
+    const unitAssetInfo = getCurrencyByTicker(lease.borrow.ticker!);
+    const stableAssetInfo = getCurrencyByTicker(lease.total.ticker!);
 
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo!.decimal_digits));
 
@@ -392,7 +378,7 @@ const setSwapFee = async () => {
         currency.decimal_digits
       ).amount.toString();
 
-      const lpn = AssetUtils.getLpnByProtocol(p);
+      const lpn = getLpnByProtocol(p);
       let amountIn = 0;
       let amountOut = 0;
       const [r, r2] = await Promise.all([

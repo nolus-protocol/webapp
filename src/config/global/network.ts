@@ -45,5 +45,3 @@ export const STAKING = {
   PERCENT: 0.05,
   SLICE: 3
 };
-
-export const LTV = 0.9;

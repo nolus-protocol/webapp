@@ -13,8 +13,9 @@ import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { useI18n } from "vue-i18n";
 import { pointer, select, type Selection } from "d3";
-import { AssetUtils } from "@/common/utils";
-import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { formatNumber } from "@/common/utils/NumberFormatUtils";
+import { CHART_AXIS, createNumberTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import { NATIVE_ASSET, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
@@ -23,11 +24,10 @@ type ChartData = { amount: number; date: number };
 
 const data = ref<ChartData[]>([]);
 const period = [{ months: 0 }, { months: 12 }, { months: 24 }, { months: 48 }];
-const days = 30;
 
 const chartHeight = 300;
-const marginLeft = 40;
-const chartWidth = 400;
+let marginLeft: number;
+let chartWidth: number;
 const marginRight = 30;
 const marginBottom = 50;
 const marginTop = 50;
@@ -51,9 +51,16 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
+  chartWidth = getChartWidth(plotContainer);
+
+  const amounts = data.value.map((d) => d.amount);
+  const yDomain: [number, number] = [Math.min(...amounts), Math.max(...amounts)];
+  const tickFormat = createNumberTickFormat(yDomain);
+  const yTicks = computeYTicks(yDomain, 4);
+  marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
+
   const plotChart = plot({
-    color: { legend: true },
-    style: { width: "100%" },
+    style: { fontSize: CHART_AXIS.fontSize },
     marginTop,
     width: chartWidth,
     height: chartHeight,
@@ -64,16 +71,18 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       type: "linear",
       grid: true,
       label: i18n.t("message.earn-chart-y"),
-      ticks: 4,
-      round: true
+      round: true,
+      tickFormat,
+      ticks: yTicks
     },
-    x: { ticks: 4, type: "linear", round: true, tickFormat: (d) => `${d}m.` },
+    x: { type: "linear", round: true, tickFormat: (d) => `${d}m.`, ticks: CHART_AXIS.xTicks },
     marks: [
       lineY(data.value, {
         x: "date",
         y: "amount",
         stroke: "#3470E2",
-        curve: "basis"
+        curve: "basis",
+        clip: "frame"
       })
     ]
   });
@@ -89,7 +98,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
       if (closestData) {
         tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> ${AssetUtils.formatNumber(closestData.amount, NATIVE_CURRENCY.maximumFractionDigits)} ${NATIVE_ASSET.label}`
+          `<strong>${i18n.t("message.amount")}</strong> ${formatNumber(closestData.amount, 2)} ${NATIVE_ASSET.label}`
         );
 
         const node = tooltip.node()!.getBoundingClientRect();

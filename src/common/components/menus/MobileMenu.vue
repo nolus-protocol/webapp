@@ -20,20 +20,16 @@
           </div>
           <div class="flex flex-col gap-3">
             <template
-              v-for="item in filteredRouteNames"
+              v-for="item in mainMenuRoutes"
               :key="item"
             >
               <RouterLink
-                :to="item === RouteNames.DASHBOARD ? '/' : `/${item}`"
+                :to="routePath(item)"
                 class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
-                v-on:click="
-                  () => {
-                    close();
-                  }
-                "
+                @click="close"
               >
                 <SvgIcon
-                  :name="item"
+                  :name="sidebarIconMap[item] ?? item"
                   size="l"
                 />
                 {{ $t(`message.${item}`) }}
@@ -79,57 +75,16 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, provide, ref } from "vue";
+import { provide, ref } from "vue";
 import { RouteNames } from "@/router";
 import { SvgIcon } from "web-components";
-import { UPDATE_BLOCK_INTERVAL } from "@/config/global";
-import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { AppUtils, Logger } from "@/common/utils";
+import { sidebarIconMap, mainMenuRoutes, routePath } from "./menuConfig";
+import { useBlockInfo } from "@/common/composables/useBlockInfo";
 
 const toggleMobileNav = ref(false);
 const toggleMenuWrapper = ref(false);
 
-const filteredRouteNames = computed(() => {
-  return Object.values(RouteNames).filter(
-    (name) => ![RouteNames.STATS, RouteNames.DASHBOARD, RouteNames.VOTE].includes(name)
-  );
-});
-
-const block = ref(0);
-const version = ref("");
-
-let blockInterval: NodeJS.Timeout | undefined;
-
-onMounted(() => {
-  setBlock();
-  setVersion();
-
-  blockInterval = setInterval(() => {
-    setBlock();
-    blockInterval;
-  }, UPDATE_BLOCK_INTERVAL);
-});
-
-async function setBlock() {
-  try {
-    const nolusClient = NolusClient.getInstance();
-    block.value = await nolusClient.getBlockHeight();
-  } catch (error: Error | any) {
-    Logger.error(error);
-  }
-}
-
-async function setVersion() {
-  try {
-    const url = (await AppUtils.fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
-
-    const data = await fetch(`${url}/abci_info`);
-    const res = await data.json();
-    version.value = res?.result?.response.version;
-  } catch (error: Error | any) {
-    Logger.error(error);
-  }
-}
+const { block, version } = useBlockInfo();
 
 const open = () => {
   document.body.style.overflow = "hidden";
@@ -156,7 +111,7 @@ defineExpose({ open, close });
 </script>
 
 <style scoped lang="scss">
-.router-link-exact-active {
+.router-link-active {
   @apply border-b border-t border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
 
   svg {
@@ -164,7 +119,7 @@ defineExpose({ open, close });
   }
 }
 
-.router-link:not(.router-link-exact-active) {
+.router-link:not(.router-link-active) {
   &:hover {
     @apply border-b border-t border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
 

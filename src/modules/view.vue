@@ -21,106 +21,16 @@
 </template>
 
 <script lang="ts" setup>
-import { onUnmounted, ref, watch } from "vue";
-import { useWalletStore } from "@/common/stores/wallet";
-import { useOracleStore } from "@/common/stores/oracle";
-import { useApplicationStore } from "@/common/stores/application";
-import { UPDATE_BALANCE_INTERVAL, UPDATE_PRICES_INTERVAL } from "@/config/global";
-import { Logger, WalletManager, walletOperation } from "@/common/utils";
+import { ref } from "vue";
+import { useWalletEvents } from "@/common/composables";
 
 import Sidebar from "@/common/components/Sidebar.vue";
 import Header from "@/common/components/Header.vue";
 import MobileMenu from "@/common/components/menus/MobileMenu.vue";
-import { Intercom } from "@/common/utils/Intercom";
 
-let balanceInterval: NodeJS.Timeout | undefined;
-let pricesInterval: NodeJS.Timeout | undefined;
-let sessionTimeOut: NodeJS.Timeout | undefined;
+useWalletEvents();
 
-const wallet = useWalletStore();
-const oracle = useOracleStore();
-const app = useApplicationStore();
-
-const showErrorDialog = ref(false);
-const errorMessage = ref("");
 const mobileMenu = ref<typeof MobileMenu | null>(null);
-
-watch(
-  () => app.init,
-  () => {
-    walletOperation(() => {});
-    window.addEventListener("keplr_keystorechange", updateKeplr);
-    window.addEventListener("leap_keystorechange", updateLeap);
-    checkBalances();
-  }
-);
-
-onUnmounted(() => {
-  clearInterval(balanceInterval);
-  clearInterval(pricesInterval);
-  clearInterval(sessionTimeOut);
-  window.removeEventListener("keplr_keystorechange", updateKeplr);
-  window.addEventListener("leap_keystorechange", updateLeap);
-});
-
-async function updateKeplr() {
-  try {
-    Intercom.disconnect();
-    await wallet.CONNECT_KEPLR();
-    await loadNetwork();
-    await wallet.UPDATE_BALANCES();
-  } catch (error: Error | any) {
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
-  }
-}
-
-async function updateLeap() {
-  try {
-    Intercom.disconnect();
-    await wallet.CONNECT_LEAP();
-    await loadNetwork();
-    await wallet.UPDATE_BALANCES();
-  } catch (error: Error | any) {
-    Logger.error(error);
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
-  }
-}
-
-async function loadNetwork() {
-  try {
-    await Promise.all([wallet.LOAD_APR(), app.LOAD_APR_REWARDS(), checkBalances(), checkPrices()]);
-  } catch (error: Error | any) {
-    Logger.error(error);
-    showErrorDialog.value = true;
-    errorMessage.value = error?.message;
-  }
-}
-
-async function checkBalances() {
-  balanceInterval = setInterval(async () => {
-    try {
-      if (WalletManager.getWalletAddress() !== "") {
-        await wallet.UPDATE_BALANCES();
-      }
-    } catch (error: Error | any) {
-      showErrorDialog.value = true;
-      errorMessage.value = error?.message;
-    }
-  }, UPDATE_BALANCE_INTERVAL);
-}
-
-async function checkPrices() {
-  pricesInterval = setInterval(async () => {
-    try {
-      await oracle.GET_PRICES();
-    } catch (error: Error | any) {
-      showErrorDialog.value = true;
-      errorMessage.value = error?.message;
-    }
-  }, UPDATE_PRICES_INTERVAL);
-}
 </script>
 
 <style lang="scss" scoped>
@@ -128,8 +38,9 @@ async function checkPrices() {
 .fade-enter-from,
 .fade-leave-active {
   transition: opacity 250ms ease;
-  transition: opacity 200ms cubic-bezier(0.3, 0, 0.1, 1),
-              transform 200ms cubic-bezier(0.3, 0, 0.1, 1);
+  transition:
+    opacity 200ms cubic-bezier(0.3, 0, 0.1, 1),
+    transform 200ms cubic-bezier(0.3, 0, 0.1, 1);
 }
 .fade-enter,
 .fade-leave-to {

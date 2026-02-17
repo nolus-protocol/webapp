@@ -10,7 +10,7 @@
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
-      :error-msg="error"
+      :error-msg="validationError"
     >
       <template v-slot:label>
         <div class="flex items-center gap-1">
@@ -58,8 +58,7 @@
         severity="primary"
         :label="$t('message.delegate')"
         @click="onNextClick"
-        :loading="loading"
-        :disabled="disabled"
+        :loading="disabled"
       />
       <p class="text-center text-12 text-typography-secondary">
         {{ $t("message.estimate-time") }} ~{{ NATIVE_NETWORK.delegateEstimation }}{{ $t("message.sec") }}
@@ -71,29 +70,40 @@
 <script lang="ts" setup>
 import { AdvancedFormControl, Button, ToastType, SvgIcon } from "web-components";
 import { computed, inject, ref } from "vue";
-import { NATIVE_ASSET, NATIVE_CURRENCY, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
+
+import { NATIVE_ASSET, NATIVE_NETWORK, STAKING } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
+import { useBalancesStore } from "@/common/stores/balances";
+import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { AssetUtils, Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
-import { useOracleStore } from "@/common/stores/oracle";
+import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
+import { useStakingStore } from "@/common/stores/staking";
+import { useRouter } from "vue-router";
+import { RouteNames } from "@/router";
+import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
 const wallet = useWalletStore();
-const oracle = useOracleStore();
+const balancesStore = useBalancesStore();
+const historyStore = useHistoryStore();
+const stakingStore = useStakingStore();
+const pricesStore = usePricesStore();
+const router = useRouter();
 const input = ref("0");
-const error = ref("");
-const loading = ref(false);
+const validationError = ref("");
 const disabled = ref(false);
 const i18n = useI18n();
-const loadDelegated = inject("loadDelegated", () => false);
-const onClose = inject("close", () => {});
 
 const assets = computed(() => {
-  const balance = AssetUtils.formatNumber(
-    new Dec(wallet.total_unls.balance.amount, NATIVE_ASSET.decimal_digits).toString(NATIVE_ASSET.decimal_digits),
+  const balance = formatNumber(
+    new Dec(balancesStore.nativeBalance?.amount ?? "0", NATIVE_ASSET.decimal_digits).toString(
+      NATIVE_ASSET.decimal_digits
+    ),
     NATIVE_ASSET.decimal_digits
   );
 
@@ -109,11 +119,11 @@ const assets = computed(() => {
 
 const stable = computed(() => {
   try {
-    const currency = AssetUtils.getCurrencyByTicker(NATIVE_ASSET.ticker);
-    const price = new Dec(oracle.prices?.[currency.key]?.amount ?? 0);
+    const currency = getCurrencyByTicker(NATIVE_ASSET.ticker);
+    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
-    return `${NATIVE_CURRENCY.symbol}${AssetUtils.formatNumber(stable.toString(NATIVE_CURRENCY.maximumFractionDigits), NATIVE_CURRENCY.maximumFractionDigits)}`;
+    return formatDecAsUsd(stable);
   } catch (e) {
     return "";
   }
@@ -133,8 +143,8 @@ function onInput(data: string) {
 
 async function onNextClick() {
   if (validateInputs().length == 0) {
+    disabled.value = true;
     try {
-      disabled.value = true;
       await walletOperation(delegate);
     } catch (e) {
       Logger.error(e);
@@ -146,63 +156,55 @@ async function onNextClick() {
 
 function validateInputs() {
   const selectedCurrency = assets.value[0];
-  error.value = validateAmountV2(input.value, selectedCurrency.balance.value);
-  return error.value;
+  validationError.value = validateAmountV2(input.value, selectedCurrency.balance.value);
+  return validationError.value;
 }
 
 async function delegate() {
-  try {
-    loading.value = true;
-    if (wallet.wallet && error.value.length == 0) {
-      let validators = await getValidators();
-      let division = STAKING.VALIDATORS_NUMBER;
+  if (!wallet.wallet || validationError.value.length > 0) return;
 
-      if (validators?.length > 0) {
-        division = validators?.length;
-      }
+  let validators = await getValidators();
+  let division = STAKING.VALIDATORS_NUMBER;
 
-      const data = CurrencyUtils.convertNolusToUNolus(input.value);
-      const amount = Number(data.amount.toString());
-      const quotient = Math.floor(amount / division);
-      const remainder = amount % division;
-      const amounts = [];
-
-      validators = validators.sort((a: any, b: any) => {
-        return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
-      });
-
-      for (const v of validators) {
-        amounts.push({
-          value: quotient,
-          validator: v.operator_address
-        });
-      }
-
-      amounts[0].value += remainder;
-
-      const delegations = amounts.map((item) => {
-        return {
-          validator: item.validator,
-          amount: coin(item.value, data.denom)
-        };
-      });
-      const { txHash, txBytes, usedFee } = await wallet.wallet.simulateDelegateTx(delegations);
-
-      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
-      await Promise.all([loadDelegated(), wallet.UPDATE_BALANCES()]);
-      wallet.loadActivities();
-      onClose();
-      onShowToast({
-        type: ToastType.success,
-        message: i18n.t("message.delegate-successful")
-      });
-    }
-  } catch (err: Error | any) {
-    error.value = err.toString();
-    Logger.error(error);
-  } finally {
-    loading.value = false;
+  if (validators?.length > 0) {
+    division = validators?.length;
   }
+
+  const data = CurrencyUtils.convertNolusToUNolus(input.value);
+  const amount = Number(data.amount.toString());
+  const quotient = Math.floor(amount / division);
+  const remainder = amount % division;
+  const amounts = [];
+
+  validators = validators.sort((a: any, b: any) => {
+    return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
+  });
+
+  for (const v of validators) {
+    amounts.push({
+      value: quotient,
+      validator: v.operator_address
+    });
+  }
+
+  amounts[0].value += remainder;
+
+  const delegations = amounts.map((item) => {
+    return {
+      validator: item.validator,
+      amount: coin(item.value, data.denom)
+    };
+  });
+  const { txBytes } = await wallet.wallet.simulateDelegateTx(delegations);
+
+  await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+  await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
+  historyStore.loadActivities();
+  router.push(`/${RouteNames.STAKE}`);
+  onShowToast({
+    type: ToastType.success,
+    message: i18n.t("message.delegate-successful")
+  });
 }
 
 async function getValidators() {
