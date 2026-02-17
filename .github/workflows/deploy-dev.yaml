@@ -49,4 +49,6 @@ jobs:
 
       - name: Restart backend
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no deploy@10.133.133.11 "sudo systemctl restart webapp-dev"
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no deploy@10.133.133.11 "\
+            chmod +x /opt/deploy/builds/app-dev/nolus-backend && \
+            sudo systemctl restart webapp-dev"
