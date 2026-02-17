@@ -25,6 +25,7 @@ jobs:
         env:
           VITE_BACKEND_URL: https://app-dev.nolus.io
           VITE_WS_URL: wss://app-dev.nolus.io/ws
+          VITE_APP_URL: https://app-dev.nolus.io
         run: |
           npm install
           npm run build

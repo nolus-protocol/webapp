@@ -141,7 +141,8 @@ const nolus = defineConfig(({ mode }) => {
       "import.meta.env.APP_VERSION": JSON.stringify(process.env.npm_package_version),
       // Expose backend URLs to the client (loaded from .env files)
       "import.meta.env.VITE_BACKEND_URL": JSON.stringify(env.VITE_BACKEND_URL || ""),
-      "import.meta.env.VITE_WS_URL": JSON.stringify(env.VITE_WS_URL || "")
+      "import.meta.env.VITE_WS_URL": JSON.stringify(env.VITE_WS_URL || ""),
+      "import.meta.env.VITE_APP_URL": JSON.stringify(env.VITE_APP_URL || "")
     },
     server: {
       host: "127.0.0.1",
