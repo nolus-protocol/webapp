@@ -99,7 +99,7 @@ const deinlineFontDataUrls = (): VitePlugin => {
 
           const hash = crypto.createHash("sha256").update(base64Data).digest("hex").slice(0, 16);
 
-          const fontFileName = `assets/fonts/web-components-font-${hash}${ext}`;
+          const fontFileName = `_assets/fonts/web-components-font-${hash}${ext}`;
 
           this.emitFile({
             type: "asset",
@@ -163,6 +163,7 @@ const nolus = defineConfig(({ mode }) => {
       }
     },
     build: {
+      assetsDir: "_assets",
       minify: "terser",
       chunkSizeWarningLimit: 750,
       terserOptions: {
