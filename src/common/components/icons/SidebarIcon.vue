@@ -124,6 +124,45 @@
         />
       </g>
     </g>
+    <g v-else-if="icon === 'vote'" class="animate-shake">
+      <path 
+        d="M5 18V12.5V9L9 1H10C10.5 1 11.7386 1.82956 11.5 3.5L11 7H16.0631C17.8811 7 19.2813 8.60405 19.0356 10.4053L18.3538 15.4053C18.1511 16.8918 16.8815 18 15.3813 18L5 18Z"
+        class="stroke fill-transparent group-[.router-link-active]:fill-icon-link"
+      />
+      <path 
+        d="M1 10C1 9.44772 1.44772 9 2 9H5V18H2C1.44772 18 1 17.5523 1 17V10Z"
+        class="stroke fill-transparent"
+      />
+    </g>
+    <g v-else-if="icon === 'stats'">
+      <rect 
+        x="2"
+        y="20%"
+        
+        width="5"
+        height="75%"
+        class="fill-icon-default transition group-[.router-link-active]:fill-icon-link
+        !origin-bottom scale-y-50 group-[.router-link-active]:scale-y-100
+        "
+      />
+      <rect 
+        x="9"
+        y="20%"
+        
+        width="5"
+        height="75%"
+        class="fill-icon-default transition group-[.router-link-active]:fill-icon-link
+        !origin-bottom scale-y-100 group-[.router-link-active]:scale-y-75"
+      />
+      <rect 
+        x="16"
+        y="20%"
+        
+        width="5"
+        height="75%"
+        class="fill-icon-default transition group-[.router-link-active]:fill-icon-link  !origin-bottom scale-y-75 group-[.router-link-active]:scale-y-50"
+      />
+    </g>
   </svg>
 </template>
 

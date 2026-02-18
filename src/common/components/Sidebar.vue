@@ -4,22 +4,16 @@
     <div class="flex flex-col gap-1">
       <RouterLink
         :to="{ name: RouteNames.VOTE }"
-        class="router-link flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+        class="router-link group flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
       >
-        <SvgIcon
-          name="vote"
-          size="l"
-        />
+        <SidebarIcon icon="vote" />
         {{ $t("message.vote") }}
       </RouterLink>
       <RouterLink
         :to="{ name: RouteNames.STATS }"
-        class="router-link flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+        class="router-link group flex h-[50px] items-center gap-2 rounded-full border border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
       >
-        <SvgIcon
-          name="bar-chart"
-          size="l"
-        />
+        <SidebarIcon icon="stats" />
         {{ $t("message.stats") }}
       </RouterLink>
       <p class="text-upper text-center text-12 text-typography-secondary">
@@ -33,7 +27,7 @@
 <script lang="ts" setup>
 import { RouteNames } from "@/router";
 import DesktopMenu from "@/common/components/menus/DesktopMenu.vue";
-import { SvgIcon } from "web-components";
+import SidebarIcon from "@/common/components/icons/SidebarIcon.vue";
 import { useBlockInfo } from "@/common/composables/useBlockInfo";
 
 const { block, version } = useBlockInfo();
