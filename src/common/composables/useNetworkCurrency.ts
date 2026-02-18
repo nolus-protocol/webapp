@@ -139,7 +139,7 @@ export function useNetworkCurrency() {
       seenTickers.add(asset.ticker);
 
       const resolved = resolveForNetwork(asset.ticker);
-      if (resolved) {
+      if (resolved && resolved.currency.isActive) {
         result.push(resolved);
       }
     }

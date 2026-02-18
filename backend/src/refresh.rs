@@ -404,9 +404,7 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
         std::collections::HashSet::new();
 
     for etl_currency in etl_response.currencies {
-        if ignore_all.contains(etl_currency.ticker.as_str()) {
-            continue;
-        }
+        let is_ignored = ignore_all.contains(etl_currency.ticker.as_str());
         let display = currency_config.currencies.get(&etl_currency.ticker);
 
         for protocol_mapping in etl_currency.protocols {
@@ -436,14 +434,18 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
                 coingecko_id: display.and_then(|d| d.coingecko_id.clone()),
                 protocol: protocol_mapping.protocol.clone(),
                 group: protocol_mapping.group.clone(),
-                is_active: etl_currency.is_active,
+                is_active: if is_ignored {
+                    false
+                } else {
+                    etl_currency.is_active
+                },
             };
 
-            if is_lpn && etl_currency.is_active {
+            if !is_ignored && is_lpn && etl_currency.is_active {
                 lpn_currencies.push(currency_info.clone());
             }
 
-            if protocol_mapping.group == "lease" && etl_currency.is_active {
+            if !is_ignored && protocol_mapping.group == "lease" && etl_currency.is_active {
                 lease_currencies_set.insert(etl_currency.ticker.clone());
             }
 

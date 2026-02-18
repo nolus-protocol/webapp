@@ -79,7 +79,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           }
         ];
       }
-      return [msg.type, null];
+      return [formatMessageType(msg.type), null];
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
       if (msg.from == address) {
@@ -142,7 +142,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         ];
       }
 
-      return [msg.type, null];
+      return [formatMessageType(msg.type), null];
     }
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
       try {
@@ -196,7 +196,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           }
         ];
       } catch (e) {
-        return [msg.type, null];
+        return [formatMessageType(msg.type), null];
       }
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
@@ -296,7 +296,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           const protocol = getProtocolByContract(msg.data.contract);
           const lpn = getLpnByProtocol(protocol);
           if (!lpn) {
-            return [msg.type, null];
+            return [formatMessageType(msg.type), null];
           }
           const withdraw = await BackendApi.getLpWithdraw(msg.tx_hash);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
@@ -350,10 +350,10 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
       } catch (error) {
         Logger.error(error);
-        return [msg.type, null];
+        return [formatMessageType(msg.type), null];
       }
 
-      return [msg.type, null];
+      return [formatMessageType(msg.type), null];
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
       const m = voteMessages[msg.data.option];
@@ -407,7 +407,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       ];
     }
     default: {
-      return [msg.typeUrl, null];
+      return [formatMessageType(msg.typeUrl ?? msg.type), null];
     }
   }
 }
@@ -463,7 +463,7 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
         }
       } catch (error) {
         Logger.error(error);
-        return msg.type;
+        return formatMessageType(msg.type);
       }
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
@@ -482,7 +482,7 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
       return i18n.t("message.stake-history");
     }
     default: {
-      return msg.typeUrl;
+      return formatMessageType(msg.typeUrl ?? msg.type);
     }
   }
 }
@@ -535,7 +535,7 @@ export function icon(msg: IObjectKeys, i18n: IObjectKeys) {
         }
       } catch (error) {
         Logger.error(error);
-        return msg.type;
+        return "assets";
       }
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
@@ -554,9 +554,23 @@ export function icon(msg: IObjectKeys, i18n: IObjectKeys) {
       return "earn";
     }
     default: {
-      return msg.typeUrl;
+      return "assets";
     }
   }
+}
+
+/**
+ * Convert a protobuf type URL to a human-readable label.
+ * e.g. "/ibc.core.channel.v1.MsgRecvPacket" → "Recv Packet"
+ *      "/cosmos.bank.v1beta1.MsgSend" → "Send"
+ */
+function formatMessageType(typeUrl: string): string {
+  if (!typeUrl) return "Unknown";
+  const parts = typeUrl.split(".");
+  const msgName = parts[parts.length - 1];
+  if (!msgName) return typeUrl;
+  const withoutMsg = msgName.replace(/^Msg/, "");
+  return withoutMsg.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
 function truncateString(text: string) {
@@ -600,16 +614,23 @@ async function fetchCurrency(amount: Coin, symbol?: string) {
     );
   }
 
-  const metadata = await BackendApi.getDenomMetadata(amount.denom);
-  const c = metadata?.denom_units?.at(0);
-  const currency = getCurrencyBySymbol(c?.denom ?? amount.denom);
+  try {
+    const metadata = await BackendApi.getDenomMetadata(amount.denom);
+    const c = metadata?.denom_units?.at(0);
+    const currency = getCurrencyBySymbol(c?.denom ?? amount.denom);
 
-  return CurrencyUtils.convertMinimalDenomToDenom(
-    amount?.amount,
-    currency?.ibcData,
-    currency?.shortName ?? truncateString(amount.denom),
-    Number(currency?.decimal_digits ?? 0)
-  );
+    return CurrencyUtils.convertMinimalDenomToDenom(
+      amount?.amount,
+      currency?.ibcData,
+      currency?.shortName ?? truncateString(amount.denom),
+      Number(currency?.decimal_digits ?? 0)
+    );
+  } catch (e) {
+    console.log(e);
+  }
+
+  // Last resort: show truncated denom with raw amount
+  return CurrencyUtils.convertMinimalDenomToDenom(amount?.amount, amount.denom, truncateString(amount.denom), 0);
 }
 
 function getChainName(address: string) {

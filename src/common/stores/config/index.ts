@@ -616,6 +616,11 @@ export const useConfigStore = defineStore("config", () => {
     for (const lpnCurrency of lpn.value) {
       if (lpnCurrency.protocol === protocol) return lpnCurrency;
     }
+    // Fallback: search the full currencies map (covers deprecated protocols
+    // whose LPN is no longer in the active lpn list but is still in the map)
+    for (const currency of Object.values(currenciesData.value)) {
+      if (currency.protocol === protocol && currency.group === "lpn") return currency;
+    }
     return null;
   }
 
