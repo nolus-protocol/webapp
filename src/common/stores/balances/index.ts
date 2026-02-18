@@ -84,6 +84,11 @@ export const useBalancesStore = defineStore("balances", () => {
         continue;
       }
 
+      // Skip inactive currencies (e.g. deprecated/ignored like STRD)
+      if (!currency.isActive) {
+        continue;
+      }
+
       // Skip assets not available for this network (based on /api/assets)
       if (!availableTickers.includes(ticker)) {
         continue;
