@@ -33,8 +33,8 @@ jobs:
 
       - name: Deploy via rclone
         run: |
-          rclone sync deploy-bundle/ :sftp,host=10.133.133.11,user=deploy,key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app/ --verbose
+          rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app/ --verbose
 
       - name: Restart SSR server
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no deploy@10.133.133.11 "sudo systemctl restart webapp-prod"
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "sudo systemctl restart webapp-prod"
