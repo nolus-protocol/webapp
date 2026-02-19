@@ -87,11 +87,8 @@ import type {
 
 import { ApiError as ApiErrorClass } from "./types";
 
-// Backend URL - must be configured via environment variable
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-if (!BACKEND_URL) {
-  throw new Error("VITE_BACKEND_URL environment variable is required");
-}
+// Backend URL from environment, falls back to same-origin (for Vite dev proxy)
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
 /**
  * Main Backend API Client
@@ -139,7 +136,9 @@ export class BackendApiClient {
       headers?: Record<string, string>;
     } = {}
   ): Promise<T> {
-    const url = new URL(`${this.baseUrl}${path}`);
+    const url = this.baseUrl
+      ? new URL(`${this.baseUrl}${path}`)
+      : new URL(path, window.location.origin);
 
     if (options.params) {
       Object.entries(options.params).forEach(([key, value]) => {

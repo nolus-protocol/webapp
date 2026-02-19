@@ -4,11 +4,8 @@ import { templateParser } from "./helpers";
 // Supported languages for push notifications
 const supportedLanguages = ["en", "ru", "cn", "fr", "es", "gr", "tr", "id", "jp", "kr"];
 
-// Backend URL for locale fetching (same as main app)
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-if (!BACKEND_URL) {
-  throw new Error("VITE_BACKEND_URL environment variable is required");
-}
+// Backend URL for locale fetching (same as main app), falls back to same-origin
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
 const loaded: { [key: string]: Promise<{ [key: string]: string }> } = {};
 
