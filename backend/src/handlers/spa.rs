@@ -48,12 +48,15 @@ impl Service<Request<Body>> for SpaFallback {
             // Try to serve the static file first
             let response = serve_dir.call(req).await.unwrap();
 
-            // If the file was not found (404) or ServeDir is trying to redirect
-            // to a directory with a trailing slash (301), serve index.html instead.
-            // The 301 case prevents redirect loops when an nginx rewrite strips
-            // trailing slashes: /assets → 301 /assets/ → nginx 301 /assets → …
+            // If the file was not found (404) or ServeDir is trying to
+            // redirect to a directory with a trailing slash (3xx), serve
+            // index.html instead. ServeDir uses 307 for directory redirects
+            // in tower-http 0.6; catching all redirects avoids breakage if
+            // a future version changes the status code. Without this, nginx
+            // stripping trailing slashes causes an infinite loop:
+            //   /assets → 307 /assets/ → nginx 301 /assets → …
             if response.status() == StatusCode::NOT_FOUND
-                || response.status() == StatusCode::MOVED_PERMANENTLY
+                || response.status().is_redirection()
             {
                 // Create a new request for index.html
                 let index_req = Request::builder()
