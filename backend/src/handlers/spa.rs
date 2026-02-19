@@ -48,8 +48,13 @@ impl Service<Request<Body>> for SpaFallback {
             // Try to serve the static file first
             let response = serve_dir.call(req).await.unwrap();
 
-            // If the file was not found (404), serve index.html with 200 OK
-            if response.status() == StatusCode::NOT_FOUND {
+            // If the file was not found (404) or ServeDir is trying to redirect
+            // to a directory with a trailing slash (301), serve index.html instead.
+            // The 301 case prevents redirect loops when an nginx rewrite strips
+            // trailing slashes: /assets → 301 /assets/ → nginx 301 /assets → …
+            if response.status() == StatusCode::NOT_FOUND
+                || response.status() == StatusCode::MOVED_PERMANENTLY
+            {
                 // Create a new request for index.html
                 let index_req = Request::builder()
                     .uri(Uri::from_static("/index.html"))
