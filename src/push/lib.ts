@@ -40,7 +40,7 @@ function getWorker() {
   return register;
 }
 
-export async function requestPermissions(
+async function requestPermissions(
   address: string
 ): Promise<PushSubscription | typeof STATUS.not_supported | typeof STATUS.permission_denied> {
   return Notification.requestPermission().then((permission) => {
@@ -51,7 +51,7 @@ export async function requestPermissions(
   });
 }
 
-export async function subscribe(subscription: PushSubscription | null, address: string): Promise<string> {
+async function subscribe(subscription: PushSubscription | null, address: string): Promise<string> {
   if (subscription) {
     const item = { address, data: subscription };
     const response = await fetch(`${host}/subscribe`, {

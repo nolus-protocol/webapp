@@ -1,8 +1,6 @@
 export enum LeaseTypes {
   LONG = "Long",
-  SHORT = "Short",
-  STOP_LOSS = "Stop Loss",
-  TAKE_PROFIT = "Take profit"
+  SHORT = "Short"
 }
 
 export enum SingleLeaseDialog {

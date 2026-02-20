@@ -1,7 +1,7 @@
 import type { Coin } from "@cosmjs/proto-signing";
 import type { StdFee } from "@cosmjs/amino";
 import { i18n } from "@/i18n";
-import { Dec, Int } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
@@ -22,33 +22,6 @@ export const validateAddress = (address: string) => {
   } catch (e) {
     return i18n.global.t("message.invalid-address");
   }
-};
-
-export const validateAmount = (amount: string, denom: string, balance: number) => {
-  const hasDot = amount?.at?.(0) == ".";
-
-  if (!amount || hasDot) {
-    return i18n.global.t("message.invalid-amount");
-  }
-
-  const asset = getCurrencyByDenom(denom);
-  const minimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amount, asset.ibcData, asset.decimal_digits);
-  const zero = CurrencyUtils.convertDenomToMinimalDenom("0", asset.ibcData, asset.decimal_digits).amount.toDec();
-
-  const walletBalance = String(balance || 0);
-  const isLowerThanOrEqualsToZero = minimalDenom.amount.toDec().lte(zero);
-
-  const isGreaterThanWalletBalance = new Int(minimalDenom.amount.toString() || "0").gt(new Int(walletBalance));
-
-  if (isLowerThanOrEqualsToZero) {
-    return i18n.global.t("message.invalid-balance-low");
-  }
-
-  if (isGreaterThanWalletBalance) {
-    return i18n.global.t("message.invalid-balance-big");
-  }
-
-  return "";
 };
 
 export const validateAmountV2 = (amount: string, amount2: string) => {

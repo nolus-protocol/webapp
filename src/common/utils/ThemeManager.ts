@@ -34,7 +34,7 @@ export function setTheme(theme: Theme): void {
 /**
  * Apply theme to DOM
  */
-export function applyTheme(theme: Theme): void {
+function applyTheme(theme: Theme): void {
   const resolvedTheme = resolveTheme(theme);
 
   if (resolvedTheme === "dark") {
@@ -47,7 +47,7 @@ export function applyTheme(theme: Theme): void {
 /**
  * Resolve "sync" theme to actual light/dark based on system preference
  */
-export function resolveTheme(theme: Theme): "light" | "dark" {
+function resolveTheme(theme: Theme): "light" | "dark" {
   if (theme === "sync") {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   }
@@ -70,15 +70,6 @@ export function initTheme(): void {
       }
     });
   }
-}
-
-/**
- * Toggle between light and dark themes
- */
-export function toggleTheme(): void {
-  const current = getTheme();
-  const resolved = resolveTheme(current);
-  setTheme(resolved === "dark" ? "light" : "dark");
 }
 
 /**

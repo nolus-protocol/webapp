@@ -206,26 +206,12 @@ export function formatPrice(amount: number | string): string {
 }
 
 /**
- * Format a Dec value as an adaptive price string. No currency symbol.
- */
-export function formatPriceDec(amount: Dec): string {
-  return formatPrice(amount.toString(MAX_DECIMALS));
-}
-
-/**
  * Format a price with adaptive decimals and $ prefix: "$1,234.50", "$0.0045"
  */
 export function formatPriceUsd(amount: number | string): string {
   const num = Number(amount);
   const sign = num < 0 ? "-" : "";
   return `${sign}${NATIVE_CURRENCY.symbol}${formatPrice(Math.abs(num))}`;
-}
-
-/**
- * Format a Dec value as an adaptive price with $ prefix.
- */
-export function formatPriceDecUsd(amount: Dec): string {
-  return formatPriceUsd(amount.toString(MAX_DECIMALS));
 }
 
 /**

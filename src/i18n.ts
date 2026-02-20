@@ -11,12 +11,12 @@ export function setupI18n() {
   return i18n;
 }
 
-export function setI18nLanguage(locale: string) {
+function setI18nLanguage(locale: string) {
   (i18n.global.locale as any).value = locale;
   document.querySelector("html")?.setAttribute("lang", locale);
 }
 
-export async function loadLocaleMessages(locale: string) {
+async function loadLocaleMessages(locale: string) {
   const lang = languages[locale as keyof typeof languages] ?? languages.en;
   const data = await lang.load();
   i18n.global.setLocaleMessage(locale, data);

@@ -44,23 +44,6 @@ export function getProtocols(): Record<string, string> {
 }
 
 /**
- * Get the default protocol for the current network
- */
-export function getDefaultProtocol(): string {
-  const protocols = getProtocols();
-  const networkName = EnvNetworkUtils.getStoredNetworkName();
-
-  switch (networkName) {
-    case "mainnet":
-      return protocols.osmosis_noble;
-    case "testnet":
-      return protocols.osmosis;
-    default:
-      return protocols.osmosis_noble;
-  }
-}
-
-/**
  * Fetch network status from backend
  */
 export async function fetchNetworkStatus(): Promise<{
