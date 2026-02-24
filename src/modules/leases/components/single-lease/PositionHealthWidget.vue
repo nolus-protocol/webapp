@@ -13,8 +13,7 @@
           description: $t('message.position-health-empty-description'),
           link: {
             label: $t('message.position-health-empty-link'),
-            url: `/${RouteNames.LEASES}/${route.params.id}/learn-health`,
-            tooltip: { content: $t('message.position-health-empty-tooltip') }
+            onClick: () => IntercomService.openArticle(9679883)
           }
         }
       ]"
@@ -88,12 +87,7 @@
           </span>
         </div>
         <button
-          @click="
-            () => {
-              router.push(`/${RouteNames.LEASES}/${route.params.id}/learn-health`);
-            }
-          "
-          target="_blank"
+          @click="IntercomService.openArticle(9679883)"
           class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
         >
           {{ $t("message.learn-health") }}
@@ -111,16 +105,13 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import HealthArrow from "@/assets/icons/lease/health-arrow.svg";
 import EmptyState from "@/common/components/EmptyState.vue";
 import { TEMPLATES } from "../common";
-import { useRoute, useRouter } from "vue-router";
-import { RouteNames } from "@/router";
+import { IntercomService } from "@/common/utils";
 import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
 
 const radius = 112;
 const centerX = 128;
 const centerY = 128;
-const route = useRoute();
-const router = useRouter();
 
 enum status {
   green = "green",

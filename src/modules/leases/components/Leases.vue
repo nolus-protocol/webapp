@@ -21,8 +21,7 @@
           description: $t('message.start-lease-description'),
           link: {
             label: $t('message.learn-new-leases'),
-            url: `/${RouteNames.LEASES}/learn-leases`,
-            tooltip: { content: $t('message.learn-new-leases') }
+            onClick: () => IntercomService.openArticle(9679605)
           }
         }
       ]"
@@ -111,7 +110,7 @@ import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDia
 
 import { useI18n } from "vue-i18n";
 import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
-import { isMobile, isTablet, Logger, WalletManager } from "@/common/utils";
+import { isMobile, isTablet, IntercomService, Logger, WalletManager } from "@/common/utils";
 import { formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 

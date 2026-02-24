@@ -1,5 +1,5 @@
 import { INTERCOM_API } from "@/config/global";
-import { boot, Intercom as messenger, shutdown, update } from "@intercom/messenger-js-sdk";
+import { boot, Intercom as messenger, showArticle, shutdown, update } from "@intercom/messenger-js-sdk";
 import { BackendApi } from "@/common/api";
 
 /**
@@ -58,6 +58,14 @@ class IntercomServiceClass {
     this.currentWallet = null;
 
     await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  /**
+   * Open an Intercom Help Center article in the Messenger panel.
+   * This is a user-initiated action — not counted as an outbound message.
+   */
+  openArticle(articleId: number): void {
+    showArticle(articleId.toString());
   }
 
   /**

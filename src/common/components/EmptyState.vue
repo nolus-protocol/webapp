@@ -34,9 +34,7 @@
           />
           <button
             v-if="slide.link"
-            @click="router.push(slide.link?.url)"
-            :href="slide.link.url"
-            target="_blank"
+            @click="slide.link?.onClick ? slide.link.onClick() : router.push(slide.link?.url!)"
             class="flex w-fit text-14 font-normal text-typography-link"
           >
             {{ slide.link.label }}
@@ -119,7 +117,7 @@ const props = defineProps<{
     image?: { alt?: string; class?: string; style?: string; name: string };
     title: string;
     description: string;
-    link?: { url: string; label: string; tooltip?: TooltipProps };
+    link?: { url?: string; label: string; tooltip?: TooltipProps; onClick?: () => void };
     button?: { name: string; icon: string; url: string };
   }[];
   // images?: { alt?: string; class?: string; style?: string; name: string }[];

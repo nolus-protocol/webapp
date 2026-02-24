@@ -22,8 +22,7 @@
     <p class="font- flex items-center justify-center gap-1 text-14 font-semibold text-typography-secondary">
       {{ $t("message.new-with-wallets") }}
       <button
-        @click="router.push('learn-wallet')"
-        target="_blank"
+        @click="IntercomService.openArticle(9679605)"
         class="flex items-center gap-1 text-typography-link"
       >
         {{ $t("message.learn-more") }}
@@ -49,12 +48,11 @@ import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 import LeapIcon from "@/assets/icons/wallets/leapwallet.svg?url";
 
-import { useRouter } from "vue-router";
+import { IntercomService } from "@/common/utils";
 import type { IObjectKeys } from "@/common/types";
 
 const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
-const router = useRouter();
 
 const connections = computed(
   (): Record<

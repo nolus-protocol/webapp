@@ -14,8 +14,7 @@
           description: $t('message.position-summary-lease-description'),
           link: {
             label: $t('message.learn-more-leases'),
-            url: `/${RouteNames.LEASES}/${route.params.id}/learn-summary`,
-            tooltip: { content: $t('message.learn-more-leases-tooltip') }
+            onClick: () => IntercomService.openArticle(9679883)
           }
         }
       ]"
@@ -256,7 +255,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { formatNumber, getAdaptivePriceDecimals } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { dateParser, isMobile, Logger, walletOperation } from "@/common/utils";
+import { dateParser, IntercomService, isMobile, Logger, walletOperation } from "@/common/utils";
 import { useRoute, useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { TEMPLATES } from "../common";

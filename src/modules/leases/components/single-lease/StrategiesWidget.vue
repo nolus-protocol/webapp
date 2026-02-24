@@ -13,8 +13,7 @@
           description: $t('message.position-strategy-empty-description'),
           link: {
             label: $t('message.position-strategy-empty-link'),
-            url: `/${RouteNames.LEASES}/${route.params.id}/learn-summary`,
-            tooltip: { content: $t('message.position-strategy-empty-tooltip') }
+            onClick: () => IntercomService.openArticle(9679883)
           }
         }
       ]"
@@ -52,15 +51,12 @@ import { ref, computed } from "vue";
 import { Toggle, Widget } from "web-components";
 import { getLeaseStatus, TEMPLATES } from "../common";
 import type { LeaseInfo } from "@/common/api";
-import { RouteNames } from "@/router";
-import { useRoute } from "vue-router";
+import { IntercomService } from "@/common/utils";
 
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import WatcherIcon from "@/assets/icons/lease/watcher.svg";
 import ActivateStrategyDialog from "@/modules/leases/components/single-lease/ActivateStrategyDialog.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
-
-const route = useRoute();
 const strategyDialogRef = ref<typeof ActivateStrategyDialog | null>(null);
 const props = defineProps<{
   lease?: LeaseInfo | null;

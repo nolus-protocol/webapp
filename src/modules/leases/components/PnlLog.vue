@@ -57,8 +57,7 @@
             description: $t('message.start-lease-description'),
             link: {
               label: $t('message.learn-new-leases'),
-              url: `/${RouteNames.LEASES}/learn-leases`,
-              tooltip: { content: $t('message.learn-new-leases') }
+              onClick: () => IntercomService.openArticle(9679605)
             }
           }
         ]"
@@ -96,7 +95,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import type { IObjectKeys } from "@/common/types";
 import { NATIVE_CURRENCY } from "@/config/global";
 import type { ILoan } from "./types";
-import { getCreatedAtForHuman, isMobile, Logger } from "@/common/utils";
+import { getCreatedAtForHuman, IntercomService, isMobile, Logger } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTickerForProtocol, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
 import { useAnalyticsStore } from "@/common/stores";

@@ -46,7 +46,7 @@
                 wallet.wallet && !isProtocolDisabled
                   ? { name: $t('message.open-position'), icon: 'plus', url: `/${RouteNames.LEASES}/open/long` }
                   : undefined,
-              link: { label: $t('message.learn-new-leases'), url: `/learn-leases` }
+              link: { label: $t('message.learn-new-leases'), onClick: () => IntercomService.openArticle(9679605) }
             }
           ]"
         />
@@ -69,7 +69,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
-import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { IntercomService, isMobile, Logger, WalletManager } from "@/common/utils";
 import { useWalletConnected } from "@/common/composables";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY } from "@/config/global";
