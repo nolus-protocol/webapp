@@ -126,7 +126,7 @@ impl IntercomClient {
             .timestamp() as usize;
 
         // Flatten attributes into a HashMap for the JWT payload
-        let attributes_map = match attributes {
+        let mut attributes_map: HashMap<String, serde_json::Value> = match attributes {
             Some(attrs) => {
                 let value = serde_json::to_value(attrs)
                     .map_err(|e| AppError::Internal(format!("Failed to serialize attributes: {}", e)))?;
@@ -139,6 +139,15 @@ impl IntercomClient {
             }
             None => HashMap::new(),
         };
+
+        // Always set the dashboard URL server-side from the wallet address
+        attributes_map.insert(
+            "positions_dashboard_url".to_string(),
+            serde_json::Value::String(format!(
+                "https://crtl.kostovster.io/chain-data/wallet-explorer?address={}",
+                user_id
+            )),
+        );
 
         let claims = IntercomClaims {
             user_id: user_id.to_string(),
@@ -260,7 +269,14 @@ mod tests {
         )
         .unwrap();
 
-        assert!(token_data.claims.attributes.is_empty());
+        // Only the server-injected dashboard URL should be present
+        assert_eq!(token_data.claims.attributes.len(), 1);
+        assert_eq!(
+            token_data.claims.attributes.get("positions_dashboard_url"),
+            Some(&serde_json::Value::String(
+                "https://crtl.kostovster.io/chain-data/wallet-explorer?address=nolus1abc123".to_string()
+            ))
+        );
     }
 
     #[test]

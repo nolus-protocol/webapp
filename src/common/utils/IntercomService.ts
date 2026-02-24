@@ -34,8 +34,6 @@ export interface IntercomUserData {
   has_staking_positions?: boolean;
   is_vesting_account?: boolean;
 
-  // Support tools
-  positions_dashboard_url?: string;
 }
 
 /**
@@ -66,7 +64,6 @@ class IntercomServiceClass {
     try {
       this.currentWallet = wallet;
       this.currentAttributes = {
-        positions_dashboard_url: this.buildDashboardUrl(wallet),
         ...(walletType && { wallet_type: walletType })
       };
 
@@ -230,12 +227,6 @@ class IntercomServiceClass {
     return BackendApi.getIntercomToken(this.currentWallet!, allAttributes);
   }
 
-  /**
-   * Build Grafana dashboard URL for support
-   */
-  private buildDashboardUrl(wallet: string): string {
-    return `https://grafana9.nolus.network/d/ea14ddcc-73ed-4810-89be-fb5e035edee51/wallet-checker?orgId=1&var-walletAddress=${wallet}`;
-  }
 }
 
 // Export singleton instance
