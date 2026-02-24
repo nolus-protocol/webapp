@@ -293,12 +293,14 @@ fn trigger_gated_refresh(state: &Arc<AppState>) {
         let s3 = s.clone();
         let s4 = s.clone();
         let s5 = s.clone();
+        let s6 = s.clone();
         tokio::join!(
             crate::refresh::refresh_filter_context(&s),
             crate::refresh::refresh_gated_assets(&s2),
             crate::refresh::refresh_gated_protocols(&s3),
             crate::refresh::refresh_gated_networks(&s4),
             crate::refresh::refresh_swap_config(&s5),
+            crate::refresh::refresh_app_config(&s6),
         );
     });
 }
