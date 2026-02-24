@@ -57,7 +57,7 @@
       :updateChart="updateChart"
       :fns="[setStats]"
       :getClosestDataPoint="getClosestDataPoint"
-      :data-length="chart_data.length"
+      :data-length="hasChartData ? chart_data.length : 0"
     />
   </Widget>
 </template>
@@ -91,6 +91,7 @@ const tx_volume = computed(() => analyticsStore.historyStats?.tx_volume?.toStrin
 const win_rate = computed(() => analyticsStore.historyStats?.win_rate?.toString() ?? "0");
 const loading = computed(() => analyticsStore.historyDataLoading && !analyticsStore.hasHistoryData);
 
+const hasChartData = computed(() => chart_data.value.some((d) => d.percentage !== 0));
 const disabled = () => (WalletManager.getWalletConnectMechanism() ? false : true);
 
 // Watch for history stats changes to update chart data
