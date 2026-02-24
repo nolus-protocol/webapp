@@ -18,9 +18,10 @@
     <template #title-content>
       <Button
         severity="tertiary"
-        :icon="isSubscribed ? 'bell' : 'bell-disabled'"
+        icon="bell"
         size="icon"
         v-if="wallet.wallet"
+        :class="isSubscribed ? 'text-primary-50' : 'text-icon-default'"
         @click="toggleSubscription"
       />
     </template>
@@ -64,11 +65,14 @@ async function toggleSubscription() {
       }
     } else {
       const result = await notificationSubscribe(wallet?.wallet?.address as string);
-      if (result === "subscribed") {
-        isSubscribed.value = true;
-        onShowToast({ type: ToastType.success, message: i18n.t("message.subscribed") });
-      } else if (result === "permission_denied") {
+      if (result === "permission_denied") {
         onShowToast({ type: ToastType.error, message: i18n.t("message.permission-denied") });
+      } else {
+        // Check browser state — subscription may succeed even if ETL response is unexpected
+        isSubscribed.value = await getSubscriptionStatus();
+        if (isSubscribed.value) {
+          onShowToast({ type: ToastType.success, message: i18n.t("message.subscribed") });
+        }
       }
     }
   } catch (e) {
