@@ -467,7 +467,7 @@
     "filter-category": "Type",
     "filter-lease-id": "Position id",
     "filter-positions": "Margin",
-    "filter-transfers": "Transfer",
+    "filter-transfers": "Transfer & Swap",
     "filter-earn": "Earn",
     "filter-staking": "Stake",
     "apply-filter": "Apply filter",
