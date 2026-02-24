@@ -176,6 +176,8 @@
     "realized-pnl": "Gerçekleşen PnL",
     "realized": "Gerçekleşen",
     "liquidation": "Likidasyon Tetikleyicisi",
+    "liquidation-overdue interest": "Faizi Öde",
+    "liquidation-high liability": "Likidasyon Tetiklendi",
     "select-wallet": "Cüzdan Seç",
     "new-with-wallets": "Cüzdanlarda yeni misiniz",
     "learn-more": "Daha fazla bilgi",

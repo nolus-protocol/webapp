@@ -176,6 +176,8 @@
     "realized-pnl": "已实现 PnL",
     "realized": "已实现",
     "liquidation": "清算触发",
+    "liquidation-overdue interest": "结算利息",
+    "liquidation-high liability": "已触发清算",
     "select-wallet": "选择钱包",
     "new-with-wallets": "钱包新手",
     "learn-more": "了解更多",

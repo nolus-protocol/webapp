@@ -405,11 +405,12 @@ pub struct EtlLeaseInfo {
 pub struct EtlLeaseHistoryEntry {
     pub tx_hash: Option<String>,
     #[serde(rename = "type")]
-    pub action: Option<String>,
+    pub action: String,
     pub amount: Option<String>,
     pub symbol: Option<String>,
     #[serde(rename = "time")]
     pub timestamp: Option<String>,
+    pub additional: Option<String>,
 }
 
 /// PnL data point from ETL API

@@ -177,6 +177,8 @@
     "realized-pnl": "Realized PnL",
     "realized": "Realized",
     "liquidation": "Liquidation Trigger",
+    "liquidation-overdue interest": "Settle Interest",
+    "liquidation-high liability": "Liquidation Triggered",
     "select-wallet": "Select Wallet",
     "new-with-wallets": "New with wallets",
     "learn-more": "Learn more",

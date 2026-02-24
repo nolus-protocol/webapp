@@ -176,6 +176,8 @@
     "realized-pnl": "PnL realizado",
     "realized": "Realizado",
     "liquidation": "Disparador de liquidación",
+    "liquidation-overdue interest": "Liquidar intereses",
+    "liquidation-high liability": "Liquidación activada",
     "select-wallet": "Seleccionar wallet",
     "new-with-wallets": "Nuevo con wallets",
     "learn-more": "Saber más",

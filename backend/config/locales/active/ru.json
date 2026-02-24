@@ -176,6 +176,8 @@
     "realized-pnl": "Реализованный PnL",
     "realized": "Реализовано",
     "liquidation": "Триггер ликвидации",
+    "liquidation-overdue interest": "Урегулировать проценты",
+    "liquidation-high liability": "Ликвидация запущена",
     "select-wallet": "Выберите кошелёк",
     "new-with-wallets": "Впервые с кошельками",
     "learn-more": "Узнать больше",

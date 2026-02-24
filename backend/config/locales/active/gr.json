@@ -176,6 +176,8 @@
     "realized-pnl": "Πραγματοποιημένο PnL",
     "realized": "Πραγματοποιημένο",
     "liquidation": "Ενεργοποίηση ρευστοποίησης",
+    "liquidation-overdue interest": "Διευθέτηση τόκων",
+    "liquidation-high liability": "Ενεργοποιήθηκε ρευστοποίηση",
     "select-wallet": "Επιλογή Wallet",
     "new-with-wallets": "Νέοι στα wallets",
     "learn-more": "Μάθετε περισσότερα",

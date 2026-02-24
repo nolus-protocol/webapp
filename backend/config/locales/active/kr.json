@@ -176,6 +176,8 @@
     "realized-pnl": "실현 PnL",
     "realized": "실현",
     "liquidation": "청산 트리거",
+    "liquidation-overdue interest": "이자 정산",
+    "liquidation-high liability": "청산 트리거됨",
     "select-wallet": "Wallet 선택",
     "new-with-wallets": "wallet이 처음이신가요",
     "learn-more": "자세히 알아보기",

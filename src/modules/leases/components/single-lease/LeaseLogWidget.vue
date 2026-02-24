@@ -37,8 +37,6 @@ import { useI18n } from "vue-i18n";
 import {
   Label,
   type LabelProps,
-  SvgIcon,
-  type SvgProps,
   Table,
   type TableColumnProps,
   TableRow,
@@ -64,8 +62,7 @@ const props = defineProps<{
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.history-transaction"), variant: "left" },
   { label: i18n.t("message.date-pascal-case"), class: "hidden md:flex max-w-[180px]" },
-  { label: i18n.t("message.status"), class: "max-w-[110px]" },
-  { label: i18n.t("message.action"), class: "hidden md:flex max-w-[70px]" }
+  { label: i18n.t("message.status"), class: "max-w-[110px]" }
 ]);
 
 const leasesHistory = computed(() => {
@@ -85,8 +82,7 @@ const leasesHistory = computed(() => {
         {
           component: () => h<LabelProps>(Label, { value: i18n.t("message.completed"), variant: "success" }),
           class: "max-w-[110px]"
-        },
-        { component: () => h<SvgProps>(SvgIcon, { name: "more" }), class: "hidden md:flex max-w-[70px] pr-4" }
+        }
       ]
     };
   }) as TableRowItemProps[];

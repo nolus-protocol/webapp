@@ -176,6 +176,8 @@
     "realized-pnl": "PnL Terealisasi",
     "realized": "Terealisasi",
     "liquidation": "Pemicu Likuidasi",
+    "liquidation-overdue interest": "Selesaikan Interest",
+    "liquidation-high liability": "Likuidasi Terpicu",
     "select-wallet": "Pilih Wallet",
     "new-with-wallets": "Baru dengan wallet",
     "learn-more": "Pelajari lebih lanjut",

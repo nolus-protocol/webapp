@@ -438,6 +438,24 @@ pub async fn get_lease(
         .map(Json)
 }
 
+/// Compose an ETL history action with the liquidation cause from the `additional` field.
+///
+/// For liquidation entries, the ETL returns `additional` as "overdue interest" or
+/// "high liability". We compose these into "liquidation-overdue interest" or
+/// "liquidation-high liability" to match the locale keys directly.
+///
+/// Non-liquidation entries (repay, market-close) pass through unchanged.
+fn enrich_history_action(action: &str, additional: Option<&str>) -> String {
+    if action == "liquidation" {
+        let cause = match additional {
+            Some(c) if !c.is_empty() => c,
+            _ => "unknown",
+        };
+        return format!("{}-{}", action, cause);
+    }
+    action.to_string()
+}
+
 /// GET /api/leases/:address/history
 /// Returns transaction history for a lease
 pub async fn get_lease_history(
@@ -463,7 +481,7 @@ pub async fn get_lease_history(
                 .into_iter()
                 .map(|entry| LeaseHistoryEntry {
                     tx_hash: entry.tx_hash,
-                    action: entry.action.unwrap_or_else(|| "unknown".to_string()),
+                    action: enrich_history_action(&entry.action, entry.additional.as_deref()),
                     amount: entry.amount,
                     symbol: entry.symbol,
                     timestamp: entry.timestamp,
@@ -698,7 +716,7 @@ async fn fetch_lease_info(
             h.iter()
                 .map(|entry| LeaseHistoryEntry {
                     tx_hash: entry.tx_hash.clone(),
-                    action: entry.action.clone().unwrap_or_default(),
+                    action: enrich_history_action(&entry.action, entry.additional.as_deref()),
                     amount: entry.amount.clone(),
                     symbol: entry.symbol.clone(),
                     timestamp: entry.timestamp.clone(),
@@ -1766,5 +1784,42 @@ mod tests {
         );
 
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_enrich_history_action_liquidation_with_cause() {
+        assert_eq!(
+            enrich_history_action("liquidation", Some("overdue interest")),
+            "liquidation-overdue interest"
+        );
+        assert_eq!(
+            enrich_history_action("liquidation", Some("high liability")),
+            "liquidation-high liability"
+        );
+    }
+
+    #[test]
+    fn test_enrich_history_action_liquidation_missing_cause_fails_visibly() {
+        assert_eq!(
+            enrich_history_action("liquidation", None),
+            "liquidation-unknown"
+        );
+        assert_eq!(
+            enrich_history_action("liquidation", Some("")),
+            "liquidation-unknown"
+        );
+    }
+
+    #[test]
+    fn test_enrich_history_action_non_liquidation_passes_through() {
+        assert_eq!(
+            enrich_history_action("repay", Some("overdue interest")),
+            "repay"
+        );
+        assert_eq!(
+            enrich_history_action("partial-liquidation", Some("high liability")),
+            "partial-liquidation"
+        );
+        assert_eq!(enrich_history_action("market-close", None), "market-close");
     }
 }

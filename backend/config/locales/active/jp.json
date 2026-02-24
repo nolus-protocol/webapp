@@ -176,6 +176,8 @@
     "realized-pnl": "確定 PnL",
     "realized": "確定",
     "liquidation": "清算トリガー",
+    "liquidation-overdue interest": "利息を精算",
+    "liquidation-high liability": "清算がトリガーされました",
     "select-wallet": "ウォレットを選択",
     "new-with-wallets": "ウォレットは初めてですか",
     "learn-more": "詳しく見る",
