@@ -1,4 +1,6 @@
 @use "web-components/dist/assets/web-components.css";
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@layer webapp-utilities {
+  @tailwind utilities;
+}
