@@ -18,10 +18,10 @@
     <template #title-content>
       <Button
         severity="tertiary"
-        icon="bell"
+        :icon="isSubscribed ? 'bell' : 'bell-disabled'"
         size="icon"
         v-if="wallet.wallet"
-        @click="subscribeWallet"
+        @click="toggleSubscription"
       />
     </template>
     <template #content>
@@ -33,43 +33,47 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, ref } from "vue";
+import { inject, onMounted, ref } from "vue";
 import { Button, Popover, ToastType } from "web-components";
 
 // import AvatarSettings from "./AvatarSettings.vue";
 import ThemeSettings from "./ThemeSettings.vue";
 import { useWalletStore } from "@/common/stores/wallet";
-import { notificationSubscribe } from "../../../push/lib";
+import { notificationSubscribe, notificationUnsubscribe, getSubscriptionStatus } from "../../../push/lib";
 import { useI18n } from "vue-i18n";
-
-enum Subscription {
-  subscribed = "subscribed",
-  unsubscribed = "unsubscribed"
-}
 
 const popoverParent = ref();
 const isOpen = ref(false);
+const isSubscribed = ref(false);
 const wallet = useWalletStore();
 const i18n = useI18n();
 
 const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
 
-async function subscribeWallet() {
-  try {
-    const data = await notificationSubscribe(wallet?.wallet?.address);
-    switch (data) {
-      case Subscription.subscribed: {
-        onShowToast({ type: ToastType.success, message: i18n.t("message.subscribed") });
+onMounted(async () => {
+  isSubscribed.value = await getSubscriptionStatus();
+});
 
-        break;
-      }
-      case Subscription.unsubscribed: {
+async function toggleSubscription() {
+  try {
+    if (isSubscribed.value) {
+      const success = await notificationUnsubscribe();
+      if (success) {
+        isSubscribed.value = false;
         onShowToast({ type: ToastType.success, message: i18n.t("message.unsubscribed") });
-        break;
+      }
+    } else {
+      const result = await notificationSubscribe(wallet?.wallet?.address as string);
+      if (result === "subscribed") {
+        isSubscribed.value = true;
+        onShowToast({ type: ToastType.success, message: i18n.t("message.subscribed") });
+      } else if (result === "permission_denied") {
+        onShowToast({ type: ToastType.error, message: i18n.t("message.permission-denied") });
       }
     }
   } catch (e) {
-    console.log(e);
+    console.error("[Settings] Push notification toggle failed:", e);
+    onShowToast({ type: ToastType.error, message: i18n.t("message.unexpected-error") });
   }
 }
 </script>

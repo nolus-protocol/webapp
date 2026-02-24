@@ -65,6 +65,31 @@ async function subscribe(subscription: PushSubscription | null, address: string)
   return Promise.resolve(STATUS.rejected);
 }
 
+export async function getSubscriptionStatus(): Promise<boolean> {
+  if (!("serviceWorker" in navigator)) return false;
+  try {
+    const sw = await getWorker();
+    const subscription = await sw.pushManager.getSubscription();
+    return subscription !== null;
+  } catch {
+    return false;
+  }
+}
+
+export async function notificationUnsubscribe(): Promise<boolean> {
+  if (!("serviceWorker" in navigator)) return false;
+  try {
+    const sw = await getWorker();
+    const subscription = await sw.pushManager.getSubscription();
+    if (subscription) {
+      return subscription.unsubscribe();
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
 export async function initWorker() {
   try {
     const lang = getLanguage();
