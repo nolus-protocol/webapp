@@ -13,7 +13,7 @@
           description: $t('message.position-health-empty-description'),
           link: {
             label: $t('message.position-health-empty-link'),
-            onClick: () => IntercomService.openArticle(9679883)
+            onClick: () => IntercomService.askQuestion('How does position health work?')
           }
         }
       ]"
@@ -87,7 +87,7 @@
           </span>
         </div>
         <button
-          @click="IntercomService.openArticle(9679883)"
+          @click="IntercomService.askQuestion('How does position health work?')"
           class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
         >
           {{ $t("message.learn-health") }}

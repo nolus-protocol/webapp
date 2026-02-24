@@ -14,7 +14,7 @@
           description: $t('message.position-summary-lease-description'),
           link: {
             label: $t('message.learn-more-leases'),
-            onClick: () => IntercomService.openArticle(9679883)
+            onClick: () => IntercomService.askQuestion('Can you explain how positions work?')
           }
         }
       ]"

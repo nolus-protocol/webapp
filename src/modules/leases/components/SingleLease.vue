@@ -37,8 +37,8 @@
           <p class="my-1 text-14 font-normal text-typography-secondary">
             {{ $t(inProgressBanner.descriptionKey) }}
             <a
-              v-if="inProgressBanner.link"
-              @click="router.push(inProgressBanner.link)"
+              v-if="inProgressBanner.onLinkClick"
+              @click="inProgressBanner.onLinkClick()"
               class="cursor-pointer font-normal text-typography-link"
             >
               {{ $t(inProgressBanner.linkKey!) }}
@@ -82,7 +82,7 @@ import PositionSummaryWidget from "./single-lease/PositionSummaryWidget.vue";
 import PositionHealthWidget from "./single-lease/PositionHealthWidget.vue";
 import LeaseLogWidget from "./single-lease/LeaseLogWidget.vue";
 import { useRoute, useRouter } from "vue-router";
-import { Logger } from "@/common/utils";
+import { IntercomService, Logger } from "@/common/utils";
 import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { Alert, AlertType } from "web-components";
 import ProgressDots from "@/common/components/ProgressDots.vue";
@@ -214,8 +214,8 @@ const isInProgress = computed(() => {
 interface InProgressBanner {
   titleKey: string;
   descriptionKey: string;
-  link?: string;
   linkKey?: string;
+  onLinkClick?: () => void;
 }
 
 const inProgressBanner = computed<InProgressBanner | null>(() => {
@@ -249,16 +249,16 @@ const inProgressBanner = computed<InProgressBanner | null>(() => {
       return {
         titleKey: "message.liquidation-ongoingpartial-liability-title",
         descriptionKey: "message.liquidation-ongoingpartial-liability-description",
-        link: `/${RouteNames.LEASES}/${route.params.id}/liquidation-partial`,
-        linkKey: "message.liquidation-ongoingpartial-liability-description-link"
+        linkKey: "message.liquidation-ongoingpartial-liability-description-link",
+        onLinkClick: () => IntercomService.askQuestion("My position is being partially liquidated due to low health. What should I do?")
       };
     }
     // Default to overdue (interest collection) for any liquidation cause
     return {
       titleKey: "message.liquidation-ongoingpartial-title",
       descriptionKey: "message.liquidation-ongoingpartial-description",
-      link: `/${RouteNames.LEASES}/${route.params.id}/interest-collection`,
-      linkKey: "message.liquidation-ongoingpartial-description-link"
+      linkKey: "message.liquidation-ongoingpartial-description-link",
+      onLinkClick: () => IntercomService.askQuestion("My position is being liquidated due to overdue interest. What should I do?")
     };
   }
 

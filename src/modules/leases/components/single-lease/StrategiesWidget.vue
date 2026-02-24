@@ -13,7 +13,7 @@
           description: $t('message.position-strategy-empty-description'),
           link: {
             label: $t('message.position-strategy-empty-link'),
-            onClick: () => IntercomService.openArticle(9679883)
+            onClick: () => IntercomService.askQuestion('What strategies can I use for my position?')
           }
         }
       ]"

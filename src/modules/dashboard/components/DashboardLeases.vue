@@ -46,7 +46,7 @@
                 wallet.wallet && !isProtocolDisabled
                   ? { name: $t('message.open-position'), icon: 'plus', url: `/${RouteNames.LEASES}/open/long` }
                   : undefined,
-              link: { label: $t('message.learn-new-leases'), onClick: () => IntercomService.openArticle(9679605) }
+              link: { label: $t('message.learn-new-leases'), onClick: () => IntercomService.askQuestion('How does margin leverage work?') }
             }
           ]"
         />

@@ -1,5 +1,5 @@
 import { INTERCOM_API } from "@/config/global";
-import { boot, Intercom as messenger, showArticle, shutdown, update } from "@intercom/messenger-js-sdk";
+import { boot, Intercom as messenger, showArticle, showNewMessage, shutdown, update } from "@intercom/messenger-js-sdk";
 import { BackendApi } from "@/common/api";
 
 /**
@@ -66,6 +66,14 @@ class IntercomServiceClass {
    */
   openArticle(articleId: number): void {
     showArticle(articleId.toString());
+  }
+
+  /**
+   * Open the Messenger with a pre-filled message to the chat agent.
+   * This is a user-initiated action — not counted as an outbound message.
+   */
+  askQuestion(message: string): void {
+    showNewMessage(message);
   }
 
   /**

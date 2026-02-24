@@ -22,7 +22,7 @@
     <p class="font- flex items-center justify-center gap-1 text-14 font-semibold text-typography-secondary">
       {{ $t("message.new-with-wallets") }}
       <button
-        @click="IntercomService.openArticle(9679605)"
+        @click="IntercomService.askQuestion('I\'m new to crypto wallets. Can you help me get started?')"
         class="flex items-center gap-1 text-typography-link"
       >
         {{ $t("message.learn-more") }}

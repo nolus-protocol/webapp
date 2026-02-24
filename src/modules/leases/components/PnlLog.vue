@@ -57,7 +57,7 @@
             description: $t('message.start-lease-description'),
             link: {
               label: $t('message.learn-new-leases'),
-              onClick: () => IntercomService.openArticle(9679605)
+              onClick: () => IntercomService.askQuestion('How does margin leverage work?')
             }
           }
         ]"
