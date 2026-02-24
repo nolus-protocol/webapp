@@ -405,6 +405,7 @@ pub async fn replace_network_config(
         .config_store
         .save_gated_network_config(&config)
         .await?;
+    trigger_gated_refresh(&state);
     Ok(Json(config))
 }
 
@@ -432,6 +433,7 @@ pub async fn upsert_network_config(
         .config_store
         .save_gated_network_config(&config)
         .await?;
+    trigger_gated_refresh(&state);
 
     let net_config = config.networks.get(&network).unwrap();
     Ok(Json(AdminNetworkResponse {
@@ -469,6 +471,7 @@ pub async fn delete_network_config(
         .config_store
         .save_gated_network_config(&config)
         .await?;
+    trigger_gated_refresh(&state);
 
     Ok(Json(serde_json::json!({
         "deleted": network,
