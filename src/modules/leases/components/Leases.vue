@@ -34,7 +34,7 @@
         tableWrapperClasses="md:min-w-auto md:p-0"
         tableClasses="md:min-w-[1000px]"
         :scrollable="!mobile"
-        :hide-values="isTablet() ? undefined : { text: $t('message.toggle-values'), value: hide }"
+        :hide-values="{text: $t('message.toggle-values'), value: hide}"
         @hide-value="onHide"
         @onSearchClear="onSearch('')"
         @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"

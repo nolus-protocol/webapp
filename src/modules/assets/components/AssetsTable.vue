@@ -5,12 +5,11 @@
     :size="mobile ? '' : `${assets.length} ${$t('message.assets')}`"
     :toggle="{ label: $t('message.show-small-balances'), value: smBalances }"
     @togle-value="setSmallBalancesState"
-    :hide-values="mobile ? undefined : { text: $t('message.toggle-values'), value: hide }"
+    :hide-values="{text: $t('message.toggle-values'), value: hide}"
     @hide-value="onHide"
     :tableClasses="mobile ? '' : 'min-w-[530px]'"
     :scrollable="!mobile"
     @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
-    header-classes="md:flex-row flex-col items-stretch md:items-center gap-4 md:gap-2"
     @onSearchClear="onSearch('')"
   >
     <BigNumber
