@@ -83,7 +83,7 @@ const leasesHistory = computed(() => {
         },
         { value: getCreatedAtForHuman(new Date(item.timestamp ?? Date.now())), class: "hidden md:flex max-w-[180px]" },
         {
-          component: () => h<LabelProps>(Label, { value: i18n.t("message.success"), variant: "success" }),
+          component: () => h<LabelProps>(Label, { value: i18n.t("message.completed"), variant: "success" }),
           class: "max-w-[110px]"
         },
         { component: () => h<SvgProps>(SvgIcon, { name: "more" }), class: "hidden md:flex max-w-[70px] pr-4" }
