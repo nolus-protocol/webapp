@@ -231,8 +231,13 @@ const totalLoan = computed(() => {
     return "0";
   }
   const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
-  const v = props.lease?.total?.amount ?? "0";
-  const amount = new Dec(v).quo(price).sub(swapFeeAmount.value);
+  if (!price.isPositive()) {
+    return "0";
+  }
+  const decimals = totalAsset.value?.decimal_digits ?? 6;
+  const totalHuman = new Dec(props.lease.total.amount, decimals);
+  const feeHuman = new Dec(swapStableFee.value).quo(price);
+  const amount = totalHuman.quo(price).sub(feeHuman);
   return amount.toString(asset.value.decimal_digits);
 });
 
