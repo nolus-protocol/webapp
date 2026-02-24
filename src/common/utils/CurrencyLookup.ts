@@ -9,20 +9,6 @@ import type { CurrencyInfo } from "@/common/api";
 import { useConfigStore } from "../stores/config";
 
 /**
- * Get currency by denom and protocol
- */
-export function getCurrency(denom: string, protocol: string): CurrencyInfo {
-  const configStore = useConfigStore();
-  const currency = configStore.getCurrency(denom, protocol);
-
-  if (!currency) {
-    throw new Error(`Currency not found: ${denom} ${protocol}`);
-  }
-
-  return currency;
-}
-
-/**
  * Get currency by ticker
  */
 export function getCurrencyByTicker(ticker: string): CurrencyInfo {

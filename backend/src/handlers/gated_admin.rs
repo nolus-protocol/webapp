@@ -293,12 +293,14 @@ fn trigger_gated_refresh(state: &Arc<AppState>) {
         let s3 = s.clone();
         let s4 = s.clone();
         let s5 = s.clone();
+        let s6 = s.clone();
         tokio::join!(
             crate::refresh::refresh_filter_context(&s),
             crate::refresh::refresh_gated_assets(&s2),
             crate::refresh::refresh_gated_protocols(&s3),
             crate::refresh::refresh_gated_networks(&s4),
             crate::refresh::refresh_swap_config(&s5),
+            crate::refresh::refresh_app_config(&s6),
         );
     });
 }
@@ -405,6 +407,7 @@ pub async fn replace_network_config(
         .config_store
         .save_gated_network_config(&config)
         .await?;
+    trigger_gated_refresh(&state);
     Ok(Json(config))
 }
 
@@ -432,6 +435,7 @@ pub async fn upsert_network_config(
         .config_store
         .save_gated_network_config(&config)
         .await?;
+    trigger_gated_refresh(&state);
 
     let net_config = config.networks.get(&network).unwrap();
     Ok(Json(AdminNetworkResponse {
@@ -469,6 +473,7 @@ pub async fn delete_network_config(
         .config_store
         .save_gated_network_config(&config)
         .await?;
+    trigger_gated_refresh(&state);
 
     Ok(Json(serde_json::json!({
         "deleted": network,

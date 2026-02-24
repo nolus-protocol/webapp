@@ -23,7 +23,7 @@ const CHAIN_INFO_EMBEDDERS: { [key: string]: Function } = {
 /**
  * Get NETWORK_DATA dynamically from config store
  */
-export function getNetworkData() {
+function getNetworkData() {
   const configStore = useConfigStore();
   const networks = configStore.networks;
   const currentNetwork = localStorage.getItem(CURRENT_NETWORK_KEY) || DEFAULT_PRIMARY_NETWORK;

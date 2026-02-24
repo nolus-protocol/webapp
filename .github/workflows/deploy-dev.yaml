@@ -44,8 +44,9 @@ jobs:
 
       - name: Deploy via rclone
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} \
-            "rm -f /opt/deploy/builds/app-dev/nolus-backend"
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
+            rm -f /opt/deploy/builds/app-dev/nolus-backend && \
+            sudo chown -R ${{ vars.DEPLOY_USER }}:${{ vars.DEPLOY_USER }} /opt/deploy/builds/app-dev/config/"
 
           rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app-dev/ \
             --filter "- .env" \
@@ -55,4 +56,5 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
             chmod +x /opt/deploy/builds/app-dev/nolus-backend && \
+            sudo chown -R www-data:www-data /opt/deploy/builds/app-dev/config/ && \
             sudo systemctl restart webapp-dev"

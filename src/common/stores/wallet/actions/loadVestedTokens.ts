@@ -1,8 +1,5 @@
-import { IntercomService } from "@/common/utils/IntercomService";
 import type { Store } from "../types";
 import { WalletManager, WalletUtils } from "@/common/utils";
-import { NATIVE_ASSET } from "@/config/global";
-import { Dec } from "@keplr-wallet/unit";
 import { BackendApi } from "@/common/api";
 
 export async function loadVestedTokens(this: Store): Promise<
@@ -65,10 +62,6 @@ export async function loadVestedTokens(this: Store): Promise<
     this.vest = vest;
     this.delegated_vesting = vesting_account.delegated_vesting[0];
     this.delegated_free = vesting_account.delegated_free[0];
-    IntercomService.updateVesting({
-      vestedNls: new Dec(vest?.[0].amount?.amount ?? 0, NATIVE_ASSET.decimal_digits).toString(),
-      isVestingAccount: true
-    });
   } else {
     this.vest = [];
     this.delegated_vesting = undefined;

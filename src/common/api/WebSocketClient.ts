@@ -7,11 +7,10 @@
 
 import type { LeaseInfo, BalanceInfo, StakingPositionsResponse } from "./BackendApi";
 
-// WebSocket URL - must be configured via environment variable
-const WS_URL = import.meta.env.VITE_WS_URL;
-if (!WS_URL) {
-  console.warn("VITE_WS_URL environment variable is required for WebSocket functionality");
-}
+// WebSocket URL from environment, falls back to same-origin /ws (for Vite dev proxy)
+const WS_URL =
+  import.meta.env.VITE_WS_URL ||
+  `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
 
 /**
  * Subscription topics supported by the backend

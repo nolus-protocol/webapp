@@ -146,7 +146,14 @@ const nolus = defineConfig(({ mode }) => {
     },
     server: {
       host: "127.0.0.1",
-      allowedHosts: []
+      allowedHosts: [],
+      proxy: {
+        "/api": "http://localhost:3000",
+        "/ws": {
+          target: "http://localhost:3000",
+          ws: true
+        }
+      }
     },
     resolve: {
       alias: {

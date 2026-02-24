@@ -235,6 +235,6 @@ export class NetworkUtils {
   }
 }
 
-export async function getClient() {
+async function getClient() {
   return (await fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 }

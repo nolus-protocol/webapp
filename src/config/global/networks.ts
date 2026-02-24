@@ -4,7 +4,7 @@ export const DEFAULT_PRIMARY_NETWORK = "mainnet";
 
 // Network endpoints are fetched from the backend via the gated networks API
 // These static configs only contain metadata that doesn't change
-export const NETWORKS: { [key: string]: NetworkAddress } = {
+const NETWORKS: { [key: string]: NetworkAddress } = {
   testnet: {
     sendDefaultValue: "USDC_AXELAR@OSMOSIS-OSMOSIS-USDC_AXELAR",
     endpoints: "rila", // Network key for backend API

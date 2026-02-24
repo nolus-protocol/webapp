@@ -50,7 +50,7 @@ import { useEarnStore } from "@/common/stores/earn";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useAnalyticsStore } from "@/common/stores/analytics";
-import { IntercomService } from "@/common/utils/IntercomService";
+
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { Dec } from "@keplr-wallet/unit";
@@ -86,12 +86,6 @@ const stableAmount = computed(() => {
       }
     }
   }
-
-  // Update Intercom
-  IntercomService.updateEarn({
-    depositedUsd: total.toString(),
-    poolsCount: earnStore.positions.length
-  });
 
   return total.toString(2);
 });

@@ -37,15 +37,4 @@ async function idbGet<T = any>(key: string): Promise<T | undefined> {
   });
 }
 
-async function idbDel(key: string): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction("kv", "readwrite");
-    const store = tx.objectStore("kv");
-    store.delete(key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export { idbGet, idbPut, idbDel };
+export { idbGet, idbPut };

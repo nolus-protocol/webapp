@@ -61,7 +61,7 @@ import { useStakingStore } from "@/common/stores/staking";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { Dec } from "@keplr-wallet/unit";
-import { IntercomService } from "@/common/utils/IntercomService";
+
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useWalletConnected } from "@/common/composables";
@@ -115,13 +115,6 @@ const delegated = computed(() => {
 const stableDelegated = computed(() => {
   const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
   const stable = amount.mul(new Dec(nativePrice.value));
-
-  // Update Intercom
-  IntercomService.updateStaking({
-    delegatedNls: amount.toString(),
-    delegatedUsd: stable.toString(),
-    validatorsCount: stakingStore.delegations.length
-  });
 
   return stable.toString(2);
 });

@@ -40,7 +40,7 @@ function getWorker() {
   return register;
 }
 
-export async function requestPermissions(
+async function requestPermissions(
   address: string
 ): Promise<PushSubscription | typeof STATUS.not_supported | typeof STATUS.permission_denied> {
   return Notification.requestPermission().then((permission) => {
@@ -51,7 +51,7 @@ export async function requestPermissions(
   });
 }
 
-export async function subscribe(subscription: PushSubscription | null, address: string): Promise<string> {
+async function subscribe(subscription: PushSubscription | null, address: string): Promise<string> {
   if (subscription) {
     const item = { address, data: subscription };
     const response = await fetch(`${host}/subscribe`, {
@@ -63,6 +63,31 @@ export async function subscribe(subscription: PushSubscription | null, address: 
     return text === STATUS.subscribed ? STATUS.subscribed : text;
   }
   return Promise.resolve(STATUS.rejected);
+}
+
+export async function getSubscriptionStatus(): Promise<boolean> {
+  if (!("serviceWorker" in navigator)) return false;
+  try {
+    const sw = await getWorker();
+    const subscription = await sw.pushManager.getSubscription();
+    return subscription !== null;
+  } catch {
+    return false;
+  }
+}
+
+export async function notificationUnsubscribe(): Promise<boolean> {
+  if (!("serviceWorker" in navigator)) return false;
+  try {
+    const sw = await getWorker();
+    const subscription = await sw.pushManager.getSubscription();
+    if (subscription) {
+      return subscription.unsubscribe();
+    }
+  } catch {
+    // ignore
+  }
+  return false;
 }
 
 export async function initWorker() {

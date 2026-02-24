@@ -34,29 +34,9 @@ export function getLanguage(): (typeof languages)[keyof typeof languages] {
 }
 
 /**
- * Get the current language code
- */
-export function getLanguageCode(): string {
-  return localStorage.getItem(LANGUAGE_KEY) || "en";
-}
-
-/**
  * Store language preference in IndexedDB (for service worker/push notifications)
  */
 export function setLanguageDb(lang: string): void {
   idbPut(LANGUAGE_KEY, lang);
 }
 
-/**
- * Check if a language is supported
- */
-export function isLanguageSupported(lang: string): boolean {
-  return Object.keys(languages).includes(lang);
-}
-
-/**
- * Get all available languages
- */
-export function getAvailableLanguages(): string[] {
-  return Object.keys(languages);
-}

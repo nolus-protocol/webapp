@@ -1,6 +1,6 @@
 # Nolus Webapp
 
-A DeFi money market web application for the [Nolus](https://nolus.io) protocol. Enables leveraged positions, earning via liquidity pools, staking, cross-chain swaps, and governance across multiple IBC-connected Cosmos networks.
+A DeFi money market web application for the [Nolus](https://nolus.io) protocol. Enables leveraged positions, earning via liquidity pools, staking, cross-chain swaps, and governance across multiple IBC-connected networks.
 
 ## Tech Stack
 

@@ -120,12 +120,11 @@ pub struct InvalidateCacheRequest {
 }
 
 /// Request for Intercom JWT token generation
-/// Matches beacon's API: POST /intercom with { wallet: "..." }
+/// Only wallet address and type are needed — all portfolio data is fetched server-side
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IntercomTokenRequest {
     pub wallet: String,
-    /// Optional wallet type for user segmentation (e.g., "keplr", "leap", "ledger")
-    pub wallet_type: Option<String>,
+    pub wallet_type: String,
 }
 
 /// Response containing JWT token for Intercom
@@ -573,16 +572,225 @@ pub async fn invalidate_cache(
 }
 
 /// POST /api/intercom/hash
-/// Generate Intercom JWT token for identity verification
-/// This endpoint matches the beacon's API format for backwards compatibility
+/// Generate Intercom JWT token with all portfolio data computed server-side.
+/// The frontend only sends wallet address and type — everything else is fetched here.
 pub async fn intercom_hash(
     State(state): State<Arc<AppState>>,
     Json(request): Json<IntercomTokenRequest>,
 ) -> Result<Json<IntercomTokenResponse>, AppError> {
+    crate::validation::validate_bech32_address(&request.wallet, "wallet")?;
+
     let intercom_client = crate::external::intercom::IntercomClient::new(&state.config);
-    let result = intercom_client.generate_token(&request.wallet, request.wallet_type.as_deref())?;
+
+    // Fetch all portfolio data in parallel
+    let wallet = &request.wallet;
+    let (balances_result, leases_result, earn_result, delegations_result, account_result) =
+        tokio::join!(
+            compute_total_balance_usd(&state, wallet),
+            crate::handlers::leases::fetch_leases_for_monitoring(&state, wallet),
+            crate::handlers::earn::fetch_earn_positions_for_monitoring(&state, wallet),
+            state.chain_client.get_delegations(wallet),
+            state.chain_client.get_account(wallet),
+        );
+
+    // Balance
+    let total_balance_usd = balances_result.unwrap_or_else(|e| {
+        warn!("[Intercom] Failed to compute balance for {}: {}", wallet, e);
+        "0.00".to_string()
+    });
+
+    // Leases
+    let leases = leases_result.unwrap_or_else(|e| {
+        warn!("[Intercom] Failed to fetch leases for {}: {}", wallet, e);
+        Vec::new()
+    });
+    let opened_leases: Vec<_> = leases.iter().filter(|l| l.status == "opened").collect();
+    let positions_count = opened_leases.len() as u32;
+
+    // Earn
+    let (earn_positions, _) = earn_result.unwrap_or_else(|e| {
+        warn!("[Intercom] Failed to fetch earn for {}: {}", wallet, e);
+        (Vec::new(), "0.00".to_string())
+    });
+    let earn_pools_count = earn_positions.len() as u32;
+    let earn_deposited_usd = compute_earn_deposited_usd(&earn_positions, &state);
+
+    // Staking
+    let delegations = delegations_result.unwrap_or_else(|e| {
+        warn!(
+            "[Intercom] Failed to fetch delegations for {}: {}",
+            wallet, e
+        );
+        Vec::new()
+    });
+    let staking_validators_count = delegations.len() as u32;
+    let total_staked_unls: u128 = delegations
+        .iter()
+        .filter_map(|d| d.balance.amount.parse::<u128>().ok())
+        .sum();
+    let staking_delegated_nls = format!("{:.6}", total_staked_unls as f64 / 1_000_000.0);
+    let nls_price = compute_nls_price_usd(&state);
+    let staking_delegated_usd =
+        format!("{:.2}", total_staked_unls as f64 / 1_000_000.0 * nls_price);
+
+    // Vesting
+    let (staking_vested_nls, is_vesting_account) = match account_result {
+        Ok(account_resp) => extract_vesting(&account_resp.account),
+        Err(e) => {
+            warn!(
+                "[Intercom] Failed to fetch account for {}: {}",
+                wallet, e
+            );
+            ("0.000000".to_string(), false)
+        }
+    };
+
+    let attributes = crate::external::intercom::IntercomAttributes {
+        wallet_type: request.wallet_type,
+        total_balance_usd,
+        positions_count,
+        positions_value_usd: "0.00".to_string(),
+        positions_debt_usd: "0.00".to_string(),
+        positions_unrealized_pnl_usd: "0.00".to_string(),
+        earn_deposited_usd,
+        earn_pools_count,
+        staking_delegated_nls,
+        staking_delegated_usd,
+        staking_vested_nls,
+        staking_validators_count,
+        has_active_leases: positions_count > 0,
+        has_earn_positions: earn_pools_count > 0,
+        has_staking_positions: staking_validators_count > 0,
+        is_vesting_account,
+        positions_dashboard_url: format!(
+            "https://crtl.kostovster.io/chain-data/wallet-explorer?address={}",
+            wallet
+        ),
+    };
+
+    let result = intercom_client.generate_token(wallet, &attributes)?;
 
     Ok(Json(IntercomTokenResponse {
         token: result.token,
     }))
+}
+
+/// Compute total USD value of all bank balances for an address.
+/// Pattern from currencies.rs get_balances handler.
+async fn compute_total_balance_usd(state: &AppState, address: &str) -> Result<String, AppError> {
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load_or_unavailable("Filter context")?;
+    let currencies_response = state
+        .data_cache
+        .currencies
+        .load_or_unavailable("Currencies")?;
+    let prices_response = state.data_cache.prices.load_or_unavailable("Prices")?;
+    let bank_balances = state.chain_client.get_all_balances(address).await?;
+
+    let mut total_usd = 0.0_f64;
+    for bank_balance in bank_balances {
+        let currency = currencies_response
+            .currencies
+            .values()
+            .find(|c| c.bank_symbol == bank_balance.denom);
+
+        if let Some(currency) = currency {
+            if !filter_ctx.is_balance_visible(&currency.ticker) {
+                continue;
+            }
+            let amount_f64: f64 = bank_balance.amount.parse().unwrap_or(0.0);
+            let decimal_factor = 10_f64.powi(currency.decimal_digits as i32);
+            let human_amount = amount_f64 / decimal_factor;
+            let price_usd = prices_response
+                .prices
+                .get(&currency.key)
+                .and_then(|p| p.price_usd.parse::<f64>().ok())
+                .unwrap_or(0.0);
+            total_usd += human_amount * price_usd;
+        }
+    }
+
+    Ok(format!("{:.2}", total_usd))
+}
+
+/// Look up NLS price in USD from the cached prices.
+fn compute_nls_price_usd(state: &AppState) -> f64 {
+    let currencies = match state.data_cache.currencies.load() {
+        Some(c) => c,
+        None => return 0.0,
+    };
+    let prices = match state.data_cache.prices.load() {
+        Some(p) => p,
+        None => return 0.0,
+    };
+
+    // Find NLS currency by bank_symbol "unls"
+    let nls_currency = currencies.currencies.values().find(|c| c.bank_symbol == "unls");
+    match nls_currency {
+        Some(currency) => prices
+            .prices
+            .get(&currency.key)
+            .and_then(|p| p.price_usd.parse::<f64>().ok())
+            .unwrap_or(0.0),
+        None => 0.0,
+    }
+}
+
+/// Compute total USD value of earn deposits.
+/// Each position has deposited_lpn in base units of the protocol's LPN currency.
+fn compute_earn_deposited_usd(
+    positions: &[crate::handlers::websocket::EarnPositionInfo],
+    state: &AppState,
+) -> String {
+    let currencies = match state.data_cache.currencies.load() {
+        Some(c) => c,
+        None => return "0.00".to_string(),
+    };
+    let prices = match state.data_cache.prices.load() {
+        Some(p) => p,
+        None => return "0.00".to_string(),
+    };
+
+    let mut total_usd = 0.0_f64;
+    for position in positions {
+        // Find the LPN currency for this protocol from the lpn list
+        let lpn_currency = currencies
+            .lpn
+            .iter()
+            .find(|c| c.key.ends_with(&format!("@{}", position.protocol)));
+
+        if let Some(lpn) = lpn_currency {
+            let deposited: f64 = position.deposited_lpn.parse().unwrap_or(0.0);
+            let decimal_factor = 10_f64.powi(lpn.decimal_digits as i32);
+            let human_amount = deposited / decimal_factor;
+            let price_usd = prices
+                .prices
+                .get(&lpn.key)
+                .and_then(|p| p.price_usd.parse::<f64>().ok())
+                .unwrap_or(0.0);
+            total_usd += human_amount * price_usd;
+        }
+    }
+
+    format!("{:.2}", total_usd)
+}
+
+/// Extract vesting info from account response JSON.
+/// Returns (vested_nls_human, is_vesting_account).
+fn extract_vesting(account: &serde_json::Value) -> (String, bool) {
+    let vesting = account.get("base_vesting_account");
+    match vesting {
+        Some(v) => {
+            let amount = v
+                .pointer("/original_vesting/0/amount")
+                .and_then(|a| a.as_str())
+                .and_then(|a| a.parse::<u128>().ok())
+                .unwrap_or(0);
+            let human_nls = amount as f64 / 1_000_000.0;
+            (format!("{:.6}", human_nls), true)
+        }
+        None => ("0.000000".to_string(), false),
+    }
 }
