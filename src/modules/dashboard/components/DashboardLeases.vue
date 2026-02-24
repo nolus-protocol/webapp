@@ -65,7 +65,7 @@ import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
-import { IntercomService } from "@/common/utils/IntercomService";
+
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore } from "@/common/stores/leases";
 import { usePricesStore } from "@/common/stores/prices";
@@ -152,12 +152,6 @@ watch(
         totalPnl = totalPnl.add(displayData.pnlAmount);
       }
 
-      IntercomService.updatePositions({
-        count: networkFilteredLeases.value.length,
-        valueUsd: totalValueUsd.toString(),
-        debtUsd: totalDebtUsd.toString(),
-        unrealizedPnlUsd: totalPnl.toString()
-      });
     } catch (e) {
       Logger.error(e);
     }

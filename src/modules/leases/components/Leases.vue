@@ -116,7 +116,7 @@ import { formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 
 import { Dec } from "@keplr-wallet/unit";
-import { IntercomService } from "@/common/utils/IntercomService";
+
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { useBalancesStore } from "@/common/stores/balances";
@@ -529,13 +529,6 @@ function setLeases() {
       pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
     }
 
-    const openedCount = networkFilteredLeases.value.filter((l) => l.status === "opened").length;
-    IntercomService.updatePositions({
-      count: openedCount,
-      valueUsd: ls.toString(),
-      debtUsd: db.toString(),
-      unrealizedPnlUsd: pl.toString()
-    });
   } catch (e) {
     Logger.error(e);
   }

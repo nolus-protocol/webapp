@@ -530,14 +530,12 @@ export class BackendApiClient {
   // =========================================================================
 
   /**
-   * Get Intercom JWT token for user authentication
+   * Get Intercom JWT token with all portfolio data computed server-side
    */
-  async getIntercomToken(wallet: string, attributes?: Record<string, unknown>): Promise<{ token: string }> {
-    const body: { wallet: string; attributes?: Record<string, unknown> } = { wallet };
-    if (attributes && Object.keys(attributes).length > 0) {
-      body.attributes = attributes;
-    }
-    return this.request<{ token: string }>("POST", "/api/intercom/hash", { body });
+  async getIntercomToken(wallet: string, walletType: string): Promise<{ token: string }> {
+    return this.request<{ token: string }>("POST", "/api/intercom/hash", {
+      body: { wallet, wallet_type: walletType }
+    });
   }
 
   // =========================================================================
