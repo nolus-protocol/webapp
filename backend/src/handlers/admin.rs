@@ -120,12 +120,13 @@ pub struct InvalidateCacheRequest {
 }
 
 /// Request for Intercom JWT token generation
-/// Matches beacon's API: POST /intercom with { wallet: "..." }
+/// Accepts wallet address and optional user attributes to embed in the signed JWT
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IntercomTokenRequest {
     pub wallet: String,
-    /// Optional wallet type for user segmentation (e.g., "keplr", "leap", "ledger")
-    pub wallet_type: Option<String>,
+    /// User attributes to embed in the signed JWT payload
+    #[serde(default)]
+    pub attributes: Option<crate::external::intercom::IntercomAttributes>,
 }
 
 /// Response containing JWT token for Intercom
@@ -573,14 +574,14 @@ pub async fn invalidate_cache(
 }
 
 /// POST /api/intercom/hash
-/// Generate Intercom JWT token for identity verification
-/// This endpoint matches the beacon's API format for backwards compatibility
+/// Generate Intercom JWT token with embedded user attributes.
+/// Attributes are signed in the JWT payload so they cannot be tampered with client-side.
 pub async fn intercom_hash(
     State(state): State<Arc<AppState>>,
     Json(request): Json<IntercomTokenRequest>,
 ) -> Result<Json<IntercomTokenResponse>, AppError> {
     let intercom_client = crate::external::intercom::IntercomClient::new(&state.config);
-    let result = intercom_client.generate_token(&request.wallet, request.wallet_type.as_deref())?;
+    let result = intercom_client.generate_token(&request.wallet, request.attributes.as_ref())?;
 
     Ok(Json(IntercomTokenResponse {
         token: result.token,

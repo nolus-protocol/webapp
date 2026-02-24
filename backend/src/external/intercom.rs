@@ -1,30 +1,73 @@
 //! Intercom Client for Identity Verification
 //!
 //! Generates JWT tokens for Intercom user authentication.
-//! The frontend uses these tokens to initialize the Intercom messenger.
+//! User attributes are embedded in the JWT payload so they are signed
+//! and tamper-proof (per Intercom security best practices).
 
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 use crate::config::AppConfig;
 use crate::error::AppError;
 
 /// Client for Intercom Identity Verification
-/// Generates JWT tokens for secure user identification
+/// Generates JWT tokens with embedded user attributes
 pub struct IntercomClient {
     secret_key: String,
 }
 
+/// User attributes to embed in the JWT payload.
+/// All fields are optional — only provided attributes are included.
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct IntercomAttributes {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub wallet_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub total_balance_usd: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub positions_count: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub positions_value_usd: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub positions_debt_usd: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub positions_unrealized_pnl_usd: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub earn_deposited_usd: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub earn_pools_count: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub staking_delegated_nls: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub staking_delegated_usd: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub staking_vested_nls: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub staking_validators_count: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub has_active_leases: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub has_earn_positions: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub has_staking_positions: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_vesting_account: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub positions_dashboard_url: Option<String>,
+}
+
 /// JWT Claims for Intercom
+/// Includes user_id, expiration, and flattened user attributes
 #[derive(Debug, Serialize, Deserialize)]
 struct IntercomClaims {
     /// User ID (wallet address)
     user_id: String,
     /// Expiration time (Unix timestamp)
     exp: usize,
-    /// Wallet type (optional, for user segmentation)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    wallet_type: Option<String>,
+    /// User attributes flattened into the claims
+    #[serde(flatten)]
+    attributes: HashMap<String, serde_json::Value>,
 }
 
 /// Response containing the JWT token
@@ -48,18 +91,19 @@ impl IntercomClient {
     /// Generate a JWT token for Intercom identity verification
     ///
     /// The token is signed with the Intercom secret key and expires in 15 minutes.
-    /// Short-lived tokens are more secure per Intercom best practices.
+    /// User attributes are embedded in the JWT payload so they are signed and
+    /// cannot be tampered with on the client side.
     ///
     /// # Arguments
     /// * `user_id` - The user's wallet address
-    /// * `wallet_type` - Optional wallet type for user segmentation
+    /// * `attributes` - Optional user attributes to embed in the JWT
     ///
     /// # Returns
     /// * `IntercomToken` containing the signed JWT
     pub fn generate_token(
         &self,
         user_id: &str,
-        wallet_type: Option<&str>,
+        attributes: Option<&IntercomAttributes>,
     ) -> Result<IntercomToken, AppError> {
         if user_id.is_empty() {
             return Err(AppError::Validation {
@@ -81,10 +125,25 @@ impl IntercomClient {
             .ok_or_else(|| AppError::Internal("Failed to calculate token expiration".to_string()))?
             .timestamp() as usize;
 
+        // Flatten attributes into a HashMap for the JWT payload
+        let attributes_map = match attributes {
+            Some(attrs) => {
+                let value = serde_json::to_value(attrs)
+                    .map_err(|e| AppError::Internal(format!("Failed to serialize attributes: {}", e)))?;
+                match value {
+                    serde_json::Value::Object(map) => {
+                        map.into_iter().collect()
+                    }
+                    _ => HashMap::new(),
+                }
+            }
+            None => HashMap::new(),
+        };
+
         let claims = IntercomClaims {
             user_id: user_id.to_string(),
             exp,
-            wallet_type: wallet_type.map(|s| s.to_string()),
+            attributes: attributes_map,
         };
 
         let token = encode(
@@ -132,7 +191,6 @@ mod tests {
 
         let result = client.generate_token("nolus1abc123", None).unwrap();
 
-        // Decode and verify the token contains the correct user_id
         let token_data = decode::<IntercomClaims>(
             &result.token,
             &DecodingKey::from_secret("test-secret-key-for-jwt".as_bytes()),
@@ -144,15 +202,22 @@ mod tests {
     }
 
     #[test]
-    fn test_token_contains_wallet_type() {
+    fn test_token_contains_attributes() {
         let config = create_test_config();
         let client = IntercomClient::new(&config);
 
+        let attrs = IntercomAttributes {
+            wallet_type: Some("keplr".to_string()),
+            positions_count: Some(5),
+            has_active_leases: Some(true),
+            total_balance_usd: Some("1234.56".to_string()),
+            ..Default::default()
+        };
+
         let result = client
-            .generate_token("nolus1abc123", Some("keplr"))
+            .generate_token("nolus1abc123", Some(&attrs))
             .unwrap();
 
-        // Decode and verify the token contains the wallet_type
         let token_data = decode::<IntercomClaims>(
             &result.token,
             &DecodingKey::from_secret("test-secret-key-for-jwt".as_bytes()),
@@ -161,11 +226,28 @@ mod tests {
         .unwrap();
 
         assert_eq!(token_data.claims.user_id, "nolus1abc123");
-        assert_eq!(token_data.claims.wallet_type, Some("keplr".to_string()));
+        assert_eq!(
+            token_data.claims.attributes.get("wallet_type"),
+            Some(&serde_json::Value::String("keplr".to_string()))
+        );
+        assert_eq!(
+            token_data.claims.attributes.get("positions_count"),
+            Some(&serde_json::json!(5))
+        );
+        assert_eq!(
+            token_data.claims.attributes.get("has_active_leases"),
+            Some(&serde_json::json!(true))
+        );
+        assert_eq!(
+            token_data.claims.attributes.get("total_balance_usd"),
+            Some(&serde_json::Value::String("1234.56".to_string()))
+        );
+        // None fields should not be present
+        assert!(!token_data.claims.attributes.contains_key("earn_deposited_usd"));
     }
 
     #[test]
-    fn test_token_without_wallet_type() {
+    fn test_token_without_attributes() {
         let config = create_test_config();
         let client = IntercomClient::new(&config);
 
@@ -178,7 +260,7 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(token_data.claims.wallet_type, None);
+        assert!(token_data.claims.attributes.is_empty());
     }
 
     #[test]
@@ -220,7 +302,6 @@ mod tests {
 
         let result = client.generate_token("nolus1abc123", None).unwrap();
 
-        // Token should decode successfully with the correct secret
         let validation = Validation::default();
         let key = DecodingKey::from_secret("test-secret-key-for-jwt".as_bytes());
 

@@ -4,11 +4,12 @@ import { BackendApi } from "@/common/api";
 
 /**
  * Intercom user data attributes
- * Using snake_case to match Intercom conventions
+ * Using snake_case to match Intercom conventions.
+ * These are embedded in the signed JWT payload by the backend.
  */
 export interface IntercomUserData {
   // Wallet info
-  wallet_type?: string; // "keplr" | "leap" | "ledger" | "walletconnect" | "metamask" | "phantom" | "solflare"
+  wallet_type?: string;
 
   // Portfolio summary
   total_balance_usd?: string;
@@ -33,10 +34,6 @@ export interface IntercomUserData {
   has_staking_positions?: boolean;
   is_vesting_account?: boolean;
 
-  // Timestamps
-  first_seen_at?: number;
-  last_activity_at?: number;
-
   // Support tools
   positions_dashboard_url?: string;
 }
@@ -44,43 +41,47 @@ export interface IntercomUserData {
 /**
  * Centralized Intercom Service
  *
- * Handles all Intercom messenger interactions with:
- * - Proper JWT authentication on every boot
- * - Debounced updates to prevent excessive API calls
- * - Standardized attribute naming (snake_case)
- * - Centralized data management
+ * All user attributes are embedded in signed JWT tokens by the backend.
+ * This prevents client-side tampering and complies with Intercom's
+ * "Require verified updates" security setting.
+ *
+ * Flow:
+ * 1. Frontend calls update methods (updatePositions, updateEarn, etc.)
+ * 2. Attributes are accumulated and debounced
+ * 3. A fresh JWT is requested from the backend with all attributes embedded
+ * 4. The signed JWT is passed to Intercom via boot()/update()
  */
 class IntercomServiceClass {
   private loaded = false;
   private currentWallet: string | null = null;
-  private currentWalletType: string | null = null;
+  private currentAttributes: Partial<IntercomUserData> = {};
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingData: Partial<IntercomUserData> = {};
 
   /**
-   * Initialize Intercom for a user
-   * Always fetches a fresh JWT for security
+   * Initialize Intercom for a user.
+   * Fetches a signed JWT with the initial attributes embedded.
    */
   async load(wallet: string, walletType?: string): Promise<boolean> {
     try {
-      const data = await this.fetchToken(wallet, walletType);
       this.currentWallet = wallet;
-      this.currentWalletType = walletType || null;
+      this.currentAttributes = {
+        positions_dashboard_url: this.buildDashboardUrl(wallet),
+        ...(walletType && { wallet_type: walletType })
+      };
+
+      const data = await this.fetchSignedToken();
 
       const baseData = {
         app_id: INTERCOM_API,
         api_base: "https://api-iam.intercom.io",
         user_id: wallet,
-        intercom_user_jwt: data.token,
-        positions_dashboard_url: this.buildDashboardUrl(wallet),
-        ...(walletType && { wallet_type: walletType })
+        intercom_user_jwt: data.token
       };
 
       if (this.loaded) {
-        // Already initialized - use boot with fresh JWT
         boot(baseData);
       } else {
-        // First time - initialize messenger
         messenger(baseData);
         this.loaded = true;
       }
@@ -93,11 +94,11 @@ class IntercomServiceClass {
   }
 
   /**
-   * Queue an update to user attributes
-   * Updates are debounced to prevent excessive API calls
+   * Queue an update to user attributes.
+   * Updates are debounced, then a fresh signed JWT is fetched.
    */
   queueUpdate(data: Partial<IntercomUserData>): void {
-    if (!this.loaded) {
+    if (!this.loaded || !this.currentWallet) {
       return;
     }
 
@@ -113,31 +114,28 @@ class IntercomServiceClass {
   }
 
   /**
-   * Immediately send all pending updates
+   * Immediately send all pending updates via a fresh signed JWT.
    */
-  flushUpdates(): void {
-    if (!this.loaded || Object.keys(this.pendingData).length === 0) {
+  async flushUpdates(): Promise<void> {
+    if (!this.loaded || !this.currentWallet || Object.keys(this.pendingData).length === 0) {
       return;
     }
 
-    update(this.pendingData);
+    // Merge pending data into current attributes
+    this.currentAttributes = { ...this.currentAttributes, ...this.pendingData };
     this.pendingData = {};
 
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
     }
-  }
 
-  /**
-   * Update user attributes immediately (no debounce)
-   */
-  updateNow(data: Partial<IntercomUserData>): void {
-    if (!this.loaded) {
-      return;
+    try {
+      const data = await this.fetchSignedToken();
+      update({ intercom_user_jwt: data.token });
+    } catch (e) {
+      console.error("[IntercomService] Failed to update:", e);
     }
-
-    update(data);
   }
 
   /**
@@ -197,19 +195,16 @@ class IntercomServiceClass {
 
   /**
    * Disconnect and cleanup
-   * Returns a promise that resolves after shutdown completes
    */
   async disconnect(): Promise<void> {
-    // Flush any pending updates first
-    this.flushUpdates();
+    await this.flushUpdates();
 
     shutdown();
     this.loaded = false;
     this.currentWallet = null;
-    this.currentWalletType = null;
+    this.currentAttributes = {};
     this.pendingData = {};
 
-    // Small delay to ensure shutdown completes before any new boot
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
@@ -228,10 +223,11 @@ class IntercomServiceClass {
   }
 
   /**
-   * Fetch JWT token from backend
+   * Fetch a signed JWT from the backend with all current attributes embedded.
    */
-  private async fetchToken(wallet: string, walletType?: string): Promise<{ token: string }> {
-    return BackendApi.getIntercomToken(wallet, walletType);
+  private async fetchSignedToken(): Promise<{ token: string }> {
+    const allAttributes = { ...this.currentAttributes, ...this.pendingData };
+    return BackendApi.getIntercomToken(this.currentWallet!, allAttributes);
   }
 
   /**
