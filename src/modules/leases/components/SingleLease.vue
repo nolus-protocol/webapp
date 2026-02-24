@@ -239,7 +239,9 @@ const inProgressBanner = computed<InProgressBanner | null>(() => {
   if (type === "slippage_protection") {
     return {
       titleKey: "message.slippage-protection-title",
-      descriptionKey: "message.slippage-protection-description"
+      descriptionKey: "message.slippage-protection-description",
+      linkKey: "message.slippage-protection-description-link",
+      onLinkClick: () => IntercomService.askQuestion("How does Market Anomaly Guard (MAG) protect my position from unfair liquidation?")
     };
   }
 
