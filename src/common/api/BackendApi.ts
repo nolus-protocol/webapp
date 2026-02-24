@@ -537,7 +537,7 @@ export class BackendApiClient {
     if (walletType) {
       body.wallet_type = walletType;
     }
-    return this.request<{ token: string }>("POST", "/api/intercom/hash", body);
+    return this.request<{ token: string }>("POST", "/api/intercom/hash", { body });
   }
 
   // =========================================================================
