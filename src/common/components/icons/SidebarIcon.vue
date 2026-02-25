@@ -174,10 +174,8 @@ defineProps<{
 </script>
 
 <style scoped lang="scss">
-@reference "web-components/theme.css";
-
 .sidebar-icon {
-  @apply transform-gpu;
+  transform: translateZ(0);
   --sidebar-icon-transition-duration-short: 0.2s;
   --sidebar-icon-transition-duration-base: 0.35s;
   --sidebar-icon-transition-duration-long: 0.55s;
@@ -186,7 +184,7 @@ defineProps<{
 
   .stroke,
   .stroke-on-bg {
-    @apply stroke-icon-default;
+    stroke: var(--color-icon-default);
     stroke-width: 2px;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -227,10 +225,10 @@ defineProps<{
 
 .router-link-active .sidebar-icon {
   .stroke {
-    @apply stroke-icon-link;
+    stroke: var(--color-icon-link);
   }
   .stroke-on-bg {
-    @apply stroke-neutral-bg-2;
+    stroke: var(--color-background-level-2);
   }
 
   // Animations

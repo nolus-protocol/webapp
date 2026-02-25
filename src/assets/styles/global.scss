@@ -1,11 +1,11 @@
 @use "state";
 @use "tooltip";
 
-@reference "../../../node_modules/web-components/src/assets/styles/theme.css";
-
 html,
 body {
-  @apply h-full w-full bg-neutral-bg-1;
+  height: 100%;
+  width: 100%;
+  background-color: var(--color-background-level-1);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -39,7 +39,7 @@ svg {
 }
 
 .skeleton-box {
-  @apply bg-neutral-bg-300;
+  background-color: var(--color-background-300);
   animation: blink 1.2s linear infinite;
 }
 

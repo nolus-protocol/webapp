@@ -111,22 +111,28 @@ defineExpose({ open, close });
 </script>
 
 <style scoped lang="scss">
-@reference "web-components/theme.css";
-
 .router-link-active {
-  @apply border-b border-t border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+  border-bottom: 1px solid var(--color-border-default);
+  border-top: 1px solid var(--color-border-default);
+  background-color: var(--color-background-level-2);
+  color: var(--color-typography-link);
+  box-shadow: 0px 1px 2px 0px var(--color-shadow-default);
 
   svg {
-    @apply fill-icon-link;
+    fill: var(--color-icon-link);
   }
 }
 
 .router-link:not(.router-link-active) {
   &:hover {
-    @apply border-b border-t border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+    border-bottom: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--color-border-default);
+    background-color: var(--color-background-level-2);
+    color: var(--color-typography-link);
+    box-shadow: 0px 1px 2px 0px var(--color-shadow-default);
 
     svg {
-      @apply fill-icon-link;
+      fill: var(--color-icon-link);
     }
   }
 }

@@ -1,7 +1,14 @@
-@reference "../../../node_modules/web-components/src/assets/styles/theme.css";
-
 .custom-tooltip {
-  @apply absolute z-[99999] max-w-[200px] rounded border border-border-emphasized bg-neutral-bg-50 p-2 text-xs text-typography-default;
+  position: absolute;
+  z-index: 99999;
+  max-width: 200px;
+  border-radius: 0.25rem;
+  border: 1px solid var(--color-border-emphasized);
+  background-color: var(--color-background-50);
+  padding: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1rem;
+  color: var(--color-typography-default);
   pointer-events: none;
   transition: opacity 0.2s;
 }

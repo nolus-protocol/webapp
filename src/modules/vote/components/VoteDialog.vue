@@ -229,34 +229,54 @@ defineExpose({ show, hide });
 </script>
 
 <style lang="scss">
-@reference "web-components/theme.css";
-
 .proposal-modal {
-  @apply leading-loose;
+  line-height: 2;
 
   strong {
-    @apply font-semibold;
+    font-weight: 600;
   }
 
   p {
-    @apply mb-4 text-left text-16;
+    margin-bottom: 1rem;
+    text-align: left;
+    font-size: 16px;
+    line-height: 22px;
   }
 
   h1 {
-    @apply mb-3 mt-6 text-left text-24 font-semibold first:mt-0;
+    margin-bottom: 0.75rem;
+    margin-top: 1.5rem;
+    text-align: left;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    &:first-child { margin-top: 0; }
   }
 
   h2 {
-    @apply mb-3 mt-5 text-left text-18 font-semibold first:mt-0;
+    margin-bottom: 0.75rem;
+    margin-top: 1.25rem;
+    text-align: left;
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 600;
+    &:first-child { margin-top: 0; }
   }
 
   h3 {
-    @apply mb-2 mt-4 text-left text-16 font-semibold first:mt-0;
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+    text-align: left;
+    font-size: 16px;
+    line-height: 22px;
+    font-weight: 600;
+    &:first-child { margin-top: 0; }
   }
 
   ul,
   ol {
-    @apply mb-4 pl-8;
+    margin-bottom: 1rem;
+    padding-left: 2rem;
   }
 
   ul {
@@ -268,18 +288,22 @@ defineExpose({ show, hide });
   }
 
   li {
-    @apply mb-2 text-16;
+    margin-bottom: 0.5rem;
+    font-size: 16px;
+    line-height: 22px;
 
     &:last-child {
-      @apply mb-0;
+      margin-bottom: 0;
     }
   }
 
   a {
-    @apply text-primary-default transition-colors duration-200;
+    color: var(--color-primary-default);
+    transition-property: color;
+    transition-duration: 200ms;
 
     &:hover {
-      @apply underline;
+      text-decoration-line: underline;
     }
   }
 }

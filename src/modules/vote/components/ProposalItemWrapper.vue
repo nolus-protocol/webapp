@@ -84,24 +84,31 @@ const emit = defineEmits<{
 </script>
 
 <style lang="scss">
-@reference "web-components/theme.css";
-
 .proposal-item {
   h2 {
-    @apply mb-2 text-left text-18 font-semibold;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 600;
   }
   strong {
-    @apply font-semibold;
+    font-weight: 600;
   }
 
   // Override web-component's internal ProposalVotingLine tooltip
   // to match the app's standard Tooltip style (dark bg, proper font size)
   .bg-white.text-\[8px\] {
-    @apply border-0 bg-neutral-bg-inverted-2 text-xs text-typography-inverted;
+    border: 0;
+    background-color: var(--color-background-level-inverted-2);
+    font-size: 0.8125rem;
+    line-height: 1rem;
+    color: var(--color-inverted);
 
     // Remove bold/uppercase from label, keep vote color visible on dark bg
     span[class*="font-bold"] {
-      @apply font-normal normal-case;
+      font-weight: 400;
+      text-transform: none;
     }
   }
 }

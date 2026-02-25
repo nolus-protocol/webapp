@@ -21,15 +21,21 @@ import { sidebarIconMap, mainMenuRoutes, routePath } from "./menuConfig";
 </script>
 
 <style scoped lang="scss">
-@reference "web-components/theme.css";
-
 .router-link-active {
-  @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-background-level-2);
+  color: var(--color-typography-link);
+  box-shadow: 0px 1px 2px 0px var(--color-shadow-default);
 }
 
 .router-link:not(.router-link-active) {
   &:hover {
-    @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
+    border-radius: 9999px;
+    border: 1px solid var(--color-border-default);
+    background-color: var(--color-background-level-2);
+    color: var(--color-typography-link);
+    box-shadow: 0px 1px 2px 0px var(--color-shadow-default);
   }
 }
 </style>
