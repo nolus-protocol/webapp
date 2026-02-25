@@ -1214,10 +1214,14 @@ pub async fn refresh_gas_fee_config(state: &Arc<AppState>) {
         }
     }
 
-    // Always include unls as fallback (matching NolusWallet behavior)
-    gas_prices
-        .entry("unls".to_string())
-        .or_insert_with(|| "0.0025".to_string());
+    // Always include unls with gas price from network config (single source of truth)
+    if let Some(nolus) = gated.network_config.networks.get("NOLUS") {
+        let nls_price = nolus
+            .gas_price
+            .trim_end_matches(|c: char| c.is_alphabetic() || c == '_')
+            .to_string();
+        gas_prices.insert("unls".to_string(), nls_price);
+    }
 
     // Gas multiplier from gated network config for NOLUS (single source of truth)
     let gas_multiplier = gated
