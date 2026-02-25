@@ -48,7 +48,7 @@
     position="bottom-left"
     :parent="popoverParent"
     @close="onClose"
-    class="max-w-[280px]"
+    class="max-w-[220px]"
   >
     <template #content>
       <template v-if="template == Templates.default">
