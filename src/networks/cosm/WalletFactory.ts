@@ -66,9 +66,7 @@ async function authenticateKeplrLike(
     try {
       chainId = await wallet.getChainId();
       const node = await fetchEndpoints(network.key);
-      const chainInfo = network.embedChainInfo(chainId, node.rpc, node.api);
-      console.log(`[DEBUG] experimentalSuggestChain for ${network.key}:`, chainInfo);
-      await extension.experimentalSuggestChain(chainInfo);
+      await extension.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
     } catch (e) {
       Logger.error(e);
       throw new Error("Failed to fetch suggest chain.");

@@ -64,7 +64,10 @@ function getNetworkData() {
         currencies: () => {
           return configStore.getCurrenciesForNetwork(network.key) as ExternalCurrencies;
         },
-        embedChainInfo: CHAIN_INFO_EMBEDDERS[network.key] ?? (() => {})
+        embedChainInfo: CHAIN_INFO_EMBEDDERS[network.key] ??
+          (() => {
+            throw new Error(`No chain info embedder for network: ${network.key}`);
+          })
       };
     }
   }
