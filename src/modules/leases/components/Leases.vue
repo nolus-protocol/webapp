@@ -34,7 +34,7 @@
         tableWrapperClasses="md:min-w-auto md:p-0"
         tableClasses="md:min-w-[1000px]"
         :scrollable="!mobile"
-        :hide-values="{text: $t('message.toggle-values'), value: hide}"
+        :hide-values="{ text: $t('message.toggle-values'), value: hide }"
         @hide-value="onHide"
         @onSearchClear="onSearch('')"
         @on-input="(e: Event) => onSearch((e.target as HTMLInputElement).value)"
@@ -122,7 +122,13 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
-import { formatUsd, formatDecAsUsd, formatTokenBalance, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import {
+  formatUsd,
+  formatDecAsUsd,
+  formatTokenBalance,
+  formatMobileAmount,
+  formatMobileUsd
+} from "@/common/utils/NumberFormatUtils";
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
@@ -159,22 +165,23 @@ let openMenuId: string | null;
 
 let timeOut: NodeJS.Timeout;
 
-const columns = computed<TableColumnProps[]>(() => isMobile()
-  ? [
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.lease-size") },
-      { label: i18n.t("message.pnl") },
-      { label: "", class: "!flex-none w-[40px]" }
-    ]
-  : [
-      { label: i18n.t("message.lease"), variant: "left", class: "max-w-[150px]" },
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.type"), variant: "left", class: "max-w-[45px]" },
-      { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
-      { label: i18n.t("message.lease-size") },
-      { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
-      { label: "", class: "max-w-[220px]" }
-    ]
+const columns = computed<TableColumnProps[]>(() =>
+  isMobile()
+    ? [
+        { label: i18n.t("message.asset"), variant: "left" },
+        { label: i18n.t("message.lease-size") },
+        { label: i18n.t("message.pnl") },
+        { label: "", class: "!flex-none w-[40px]" }
+      ]
+    : [
+        { label: i18n.t("message.lease"), variant: "left", class: "max-w-[150px]" },
+        { label: i18n.t("message.asset"), variant: "left" },
+        { label: i18n.t("message.type"), variant: "left", class: "max-w-[45px]" },
+        { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
+        { label: i18n.t("message.lease-size") },
+        { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
+        { label: "", class: "max-w-[220px]" }
+      ]
 );
 
 const isProtocolDisabled = computed(() => {
@@ -255,22 +262,31 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                 component: () =>
                   loading
                     ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
-                    : h("span", {
-                        class: `text-14 font-normal ${pnlData.status ? "text-typography-success" : "text-typography-error"}`
-                      }, `${pnlData.status ? "+" : ""}${pnlData.percent}%`),
+                    : h(
+                        "span",
+                        {
+                          class: `text-14 font-normal ${pnlData.status ? "text-typography-success" : "text-typography-error"}`
+                        },
+                        `${pnlData.status ? "+" : ""}${pnlData.percent}%`
+                      ),
                 click: navigate,
                 class: "cursor-pointer"
               },
               {
-                component: () => h<IAction>(Action, {
-                  lease: item,
-                  showClose: isOpened && !displayData.inProgressType,
-                  showDetails: true,
-                  key: `mob-action-${item.address}`,
-                  opened: openMenuId == item.address,
-                  onClick: (data: boolean) => { openMenuId = data ? item.address : null; },
-                  onSharePnl: () => { sharePnlDialog.value?.show(item, displayData); }
-                }),
+                component: () =>
+                  h<IAction>(Action, {
+                    lease: item,
+                    showClose: isOpened && !displayData.inProgressType,
+                    showDetails: true,
+                    key: `mob-action-${item.address}`,
+                    opened: openMenuId == item.address,
+                    onClick: (data: boolean) => {
+                      openMenuId = data ? item.address : null;
+                    },
+                    onSharePnl: () => {
+                      sharePnlDialog.value?.show(item, displayData);
+                    }
+                  }),
                 class: "!flex-none w-[40px]"
               }
             ]
@@ -410,6 +426,7 @@ function getAssetIcon(item: LeaseInfo) {
     if (item.status === "opening" && item.opening_info) {
       return configStore.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`]!;
     }
+    return configStore.assetIcons?.[`${item.debt.ticker}@${item.protocol}`] as string;
   }
   return configStore.assetIcons?.[`${positionTicker}@${item.protocol}`] as string;
 }
@@ -425,9 +442,9 @@ function getAsset(lease: LeaseInfo) {
       const asset = getCurrencyByDenom(item?.ibcData as string);
       return asset;
     } else if (positionType === "Short") {
-      const positionTicker = lease.etl_data?.lease_position_ticker ?? lease.amount.ticker;
-      if (!positionTicker) return null;
-      const item = getCurrencyByTicker(positionTicker as string);
+      const debtTicker = lease.debt.ticker;
+      if (!debtTicker) return null;
+      const item = getCurrencyByTicker(debtTicker as string);
       const asset = getCurrencyByDenom(item?.ibcData as string);
       return asset;
     }
@@ -527,7 +544,6 @@ function setLeases() {
     if (!(amount.isZero() || am.isZero())) {
       pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
     }
-
   } catch (e) {
     Logger.error(e);
   }

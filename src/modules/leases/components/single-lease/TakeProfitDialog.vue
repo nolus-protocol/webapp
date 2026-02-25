@@ -149,18 +149,17 @@ const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
 const displayData = ref<LeaseDisplayData | null>(null);
 
-async function fetchLease() {
-  try {
-    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
-    if (result) {
-      lease.value = result;
-      displayData.value = leasesStore.getLeaseDisplayData(result);
-      if (result.status === "closed") {
-        router.push(`/${RouteNames.LEASES}`);
-      }
+function initLease() {
+  // Read from store cache — the parent already fetched this lease.
+  // Avoid calling fetchLeaseDetails here: it mutates store state which
+  // triggers the parent's watcher, re-renders, and unmounts this dialog.
+  const cached = leasesStore.getLease(route.params.id as string);
+  if (cached) {
+    lease.value = cached;
+    displayData.value = leasesStore.getLeaseDisplayData(cached);
+    if (cached.status === "closed") {
+      router.push(`/${RouteNames.LEASES}`);
     }
-  } catch (error) {
-    Logger.error(error);
   }
 }
 
@@ -171,7 +170,7 @@ const config = computed(() => {
 
 onMounted(() => {
   dialog?.value?.show();
-  fetchLease();
+  initLease();
 });
 
 onBeforeUnmount(() => {
@@ -219,19 +218,18 @@ const assets = computed(() => {
 const payout = computed(() => {
   if (!lease.value || !displayData.value) return "0";
   const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
-  const end = totalAmount.value.mul(end_price);
-  const debt = displayData.value.outstandingDebt ?? new Dec(0);
-  const current_price = pricesStore.prices[currency.value.key];
-
   const positionType = configStore.getPositionType(lease.value.protocol);
+  const debt = displayData.value.totalDebt ?? new Dec(0);
 
   if (positionType === "Long") {
+    const end = totalAmount.value.mul(end_price);
     return formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
   } else {
-    const current_amount = totalAmount.value.mul(new Dec(current_price.price));
-    const amountVal = debt.mul(end_price);
-    const a = current_amount.sub(amountVal);
-    return formatNumber(a.toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
+    // Short: payout = position_USDC - (debt_in_asset × target_price)
+    const lpn = getLpnByProtocol(lease.value.protocol);
+    const positionUsdc = new Dec(lease.value.amount.amount ?? "0", lpn?.decimal_digits ?? 0);
+    const debtAtTargetPrice = debt.mul(end_price);
+    return formatNumber(positionUsdc.sub(debtAtTargetPrice).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
   }
 });
 
@@ -243,8 +241,10 @@ const totalAmount = computed(() => {
     return new Dec(lease.value.amount.amount ?? "0", currency.value.decimal_digits);
   } else {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`]!;
-    const price = pricesStore.prices[asset?.ibcData as string];
+    const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`];
+    if (!asset) return new Dec(0);
+    const price = pricesStore.prices[asset.key];
+    if (!price) return new Dec(0);
     // Use LPN for decimal digits for short positions
     const lpn = getLpnByProtocol(lease.value.protocol);
     let k = new Dec(lease.value.amount.amount ?? 0, lpn?.decimal_digits ?? 0).quo(new Dec(price.price));

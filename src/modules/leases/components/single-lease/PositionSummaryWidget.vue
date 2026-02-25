@@ -161,7 +161,7 @@
             ></span>
             <template v-if="stopLoss">
               <span class="flex text-14 font-semibold text-typography-default">
-                {{ stopLoss.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
+                {{ stopLoss.amount }} {{ $t("message.per") }} {{ pricerPerAsset?.shortName }}
               </span>
             </template>
             <div class="flex">
@@ -201,7 +201,7 @@
             ></span>
             <template v-if="takeProfit">
               <span class="flex text-14 font-semibold text-typography-default">
-                {{ takeProfit.amount }} {{ $t("message.per") }} {{ asset?.shortName }}
+                {{ takeProfit.amount }} {{ $t("message.per") }} {{ pricerPerAsset?.shortName }}
               </span>
             </template>
             <div class="flex">
@@ -340,8 +340,8 @@ const pricerPerAsset = computed(() => {
     return asset.value;
   } else if (posType === "short") {
     const p = props.lease?.protocol!;
-    const ticker = props.lease?.etl_data?.lease_position_ticker;
-    const currency = configStore.currenciesData![`${ticker}@${p}`];
+    const debtTicker = props.lease?.debt?.ticker;
+    const currency = configStore.currenciesData![`${debtTicker}@${p}`];
     return currency;
   }
   return asset.value;

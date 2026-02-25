@@ -184,18 +184,17 @@ const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
 const displayData = ref<LeaseDisplayData | null>(null);
 
-async function fetchLease() {
-  try {
-    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
-    if (result) {
-      lease.value = result;
-      displayData.value = leasesStore.getLeaseDisplayData(result);
-      if (result.status === "closed") {
-        router.push(`/${RouteNames.LEASES}`);
-      }
+function initLease() {
+  // Read from store cache — the parent already fetched this lease.
+  // Avoid calling fetchLeaseDetails here: it mutates store state which
+  // triggers the parent's watcher, re-renders, and unmounts this dialog.
+  const cached = leasesStore.getLease(route.params.id as string);
+  if (cached) {
+    lease.value = cached;
+    displayData.value = leasesStore.getLeaseDisplayData(cached);
+    if (cached.status === "closed") {
+      router.push(`/${RouteNames.LEASES}`);
     }
-  } catch (error) {
-    Logger.error(error);
   }
 }
 
@@ -203,7 +202,7 @@ watch(
   () => configStore.initialized,
   () => {
     if (configStore.initialized) {
-      fetchLease();
+      initLease();
     }
   },
   { immediate: true }
@@ -273,27 +272,29 @@ const calculatedBalance = computed(() => {
 });
 
 const balances = computed(() => {
-  return totalBalances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
-    if (protocol != lease.value?.protocol) {
-      return false;
-    }
+  if (!lease.value || lease.value.status !== "opened") return [];
 
-    if (
-      ignoreDownpaymentAssets.value?.includes(ticker) ||
-      ignoreDownpaymentAssets.value?.includes(`${ticker}@${protocol}`)
-    ) {
-      return false;
-    }
+  const positionType = configStore.getPositionType(lease.value.protocol);
+  let repaymentCurrency;
 
-    // Only show LPN currency for repayment
-    const lpn = getLpnByProtocol(protocol);
-    if (item.key != lpn.key) {
-      return false;
-    }
+  if (positionType === "Short") {
+    // Short: debt is in the underlying asset (e.g. ATOM), use debt.ticker
+    const debtTicker = lease.value.debt.ticker;
+    repaymentCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
+  } else {
+    // Long: debt is in LPN (e.g. USDC)
+    repaymentCurrency = getLpnByProtocol(lease.value.protocol);
+  }
 
-    return true;
-  });
+  if (!repaymentCurrency) return [];
+
+  // Look for the repayment currency in wallet balances
+  const match = totalBalances.value.find((item) => item.ibcData === repaymentCurrency!.ibcData);
+  if (match) return [match];
+
+  // Always show the currency even with zero balance so the user can see what to repay with
+  const zeroCurrency = { ...repaymentCurrency, balance: { denom: repaymentCurrency.ibcData, amount: "0" } };
+  return [zeroCurrency];
 });
 
 const totalBalances = computed(() => {

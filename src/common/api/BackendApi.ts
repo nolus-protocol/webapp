@@ -257,8 +257,10 @@ export class BackendApiClient {
     return response.leases;
   }
 
-  async getLease(address: string): Promise<LeaseInfo> {
-    return this.request<LeaseInfo>("GET", `/api/leases/${address}`);
+  async getLease(address: string, protocol?: string): Promise<LeaseInfo> {
+    return this.request<LeaseInfo>("GET", `/api/leases/${address}`, {
+      params: protocol ? { protocol } : undefined
+    });
   }
 
   async getLeaseHistory(address: string, skip?: number, limit?: number): Promise<LeaseHistoryEntry[]> {

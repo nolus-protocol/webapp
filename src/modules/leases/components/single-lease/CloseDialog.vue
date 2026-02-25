@@ -311,26 +311,30 @@ const lease = ref<LeaseInfo | null>(null);
 const displayData = ref<LeaseDisplayData | null>(null);
 const minAsset = ref<AmountSpec | null>(null);
 
-async function fetchLease() {
-  try {
-    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
-    if (result) {
-      lease.value = result;
-      displayData.value = leasesStore.getLeaseDisplayData(result);
-      if (result.status === "closed") {
-        router.push(`/${RouteNames.LEASES}`);
-      }
-      const positionSpec = await getLeasePositionSpec(result.protocol);
-      minAsset.value = positionSpec.min_asset;
+async function initLease() {
+  // Read from store cache — the parent already fetched this lease.
+  // Avoid calling fetchLeaseDetails here: it mutates store state which
+  // triggers the parent's watcher, re-renders, and unmounts this dialog.
+  const cached = leasesStore.getLease(route.params.id as string);
+  if (cached) {
+    lease.value = cached;
+    displayData.value = leasesStore.getLeaseDisplayData(cached);
+    if (cached.status === "closed") {
+      router.push(`/${RouteNames.LEASES}`);
+      return;
     }
-  } catch (error) {
-    Logger.error(error);
+    try {
+      const positionSpec = await getLeasePositionSpec(cached.protocol);
+      minAsset.value = positionSpec.min_asset;
+    } catch (error) {
+      Logger.error(error);
+    }
   }
 }
 
 onMounted(() => {
   dialog?.value?.show();
-  fetchLease();
+  initLease();
 });
 
 onBeforeUnmount(() => {
@@ -419,20 +423,23 @@ const debtData = computed(() => {
   const debt = getRepayment(100);
   const d = debt?.repayment;
   if (price && d && lease.value) {
-    const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
     const positionType = configStore.getPositionType(lease.value.protocol);
 
     if (positionType === "Short") {
+      // For Short: debt is in the underlying asset (e.g. ATOM), use debt.ticker
+      const debtTicker = lease.value.debt.ticker;
+      const debtCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
       const asset = d.quo(price);
       const value = new Dec(amount.value).mul(new Dec(swapFee.value));
       return {
         fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
-        asset: currecy.shortName,
+        asset: debtCurrency?.shortName ?? debtTicker,
         price: formatPriceUsd(price.toString(MAX_DECIMALS)),
-        debt: `${formatTokenBalance(asset)} ${currecy.shortName}`
+        debt: `${formatTokenBalance(asset)} ${debtCurrency?.shortName ?? debtTicker}`
       };
     } else {
+      const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
+      const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
       const asset = d.mul(price);
       const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
       let lpn = getLpnByProtocol(lease.value.protocol);

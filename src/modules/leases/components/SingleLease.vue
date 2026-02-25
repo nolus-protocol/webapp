@@ -105,7 +105,7 @@ let timeOut: NodeJS.Timeout;
 // Lease state
 const lease = ref<LeaseInfo | null>(null);
 const leaseAddress = computed(() => route.params.id as string);
-const protocol = computed(() => lease.value?.protocol ?? "");
+const protocol = computed(() => lease.value?.protocol ?? leasesStore.getLease(leaseAddress.value)?.protocol ?? "");
 
 // Computed display data for child components
 const displayData = computed<LeaseDisplayData | null>(() => {
@@ -115,7 +115,18 @@ const displayData = computed<LeaseDisplayData | null>(() => {
 
 async function getLease() {
   try {
-    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value);
+    // We must know the protocol before fetching — the backend defaults to a
+    // Long protocol when none is supplied, which produces wrong data for Shorts.
+    let proto = protocol.value;
+    if (!proto) {
+      // Protocol unknown (direct URL navigation). Fetch the full lease list
+      // so the store discovers which protocol this lease belongs to.
+      await leasesStore.fetchLeases();
+      proto = leasesStore.getLease(leaseAddress.value)?.protocol ?? "";
+    }
+    if (!proto) return; // still unknown — don't fetch with wrong default
+
+    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value, proto);
     if (result) {
       lease.value = result;
     }
