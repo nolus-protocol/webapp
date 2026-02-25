@@ -9,7 +9,7 @@
     />
   </div>
   <form>
-    <div class="px-4 pb-4">
+    <div class="flex flex-col px-4 pb-4">
       <Checkbox
         id="positions"
         :label="$t('message.filter-positions')"
