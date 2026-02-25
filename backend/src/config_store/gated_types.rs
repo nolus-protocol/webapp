@@ -495,13 +495,6 @@ pub struct DownpaymentRangesInput {
     pub ranges: HashMap<String, DownpaymentRange>,
 }
 
-/// Input for adding/removing a hidden proposal
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HiddenProposalInput {
-    /// Proposal ID to hide/unhide
-    pub proposal_id: String,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

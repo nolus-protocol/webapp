@@ -17,7 +17,7 @@
           :selected="options[0]"
           class="w-20"
           dropdownPosition="right"
-          dropdownClassName="min-w-10"
+          dropdownClassName="!min-w-10"
         />
       </div>
     </WidgetHeader>

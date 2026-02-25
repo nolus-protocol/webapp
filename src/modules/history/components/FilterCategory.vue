@@ -9,33 +9,29 @@
     />
   </div>
   <form>
-    <div class="px-4 pb-4">
+    <div class="flex flex-col gap-2 px-4 pb-4">
       <Checkbox
         id="positions"
         :label="$t('message.filter-positions')"
         v-model="positions"
-        class="mb-1"
         @input="() => {}"
       />
       <Checkbox
         id="transfers"
         :label="$t('message.filter-transfers')"
         v-model="transfers"
-        class="mb-1"
         @input="() => {}"
       />
       <Checkbox
         id="earn"
         :label="$t('message.filter-earn')"
         v-model="earn"
-        class="mb-1"
         @input="() => {}"
       />
       <Checkbox
         id="staking"
         :label="$t('message.filter-staking')"
         v-model="staking"
-        class="mb-1"
         @input="() => {}"
       />
     </div>

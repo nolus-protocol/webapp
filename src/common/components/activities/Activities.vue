@@ -14,7 +14,7 @@
     :parent="popoverParent"
     :title="$t('message.activities')"
     @close="isOpen = !isOpen"
-    class="md:max-w-[385px]"
+    class="md:!max-w-[385px]"
   >
     <template #header> </template>
     <template #content>

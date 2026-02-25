@@ -12,7 +12,7 @@
     position="bottom-right"
     :parent="popoverParent"
     @close="isOpen = !isOpen"
-    class="max-w-[160px]"
+    class="!max-w-[160px]"
   >
     <template #content>
       <button

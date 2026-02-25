@@ -82,7 +82,7 @@
           :selected="periodOptions[1]"
           class="w-20"
           dropdownPosition="right"
-          dropdownClassName="min-w-10"
+          dropdownClassName="!min-w-10"
         />
       </div>
     </div>
