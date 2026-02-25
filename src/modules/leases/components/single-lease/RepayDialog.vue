@@ -39,6 +39,9 @@
             <template v-slot:label>
               <div class="flex items-center gap-1">
                 {{ $t("message.amount-to-repay") }}
+                <span class="flex items-center gap-1 font-normal"
+                  ><img :src="currency?.icon" /> {{ currency?.label }}</span
+                >
               </div>
             </template>
           </AdvancedFormControl>
