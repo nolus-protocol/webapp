@@ -35,7 +35,7 @@
           <button
             v-if="slide.link"
             @click="slide.link?.onClick ? slide.link.onClick() : router.push(slide.link?.url!)"
-            class="flex w-fit text-14 font-normal text-typography-link"
+            class="flex w-fit cursor-pointer text-14 font-normal text-typography-link"
           >
             {{ slide.link.label }}
             <SvgIcon

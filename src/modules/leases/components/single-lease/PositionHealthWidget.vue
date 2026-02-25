@@ -88,7 +88,7 @@
         </div>
         <button
           @click="IntercomService.askQuestion('How does position health work?')"
-          class="flex w-fit items-center gap-1 text-14 font-normal text-typography-link"
+          class="flex w-fit cursor-pointer items-center gap-1 text-14 font-normal text-typography-link"
         >
           {{ $t("message.learn-health") }}
         </button>
