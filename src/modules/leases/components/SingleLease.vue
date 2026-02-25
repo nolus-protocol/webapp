@@ -115,7 +115,18 @@ const displayData = computed<LeaseDisplayData | null>(() => {
 
 async function getLease() {
   try {
-    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value, protocol.value || undefined);
+    // We must know the protocol before fetching — the backend defaults to a
+    // Long protocol when none is supplied, which produces wrong data for Shorts.
+    let proto = protocol.value;
+    if (!proto) {
+      // Protocol unknown (direct URL navigation). Fetch the full lease list
+      // so the store discovers which protocol this lease belongs to.
+      await leasesStore.fetchLeases();
+      proto = leasesStore.getLease(leaseAddress.value)?.protocol ?? "";
+    }
+    if (!proto) return; // still unknown — don't fetch with wrong default
+
+    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value, proto);
     if (result) {
       lease.value = result;
     }
