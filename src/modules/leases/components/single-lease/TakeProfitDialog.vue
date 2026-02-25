@@ -218,19 +218,18 @@ const assets = computed(() => {
 const payout = computed(() => {
   if (!lease.value || !displayData.value) return "0";
   const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
-  const end = totalAmount.value.mul(end_price);
-  const debt = displayData.value.outstandingDebt ?? new Dec(0);
-  const current_price = pricesStore.prices[currency.value.key];
-
   const positionType = configStore.getPositionType(lease.value.protocol);
+  const debt = displayData.value.totalDebt ?? new Dec(0);
 
   if (positionType === "Long") {
+    const end = totalAmount.value.mul(end_price);
     return formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
   } else {
-    const current_amount = totalAmount.value.mul(new Dec(current_price.price));
-    const amountVal = debt.mul(end_price);
-    const a = current_amount.sub(amountVal);
-    return formatNumber(a.toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
+    // Short: payout = position_USDC - (debt_in_asset × target_price)
+    const lpn = getLpnByProtocol(lease.value.protocol);
+    const positionUsdc = new Dec(lease.value.amount.amount ?? "0", lpn?.decimal_digits ?? 0);
+    const debtAtTargetPrice = debt.mul(end_price);
+    return formatNumber(positionUsdc.sub(debtAtTargetPrice).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
   }
 });
 
