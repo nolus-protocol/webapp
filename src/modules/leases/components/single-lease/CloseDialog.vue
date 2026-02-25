@@ -423,20 +423,23 @@ const debtData = computed(() => {
   const debt = getRepayment(100);
   const d = debt?.repayment;
   if (price && d && lease.value) {
-    const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
     const positionType = configStore.getPositionType(lease.value.protocol);
 
     if (positionType === "Short") {
+      // For Short: debt is in the underlying asset (e.g. ATOM), use debt.ticker
+      const debtTicker = lease.value.debt.ticker;
+      const debtCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
       const asset = d.quo(price);
       const value = new Dec(amount.value).mul(new Dec(swapFee.value));
       return {
         fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
-        asset: currecy.shortName,
+        asset: debtCurrency?.shortName ?? debtTicker,
         price: formatPriceUsd(price.toString(MAX_DECIMALS)),
-        debt: `${formatTokenBalance(asset)} ${currecy.shortName}`
+        debt: `${formatTokenBalance(asset)} ${debtCurrency?.shortName ?? debtTicker}`
       };
     } else {
+      const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
+      const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
       const asset = d.mul(price);
       const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
       let lpn = getLpnByProtocol(lease.value.protocol);

@@ -39,9 +39,6 @@
             <template v-slot:label>
               <div class="flex items-center gap-1">
                 {{ $t("message.amount-to-repay") }}
-                <span class="flex items-center gap-1 font-normal"
-                  ><img :src="currency?.icon" /> {{ currency?.label }}</span
-                >
               </div>
             </template>
           </AdvancedFormControl>
@@ -272,27 +269,29 @@ const calculatedBalance = computed(() => {
 });
 
 const balances = computed(() => {
-  return totalBalances.value.filter((item) => {
-    const [ticker, protocol] = item.key.split("@");
-    if (protocol != lease.value?.protocol) {
-      return false;
-    }
+  if (!lease.value || lease.value.status !== "opened") return [];
 
-    if (
-      ignoreDownpaymentAssets.value?.includes(ticker) ||
-      ignoreDownpaymentAssets.value?.includes(`${ticker}@${protocol}`)
-    ) {
-      return false;
-    }
+  const positionType = configStore.getPositionType(lease.value.protocol);
+  let repaymentCurrency;
 
-    // Only show LPN currency for repayment
-    const lpn = getLpnByProtocol(protocol);
-    if (item.key != lpn.key) {
-      return false;
-    }
+  if (positionType === "Short") {
+    // Short: debt is in the underlying asset (e.g. ATOM), use debt.ticker
+    const debtTicker = lease.value.debt.ticker;
+    repaymentCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
+  } else {
+    // Long: debt is in LPN (e.g. USDC)
+    repaymentCurrency = getLpnByProtocol(lease.value.protocol);
+  }
 
-    return true;
-  });
+  if (!repaymentCurrency) return [];
+
+  // Look for the repayment currency in wallet balances
+  const match = totalBalances.value.find((item) => item.ibcData === repaymentCurrency!.ibcData);
+  if (match) return [match];
+
+  // Always show the currency even with zero balance so the user can see what to repay with
+  const zeroCurrency = { ...repaymentCurrency, balance: { denom: repaymentCurrency.ibcData, amount: "0" } };
+  return [zeroCurrency];
 });
 
 const totalBalances = computed(() => {
