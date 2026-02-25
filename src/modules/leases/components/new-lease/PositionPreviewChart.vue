@@ -186,6 +186,8 @@ function getClosestDataPoint(cPosition: number, width: number) {
 </script>
 
 <style lang="scss">
+@reference "web-components/theme.css";
+
 .position-preview-chart {
   @apply text-typography-default;
 }

@@ -229,6 +229,8 @@ defineExpose({ show, hide });
 </script>
 
 <style lang="scss">
+@reference "web-components/theme.css";
+
 .proposal-modal {
   @apply leading-loose;
 

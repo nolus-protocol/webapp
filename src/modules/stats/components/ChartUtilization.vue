@@ -21,6 +21,8 @@ const position = computed(() => props.value);
 </script>
 
 <style lang="scss" scoped>
+@reference "web-components/theme.css";
+
 .parent {
   @apply relative h-[4px] w-[200px] rounded bg-neutral-bg-3;
 

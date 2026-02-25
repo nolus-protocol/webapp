@@ -21,6 +21,8 @@ import { sidebarIconMap, mainMenuRoutes, routePath } from "./menuConfig";
 </script>
 
 <style scoped lang="scss">
+@reference "web-components/theme.css";
+
 .router-link-active {
   @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
 }

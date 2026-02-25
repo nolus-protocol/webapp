@@ -34,6 +34,8 @@ const { block, version } = useBlockInfo();
 </script>
 
 <style lang="scss" scoped>
+@reference "web-components/theme.css";
+
 .router-link-active {
   @apply rounded-full border border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
 

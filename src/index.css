@@ -1,0 +1,4 @@
+@import "web-components/theme.css";
+@import "web-components/dist/assets/web-components.css";
+
+@source "../node_modules/web-components/dist/**/*.js";

@@ -111,6 +111,8 @@ defineExpose({ open, close });
 </script>
 
 <style scoped lang="scss">
+@reference "web-components/theme.css";
+
 .router-link-active {
   @apply border-b border-t border-border-default bg-neutral-bg-2 text-typography-link shadow-small;
 

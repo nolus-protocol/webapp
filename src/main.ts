@@ -1,5 +1,5 @@
 import "./polyfills";
-import "@/index.scss";
+import "@/index.css";
 import "@/assets/styles/global.scss";
 
 import { createPinia } from "pinia";

@@ -84,6 +84,8 @@ const emit = defineEmits<{
 </script>
 
 <style lang="scss">
+@reference "web-components/theme.css";
+
 .proposal-item {
   h2 {
     @apply mb-2 text-left text-18 font-semibold;

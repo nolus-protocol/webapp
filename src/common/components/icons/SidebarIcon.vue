@@ -174,6 +174,8 @@ defineProps<{
 </script>
 
 <style scoped lang="scss">
+@reference "web-components/theme.css";
+
 .sidebar-icon {
   @apply transform-gpu;
   --sidebar-icon-transition-duration-short: 0.2s;

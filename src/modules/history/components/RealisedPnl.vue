@@ -201,6 +201,8 @@ function getClosestDataPoint(yPosition: number) {
 </script>
 
 <style lang="scss">
+@reference "web-components/theme.css";
+
 .custom-tooltip {
   @apply absolute max-w-[200px] rounded border border-border-emphasized bg-neutral-bg-50 p-2 text-xs text-typography-default;
   pointer-events: none;

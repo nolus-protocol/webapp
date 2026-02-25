@@ -1,6 +1,8 @@
 @use "state";
 @use "tooltip";
 
+@reference "../../../node_modules/web-components/src/assets/styles/theme.css";
+
 html,
 body {
   @apply h-full w-full bg-neutral-bg-1;
