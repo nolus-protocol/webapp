@@ -45,7 +45,7 @@
     "vue": "^3.5.24",
     "vue-i18n": "11.2.8",
     "vue-router": "^4.6.3",
-    "web-components": "github:nolus-protocol/web-components#0e69ac8",
+    "web-components": "github:nolus-protocol/web-components#main",
     "zod": "^4.3.6"
   },
   "devDependencies": {
