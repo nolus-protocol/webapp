@@ -150,18 +150,17 @@ const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
 const displayData = ref<LeaseDisplayData | null>(null);
 
-async function fetchLease() {
-  try {
-    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
-    if (result) {
-      lease.value = result;
-      displayData.value = leasesStore.getLeaseDisplayData(result);
-      if (result.status === "closed") {
-        router.push(`/${RouteNames.LEASES}`);
-      }
+function initLease() {
+  // Read from store cache — the parent already fetched this lease.
+  // Avoid calling fetchLeaseDetails here: it mutates store state which
+  // triggers the parent's watcher, re-renders, and unmounts this dialog.
+  const cached = leasesStore.getLease(route.params.id as string);
+  if (cached) {
+    lease.value = cached;
+    displayData.value = leasesStore.getLeaseDisplayData(cached);
+    if (cached.status === "closed") {
+      router.push(`/${RouteNames.LEASES}`);
     }
-  } catch (error) {
-    Logger.error(error);
   }
 }
 
@@ -172,7 +171,7 @@ const config = computed(() => {
 
 onMounted(() => {
   dialog?.value?.show();
-  fetchLease();
+  initLease();
 });
 
 onBeforeUnmount(() => {
@@ -399,8 +398,10 @@ const totalAmount = computed(() => {
     return new Dec(lease.value.amount.amount ?? "0", currency.value.decimal_digits);
   } else {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`]!;
-    const price = pricesStore.prices[asset?.ibcData as string];
+    const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`];
+    if (!asset) return new Dec(0);
+    const price = pricesStore.prices[asset.key];
+    if (!price) return new Dec(0);
     let k = new Dec(lease.value.amount.amount ?? 0, currency.value.decimal_digits).quo(new Dec(price.price));
     return k;
   }

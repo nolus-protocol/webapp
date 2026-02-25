@@ -188,7 +188,10 @@ export const useLeasesStore = defineStore("leases", () => {
    */
   async function fetchLeaseDetails(address: string, protocol?: string): Promise<LeaseInfo | null> {
     try {
-      const lease = await BackendApi.getLease(address, protocol);
+      // Resolve protocol from cache if not provided — the backend defaults
+      // to a Long protocol when none is supplied, which is wrong for Shorts.
+      const resolvedProtocol = protocol || getLease(address)?.protocol;
+      const lease = await BackendApi.getLease(address, resolvedProtocol);
       leaseDetails.value.set(address, lease);
 
       // Update in the main list if present

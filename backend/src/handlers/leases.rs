@@ -421,7 +421,9 @@ pub async fn get_leases(
 }
 
 /// GET /api/leases/:address?protocol=...
-/// Returns details for a specific lease
+/// Returns details for a specific lease.
+/// Protocol is required — the backend cannot infer it from the lease address alone,
+/// and defaulting to a Long protocol produces wrong data for Short positions.
 pub async fn get_lease(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -429,9 +431,11 @@ pub async fn get_lease(
 ) -> Result<Json<LeaseInfo>, AppError> {
     debug!("Getting lease: {}", address);
 
-    let protocol = query
-        .protocol
-        .unwrap_or_else(|| "OSMOSIS-OSMOSIS-USDC_NOBLE".to_string());
+    let protocol = query.protocol.ok_or_else(|| AppError::Validation {
+        message: "protocol query parameter is required".to_string(),
+        field: Some("protocol".to_string()),
+        details: None,
+    })?;
 
     fetch_lease_info(&state, &address, &protocol)
         .await

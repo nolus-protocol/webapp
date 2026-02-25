@@ -311,26 +311,30 @@ const lease = ref<LeaseInfo | null>(null);
 const displayData = ref<LeaseDisplayData | null>(null);
 const minAsset = ref<AmountSpec | null>(null);
 
-async function fetchLease() {
-  try {
-    const result = await leasesStore.fetchLeaseDetails(route.params.id as string);
-    if (result) {
-      lease.value = result;
-      displayData.value = leasesStore.getLeaseDisplayData(result);
-      if (result.status === "closed") {
-        router.push(`/${RouteNames.LEASES}`);
-      }
-      const positionSpec = await getLeasePositionSpec(result.protocol);
-      minAsset.value = positionSpec.min_asset;
+async function initLease() {
+  // Read from store cache — the parent already fetched this lease.
+  // Avoid calling fetchLeaseDetails here: it mutates store state which
+  // triggers the parent's watcher, re-renders, and unmounts this dialog.
+  const cached = leasesStore.getLease(route.params.id as string);
+  if (cached) {
+    lease.value = cached;
+    displayData.value = leasesStore.getLeaseDisplayData(cached);
+    if (cached.status === "closed") {
+      router.push(`/${RouteNames.LEASES}`);
+      return;
     }
-  } catch (error) {
-    Logger.error(error);
+    try {
+      const positionSpec = await getLeasePositionSpec(cached.protocol);
+      minAsset.value = positionSpec.min_asset;
+    } catch (error) {
+      Logger.error(error);
+    }
   }
 }
 
 onMounted(() => {
   dialog?.value?.show();
-  fetchLease();
+  initLease();
 });
 
 onBeforeUnmount(() => {
