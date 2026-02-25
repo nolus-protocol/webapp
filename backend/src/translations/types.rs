@@ -121,30 +121,6 @@ pub struct MissingKey {
     pub placeholders: Vec<String>,
 }
 
-/// Generation status
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum GenerationStatus {
-    Queued,
-    Processing,
-    Completed,
-    Failed,
-}
-
-/// Generation batch tracking
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GenerationBatch {
-    pub id: String,
-    pub lang: String,
-    pub created_at: DateTime<Utc>,
-    pub status: GenerationStatus,
-    pub total_keys: usize,
-    pub completed_keys: usize,
-    pub failed_keys: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
-
 /// Language info response (includes stats)
 #[derive(Debug, Clone, Serialize)]
 pub struct LanguageInfo {

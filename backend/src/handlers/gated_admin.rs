@@ -7,7 +7,6 @@ use axum::{
     extract::{Path, State},
     Json,
 };
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, info, warn};
 
@@ -576,12 +575,6 @@ pub async fn replace_ui_settings(
     state.config_store.save_ui_settings(&config).await?;
     trigger_gated_refresh(&state);
     Ok(Json(config))
-}
-
-/// Hidden proposal input
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HiddenProposalInput {
-    pub proposal_id: String,
 }
 
 /// POST /api/admin/gated/ui-settings/hidden-proposals/:id

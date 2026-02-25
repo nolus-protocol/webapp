@@ -59,16 +59,6 @@ pub struct OraclePricesResponse {
     pub prices: Vec<OraclePrice>,
 }
 
-/// Protocol contracts configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProtocolContracts {
-    pub protocol: String,
-    pub oracle: String,
-    pub lpp: String,
-    pub leaser: String,
-    pub profit: String,
-}
-
 impl ChainClient {
     pub fn new(rest_url: String, client: Client) -> Self {
         Self {
@@ -1094,10 +1084,6 @@ pub struct ProtocolContractsInfo {
 // Leaser Contract Types
 // ============================================================================
 
-/// Response from Leaser.customer_leases query
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerLeasesResponse(pub Vec<String>);
-
 /// Wrapper for the chain's `{"config": {...}}` response
 #[derive(Debug, Clone, Deserialize)]
 pub struct LeaserConfigResponse {
@@ -1291,12 +1277,6 @@ pub struct BorrowRate {
     pub base_interest_rate: u32,
     pub utilization_optimal: u32,
     pub addon_optimal_interest_rate: u32,
-}
-
-/// Treasury/Dispatcher rewards
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DispatcherRewards {
-    pub rewards: String,
 }
 
 // ============================================================================
