@@ -105,7 +105,7 @@ let timeOut: NodeJS.Timeout;
 // Lease state
 const lease = ref<LeaseInfo | null>(null);
 const leaseAddress = computed(() => route.params.id as string);
-const protocol = computed(() => lease.value?.protocol ?? "");
+const protocol = computed(() => lease.value?.protocol ?? leasesStore.getLease(leaseAddress.value)?.protocol ?? "");
 
 // Computed display data for child components
 const displayData = computed<LeaseDisplayData | null>(() => {
@@ -115,7 +115,7 @@ const displayData = computed<LeaseDisplayData | null>(() => {
 
 async function getLease() {
   try {
-    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value);
+    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value, protocol.value || undefined);
     if (result) {
       lease.value = result;
     }

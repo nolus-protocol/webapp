@@ -78,7 +78,10 @@ watch(
 );
 
 const currency = computed(() => {
-  const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
+  const positionType = configStore.getPositionType(props.lease?.protocol!);
+  const ticker = positionType === "Short"
+    ? props.lease?.debt?.ticker
+    : (props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker);
   const c = configStore.currenciesData?.[`${ticker}@${props.lease?.protocol}`];
   const price = pricesStore.prices[`${ticker}@${props.lease?.protocol}`];
   return {

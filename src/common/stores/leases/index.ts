@@ -186,9 +186,9 @@ export const useLeasesStore = defineStore("leases", () => {
   /**
    * Fetch details for a specific lease
    */
-  async function fetchLeaseDetails(address: string): Promise<LeaseInfo | null> {
+  async function fetchLeaseDetails(address: string, protocol?: string): Promise<LeaseInfo | null> {
     try {
-      const lease = await BackendApi.getLease(address);
+      const lease = await BackendApi.getLease(address, protocol);
       leaseDetails.value.set(address, lease);
 
       // Update in the main list if present
