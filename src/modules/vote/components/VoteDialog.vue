@@ -178,7 +178,7 @@ async function onVote(vote: VoteOption) {
   try {
     isDisabled.value = true;
     await walletOperation(() => onVoteEmit(vote));
-  } catch (error: Error | any) {
+  } catch (error: unknown) {
     Logger.error(error);
   } finally {
     isDisabled.value = false;
@@ -210,7 +210,7 @@ async function onVoteEmit(vote: VoteOption) {
         })
       });
     }
-  } catch (e: Error | any) {
+  } catch (e: unknown) {
     Logger.error(e);
   } finally {
     isLoading.value = -1;
@@ -250,7 +250,9 @@ defineExpose({ show, hide });
     font-size: 24px;
     line-height: 32px;
     font-weight: 600;
-    &:first-child { margin-top: 0; }
+    &:first-child {
+      margin-top: 0;
+    }
   }
 
   h2 {
@@ -260,7 +262,9 @@ defineExpose({ show, hide });
     font-size: 18px;
     line-height: 26px;
     font-weight: 600;
-    &:first-child { margin-top: 0; }
+    &:first-child {
+      margin-top: 0;
+    }
   }
 
   h3 {
@@ -270,7 +274,9 @@ defineExpose({ show, hide });
     font-size: 16px;
     line-height: 22px;
     font-weight: 600;
-    &:first-child { margin-top: 0; }
+    &:first-child {
+      margin-top: 0;
+    }
   }
 
   ul,

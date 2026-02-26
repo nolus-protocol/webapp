@@ -39,4 +39,3 @@ export function getLanguage(): (typeof languages)[keyof typeof languages] {
 export function setLanguageDb(lang: string): void {
   idbPut(LANGUAGE_KEY, lang);
 }
-

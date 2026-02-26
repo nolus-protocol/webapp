@@ -13,7 +13,7 @@
           :type="data?.historyData.errorMsg ? AlertType.error : AlertType.warning"
         >
           <template v-slot:content>
-            <p class="my-1 break-all text-14 font-normal text-typography-secondary">
+            <p class="my-1 text-14 font-normal break-all text-typography-secondary">
               {{ data?.historyData.errorMsg ?? $t("message.additional-confirm-text") }}
             </p>
             <div class="mt-2 flex gap-2">
@@ -87,7 +87,7 @@
             v-if="!data?.historyData.skipRoute"
           >
             <span class="text-14 text-typography-secondary">{{ $t("message.hash") }}</span>
-            <div class="wrap truncate break-all text-16 font-semibold">{{ data?.tx_hash }}</div>
+            <div class="wrap truncate text-16 font-semibold break-all">{{ data?.tx_hash }}</div>
             <div class="mt-2 flex gap-2">
               <Button
                 :label="$t('message.btn-tx-hash')"
@@ -108,7 +108,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </template>
   </Dialog>

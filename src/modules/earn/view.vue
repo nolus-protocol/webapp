@@ -42,7 +42,13 @@ import { EarnAssetsDialog } from "./enums";
 import { computed, h, provide, ref, watch } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
 
-import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd, formatPercent } from "@/common/utils/NumberFormatUtils";
+import {
+  formatTokenBalance,
+  formatUsd,
+  formatMobileAmount,
+  formatMobileUsd,
+  formatPercent
+} from "@/common/utils/NumberFormatUtils";
 import { isMobile } from "@/common/utils";
 import { NORMAL_DECIMALS } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";

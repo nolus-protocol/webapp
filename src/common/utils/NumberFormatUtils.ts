@@ -244,4 +244,3 @@ export function formatMobileUsd(amount: Dec): string {
   }
   return formatUsd(amount.toString(2));
 }
-

@@ -16,6 +16,10 @@ export const createApp = () => {
   app.use(pinia);
   app.use(setupI18n());
 
+  app.config.errorHandler = (err, _instance, info) => {
+    console.error(`[Vue Error] ${info}:`, err);
+  };
+
   return {
     app,
     router,

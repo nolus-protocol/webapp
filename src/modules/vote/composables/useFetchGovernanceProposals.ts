@@ -74,7 +74,7 @@ export const useFetchGovernanceProposals = () => {
         proposals: filteredProposals,
         pagination: proposalsResponse.pagination
       };
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
       return null;
     }
@@ -103,7 +103,7 @@ export const useFetchGovernanceProposals = () => {
       }
 
       await Promise.allSettled(promises);
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
     }
   };

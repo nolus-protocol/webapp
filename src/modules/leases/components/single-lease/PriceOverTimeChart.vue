@@ -35,7 +35,13 @@ import { Tooltip } from "web-components";
 import type { LeaseInfo } from "@/common/api";
 import { LeaseUtils } from "@/common/utils";
 import { formatPriceUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import {
+  CHART_AXIS,
+  createUsdTickFormat,
+  computeMarginLeft,
+  computeYTicks,
+  getChartWidth
+} from "@/common/utils/ChartUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { plot, lineY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
@@ -79,9 +85,10 @@ watch(
 
 const currency = computed(() => {
   const positionType = configStore.getPositionType(props.lease?.protocol!);
-  const ticker = positionType === "Short"
-    ? props.lease?.debt?.ticker
-    : (props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker);
+  const ticker =
+    positionType === "Short"
+      ? props.lease?.debt?.ticker
+      : (props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker);
   const c = configStore.currenciesData?.[`${ticker}@${props.lease?.protocol}`];
   const price = pricesStore.prices[`${ticker}@${props.lease?.protocol}`];
   return {

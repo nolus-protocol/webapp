@@ -27,7 +27,8 @@
               animatedReveal: true,
               fontSize: 24,
               compact: mobile,
-              class: pnlPercent.isPositive() || pnlPercent.isZero() ? 'text-typography-success' : 'text-typography-error'
+              class:
+                pnlPercent.isPositive() || pnlPercent.isZero() ? 'text-typography-success' : 'text-typography-error'
             }"
             :loading="leasesStore.loading"
             :loadingWidth="'80px'"
@@ -46,7 +47,10 @@
                 wallet.wallet && !isProtocolDisabled
                   ? { name: $t('message.open-position'), icon: 'plus', url: `/${RouteNames.LEASES}/open/long` }
                   : undefined,
-              link: { label: $t('message.learn-new-leases'), onClick: () => IntercomService.askQuestion('How does margin leverage work?') }
+              link: {
+                label: $t('message.learn-new-leases'),
+                onClick: () => IntercomService.askQuestion('How does margin leverage work?')
+              }
             }
           ]"
         />
@@ -151,7 +155,6 @@ watch(
         totalValueUsd = totalValueUsd.add(displayData.assetValueUsd);
         totalPnl = totalPnl.add(displayData.pnlAmount);
       }
-
     } catch (e) {
       Logger.error(e);
     }

@@ -6,8 +6,7 @@
     >
       <template v-if="hide">****</template>
       <template v-else>
-        {{ sign
-        }}<template v-if="isDenomPrefix">{{ denom }}<template v-if="hasSpace">&nbsp;</template></template>
+        {{ sign }}<template v-if="isDenomPrefix">{{ denom }}<template v-if="hasSpace">&nbsp;</template></template>
         <template v-if="around">~</template>
         <template v-if="animatedReveal">
           <AnimateNumber

@@ -32,7 +32,7 @@ export function useWalletEvents(): void {
           await connectionStore.connectWallet(wallet.wallet.address);
         }
         await loadNetwork();
-      } catch (error: Error | any) {
+      } catch (error: unknown) {
         Logger.error(error);
       } finally {
         keystoreInFlight = false;
@@ -46,7 +46,7 @@ export function useWalletEvents(): void {
   async function loadNetwork() {
     try {
       await Promise.all([wallet.LOAD_APR(), earnStore.fetchPools()]);
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
     }
   }

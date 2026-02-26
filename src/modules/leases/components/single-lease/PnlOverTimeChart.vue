@@ -32,7 +32,13 @@ import { pointer, select, type Selection } from "d3";
 import { CHART_RANGES } from "@/config/global";
 import { useI18n } from "vue-i18n";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import {
+  CHART_AXIS,
+  createUsdTickFormat,
+  computeMarginLeft,
+  computeYTicks,
+  getChartWidth
+} from "@/common/utils/ChartUtils";
 import type { LeaseInfo } from "@/common/api";
 import { useAnalyticsStore } from "@/common/stores";
 

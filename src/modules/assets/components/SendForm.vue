@@ -144,7 +144,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { ErrorCodes } from "@/config/global";
 import { useConfigStore } from "@/common/stores/config";
-import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import { HISTORY_ACTIONS } from "@/modules/history/types";
 import type { Chain, RouteResponse } from "@/common/types/skipRoute";
 
 const i18n = useI18n();
@@ -177,7 +177,7 @@ const assets = computed(() => {
       ibcData: (asset as ExternalCurrency).ibcData,
       from: (asset as AssetBalance).from,
       native: asset.native!,
-      sybmol: asset.symbol!,
+      symbol: asset.symbol!,
       ticker: asset.ticker!,
       stable,
       price: formatDecAsUsd(stable)
@@ -319,7 +319,7 @@ function setHistory() {
     currency: currency.value.from,
     fromAddress: walletStore.wallet?.address,
     receiverAddress: wallet.value,
-    type: HYSTORY_ACTIONS.SEND
+    type: HISTORY_ACTIONS.SEND
   };
   historyStore.addPendingTransfer(data, i18n);
 }
@@ -334,8 +334,8 @@ watch(
         timeOut = setTimeout(async () => {
           try {
             tempRoute.value = await getRoute();
-          } catch (e: Error | any) {
-            amountErrorMsg.value = e.message;
+          } catch (e: unknown) {
+            amountErrorMsg.value = e instanceof Error ? e.message : String(e);
             console.log(e);
           }
         });
@@ -376,8 +376,8 @@ async function onSubmitCosmos() {
       route = await getRoute();
       await onSwap();
     }
-  } catch (e: Error | any) {
-    amountErrorMsg.value = e.toString();
+  } catch (e: unknown) {
+    amountErrorMsg.value = String(e);
   } finally {
     isDisabled.value = false;
   }
@@ -504,7 +504,7 @@ async function onSwap() {
     } else {
       await onSwapCosmos();
     }
-  } catch (error: Error | any) {
+  } catch (_error: unknown) {
     step.value = CONFIRM_STEP.ERROR;
   }
 }
@@ -513,7 +513,7 @@ async function onSwapNative() {
   try {
     isDisabled.value = true;
     await walletOperation(transferAmount);
-  } catch (error: Error | any) {
+  } catch (_error: unknown) {
     step.value = CONFIRM_STEP.ERROR;
   } finally {
     isDisabled.value = false;
@@ -553,12 +553,12 @@ async function transferAmount() {
         txHashes.value[index].status = SwapStatus.success;
 
         await balancesStore.fetchBalances();
-      } catch (error: Error | any) {
+      } catch (error: unknown) {
         if (walletStore.history[id]) {
           walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
           walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
         }
-        switch (error.code) {
+        switch ((error as any).code) {
           case ErrorCodes.GasError: {
             step.value = CONFIRM_STEP.GasError;
             break;
@@ -582,8 +582,8 @@ async function transferAmount() {
 
     historyStore.loadActivities();
     onClose();
-  } catch (e: Error | any) {
-    amountErrorMsg.value = e.toString();
+  } catch (e: unknown) {
+    amountErrorMsg.value = String(e);
   } finally {
     isLoading.value = false;
   }
@@ -623,7 +623,7 @@ async function onSwapCosmos() {
         onClose();
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
-        amountErrorMsg.value = (error as Error).toString();
+        amountErrorMsg.value = error instanceof Error ? error.message : String(error);
         Logger.error(error);
 
         if (walletStore.history[id]) {

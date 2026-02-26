@@ -124,43 +124,40 @@
         />
       </g>
     </g>
-    <g v-else-if="icon === 'vote'" class="animate-shake">
-      <path 
+    <g
+      v-else-if="icon === 'vote'"
+      class="animate-shake"
+    >
+      <path
         d="M7 20V14.5V11L11 3H12C12.5 3 13.7386 3.82956 13.5 5.5L13 9H18.0631C19.8811 9 21.2813 10.6041 21.0356 12.4053L20.3538 17.4053C20.1511 18.8918 18.8815 20 17.3813 20L7 20Z"
         class="stroke fill-transparent group-[.router-link-active]:fill-icon-link"
       />
-      <path 
+      <path
         d="M3 12C3 11.4477 3.44772 11 4 11H7V20H4C3.44772 20 3 19.5523 3 19V12Z"
         class="stroke fill-transparent"
       />
     </g>
     <g v-else-if="icon === 'stats'">
-      <rect 
+      <rect
         x="2"
         y="20%"
-        
         width="5"
         height="75%"
-        class="fill-icon-default transition group-[.router-link-active]:fill-icon-link
-        !origin-bottom scale-y-50 group-[.router-link-active]:scale-y-100
-        "
+        class="!origin-bottom scale-y-50 fill-icon-default transition group-[.router-link-active]:scale-y-100 group-[.router-link-active]:fill-icon-link"
       />
-      <rect 
+      <rect
         x="9"
         y="20%"
-        
         width="5"
         height="75%"
-        class="fill-icon-default transition group-[.router-link-active]:fill-icon-link
-        !origin-bottom scale-y-100 group-[.router-link-active]:scale-y-75"
+        class="!origin-bottom scale-y-100 fill-icon-default transition group-[.router-link-active]:scale-y-75 group-[.router-link-active]:fill-icon-link"
       />
-      <rect 
+      <rect
         x="16"
         y="20%"
-        
         width="5"
         height="75%"
-        class="fill-icon-default transition group-[.router-link-active]:fill-icon-link  !origin-bottom scale-y-75 group-[.router-link-active]:scale-y-50"
+        class="!origin-bottom scale-y-75 fill-icon-default transition group-[.router-link-active]:scale-y-50 group-[.router-link-active]:fill-icon-link"
       />
     </g>
   </svg>

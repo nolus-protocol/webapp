@@ -27,7 +27,7 @@
           })
       "
     />
-    <div class="flex justify-end border-b border-t border-border-color px-6 py-4">
+    <div class="flex justify-end border-t border-b border-border-color px-6 py-4">
       <div class="flex flex-[3] flex-col gap-3 text-right text-16 font-normal text-typography-secondary">
         <p class="flex gap-1 self-end">{{ $t("message.price-impact") }}:</p>
         <p class="flex gap-1 self-end">
@@ -410,7 +410,7 @@ async function setRoute(token: Coin, revert = false) {
       priceImapact.value = Number(route?.swap_price_impact_percent ?? "0");
       setSwapFee();
     } catch (e) {
-      error.value = (e as Error).message;
+      error.value = e instanceof Error ? e.message : String(e);
       route = null;
       Logger.error(e);
     } finally {
@@ -473,7 +473,7 @@ async function onSwap() {
       wallet.history[id].txHashes = txHashes.value;
     }
   } catch (e) {
-    error.value = (e as Error).toString();
+    error.value = e instanceof Error ? e.message : String(e);
     Logger.error(error);
 
     if (wallet.history[id]) {

@@ -1,5 +1,8 @@
 <template>
-  <TableRow :items="transactionData.items" :scrollable="!mobile" />
+  <TableRow
+    :items="transactionData.items"
+    :scrollable="!mobile"
+  />
   <TransactionDetails ref="transactionDialogRef" />
 </template>
 

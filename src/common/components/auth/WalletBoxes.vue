@@ -45,7 +45,7 @@ async function onClick() {
       type: ToastType.success,
       message: i18n.t("message.wallet-connected")
     });
-  } catch (e: Error | any) {
+  } catch (e: unknown) {
     Logger.error(e);
   } finally {
     disabled.value = false;

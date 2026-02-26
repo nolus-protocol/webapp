@@ -199,4 +199,3 @@ function getClosestDataPoint(yPosition: number) {
   return null;
 }
 </script>
-

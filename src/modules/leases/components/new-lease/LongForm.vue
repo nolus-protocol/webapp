@@ -340,7 +340,7 @@ const assets = computed(() => {
       },
       ibcData: (asset as ExternalCurrency).ibcData,
       native: asset.native!,
-      sybmol: asset.symbol!,
+      symbol: asset.symbol!,
       ticker: asset.ticker!,
       key: asset.key,
       stable,
@@ -587,8 +587,8 @@ async function onOpenLease() {
   try {
     isDisabled.value = true;
     await walletOperation(openLease);
-  } catch (error: Error | any) {
-    amountErrorMsg.value = error.toString();
+  } catch (error: unknown) {
+    amountErrorMsg.value = String(error);
     Logger.error(error);
   } finally {
     isDisabled.value = false;
@@ -643,8 +643,8 @@ async function openLease() {
       });
 
       router.push(`/${RouteNames.LEASES}/${data.value}`);
-    } catch (error: Error | any) {
-      amountErrorMsg.value = error.toString();
+    } catch (error: unknown) {
+      amountErrorMsg.value = String(error);
       Logger.error(error);
     } finally {
       isLoading.value = false;

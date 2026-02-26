@@ -351,7 +351,11 @@ const stopLoss = computed(() => {
   return props.displayData?.stopLoss
     ? {
         percent: props.displayData.stopLoss.percent,
-        amount: formatNumber(props.displayData.stopLoss.price.toString(asset.value?.decimal_digits), asset.value?.decimal_digits, NATIVE_CURRENCY.symbol)
+        amount: formatNumber(
+          props.displayData.stopLoss.price.toString(asset.value?.decimal_digits),
+          asset.value?.decimal_digits,
+          NATIVE_CURRENCY.symbol
+        )
       }
     : null;
 });
@@ -360,7 +364,11 @@ const takeProfit = computed(() => {
   return props.displayData?.takeProfit
     ? {
         percent: props.displayData.takeProfit.percent,
-        amount: formatNumber(props.displayData.takeProfit.price.toString(asset.value?.decimal_digits), asset.value?.decimal_digits, NATIVE_CURRENCY.symbol)
+        amount: formatNumber(
+          props.displayData.takeProfit.price.toString(asset.value?.decimal_digits),
+          asset.value?.decimal_digits,
+          NATIVE_CURRENCY.symbol
+        )
       }
     : null;
 });
@@ -426,7 +434,10 @@ const lpn = computed(() => {
 const debt = computed(() => {
   if (props.lease && lpn.value) {
     const totalDebt = props.displayData?.totalDebt ?? new Dec(0);
-    return totalDebt.mul(new Dec(10 ** lpn.value.decimal_digits)).truncate().toString();
+    return totalDebt
+      .mul(new Dec(10 ** lpn.value.decimal_digits))
+      .truncate()
+      .toString();
   }
   return "0";
 });
@@ -460,7 +471,10 @@ const openedPriceDecimals = computed(() => {
 const interestDue = computed(() => {
   if (props.displayData && props.lease?.status === "opened") {
     const due = props.displayData.interestDue;
-    return due.mul(new Dec(10 ** (lpn.value?.decimal_digits ?? 6))).truncate().toString();
+    return due
+      .mul(new Dec(10 ** (lpn.value?.decimal_digits ?? 6)))
+      .truncate()
+      .toString();
   }
   return "0";
 });
@@ -495,9 +509,7 @@ const interestDueDate = computed(() => {
 });
 
 async function onRemoveStopLoss() {
-  try {
-    await walletOperation(onSetStopLoss);
-  } catch (error: Error | any) {}
+  await walletOperation(onSetStopLoss);
 }
 
 async function onSetStopLoss() {
@@ -518,7 +530,7 @@ async function onSetStopLoss() {
         type: ToastType.success,
         message: i18n.t("message.stop-loss-toast")
       });
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
     } finally {
       loadingStopLoss.value = false;
@@ -527,9 +539,7 @@ async function onSetStopLoss() {
 }
 
 async function onRemoveTakeProfit() {
-  try {
-    await walletOperation(onSetTakeProfit);
-  } catch (error: Error | any) {}
+  await walletOperation(onSetTakeProfit);
 }
 
 async function onSetTakeProfit() {
@@ -550,7 +560,7 @@ async function onSetTakeProfit() {
         type: ToastType.success,
         message: i18n.t("message.stop-loss-toast")
       });
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
     } finally {
       loadingTakeProfit.value = false;

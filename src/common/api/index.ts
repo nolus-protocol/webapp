@@ -17,9 +17,6 @@ export * from "./types";
 // Re-export ApiError class specifically (it's both a type and a value)
 export { ApiError } from "./types";
 
-// Re-export Zod schemas for API response validation
-export * from "./schemas";
-
 // Re-export types from WebSocketClient
 export type {
   SubscriptionTopic,

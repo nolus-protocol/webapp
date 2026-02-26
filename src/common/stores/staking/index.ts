@@ -15,10 +15,10 @@ import {
   type StakingPositionsResponse,
   type UnbondingPosition,
   type ValidatorReward,
-  type StakingParams,
-  type Unsubscribe
+  type StakingParams
 } from "@/common/api";
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
+import { useWebSocketLifecycle } from "@/common/composables/useWebSocketLifecycle";
 
 export const useStakingStore = defineStore("staking", () => {
   // State
@@ -35,9 +35,6 @@ export const useStakingStore = defineStore("staking", () => {
   const positionsLoading = ref(false);
   const error = ref<string | null>(null);
   const lastUpdated = ref<Date | null>(null);
-
-  // WebSocket subscription handle
-  let unsubscribe: Unsubscribe | null = null;
 
   // Computed
   const hasPositions = computed(() => delegations.value.length > 0 || unbonding.value.length > 0);
@@ -136,59 +133,36 @@ export const useStakingStore = defineStore("staking", () => {
     try {
       params.value = await BackendApi.getStakingParams();
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch staking params";
       console.error("[StakingStore] Failed to fetch params:", e);
     }
   }
 
-  /**
-   * Subscribe to real-time staking updates via WebSocket
-   */
-  function subscribeToUpdates(): void {
-    if (!address.value || unsubscribe) {
-      return;
+  // WebSocket lifecycle: subscribe, fetch, unsubscribe, cleanup
+  const { setAddress, cleanup } = useWebSocketLifecycle({
+    address,
+    subscribe: (addr) =>
+      WebSocketClient.subscribeStaking(addr, (wsAddr, response) => {
+        if (wsAddr === address.value && response) {
+          if (response.delegations) delegations.value = response.delegations;
+          if (response.unbonding) unbonding.value = response.unbonding;
+          if (response.rewards) rewards.value = response.rewards;
+          if (response.total_staked) totalStaked.value = response.total_staked;
+          if (response.total_rewards) totalRewards.value = response.total_rewards;
+          lastUpdated.value = new Date();
+        }
+      }),
+    fetch: fetchPositions,
+    resetState: () => {
+      delegations.value = [];
+      unbonding.value = [];
+      rewards.value = [];
+      totalStaked.value = "0";
+      totalRewards.value = "0";
+      lastUpdated.value = null;
+      error.value = null;
     }
-
-    unsubscribe = WebSocketClient.subscribeStaking(address.value, (addr, response) => {
-      if (addr === address.value && response) {
-        // Handle WebSocket updates - response structure matches StakingPositionsResponse
-        if (response.delegations) delegations.value = response.delegations;
-        if (response.unbonding) unbonding.value = response.unbonding;
-        if (response.rewards) rewards.value = response.rewards;
-        if (response.total_staked) totalStaked.value = response.total_staked;
-        if (response.total_rewards) totalRewards.value = response.total_rewards;
-        lastUpdated.value = new Date();
-      }
-    });
-  }
-
-  /**
-   * Unsubscribe from real-time updates
-   */
-  function unsubscribeFromUpdates(): void {
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
-    }
-  }
-
-  /**
-   * Set the address and fetch positions
-   */
-  async function setAddress(newAddress: string | null): Promise<void> {
-    unsubscribeFromUpdates();
-
-    address.value = newAddress;
-    delegations.value = [];
-    unbonding.value = [];
-    rewards.value = [];
-    totalStaked.value = "0";
-    totalRewards.value = "0";
-
-    if (newAddress) {
-      await fetchPositions();
-      subscribeToUpdates();
-    }
-  }
+  });
 
   /**
    * Initialize the store
@@ -197,24 +171,7 @@ export const useStakingStore = defineStore("staking", () => {
     await Promise.all([fetchValidators(), fetchParams()]);
   }
 
-  /**
-   * Cleanup store state (on disconnect)
-   */
-  function cleanup(): void {
-    unsubscribeFromUpdates();
-    address.value = null;
-    delegations.value = [];
-    unbonding.value = [];
-    rewards.value = [];
-    totalStaked.value = "0";
-    totalRewards.value = "0";
-    lastUpdated.value = null;
-    error.value = null;
-  }
-
   // Self-register: watch wallet address changes from connectionStore.
-  // { immediate: true } ensures stores created after wallet is already
-  // connected will still load data (the watcher fires with current value).
   useWalletWatcher(setAddress, cleanup);
 
   return {
@@ -249,8 +206,6 @@ export const useStakingStore = defineStore("staking", () => {
     fetchValidators,
     fetchPositions,
     fetchParams,
-    subscribeToUpdates,
-    unsubscribeFromUpdates,
     setAddress,
     initialize,
     cleanup

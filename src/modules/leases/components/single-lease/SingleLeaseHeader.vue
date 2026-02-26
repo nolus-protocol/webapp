@@ -1,5 +1,7 @@
 <template>
-  <div class="flex flex-1 flex-col justify-between gap-y-4 border-b border-border-color pb-4 lg:flex-row lg:gap-0 lg:pb-3">
+  <div
+    class="flex flex-1 flex-col justify-between gap-y-4 border-b border-border-color pb-4 lg:flex-row lg:gap-0 lg:pb-3"
+  >
     <div class="flex items-center">
       <SvgIcon
         name="arrow-left"
@@ -126,7 +128,9 @@
         </div>
       </div>
     </div>
-    <div class="flex items-center gap-3 border-t border-border-color pt-3 lg:border-none lg:pt-0 [&>*]:flex-1 lg:[&>*]:flex-initial">
+    <div
+      class="flex items-center gap-3 border-t border-border-color pt-3 lg:border-none lg:pt-0 [&>*]:flex-1 lg:[&>*]:flex-initial"
+    >
       <Button
         :label="$t('message.share-position')"
         severity="tertiary"

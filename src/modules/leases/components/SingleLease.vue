@@ -252,7 +252,8 @@ const inProgressBanner = computed<InProgressBanner | null>(() => {
       titleKey: "message.slippage-protection-title",
       descriptionKey: "message.slippage-protection-description",
       linkKey: "message.slippage-protection-description-link",
-      onLinkClick: () => IntercomService.askQuestion("How does Market Anomaly Guard (MAG) protect my position from unfair liquidation?")
+      onLinkClick: () =>
+        IntercomService.askQuestion("How does Market Anomaly Guard (MAG) protect my position from unfair liquidation?")
     };
   }
 
@@ -263,7 +264,8 @@ const inProgressBanner = computed<InProgressBanner | null>(() => {
         titleKey: "message.liquidation-ongoingpartial-liability-title",
         descriptionKey: "message.liquidation-ongoingpartial-liability-description",
         linkKey: "message.liquidation-ongoingpartial-liability-description-link",
-        onLinkClick: () => IntercomService.askQuestion("My position is being partially liquidated due to low health. What should I do?")
+        onLinkClick: () =>
+          IntercomService.askQuestion("My position is being partially liquidated due to low health. What should I do?")
       };
     }
     // Default to overdue (interest collection) for any liquidation cause
@@ -271,7 +273,8 @@ const inProgressBanner = computed<InProgressBanner | null>(() => {
       titleKey: "message.liquidation-ongoingpartial-title",
       descriptionKey: "message.liquidation-ongoingpartial-description",
       linkKey: "message.liquidation-ongoingpartial-description-link",
-      onLinkClick: () => IntercomService.askQuestion("My position is being liquidated due to overdue interest. What should I do?")
+      onLinkClick: () =>
+        IntercomService.askQuestion("My position is being liquidated due to overdue interest. What should I do?")
     };
   }
 

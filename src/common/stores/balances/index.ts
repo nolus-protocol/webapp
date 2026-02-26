@@ -7,9 +7,10 @@
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { BackendApi, WebSocketClient, type BalanceInfo, type BalancesResponse, type Unsubscribe } from "@/common/api";
+import { BackendApi, WebSocketClient, type BalanceInfo, type BalancesResponse } from "@/common/api";
 import { useConfigStore } from "../config";
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
+import { useWebSocketLifecycle } from "@/common/composables/useWebSocketLifecycle";
 import { NATIVE_ASSET } from "@/config/global";
 import type { ExternalCurrency } from "@/common/types";
 
@@ -24,9 +25,6 @@ export const useBalancesStore = defineStore("balances", () => {
 
   // Ignored currencies (user preference)
   const ignoredCurrencies = ref<string[]>([]);
-
-  // WebSocket subscription handle
-  let unsubscribe: Unsubscribe | null = null;
 
   // Computed
   const hasBalances = computed(() => balances.value.length > 0);
@@ -191,65 +189,24 @@ export const useBalancesStore = defineStore("balances", () => {
     }
   }
 
-  /**
-   * Subscribe to real-time balance updates via WebSocket
-   */
-  function subscribeToUpdates(): void {
-    if (!address.value || unsubscribe) {
-      return;
-    }
-
-    unsubscribe = WebSocketClient.subscribeBalances(address.value, (addr, newBalances) => {
-      if (addr === address.value) {
-        // WebSocket may send balance updates in different format
-        // Handle both array and object formats
-        if (Array.isArray(newBalances)) {
+  // WebSocket lifecycle: subscribe, fetch, unsubscribe, cleanup
+  const { setAddress, cleanup } = useWebSocketLifecycle({
+    address,
+    subscribe: (addr) =>
+      WebSocketClient.subscribeBalances(addr, (wsAddr, newBalances) => {
+        if (wsAddr === address.value && Array.isArray(newBalances)) {
           balances.value = newBalances;
+          lastUpdated.value = new Date();
         }
-        lastUpdated.value = new Date();
-      }
-    });
-  }
-
-  /**
-   * Unsubscribe from real-time updates
-   */
-  function unsubscribeFromUpdates(): void {
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
+      }),
+    fetch: fetchBalances,
+    resetState: () => {
+      balances.value = [];
+      totalValueUsd.value = "0";
+      lastUpdated.value = null;
+      error.value = null;
     }
-  }
-
-  /**
-   * Set the wallet address and fetch balances
-   */
-  async function setAddress(newAddress: string | null): Promise<void> {
-    // Cleanup previous subscription
-    unsubscribeFromUpdates();
-
-    address.value = newAddress;
-    balances.value = [];
-    totalValueUsd.value = "0";
-    lastUpdated.value = null;
-
-    if (newAddress) {
-      await fetchBalances();
-      subscribeToUpdates();
-    }
-  }
-
-  /**
-   * Cleanup store state (on disconnect)
-   */
-  function cleanup(): void {
-    unsubscribeFromUpdates();
-    address.value = null;
-    balances.value = [];
-    totalValueUsd.value = "0";
-    lastUpdated.value = null;
-    error.value = null;
-  }
+  });
 
   /**
    * Add a currency to the ignore list
@@ -338,8 +295,6 @@ export const useBalancesStore = defineStore("balances", () => {
 
     // Actions
     fetchBalances,
-    subscribeToUpdates,
-    unsubscribeFromUpdates,
     setAddress,
     cleanup,
     ignoreCurrency,

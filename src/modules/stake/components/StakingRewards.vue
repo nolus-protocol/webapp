@@ -91,7 +91,7 @@ async function onWithdrawRewards() {
   disabled.value = true;
   try {
     await walletOperation(requestClaim);
-  } catch (error: Error | any) {
+  } catch (error: unknown) {
     Logger.error(error);
   } finally {
     disabled.value = false;

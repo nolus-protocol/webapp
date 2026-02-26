@@ -47,34 +47,42 @@ import type { UtilizationProps } from "../types";
 const mobile = isMobile();
 const i18n = useI18n();
 
-const columns = computed<TableColumnProps[]>(() => mobile
-  ? [
-      { label: i18n.t("message.asset"), variant: "left" },
-      {
-        label: i18n.t("message.deposit-suspension"),
-        tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") }
-      },
-      {
-        label: i18n.t("message.yield"),
-        tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
-      }
-    ]
-  : [
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: "" },
-      { label: i18n.t("message.current-utilization") },
-      {
-        label: i18n.t("message.deposit-suspension"),
-        tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
-        class: "whitespace-pre max-w-[200px]"
-      },
-      {
-        label: i18n.t("message.yield"),
-        tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
-      }
-    ]
+const columns = computed<TableColumnProps[]>(() =>
+  mobile
+    ? [
+        { label: i18n.t("message.asset"), variant: "left" },
+        {
+          label: i18n.t("message.deposit-suspension"),
+          tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") }
+        },
+        {
+          label: i18n.t("message.yield"),
+          tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+        }
+      ]
+    : [
+        { label: i18n.t("message.asset"), variant: "left" },
+        { label: "" },
+        { label: i18n.t("message.current-utilization") },
+        {
+          label: i18n.t("message.deposit-suspension"),
+          tooltip: { position: "top", content: i18n.t("message.deposit-suspension-tooltip") },
+          class: "whitespace-pre max-w-[200px]"
+        },
+        {
+          label: i18n.t("message.yield"),
+          tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+        }
+      ]
 );
-function buildRow(ticker: string, subValue: string, icon: string, utilization: string, deposit: string, protocolKey: string) {
+function buildRow(
+  ticker: string,
+  subValue: string,
+  icon: string,
+  utilization: string,
+  deposit: string,
+  protocolKey: string
+) {
   const apr = formatPercent(earnStore.getProtocolApr(protocolKey));
 
   if (mobile) {
@@ -104,12 +112,54 @@ function buildRow(ticker: string, subValue: string, icon: string, utilization: s
 const tableRows = computed<TableRowItemProps[]>(() => {
   const p = getProtocols();
   return [
-    buildRow("USDC", i18n.t("message.utilization_sub_osmosis_usdc"), iconOsmosis.value, utilizationLevelOsmosis.value, depositOsmosis.value, p.osmosis_noble),
-    buildRow("USDC", i18n.t("message.utilization_sub_neutron_usdc"), iconNeutron.value, utilizationLevelNeutron.value, depositNeutron.value, p.neutron_noble),
-    buildRow("SOL", i18n.t("message.utilization_sub_osmosis_sol"), iconAllSol.value, utilizationLevelOsmosisAllSol.value, depositAllSol.value, p.osmosis_osmosis_all_sol),
-    buildRow("BTC", i18n.t("message.utilization_sub_osmosis_btc"), iconAllBtc.value, utilizationLevelOsmosisAllBtc.value, depositAllBtc.value, p.osmosis_osmosis_all_btc),
-    buildRow("AKT", i18n.t("message.utilization_sub_osmosis_akt"), iconAkt.value, utilizationLevelOsmosisAkt.value, depositAkt.value, p.osmosis_osmosis_akt),
-    buildRow("ATOM", i18n.t("message.utilization_sub_osmosis_atom"), iconAtom.value, utilizationLevelOsmosisAtom.value, depositAtom.value, p.osmosis_osmosis_atom)
+    buildRow(
+      "USDC",
+      i18n.t("message.utilization_sub_osmosis_usdc"),
+      iconOsmosis.value,
+      utilizationLevelOsmosis.value,
+      depositOsmosis.value,
+      p.osmosis_noble
+    ),
+    buildRow(
+      "USDC",
+      i18n.t("message.utilization_sub_neutron_usdc"),
+      iconNeutron.value,
+      utilizationLevelNeutron.value,
+      depositNeutron.value,
+      p.neutron_noble
+    ),
+    buildRow(
+      "SOL",
+      i18n.t("message.utilization_sub_osmosis_sol"),
+      iconAllSol.value,
+      utilizationLevelOsmosisAllSol.value,
+      depositAllSol.value,
+      p.osmosis_osmosis_all_sol
+    ),
+    buildRow(
+      "BTC",
+      i18n.t("message.utilization_sub_osmosis_btc"),
+      iconAllBtc.value,
+      utilizationLevelOsmosisAllBtc.value,
+      depositAllBtc.value,
+      p.osmosis_osmosis_all_btc
+    ),
+    buildRow(
+      "AKT",
+      i18n.t("message.utilization_sub_osmosis_akt"),
+      iconAkt.value,
+      utilizationLevelOsmosisAkt.value,
+      depositAkt.value,
+      p.osmosis_osmosis_akt
+    ),
+    buildRow(
+      "ATOM",
+      i18n.t("message.utilization_sub_osmosis_atom"),
+      iconAtom.value,
+      utilizationLevelOsmosisAtom.value,
+      depositAtom.value,
+      p.osmosis_osmosis_atom
+    )
   ] as TableRowItemProps[];
 });
 

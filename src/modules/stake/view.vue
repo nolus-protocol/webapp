@@ -53,7 +53,13 @@ import VestedOverview from "./components/VestedOverview.vue";
 import { StakeDialog } from "@/modules/stake/enums";
 import { DelegationOverview, StakingRewards } from "./components";
 import { computed, h, ref, watch } from "vue";
-import { formatTokenBalance, formatUsd, formatMobileAmount, formatMobileUsd, formatPercent } from "@/common/utils/NumberFormatUtils";
+import {
+  formatTokenBalance,
+  formatUsd,
+  formatMobileAmount,
+  formatMobileUsd,
+  formatPercent
+} from "@/common/utils/NumberFormatUtils";
 import { isMobile } from "@/common/utils";
 import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -177,7 +183,9 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       const stableLabel = mobile ? formatMobileUsd(stable) : formatUsd(stable.toString());
 
       // Commission rate as percentage
-      const rate = validator ? formatPercent(new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2)) : formatPercent(0);
+      const rate = validator
+        ? formatPercent(new Dec(validator.commission_rate).mul(new Dec(PERCENT)).toString(2))
+        : formatPercent(0);
 
       const isJailed = validator?.jailed ?? false;
 

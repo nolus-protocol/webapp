@@ -15,10 +15,10 @@ import {
   type EarnPositionsResponse,
   type EarnStats,
   type PoolInfo,
-  type SuppliedFundsResponse,
-  type Unsubscribe
+  type SuppliedFundsResponse
 } from "@/common/api";
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
+import { useWebSocketLifecycle } from "@/common/composables/useWebSocketLifecycle";
 
 export const useEarnStore = defineStore("earn", () => {
   // State
@@ -35,9 +35,6 @@ export const useEarnStore = defineStore("earn", () => {
   const error = ref<string | null>(null);
   const lastUpdated = ref<Date | null>(null);
   const initialized = ref(false);
-
-  // WebSocket subscription handle
-  let unsubscribe: Unsubscribe | null = null;
 
   // Computed
   const hasPositions = computed(() => positions.value.length > 0);
@@ -144,6 +141,7 @@ export const useEarnStore = defineStore("earn", () => {
     try {
       stats.value = await BackendApi.getEarnStats();
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch earn stats";
       console.error("[EarnStore] Failed to fetch stats:", e);
     }
   }
@@ -156,6 +154,7 @@ export const useEarnStore = defineStore("earn", () => {
       const response = await BackendApi.getEtlPools();
       etlPools.value = response.protocols;
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch ETL pools";
       console.error("[EarnStore] Failed to fetch ETL pools:", e);
     }
   }
@@ -167,63 +166,39 @@ export const useEarnStore = defineStore("earn", () => {
     try {
       suppliedFunds.value = await BackendApi.getSuppliedFunds();
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch supplied funds";
       console.error("[EarnStore] Failed to fetch supplied funds:", e);
     }
   }
 
-  /**
-   * Subscribe to real-time updates via WebSocket
-   */
-  function subscribeToUpdates(): void {
-    if (!address.value || unsubscribe) {
-      return;
+  // WebSocket lifecycle: subscribe, fetch, unsubscribe, cleanup
+  const { setAddress, cleanup } = useWebSocketLifecycle({
+    address,
+    subscribe: (addr) =>
+      WebSocketClient.subscribeEarn(addr, (wsAddr, wsPositions, totalUsd) => {
+        if (wsAddr !== address.value) return;
+
+        positions.value = wsPositions.map((p) => ({
+          protocol: p.protocol,
+          lpp_address: p.lpp_address,
+          currency: "", // Not provided by WS, will be filled on next full fetch
+          deposited_nlpn: p.deposited_asset,
+          deposited_lpn: p.deposited_lpn,
+          deposited_usd: null,
+          lpp_price: "1.0",
+          current_apy: 0
+        }));
+        totalDepositedUsd.value = totalUsd;
+        lastUpdated.value = new Date();
+      }),
+    fetch: fetchPositions,
+    resetState: () => {
+      positions.value = [];
+      totalDepositedUsd.value = "0";
+      lastUpdated.value = null;
+      error.value = null;
     }
-
-    // Subscribe to earn position updates via WebSocket
-    unsubscribe = WebSocketClient.subscribeEarn(address.value, (addr, wsPositions, totalUsd) => {
-      if (addr !== address.value) return;
-
-      // Update positions from WebSocket data
-      positions.value = wsPositions.map((p) => ({
-        protocol: p.protocol,
-        lpp_address: p.lpp_address,
-        currency: "", // Not provided by WS, will be filled on next full fetch
-        deposited_nlpn: p.deposited_asset,
-        deposited_lpn: p.deposited_lpn,
-        deposited_usd: null,
-        lpp_price: "1.0",
-        current_apy: 0
-      }));
-      totalDepositedUsd.value = totalUsd;
-      lastUpdated.value = new Date();
-    });
-  }
-
-  /**
-   * Unsubscribe from real-time updates
-   */
-  function unsubscribeFromUpdates(): void {
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
-    }
-  }
-
-  /**
-   * Set the address and fetch positions
-   */
-  async function setAddress(newAddress: string | null): Promise<void> {
-    unsubscribeFromUpdates();
-
-    address.value = newAddress;
-    positions.value = [];
-    totalDepositedUsd.value = "0";
-
-    if (newAddress) {
-      await fetchPositions();
-      subscribeToUpdates();
-    }
-  }
+  });
 
   /**
    * Initialize the store
@@ -247,21 +222,7 @@ export const useEarnStore = defineStore("earn", () => {
     await Promise.all(promises);
   }
 
-  /**
-   * Cleanup store state (on disconnect)
-   */
-  function cleanup(): void {
-    unsubscribeFromUpdates();
-    address.value = null;
-    positions.value = [];
-    totalDepositedUsd.value = "0";
-    lastUpdated.value = null;
-    error.value = null;
-  }
-
   // Self-register: watch wallet address changes from connectionStore.
-  // { immediate: true } ensures stores created after wallet is already
-  // connected will still load data (the watcher fires with current value).
   useWalletWatcher(setAddress, cleanup, fetchPositions);
 
   return {
@@ -298,8 +259,6 @@ export const useEarnStore = defineStore("earn", () => {
     fetchStats,
     fetchEtlPools,
     fetchSuppliedFunds,
-    subscribeToUpdates,
-    unsubscribeFromUpdates,
     setAddress,
     initialize,
     refresh,

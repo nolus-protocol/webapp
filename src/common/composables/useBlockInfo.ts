@@ -12,7 +12,7 @@ export function useBlockInfo() {
     try {
       const nolusClient = NolusClient.getInstance();
       block.value = await nolusClient.getBlockHeight();
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
     }
   }
@@ -21,7 +21,7 @@ export function useBlockInfo() {
     try {
       const nodeInfo = await BackendApi.getNodeInfo();
       version.value = nodeInfo.version;
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
     }
   }

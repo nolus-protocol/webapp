@@ -2,11 +2,11 @@
   <transition name="fade">
     <div
       v-show="toggleMenuWrapper"
-      class="fixed left-0 top-0 z-[99999] h-full w-full bg-neutral-bg-inverted-1/50"
+      class="fixed top-0 left-0 z-[99999] h-full w-full bg-neutral-bg-inverted-1/50"
       v-on:click.self="close"
     >
       <div
-        class="duration-250 flex h-full max-w-[75%] flex-col bg-neutral-bg-1 transition-transform md:max-w-[400px] landscape:overflow-auto"
+        class="flex h-full max-w-[75%] flex-col bg-neutral-bg-1 transition-transform duration-250 md:max-w-[400px] landscape:overflow-auto"
         :class="{ 'translate-x-0': toggleMobileNav, '-translate-x-full': !toggleMobileNav }"
       >
         <div class="flex w-full flex-1 flex-col gap-4">
@@ -25,7 +25,7 @@
             >
               <RouterLink
                 :to="routePath(item)"
-                class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+                class="router-link flex h-[50px] items-center gap-2 border-t border-b border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
                 @click="close"
               >
                 <SvgIcon
@@ -41,7 +41,7 @@
           <RouterLink
             @click="close"
             :to="{ name: RouteNames.VOTE }"
-            class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+            class="router-link flex h-[50px] items-center gap-2 border-t border-b border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
           >
             <div class="flex items-center gap-2">
               <SvgIcon
@@ -54,7 +54,7 @@
           <RouterLink
             @click="close"
             :to="{ name: RouteNames.STATS }"
-            class="router-link flex h-[50px] items-center gap-2 border-b border-t border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
+            class="router-link flex h-[50px] items-center gap-2 border-t border-b border-transparent px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200"
           >
             <div class="flex items-center gap-2">
               <SvgIcon

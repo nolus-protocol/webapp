@@ -778,14 +778,14 @@ async fn fetch_lease_info(
             etl_info,
             &prices,
             &currencies,
-        ),
+        )?,
         LeaseStatusResponse::Closing(closing) => build_closing_lease_info(
             lease_address,
             protocol,
             &closing.closing,
             etl_data,
             etl_info,
-        ),
+        )?,
         LeaseStatusResponse::PaidOff(paid_off) => {
             let a = &paid_off.paid_off.amount;
             build_terminal_lease_info(
@@ -826,8 +826,8 @@ fn build_opened_lease_info(
     etl_info: Option<LeaseEtlData>,
     prices: &Option<crate::handlers::currencies::PricesResponse>,
     currencies: &Option<crate::handlers::currencies::CurrenciesResponse>,
-) -> LeaseInfo {
-    let total_debt = calculate_total_debt(opened);
+) -> Result<LeaseInfo, AppError> {
+    let total_debt = calculate_total_debt(opened)?;
     let interest_info = calculate_interest_info(opened);
 
     // Parse in_progress state
@@ -849,7 +849,7 @@ fn build_opened_lease_info(
         currencies.as_ref(),
     );
 
-    LeaseInfo {
+    Ok(LeaseInfo {
         address: lease_address.to_string(),
         protocol: protocol.to_string(),
         status: LeaseStatusType::Opened,
@@ -877,7 +877,7 @@ fn build_opened_lease_info(
         in_progress,
         opening_info: None,
         etl_data: etl_info,
-    }
+    })
 }
 
 fn build_closing_lease_info(
@@ -886,10 +886,10 @@ fn build_closing_lease_info(
     closing: &ClosingLeaseInfo,
     etl_data: Option<crate::external::etl::EtlLeaseOpening>,
     etl_info: Option<LeaseEtlData>,
-) -> LeaseInfo {
-    let total_debt = calculate_total_debt_from_closing(closing);
+) -> Result<LeaseInfo, AppError> {
+    let total_debt = calculate_total_debt_from_closing(closing)?;
 
-    LeaseInfo {
+    Ok(LeaseInfo {
         address: lease_address.to_string(),
         protocol: protocol.to_string(),
         status: LeaseStatusType::Closing,
@@ -924,7 +924,7 @@ fn build_closing_lease_info(
         in_progress: Some(LeaseInProgress::Close {}),
         opening_info: None,
         etl_data: etl_info,
-    }
+    })
 }
 
 /// Build lease info for terminal states (PaidOff, Closed, Liquidated).
@@ -986,35 +986,37 @@ fn build_empty_debt(ticker: &str) -> LeaseDebtInfo {
     }
 }
 
-/// Parse amount string to u128 with warning on failure
-fn parse_amount(amount: &str, field_name: &str) -> u128 {
-    amount.parse().unwrap_or_else(|_| {
-        warn!("Failed to parse {} amount: {}", field_name, amount);
-        0
+/// Parse amount string to u128, returning an error if the value cannot be parsed.
+/// Financial amounts must never silently become 0 — that would understate debt.
+fn parse_amount(amount: &str, field_name: &str) -> Result<u128, AppError> {
+    amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Failed to parse {} amount: '{}'",
+            field_name, amount
+        ))
     })
 }
 
-fn calculate_total_debt(opened: &OpenedLeaseInfo) -> String {
-    // Parse all amounts and sum them
-    let principal = parse_amount(&opened.principal_due.amount, "principal_due");
-    let overdue_margin = parse_amount(&opened.overdue_margin.amount, "overdue_margin");
-    let overdue_interest = parse_amount(&opened.overdue_interest.amount, "overdue_interest");
-    let due_margin = parse_amount(&opened.due_margin.amount, "due_margin");
-    let due_interest = parse_amount(&opened.due_interest.amount, "due_interest");
+fn calculate_total_debt(opened: &OpenedLeaseInfo) -> Result<String, AppError> {
+    let principal = parse_amount(&opened.principal_due.amount, "principal_due")?;
+    let overdue_margin = parse_amount(&opened.overdue_margin.amount, "overdue_margin")?;
+    let overdue_interest = parse_amount(&opened.overdue_interest.amount, "overdue_interest")?;
+    let due_margin = parse_amount(&opened.due_margin.amount, "due_margin")?;
+    let due_interest = parse_amount(&opened.due_interest.amount, "due_interest")?;
 
     let total = principal + overdue_margin + overdue_interest + due_margin + due_interest;
-    total.to_string()
+    Ok(total.to_string())
 }
 
-fn calculate_total_debt_from_closing(closing: &ClosingLeaseInfo) -> String {
-    let principal = parse_amount(&closing.principal_due.amount, "principal_due");
-    let overdue_margin = parse_amount(&closing.overdue_margin.amount, "overdue_margin");
-    let overdue_interest = parse_amount(&closing.overdue_interest.amount, "overdue_interest");
-    let due_margin = parse_amount(&closing.due_margin.amount, "due_margin");
-    let due_interest = parse_amount(&closing.due_interest.amount, "due_interest");
+fn calculate_total_debt_from_closing(closing: &ClosingLeaseInfo) -> Result<String, AppError> {
+    let principal = parse_amount(&closing.principal_due.amount, "principal_due")?;
+    let overdue_margin = parse_amount(&closing.overdue_margin.amount, "overdue_margin")?;
+    let overdue_interest = parse_amount(&closing.overdue_interest.amount, "overdue_interest")?;
+    let due_margin = parse_amount(&closing.due_margin.amount, "due_margin")?;
+    let due_interest = parse_amount(&closing.due_interest.amount, "due_interest")?;
 
     let total = principal + overdue_margin + overdue_interest + due_margin + due_interest;
-    total.to_string()
+    Ok(total.to_string())
 }
 
 fn calculate_interest_info(opened: &OpenedLeaseInfo) -> LeaseInterestInfo {
@@ -1330,7 +1332,7 @@ async fn fetch_lease_monitor_info_internal(
         },
         LeaseStatusResponse::Opened(opened) => {
             let info = &opened.opened;
-            let total_debt = calculate_total_debt(info);
+            let total_debt = calculate_total_debt(info)?;
             LeaseMonitorInfo {
                 address: lease_address.to_string(),
                 protocol: protocol.to_string(),
@@ -1368,7 +1370,7 @@ async fn fetch_lease_monitor_info_internal(
         }
         LeaseStatusResponse::Closing(closing) => {
             let info = &closing.closing;
-            let total_debt = calculate_total_debt_from_closing(info);
+            let total_debt = calculate_total_debt_from_closing(info)?;
             LeaseMonitorInfo {
                 address: lease_address.to_string(),
                 protocol: protocol.to_string(),

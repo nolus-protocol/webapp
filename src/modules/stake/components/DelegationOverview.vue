@@ -119,5 +119,4 @@ const props = defineProps<{
 }>();
 
 const wallet = useWalletStore();
-
 </script>

@@ -240,7 +240,7 @@ async function onNextClick() {
       await walletOperation(transferAmount);
     } catch (e) {
       Logger.error(e);
-      error.value = (e as Error).message;
+      error.value = e instanceof Error ? e.message : String(e);
     } finally {
       disabled.value = false;
     }
@@ -275,9 +275,9 @@ async function transferAmount() {
         type: ToastType.success,
         message: i18n.t("message.supply-successful")
       });
-    } catch (e: Error | any) {
+    } catch (e: unknown) {
       Logger.error(e);
-      error.value = (e as Error).message;
+      error.value = e instanceof Error ? e.message : String(e);
     } finally {
       loading.value = false;
     }

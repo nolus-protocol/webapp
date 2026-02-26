@@ -250,7 +250,7 @@ const assets = computed(() => {
       },
       ibcData: (asset as ExternalCurrency).ibcData,
       native: asset.native!,
-      sybmol: asset.symbol!,
+      symbol: asset.symbol!,
       ticker: asset.ticker!,
       key: asset.key,
       stable,
@@ -552,9 +552,9 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(repayLease);
-  } catch (e: Error | any) {
+  } catch (e: unknown) {
     Logger.error(e);
-    amountErrorMsg.value = (e as Error).message;
+    amountErrorMsg.value = e instanceof Error ? e.message : String(e);
   } finally {
     disabled.value = false;
   }
@@ -587,8 +587,8 @@ async function repayLease() {
         type: ToastType.success,
         message: i18n.t("message.toast-repaid")
       });
-    } catch (e: Error | any) {
-      amountErrorMsg.value = (e as Error).message;
+    } catch (e: unknown) {
+      amountErrorMsg.value = e instanceof Error ? e.message : String(e);
       Logger.error(e);
     } finally {
       loading.value = false;

@@ -116,12 +116,14 @@
           fontSize: 16,
           class: { 'line-through': isFreeLease }
         }"
-        :additional="isFreeLease
-          ? {
-              text: '0%',
-              class: 'text-typography-success'
-            }
-          : undefined"
+        :additional="
+          isFreeLease
+            ? {
+                text: '0%',
+                class: 'text-typography-success'
+              }
+            : undefined
+        "
       />
       <BigNumber
         class="md:flex-[50%]"

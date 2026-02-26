@@ -15,7 +15,9 @@ export * from "./types";
 import type {
   // Config
   AppConfigResponse,
-  // Prices
+  // Currencies & Prices
+  CurrenciesResponse,
+  RawCurrenciesResponse,
   PricesResponse,
   PriceData,
   BalancesResponse,
@@ -30,6 +32,9 @@ import type {
   EarnPool,
   EarnPositionsResponse,
   EarnStats,
+  EarningsResponse,
+  SuppliedFundsResponse,
+  PoolsResponse,
   // Staking
   ValidatorInfo,
   StakingPositionsResponse,
@@ -40,6 +45,7 @@ import type {
   SkipRouteResponse,
   SkipMessagesRequest,
   SkipMessagesResponse,
+  SkipStatusResponse,
   SkipTrackResponse,
   // Referral
   ValidateCodeResponse,
@@ -64,6 +70,11 @@ import type {
   NetworkStatusResponse,
   GatedNetworksResponse,
   HiddenProposalsResponse,
+  // Assets & Protocols
+  AssetsResponse,
+  GatedProtocolsResponse,
+  ProtocolCurrenciesResponse,
+  GasFeeConfigResponse,
   // Swap
   SwapConfigResponse,
   // ETL
@@ -71,6 +82,9 @@ import type {
   LoansStatsBatchResponse,
   UserDashboardBatchResponse,
   UserHistoryBatchResponse,
+  PositionDebtValueResponse,
+  UserRealizedPnlResponse,
+  HistoryStatsResponse,
   PriceSeriesDataPoint,
   PnlOverTimeDataPoint,
   LeasesMonthlyResponse,
@@ -85,7 +99,7 @@ import type {
   RealizedPnlDataResponse
 } from "./types";
 
-import { ApiError as ApiErrorClass } from "./types";
+import { ApiError as ApiErrorClass, transformCurrenciesResponse } from "./types";
 
 // Backend URL from environment, falls back to same-origin (for Vite dev proxy)
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
@@ -143,9 +157,7 @@ export class BackendApiClient {
       headers?: Record<string, string>;
     } = {}
   ): Promise<T> {
-    const url = this.baseUrl
-      ? new URL(`${this.baseUrl}${path}`)
-      : new URL(path, window.location.origin);
+    const url = this.baseUrl ? new URL(`${this.baseUrl}${path}`) : new URL(path, window.location.origin);
 
     if (options.params) {
       Object.entries(options.params).forEach(([key, value]) => {
@@ -234,10 +246,8 @@ export class BackendApiClient {
   // Currencies & Prices
   // =========================================================================
 
-  async getCurrencies(): Promise<import("./types").CurrenciesResponse> {
-    const raw = await this.request<import("./types").RawCurrenciesResponse>("GET", "/api/currencies");
-    // Transform snake_case from backend to camelCase for frontend
-    const { transformCurrenciesResponse } = await import("./types");
+  async getCurrencies(): Promise<CurrenciesResponse> {
+    const raw = await this.request<RawCurrenciesResponse>("GET", "/api/currencies");
     return transformCurrenciesResponse(raw);
   }
 
@@ -346,8 +356,8 @@ export class BackendApiClient {
     return this.request<SkipMessagesResponse>("POST", "/api/swap/messages", { body: request });
   }
 
-  async getSkipStatus(chainId: string, txHash: string): Promise<import("./types").SkipStatusResponse> {
-    return this.request("GET", `/api/swap/status/${txHash}`, {
+  async getSkipStatus(chainId: string, txHash: string): Promise<SkipStatusResponse> {
+    return this.request<SkipStatusResponse>("GET", `/api/swap/status/${txHash}`, {
       params: { chain_id: chainId }
     });
   }
@@ -427,7 +437,9 @@ export class BackendApiClient {
     proposalId: string,
     voter: string
   ): Promise<{ vote: { proposal_id: string; voter: string; options: { option: string; weight: string }[] } } | null> {
-    return this.request("GET", `/api/governance/proposals/${proposalId}/votes/${voter}`);
+    return this.request<{
+      vote: { proposal_id: string; voter: string; options: { option: string; weight: string }[] };
+    } | null>("GET", `/api/governance/proposals/${proposalId}/votes/${voter}`);
   }
 
   async getTallyingParams(): Promise<{ params: TallyingParams }> {
@@ -474,12 +486,12 @@ export class BackendApiClient {
   // Assets
   // =========================================================================
 
-  async getAssets(): Promise<import("./types").AssetsResponse> {
-    return this.request<import("./types").AssetsResponse>("GET", "/api/assets");
+  async getAssets(): Promise<AssetsResponse> {
+    return this.request<AssetsResponse>("GET", "/api/assets");
   }
 
-  async getNetworkAssets(network: string): Promise<import("./types").AssetsResponse> {
-    return this.request<import("./types").AssetsResponse>("GET", `/api/networks/${network}/assets`);
+  async getNetworkAssets(network: string): Promise<AssetsResponse> {
+    return this.request<AssetsResponse>("GET", `/api/networks/${network}/assets`);
   }
 
   // =========================================================================
@@ -489,15 +501,15 @@ export class BackendApiClient {
   /**
    * Get all configured (gated) protocols
    */
-  async getGatedProtocols(): Promise<import("./types").GatedProtocolsResponse> {
-    return this.request<import("./types").GatedProtocolsResponse>("GET", "/api/protocols/gated");
+  async getGatedProtocols(): Promise<GatedProtocolsResponse> {
+    return this.request<GatedProtocolsResponse>("GET", "/api/protocols/gated");
   }
 
   /**
    * Get currencies for a specific protocol with Oracle prices
    */
-  async getProtocolCurrencies(protocol: string): Promise<import("./types").ProtocolCurrenciesResponse> {
-    return this.request<import("./types").ProtocolCurrenciesResponse>("GET", `/api/protocols/${protocol}/currencies`);
+  async getProtocolCurrencies(protocol: string): Promise<ProtocolCurrenciesResponse> {
+    return this.request<ProtocolCurrenciesResponse>("GET", `/api/protocols/${protocol}/currencies`);
   }
 
   // =========================================================================
@@ -528,8 +540,8 @@ export class BackendApiClient {
   // Fees
   // =========================================================================
 
-  async getGasFeeConfig(): Promise<import("./types").GasFeeConfigResponse> {
-    return this.request<import("./types").GasFeeConfigResponse>("GET", "/api/fees/gas-config");
+  async getGasFeeConfig(): Promise<GasFeeConfigResponse> {
+    return this.request<GasFeeConfigResponse>("GET", "/api/fees/gas-config");
   }
 
   // =========================================================================
@@ -692,22 +704,22 @@ export class BackendApiClient {
   /**
    * Fetch user earnings
    */
-  async getEarnings(address: string): Promise<import("./types").EarningsResponse> {
-    return this.request("GET", "/api/etl/earnings", { params: { address } });
+  async getEarnings(address: string): Promise<EarningsResponse> {
+    return this.request<EarningsResponse>("GET", "/api/etl/earnings", { params: { address } });
   }
 
   /**
    * Fetch position/debt value
    */
-  async getPositionDebtValue(address: string): Promise<import("./types").PositionDebtValueResponse> {
-    return this.request("GET", "/api/etl/position-debt-value", { params: { address } });
+  async getPositionDebtValue(address: string): Promise<PositionDebtValueResponse> {
+    return this.request<PositionDebtValueResponse>("GET", "/api/etl/position-debt-value", { params: { address } });
   }
 
   /**
    * Fetch realized PnL for user
    */
-  async getRealizedPnl(address: string): Promise<import("./types").UserRealizedPnlResponse> {
-    return this.request("GET", "/api/etl/realized-pnl", { params: { address } });
+  async getRealizedPnl(address: string): Promise<UserRealizedPnlResponse> {
+    return this.request<UserRealizedPnlResponse>("GET", "/api/etl/realized-pnl", { params: { address } });
   }
 
   /**
@@ -720,8 +732,8 @@ export class BackendApiClient {
   /**
    * Fetch history stats
    */
-  async getHistoryStats(address: string): Promise<import("./types").HistoryStatsResponse> {
-    return this.request("GET", "/api/etl/history-stats", { params: { address } });
+  async getHistoryStats(address: string): Promise<HistoryStatsResponse> {
+    return this.request<HistoryStatsResponse>("GET", "/api/etl/history-stats", { params: { address } });
   }
 
   /**
@@ -745,15 +757,15 @@ export class BackendApiClient {
   /**
    * Fetch supplied funds total (from ETL)
    */
-  async getSuppliedFunds(): Promise<import("./types").SuppliedFundsResponse> {
-    return this.request<import("./types").SuppliedFundsResponse>("GET", "/api/etl/supplied-funds");
+  async getSuppliedFunds(): Promise<SuppliedFundsResponse> {
+    return this.request<SuppliedFundsResponse>("GET", "/api/etl/supplied-funds");
   }
 
   /**
    * Fetch ETL pools data (includes deposit_suspension threshold)
    */
-  async getEtlPools(): Promise<import("./types").PoolsResponse> {
-    return this.request<import("./types").PoolsResponse>("GET", "/api/etl/pools");
+  async getEtlPools(): Promise<PoolsResponse> {
+    return this.request<PoolsResponse>("GET", "/api/etl/pools");
   }
 }
 

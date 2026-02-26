@@ -11,7 +11,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { h } from "vue";
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
-import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import { HISTORY_ACTIONS } from "@/modules/history/types";
 import { useConfigStore } from "@/common/stores/config";
 import { formatNumber, formatTokenBalance, formatCoinPretty } from "@/common/utils/NumberFormatUtils";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -90,7 +90,7 @@ export const useHistoryStore = defineStore("history", () => {
     const currency = configStore.getCurrencyByDenom(historyData.currency);
 
     switch (historyData.type) {
-      case HYSTORY_ACTIONS.RECEIVE: {
+      case HISTORY_ACTIONS.RECEIVE: {
         const token = CurrencyUtils.convertMinimalDenomToDenom(
           historyData.skipRoute.amountOut,
           currency?.ibcData!,
@@ -104,7 +104,7 @@ export const useHistoryStore = defineStore("history", () => {
         historyData.coin = token;
         break;
       }
-      case HYSTORY_ACTIONS.SEND: {
+      case HISTORY_ACTIONS.SEND: {
         const token = CurrencyUtils.convertMinimalDenomToDenom(
           historyData.skipRoute.amountIn,
           currency?.ibcData!,
@@ -405,10 +405,10 @@ export const useHistoryStore = defineStore("history", () => {
   // Self-register: watch wallet address changes from connectionStore.
   // { immediate: true } ensures stores created after wallet is already
   // connected will still load data (the watcher fires with current value).
-  useWalletWatcher(
-    (addr) => { setAddress(addr); loadActivities(); },
-    cleanup
-  );
+  useWalletWatcher((addr) => {
+    setAddress(addr);
+    loadActivities();
+  }, cleanup);
 
   // ==========================================================================
   // Helper Functions

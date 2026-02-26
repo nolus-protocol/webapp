@@ -5,7 +5,7 @@
     :size="mobile ? '' : `${assets.length} ${$t('message.assets')}`"
     :toggle="{ label: $t('message.show-small-balances'), value: smBalances }"
     @togle-value="setSmallBalancesState"
-    :hide-values="{text: $t('message.toggle-values'), value: hide}"
+    :hide-values="{ text: $t('message.toggle-values'), value: hide }"
     @hide-value="onHide"
     :tableClasses="mobile ? '' : 'min-w-[530px]'"
     :scrollable="!mobile"
@@ -46,7 +46,14 @@ import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { formatPercent, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import {
+  formatPercent,
+  formatTokenBalance,
+  formatPriceUsd,
+  formatUsd,
+  formatMobileAmount,
+  formatMobileUsd
+} from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, type ResolvedAsset } from "@/common/composables";
 
@@ -68,20 +75,18 @@ const showSmallBalances = computed(() => {
 });
 const search = ref("");
 
-const columns = computed<TableColumnProps[]>(() => mobile
-  ? [
-      { label: i18n.t("message.assets"), variant: "left" },
-      { label: i18n.t("message.balance") }
-    ]
-  : [
-      { label: i18n.t("message.assets"), variant: "left" },
-      { label: i18n.t("message.price") },
-      { label: i18n.t("message.balance") },
-      {
-        label: i18n.t("message.yield"),
-        tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") }
-      }
-    ]
+const columns = computed<TableColumnProps[]>(() =>
+  mobile
+    ? [{ label: i18n.t("message.assets"), variant: "left" }, { label: i18n.t("message.balance") }]
+    : [
+        { label: i18n.t("message.assets"), variant: "left" },
+        { label: i18n.t("message.price") },
+        { label: i18n.t("message.balance") },
+        {
+          label: i18n.t("message.yield"),
+          tooltip: { position: "top", content: i18n.t("message.earn-apr-tooltip") }
+        }
+      ]
 );
 
 const filteredAssets = computed(() => {

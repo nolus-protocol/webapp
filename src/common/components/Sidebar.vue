@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed left-0 top-0 hidden h-full w-full max-w-[210px] flex-col justify-between pb-8 pl-8 pt-28 lg:flex">
+  <div class="fixed top-0 left-0 hidden h-full w-full max-w-[210px] flex-col justify-between pt-28 pb-8 pl-8 lg:flex">
     <DesktopMenu class="flex flex-col gap-3" />
     <div class="flex flex-col gap-1">
       <RouterLink

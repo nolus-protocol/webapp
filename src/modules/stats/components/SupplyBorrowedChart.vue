@@ -14,7 +14,13 @@ import { lineY, plot } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
 import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import {
+  CHART_AXIS,
+  createUsdTickFormat,
+  computeMarginLeft,
+  computeYTicks,
+  getChartWidth
+} from "@/common/utils/ChartUtils";
 import { useI18n } from "vue-i18n";
 
 import { ref, watch } from "vue";
@@ -194,4 +200,3 @@ async function loadData() {
   await statsStore.fetchSupplyBorrowHistory(props.period);
 }
 </script>
-

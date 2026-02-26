@@ -163,6 +163,7 @@ export const useReferralsStore = defineStore("referrals", () => {
       const response = await BackendApi.getReferrals(wallet, options);
       referrals.value = response.referrals;
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch referrals";
       console.error("[ReferralsStore] Failed to fetch referrals:", e);
     }
   }
@@ -182,6 +183,7 @@ export const useReferralsStore = defineStore("referrals", () => {
       rewards.value = response.rewards;
       rewardsTotal.value = response.total;
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch rewards";
       console.error("[ReferralsStore] Failed to fetch rewards:", e);
     } finally {
       loadingRewards.value = false;
@@ -203,6 +205,7 @@ export const useReferralsStore = defineStore("referrals", () => {
       payouts.value = response.payouts;
       payoutsTotal.value = response.total;
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch payouts";
       console.error("[ReferralsStore] Failed to fetch payouts:", e);
     } finally {
       loadingPayouts.value = false;

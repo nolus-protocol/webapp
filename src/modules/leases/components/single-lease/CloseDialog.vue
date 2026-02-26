@@ -266,7 +266,14 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd, formatPriceUsd, formatTokenBalance, formatPercent } from "@/common/utils/NumberFormatUtils";
+import {
+  formatNumber,
+  formatDecAsUsd,
+  formatUsd,
+  formatPriceUsd,
+  formatTokenBalance,
+  formatPercent
+} from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
@@ -763,9 +770,9 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(marketCloseLease);
-  } catch (e: Error | any) {
+  } catch (e: unknown) {
     Logger.error(e);
-    amountErrorMsg.value = (e as Error).message;
+    amountErrorMsg.value = e instanceof Error ? e.message : String(e);
   } finally {
     disabled.value = false;
   }
@@ -791,9 +798,9 @@ async function marketCloseLease() {
         type: ToastType.success,
         message: i18n.t("message.toast-closed")
       });
-    } catch (e: Error | any) {
+    } catch (e: unknown) {
       Logger.error(e);
-      amountErrorMsg.value = (e as Error).message;
+      amountErrorMsg.value = e instanceof Error ? e.message : String(e);
     } finally {
       loading.value = false;
     }

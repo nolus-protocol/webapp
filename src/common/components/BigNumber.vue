@@ -24,30 +24,30 @@
           <TokenAmount
             v-if="amount && isTokenAmount(amount)"
             v-bind="amount"
-            class="flex break-keep font-semibold text-typography-default"
+            class="flex font-semibold break-keep text-typography-default"
           />
           <FormattedAmount
             v-else-if="amount"
             v-bind="amount"
-            class="flex break-keep font-semibold text-typography-default"
+            class="flex font-semibold break-keep text-typography-default"
           />
         </Tooltip>
         <template v-else>
           <TokenAmount
             v-if="amount && isTokenAmount(amount)"
             v-bind="amount"
-            class="flex break-keep font-semibold text-typography-default"
+            class="flex font-semibold break-keep text-typography-default"
           />
           <FormattedAmount
             v-else-if="amount"
             v-bind="amount"
-            class="flex break-keep font-semibold text-typography-default"
+            class="flex font-semibold break-keep text-typography-default"
           />
         </template>
         <span
           v-if="additional"
           :class="additional?.class"
-          class="flex break-keep font-semibold text-typography-default"
+          class="flex font-semibold break-keep text-typography-default"
         >
           {{ additional.text }}
         </span>

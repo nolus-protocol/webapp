@@ -12,7 +12,13 @@
 import Chart from "@/common/components/Chart.vue";
 import { binX, rectY, ruleY } from "@observablehq/plot";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, computeMarginLeft, computeYTicks, getChartWidth } from "@/common/utils/ChartUtils";
+import {
+  CHART_AXIS,
+  createUsdTickFormat,
+  computeMarginLeft,
+  computeYTicks,
+  getChartWidth
+} from "@/common/utils/ChartUtils";
 import { select, pointer, timeMonth, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
 import { ref, watch } from "vue";
@@ -103,9 +109,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const [x] = pointer(event, plotChart);
       const closestData = getClosestDataPoint(x);
       if (closestData) {
-        tooltip.html(
-          `<strong>${i18n.t("message.amount")}</strong> ${formatUsd(closestData.amount)}`
-        );
+        tooltip.html(`<strong>${i18n.t("message.amount")}</strong> ${formatUsd(closestData.amount)}`);
 
         const node = tooltip?.node()!.getBoundingClientRect();
         const height = node.height;

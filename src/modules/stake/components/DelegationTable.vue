@@ -63,17 +63,18 @@ import { isMobile } from "@/common/utils";
 const i18n = useI18n();
 const mobile = isMobile();
 
-const columns = computed<TableColumnProps[]>(() => mobile
-  ? [
-      { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
-      { label: i18n.t("message.amount-delegated") }
-    ]
-  : [
-      { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
-      { label: i18n.t("message.amount-delegated") },
-      { label: i18n.t("message.comm"), class: "max-w-[100px]" },
-      { label: i18n.t("message.status"), class: "max-w-[140px]" }
-    ]
+const columns = computed<TableColumnProps[]>(() =>
+  mobile
+    ? [
+        { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
+        { label: i18n.t("message.amount-delegated") }
+      ]
+    : [
+        { label: i18n.t("message.validator"), variant: "left", class: "break-all" },
+        { label: i18n.t("message.amount-delegated") },
+        { label: i18n.t("message.comm"), class: "max-w-[100px]" },
+        { label: i18n.t("message.status"), class: "max-w-[140px]" }
+      ]
 );
 
 function openLink() {

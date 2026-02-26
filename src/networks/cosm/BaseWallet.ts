@@ -238,8 +238,8 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
 
       //@ts-ignore
       return account ? (0, accountFromAny)(account) : null;
-    } catch (error: Error | any) {
-      if (/rpc error: code = NotFound/i.test(error.toString())) {
+    } catch (error: unknown) {
+      if (/rpc error: code = NotFound/i.test(String(error))) {
         return null;
       }
       throw error;

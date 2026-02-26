@@ -48,12 +48,16 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
           payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER
         );
         WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
-      } catch (e: Error | any) {
+      } catch (e: unknown) {
         if (transport) {
-          try { await transport.close(); } catch { /* ignore close errors */ }
+          try {
+            await transport.close();
+          } catch {
+            /* ignore close errors */
+          }
         }
         breakLoop = true;
-        throw new Error(e);
+        throw new Error(e instanceof Error ? e.message : String(e));
       }
     }
 

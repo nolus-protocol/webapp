@@ -229,7 +229,11 @@ const payout = computed(() => {
     const lpn = getLpnByProtocol(lease.value.protocol);
     const positionUsdc = new Dec(lease.value.amount.amount ?? "0", lpn?.decimal_digits ?? 0);
     const debtAtTargetPrice = debt.mul(end_price);
-    return formatNumber(positionUsdc.sub(debtAtTargetPrice).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
+    return formatNumber(
+      positionUsdc.sub(debtAtTargetPrice).toString(),
+      currency.value?.decimal_digits,
+      NATIVE_CURRENCY.symbol
+    );
   }
 });
 
@@ -335,7 +339,7 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(operation);
-  } catch (e: Error | any) {
+  } catch (_e: unknown) {
   } finally {
     disabled.value = false;
   }
@@ -375,9 +379,9 @@ async function operation() {
         type: ToastType.success,
         message: i18n.t("message.stop-loss-toast")
       });
-    } catch (error: Error | any) {
+    } catch (error: unknown) {
       Logger.error(error);
-      amountErrorMsg.value = error.message;
+      amountErrorMsg.value = error instanceof Error ? error.message : String(error);
     } finally {
       loading.value = false;
     }

@@ -18,12 +18,12 @@ import {
   type LeaseClosePolicy,
   type LeaseInProgress,
   type LeaseOpeningStateInfo,
-  type LeaseEtlData,
-  type Unsubscribe
+  type LeaseEtlData
 } from "@/common/api";
 import { usePricesStore } from "../prices";
 import { useConfigStore } from "../config";
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
+import { useWebSocketLifecycle } from "@/common/composables/useWebSocketLifecycle";
 import { LeaseCalculator, type LeaseDisplayData } from "@/common/utils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 
@@ -41,9 +41,6 @@ export const useLeasesStore = defineStore("leases", () => {
   // Cache for individual lease details
   const leaseDetails = ref<Map<string, LeaseInfo>>(new Map());
   const leaseHistories = ref<Map<string, LeaseHistoryEntry[]>>(new Map());
-
-  // WebSocket subscription handle
-  let unsubscribe: Unsubscribe | null = null;
 
   // ============================================================================
   // Computed Properties
@@ -202,6 +199,7 @@ export const useLeasesStore = defineStore("leases", () => {
 
       return lease;
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch lease details";
       console.error("[LeasesStore] Failed to fetch lease details:", e);
       return null;
     }
@@ -216,6 +214,7 @@ export const useLeasesStore = defineStore("leases", () => {
       leaseHistories.value.set(address, history);
       return history;
     } catch (e) {
+      error.value = e instanceof Error ? e.message : "Failed to fetch lease history";
       console.error("[LeasesStore] Failed to fetch lease history:", e);
       return [];
     }
@@ -228,70 +227,34 @@ export const useLeasesStore = defineStore("leases", () => {
     return BackendApi.getLeaseQuote(request);
   }
 
-  /**
-   * Subscribe to real-time lease updates via WebSocket
-   */
-  function subscribeToUpdates(): void {
-    if (!owner.value || unsubscribe) {
-      return;
+  // WebSocket lifecycle: subscribe, fetch, unsubscribe, cleanup
+  const { setAddress: setOwner, cleanup } = useWebSocketLifecycle({
+    address: owner,
+    subscribe: (addr) =>
+      WebSocketClient.subscribeLeases(addr, (wsLease) => {
+        // Merge with existing data (WebSocket sends partial data, no ETL)
+        const existing = leaseDetails.value.get(wsLease.address);
+        const merged = existing ? { ...existing, ...wsLease } : (wsLease as LeaseInfo);
+
+        // Update in main list
+        const index = leases.value.findIndex((l) => l.address === merged.address);
+        if (index !== -1) {
+          leases.value[index] = merged;
+        }
+
+        // Update cache
+        leaseDetails.value.set(merged.address, merged);
+        lastUpdated.value = new Date();
+      }),
+    fetch: fetchLeases,
+    resetState: () => {
+      leases.value = [];
+      leaseDetails.value.clear();
+      leaseHistories.value.clear();
+      lastUpdated.value = null;
+      error.value = null;
     }
-
-    unsubscribe = WebSocketClient.subscribeLeases(owner.value, (wsLease) => {
-      // Merge with existing data (WebSocket sends partial data, no ETL)
-      const existing = leaseDetails.value.get(wsLease.address);
-      const merged = existing ? { ...existing, ...wsLease } : (wsLease as LeaseInfo);
-
-      // Update in main list
-      const index = leases.value.findIndex((l) => l.address === merged.address);
-      if (index !== -1) {
-        leases.value[index] = merged;
-      }
-
-      // Update cache
-      leaseDetails.value.set(merged.address, merged);
-      lastUpdated.value = new Date();
-    });
-  }
-
-  /**
-   * Unsubscribe from real-time updates
-   */
-  function unsubscribeFromUpdates(): void {
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
-    }
-  }
-
-  /**
-   * Set the owner address and fetch leases
-   */
-  async function setOwner(newOwner: string | null): Promise<void> {
-    // Cleanup previous subscription
-    unsubscribeFromUpdates();
-
-    owner.value = newOwner;
-    leases.value = [];
-    lastUpdated.value = null;
-
-    if (newOwner) {
-      await fetchLeases();
-      subscribeToUpdates();
-    }
-  }
-
-  /**
-   * Cleanup store state (on disconnect)
-   */
-  function cleanup(): void {
-    unsubscribeFromUpdates();
-    owner.value = null;
-    leases.value = [];
-    leaseDetails.value.clear();
-    leaseHistories.value.clear();
-    lastUpdated.value = null;
-    error.value = null;
-  }
+  });
 
   /**
    * Refresh leases data
@@ -301,8 +264,6 @@ export const useLeasesStore = defineStore("leases", () => {
   }
 
   // Self-register: watch wallet address changes from connectionStore.
-  // { immediate: true } ensures stores created after wallet is already
-  // connected will still load data (the watcher fires with current value).
   useWalletWatcher(setOwner, cleanup, fetchLeases);
 
   return {
@@ -332,8 +293,6 @@ export const useLeasesStore = defineStore("leases", () => {
     fetchLeaseDetails,
     fetchLeaseHistory,
     getQuote,
-    subscribeToUpdates,
-    unsubscribeFromUpdates,
     setOwner,
     cleanup,
     refresh

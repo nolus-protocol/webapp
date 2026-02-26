@@ -101,7 +101,14 @@ import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { isMobile, Logger, WalletManager } from "@/common/utils";
-import { formatPercent, formatTokenBalance, formatPriceUsd, formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import {
+  formatPercent,
+  formatTokenBalance,
+  formatPriceUsd,
+  formatUsd,
+  formatMobileAmount,
+  formatMobileUsd
+} from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { useNetworkCurrency, useWalletConnected, type ResolvedAsset } from "@/common/composables";
 import { useRouter } from "vue-router";
@@ -133,9 +140,7 @@ const MAX_DISPLAY_ASSETS = 5;
 
 const filteredAssets = computed(() => {
   const allAssets = getNetworkAssets();
-  const withBalance = allAssets
-    .filter((a) => parseFloat(a.balance) > 0)
-    .sort((a, b) => b.balanceUsd - a.balanceUsd);
+  const withBalance = allAssets.filter((a) => parseFloat(a.balance) > 0).sort((a, b) => b.balanceUsd - a.balanceUsd);
 
   if (withBalance.length >= MAX_DISPLAY_ASSETS) {
     return withBalance.slice(0, MAX_DISPLAY_ASSETS);

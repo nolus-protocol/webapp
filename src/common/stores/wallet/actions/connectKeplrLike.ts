@@ -38,8 +38,8 @@ export async function connectKeplrLike(
           networkConfig.api as string
         )
       );
-    } catch (e: Error | any) {
-      throw new Error(e.message);
+    } catch (e: unknown) {
+      throw new Error(e instanceof Error ? e.message : String(e));
     }
 
     await extension.enable(chainId);

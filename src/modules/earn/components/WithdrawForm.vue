@@ -304,7 +304,7 @@ async function transferAmount() {
       });
     } catch (e) {
       Logger.error(e);
-      error.value = (e as Error).message;
+      error.value = e instanceof Error ? e.message : String(e);
     } finally {
       loading.value = false;
     }

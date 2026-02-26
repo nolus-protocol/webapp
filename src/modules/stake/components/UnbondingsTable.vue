@@ -32,16 +32,14 @@ const i18n = useI18n();
 const pricesStore = usePricesStore();
 const mobile = isMobile();
 
-const columns = computed<TableColumnProps[]>(() => mobile
-  ? [
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.amount-undelegate") }
-    ]
-  : [
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.amount-undelegate"), class: "max-w-[200px]" },
-      { label: i18n.t("message.time-left"), class: "max-w-[120px]" }
-    ]
+const columns = computed<TableColumnProps[]>(() =>
+  mobile
+    ? [{ label: i18n.t("message.asset"), variant: "left" }, { label: i18n.t("message.amount-undelegate") }]
+    : [
+        { label: i18n.t("message.asset"), variant: "left" },
+        { label: i18n.t("message.amount-undelegate"), class: "max-w-[200px]" },
+        { label: i18n.t("message.time-left"), class: "max-w-[120px]" }
+      ]
 );
 
 const props = defineProps<{

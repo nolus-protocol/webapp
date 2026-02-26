@@ -1,4 +1,3 @@
-import type { IObjectKeys } from "../types";
 import { Logger, WalletManager, WalletUtils } from ".";
 import { fetchEndpoints } from "./EndpointService";
 import { ChainConstants } from "@nolus/nolusjs";

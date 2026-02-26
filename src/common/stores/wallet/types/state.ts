@@ -1,7 +1,7 @@
 import type { NolusWallet } from "@nolus/nolusjs";
 
 export type State = {
-  wallet?: NolusWallet | any;
+  wallet?: NolusWallet;
 
   // Vesting tokens
   vest: {

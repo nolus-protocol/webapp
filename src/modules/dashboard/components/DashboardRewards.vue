@@ -110,7 +110,7 @@ async function onWithdrawRewards() {
   try {
     disabled.value = true;
     await walletOperation(requestClaim);
-  } catch (error: Error | any) {
+  } catch (error: unknown) {
     Logger.error(error);
   } finally {
     disabled.value = false;
@@ -146,7 +146,7 @@ async function requestClaim() {
 
     historyStore.loadActivities();
     await balancesStore.fetchBalances();
-  } catch (error: Error | any) {
+  } catch (error: unknown) {
     Logger.error(error);
   } finally {
     loadingStaking.value = false;

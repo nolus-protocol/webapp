@@ -30,23 +30,24 @@ import { computed } from "vue";
 const i18n = useI18n();
 const mobile = isMobile();
 
-const columns = computed<TableColumnProps[]>(() => mobile
-  ? [
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.deposit"), tooltip: { position: "top", content: i18n.t("message.deposit-tooltip") } }
-    ]
-  : [
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.deposit"), tooltip: { position: "top", content: i18n.t("message.deposit-tooltip") } },
-      {
-        label: i18n.t("message.yield"),
-        tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
-      },
-      {
-        label: i18n.t("message.availability"),
-        tooltip: { position: "top", content: i18n.t("message.availability-tooltip") }
-      }
-    ]
+const columns = computed<TableColumnProps[]>(() =>
+  mobile
+    ? [
+        { label: i18n.t("message.asset"), variant: "left" },
+        { label: i18n.t("message.deposit"), tooltip: { position: "top", content: i18n.t("message.deposit-tooltip") } }
+      ]
+    : [
+        { label: i18n.t("message.asset"), variant: "left" },
+        { label: i18n.t("message.deposit"), tooltip: { position: "top", content: i18n.t("message.deposit-tooltip") } },
+        {
+          label: i18n.t("message.yield"),
+          tooltip: { position: "top", content: i18n.t("message.yield-tooltip") }
+        },
+        {
+          label: i18n.t("message.availability"),
+          tooltip: { position: "top", content: i18n.t("message.availability-tooltip") }
+        }
+      ]
 );
 
 defineProps<{

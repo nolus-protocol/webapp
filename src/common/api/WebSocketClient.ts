@@ -192,7 +192,7 @@ class WebSocketClientImpl {
     this.config = {
       reconnectInterval: config.reconnectInterval || 1000,
       maxReconnectInterval: config.maxReconnectInterval || 30000,
-      reconnectDecay: config.reconnectDecay || 1.5,
+      reconnectDecay: config.reconnectDecay || 1.5
     };
   }
 

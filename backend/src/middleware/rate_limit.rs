@@ -6,10 +6,12 @@
 use axum::{
     body::Body,
     extract::ConnectInfo,
-    http::{Request, StatusCode},
+    http::Request,
     middleware::Next,
     response::{IntoResponse, Response},
 };
+
+use crate::error::AppError;
 use governor::{
     clock::DefaultClock,
     state::{InMemoryState, NotKeyed},
@@ -225,31 +227,14 @@ pub async fn rate_limit_middleware(
     if let Some(ip) = client_ip {
         if !state.check_rate_limit(ip).await {
             warn!("Rate limit exceeded for IP: {}", ip);
-            return RateLimitExceeded.into_response();
+            return AppError::RateLimited {
+                retry_after: Some(1),
+            }
+            .into_response();
         }
     }
 
     next.run(request).await
-}
-
-/// Response returned when rate limit is exceeded
-pub struct RateLimitExceeded;
-
-impl IntoResponse for RateLimitExceeded {
-    fn into_response(self) -> Response {
-        let body = serde_json::json!({
-            "error": "rate_limit_exceeded",
-            "message": "Too many requests. Please try again later.",
-            "retry_after_seconds": 1
-        });
-
-        (
-            StatusCode::TOO_MANY_REQUESTS,
-            [("Content-Type", "application/json"), ("Retry-After", "1")],
-            body.to_string(),
-        )
-            .into_response()
-    }
 }
 
 /// Create rate limit layer for specific routes
@@ -305,6 +290,7 @@ fn env_ip_list(key: &str) -> Vec<IpAddr> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::http::StatusCode;
     use std::net::{Ipv4Addr, Ipv6Addr};
 
     #[test]
@@ -427,7 +413,10 @@ mod tests {
 
     #[test]
     fn test_rate_limit_exceeded_response() {
-        let response = RateLimitExceeded.into_response();
+        let response = AppError::RateLimited {
+            retry_after: Some(1),
+        }
+        .into_response();
         assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
     }
 

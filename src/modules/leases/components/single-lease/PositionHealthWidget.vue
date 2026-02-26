@@ -55,7 +55,7 @@
           <!-- Red Arc -->
         </svg>
         <HealthArrow
-          class="absolute bottom-0 left-0 right-0 mx-auto origin-bottom transform"
+          class="absolute right-0 bottom-0 left-0 mx-auto origin-bottom transform"
           :style="[`${rotationStyle}`]"
         />
       </div>

@@ -65,4 +65,10 @@ router
   })
   .catch((error) => {
     console.error("[App] Failed to initialize:", error);
+    const root = document.getElementById("app");
+    if (root) {
+      root.innerHTML =
+        '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#888">' +
+        "<p>Failed to load application. Please refresh the page.</p></div>";
+    }
   });

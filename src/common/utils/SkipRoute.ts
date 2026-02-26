@@ -267,7 +267,9 @@ export class SkipRouter {
     try {
       await SkipRouter.wait(4000);
       await this.track(chainId, hash, attempts);
-    } catch (error) {}
+    } catch (error) {
+      console.error("[SkipRoute] subTrack failed:", error);
+    }
   }
 
   private static getTx(msg: IObjectKeys, msgJSON: IObjectKeys) {

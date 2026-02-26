@@ -31,11 +31,3 @@ export interface CoinAmount {
   denom: string;
   amount: string;
 }
-
-/**
- * Intercom hash response
- */
-export interface IntercomHashResponse {
-  user_id: string;
-  hash: string;
-}

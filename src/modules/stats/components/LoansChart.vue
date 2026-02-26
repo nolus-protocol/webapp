@@ -120,9 +120,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
-        tooltip.html(
-          `<strong>${nearestData.ticker}:</strong> ${formatUsd(nearestData.loan)}`
-        );
+        tooltip.html(`<strong>${nearestData.ticker}:</strong> ${formatUsd(nearestData.loan)}`);
 
         const node = tooltip.node()!.getBoundingClientRect();
         const height = node.height;
@@ -152,4 +150,3 @@ function getClosestDataPoint(yPosition: number) {
   return null;
 }
 </script>
-

@@ -124,7 +124,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
-import { HYSTORY_ACTIONS } from "@/modules/history/types";
+import { HISTORY_ACTIONS } from "@/modules/history/types";
 import type { RouteResponse, Chain } from "@/common/types/skipRoute";
 
 const i18n = useI18n();
@@ -156,7 +156,7 @@ const assets = computed(() => {
       },
       from: asset.from,
       native: asset.native,
-      sybmol: asset.symbol,
+      symbol: asset.symbol,
       ticker: asset.ticker,
       stable,
       price: formatDecAsUsd(stable)
@@ -285,7 +285,7 @@ function setHistory() {
     fromAddress: wallet.value,
     currency: currency.value.from,
     receiverAddress: walletStore.wallet.address,
-    type: HYSTORY_ACTIONS.RECEIVE
+    type: HISTORY_ACTIONS.RECEIVE
   };
   historyStore.addPendingTransfer(data, i18n);
 }
@@ -309,9 +309,9 @@ watch(
         timeOut = setTimeout(async () => {
           try {
             tempRoute.value = await getRoute();
-          } catch (e: Error | any) {
+          } catch (e: unknown) {
             console.log(e);
-            amountErrorMsg.value = e.message;
+            amountErrorMsg.value = e instanceof Error ? e.message : String(e);
           }
         });
       }
@@ -342,8 +342,8 @@ async function onSubmitCosmos() {
       const currency = getCurrencyByTickerForNetwork(networkdata.ticker);
       fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
     }
-  } catch (e: Error | any) {
-    amountErrorMsg.value = e.toString();
+  } catch (e: unknown) {
+    amountErrorMsg.value = String(e);
   }
 }
 
@@ -452,7 +452,7 @@ async function onSwap() {
     isDisabled.value = true;
     await onSubmitCosmos();
     await onSubmit();
-  } catch (error: Error | any) {
+  } catch (_error: unknown) {
     step.value = CONFIRM_STEP.ERROR;
   } finally {
     isDisabled.value = false;
@@ -490,7 +490,7 @@ async function onSubmit() {
         walletStore.history[id].historyData.status = CONFIRM_STEP.SUCCESS;
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
-        amountErrorMsg.value = (error as Error).toString();
+        amountErrorMsg.value = error instanceof Error ? error.message : String(error);
 
         if (walletStore.history[id]) {
           walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;

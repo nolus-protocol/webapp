@@ -134,19 +134,17 @@ const emptyState = computed(() => {
   return !loading.value && loans.value.length === 0;
 });
 
-const columns = computed<TableColumnProps[]>(() => mobile
-  ? [
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.realized") }
-    ]
-  : [
-      { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
-      { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
-      { label: i18n.t("message.asset"), variant: "left" },
-      { label: i18n.t("message.action") },
-      { label: i18n.t("message.realized") },
-      { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
-    ]
+const columns = computed<TableColumnProps[]>(() =>
+  mobile
+    ? [{ label: i18n.t("message.asset"), variant: "left" }, { label: i18n.t("message.realized") }]
+    : [
+        { label: i18n.t("message.contract-id"), variant: "left", class: "max-w-[120px]" },
+        { label: i18n.t("message.type"), variant: "left", class: "max-w-[200px]" },
+        { label: i18n.t("message.asset"), variant: "left" },
+        { label: i18n.t("message.action") },
+        { label: i18n.t("message.realized") },
+        { label: i18n.t("message.date-capitalize"), class: "max-w-[200px] w-full" }
+      ]
 );
 
 const filename = "data.csv";
@@ -185,7 +183,7 @@ async function loadMore() {
       loaded.value = true;
     }
     skip += limit;
-  } catch (e: Error | any) {
+  } catch (e: unknown) {
     Logger.error(e);
   }
 }

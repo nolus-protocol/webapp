@@ -102,18 +102,17 @@ const transactions = computed(() => historyStore.transactions);
 const loading = computed(() => historyStore.transactionsLoading);
 const loaded = computed(() => historyStore.allTransactionsLoaded);
 
-const columns = computed<TableColumnProps[]>(() => mobile
-  ? [
-      { label: i18n.t("message.history-transaction"), variant: "left" },
-      { label: i18n.t("message.time") }
-    ]
-  : [
-      { label: i18n.t("message.category"), class: "max-w-[100px]", variant: "left" },
-      { label: i18n.t("message.history-transaction"), variant: "left" },
-      { label: i18n.t("message.time"), class: "max-w-[180px]" },
-      { label: i18n.t("message.status"), class: "max-w-[150px]" },
-      { label: i18n.t("message.action"), class: "max-w-[120px]" }
-]);
+const columns = computed<TableColumnProps[]>(() =>
+  mobile
+    ? [{ label: i18n.t("message.history-transaction"), variant: "left" }, { label: i18n.t("message.time") }]
+    : [
+        { label: i18n.t("message.category"), class: "max-w-[100px]", variant: "left" },
+        { label: i18n.t("message.history-transaction"), variant: "left" },
+        { label: i18n.t("message.time"), class: "max-w-[180px]" },
+        { label: i18n.t("message.status"), class: "max-w-[150px]" },
+        { label: i18n.t("message.action"), class: "max-w-[120px]" }
+      ]
+);
 
 // Filtered transactions based on search
 const txs = computed(() => {

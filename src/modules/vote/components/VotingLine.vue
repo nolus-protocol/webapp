@@ -33,16 +33,14 @@ const colors: Record<string, { bg: string; before: string; hex: string }> = {
 const barClasses =
   "relative h-2.5 cursor-pointer first:rounded-md [&:not(:first-of-type)]:rounded-r-md [&:not(:first-of-type)]:before:absolute [&:not(:first-of-type)]:before:-left-[4px] [&:not(:first-of-type)]:before:h-2.5 [&:not(:first-of-type)]:before:w-[4px]";
 
-const total = computed(() =>
-  Object.values(props.voting).reduce((acc, value) => acc + Number(value), 0)
-);
+const total = computed(() => Object.values(props.voting).reduce((acc, value) => acc + Number(value), 0));
 
 const segments = computed(() =>
   Object.entries(props.voting)
     .map(([key, value]) => ({
       key,
       label: props.labels[key] ?? key,
-      percent: (Number(value) / total.value * 100).toFixed(2)
+      percent: ((Number(value) / total.value) * 100).toFixed(2)
     }))
     .filter((item) => !!Number(item.percent))
     .reverse()
