@@ -81,6 +81,8 @@
     "estimate-time": "Estimated processing time",
     "sec": "sec",
     "unexpected-error": "Unexpected error",
+    "permission-denied": "Notification permission denied",
+    "rate-limit-exceeded": "Too many requests. Please wait a moment and try again.",
     "delegate": "Stake",
     "undelegate": "Unstake",
     "asset-to-lease": "Buy",

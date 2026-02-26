@@ -20,11 +20,19 @@ import { getCookie, setCookie } from "./common/utils/cookieUtils";
 import { LANGUAGE_KEY } from "./common/utils";
 import { getTheme, setTheme } from "./common/utils/ThemeManager";
 import { useI18n } from "vue-i18n";
+import { BackendApi } from "./common/api/BackendApi";
 
 let interval: NodeJS.Timeout;
 const i18n = useI18n();
 
 provide("onShowToast", onShowToast);
+
+BackendApi.onRateLimited = () => {
+  onShowToast({
+    type: ToastType.error,
+    message: i18n.t("message.rate-limit-exceeded")
+  });
+};
 
 onMounted(() => {
   initWorker();

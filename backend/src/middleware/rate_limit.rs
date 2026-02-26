@@ -260,21 +260,46 @@ pub fn create_rate_limit_state(config: RateLimitConfig) -> Arc<RateLimitState> {
 /// Stricter rate limit for sensitive endpoints (e.g., write operations)
 pub fn strict_rate_limit_config() -> RateLimitConfig {
     RateLimitConfig {
-        requests_per_second: 2,
-        burst_size: 5,
-        enabled: true,
-        whitelist: vec![],
+        requests_per_second: env_u32("RATE_LIMIT_STRICT_RPS", 2),
+        burst_size: env_u32("RATE_LIMIT_STRICT_BURST", 5),
+        enabled: env_bool("RATE_LIMIT_ENABLED", true),
+        whitelist: env_ip_list("RATE_LIMIT_WHITELIST"),
     }
 }
 
 /// Standard rate limit for read operations
 pub fn standard_rate_limit_config() -> RateLimitConfig {
     RateLimitConfig {
-        requests_per_second: 20,
-        burst_size: 50,
-        enabled: true,
-        whitelist: vec![],
+        requests_per_second: env_u32("RATE_LIMIT_RPS", 20),
+        burst_size: env_u32("RATE_LIMIT_BURST", 50),
+        enabled: env_bool("RATE_LIMIT_ENABLED", true),
+        whitelist: env_ip_list("RATE_LIMIT_WHITELIST"),
     }
+}
+
+fn env_u32(key: &str, default: u32) -> u32 {
+    std::env::var(key)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
+}
+
+fn env_bool(key: &str, default: bool) -> bool {
+    std::env::var(key)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
+}
+
+fn env_ip_list(key: &str) -> Vec<IpAddr> {
+    std::env::var(key)
+        .ok()
+        .map(|v| {
+            v.split(',')
+                .filter_map(|s| s.trim().parse().ok())
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 #[cfg(test)]

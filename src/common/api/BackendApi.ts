@@ -107,6 +107,13 @@ export class BackendApiClient {
    */
   private inFlight = new Map<string, Promise<unknown>>();
 
+  /**
+   * Callback invoked when the backend returns 429 (rate limited).
+   * Set by App.vue to show a toast notification.
+   */
+  onRateLimited: (() => void) | null = null;
+  private rateLimitToastTimeout: ReturnType<typeof setTimeout> | null = null;
+
   constructor(baseUrl: string = BACKEND_URL) {
     this.baseUrl = baseUrl;
   }
@@ -194,6 +201,12 @@ export class BackendApiClient {
     });
 
     if (!response.ok) {
+      if (response.status === 429 && this.onRateLimited && !this.rateLimitToastTimeout) {
+        this.onRateLimited();
+        this.rateLimitToastTimeout = setTimeout(() => {
+          this.rateLimitToastTimeout = null;
+        }, 5000);
+      }
       const errorData = await response.json().catch(() => ({}));
       throw new ApiErrorClass(
         response.status,
