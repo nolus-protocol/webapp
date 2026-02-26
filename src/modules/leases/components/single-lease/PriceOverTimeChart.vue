@@ -210,17 +210,18 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       ? data.value.filter((_, i) => i % Math.ceil(data.value.length / maxPoints) === 0)
       : data.value;
 
-  // Compute Y domain from price data only (liquidation may be far below)
+  // Compute Y domain from price data only (liquidation may be far above/below)
   const prices = chartData.map((d) => d.Price);
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
 
-  // Include liquidation in domain only if it's within 15% of the price range
+  // Include liquidation in domain
   const firstLiquidation = Number(chartData[0]?.Liquidation ?? 0);
-  const domainMin = firstLiquidation > 0 && firstLiquidation > minPrice * 0.85 ? firstLiquidation : minPrice;
-  const range = maxPrice - domainMin;
-  const padding = range * 0.2 || maxPrice * 0.05;
-  const yDomain: [number, number] = [Math.max(0, domainMin - padding), maxPrice + padding];
+  const allMin = firstLiquidation > 0 ? Math.min(minPrice, firstLiquidation) : minPrice;
+  const allMax = firstLiquidation > 0 ? Math.max(maxPrice, firstLiquidation) : maxPrice;
+  const range = allMax - allMin;
+  const padding = range * 0.2 || allMax * 0.05;
+  const yDomain: [number, number] = [Math.max(0, allMin - padding), allMax + padding];
   const tickFormat = createUsdTickFormat(yDomain);
   const yTicks = computeYTicks(yDomain);
   marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);

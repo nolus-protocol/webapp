@@ -399,14 +399,14 @@ const stable = computed<AmountDisplayProps>(() => {
       fontSize: 16
     } as AmountDisplayProps;
   } else if (posType === "short") {
-    const ticker = props.lease.etl_data?.lease_position_ticker ?? props.lease.amount.ticker;
+    const debtTicker = props.lease.debt?.ticker;
     const protocol = props.lease.protocol;
-    const ast = configStore.currenciesData?.[`${ticker}@${protocol}`];
-    const price = pricesStore.prices[ast?.key as string];
+    const debtAsset = configStore.currenciesData?.[`${debtTicker}@${protocol}`];
+    const price = pricesStore.prices[debtAsset?.key as string];
     const value = assetAmount.quo(new Dec(price?.price ?? "1"));
     return {
       value: value.toString(NATIVE_CURRENCY.maximumFractionDigits),
-      denom: ast?.shortName ?? "",
+      denom: debtAsset?.shortName ?? "",
       isDenomPrefix: false,
       hasSpace: true,
       fontSize: 16
