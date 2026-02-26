@@ -222,13 +222,19 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
 
-  // Include liquidation in domain
+  // Include liquidation in domain only if it's close enough to the price range.
+  // When liquidation is far away (e.g. BTC at $67K, liquidation at $22K) including
+  // it squashes the price line flat. We include it when it's within 50% of the
+  // mid-price — works for both Long (liquidation below) and Short (liquidation above).
   const firstLiquidation = Number(chartData[0]?.Liquidation ?? 0);
-  const allMin = firstLiquidation > 0 ? Math.min(minPrice, firstLiquidation) : minPrice;
-  const allMax = firstLiquidation > 0 ? Math.max(maxPrice, firstLiquidation) : maxPrice;
-  const range = allMax - allMin;
-  const padding = range * 0.2 || allMax * 0.05;
-  const yDomain: [number, number] = [Math.max(0, allMin - padding), allMax + padding];
+  const midPrice = (minPrice + maxPrice) / 2;
+  const closeness = midPrice > 0 ? Math.abs(firstLiquidation - midPrice) / midPrice : Infinity;
+  const includeLiq = firstLiquidation > 0 && closeness <= 0.5;
+  const domainMin = includeLiq ? Math.min(minPrice, firstLiquidation) : minPrice;
+  const domainMax = includeLiq ? Math.max(maxPrice, firstLiquidation) : maxPrice;
+  const range = domainMax - domainMin;
+  const padding = range * 0.2 || domainMax * 0.05;
+  const yDomain: [number, number] = [Math.max(0, domainMin - padding), domainMax + padding];
   const tickFormat = createUsdTickFormat(yDomain);
   const yTicks = computeYTicks(yDomain);
   marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
