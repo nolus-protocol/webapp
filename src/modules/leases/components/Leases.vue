@@ -179,7 +179,7 @@ const columns = computed<TableColumnProps[]>(() =>
         { label: i18n.t("message.pnl"), class: "flex-[1.6_1_0%]" },
         { label: i18n.t("message.lease-size"), class: "flex-[1.7_1_0%]" },
         { label: i18n.t("message.liquidation-lease-table"), class: "flex-[1.5_1_0%]" },
-        { label: "", class: "flex-[1.8_1_0%]" }
+        { label: "", class: "!flex-none w-[180px]" }
       ]
 );
 
@@ -349,7 +349,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
             liquidation,
             {
               component: () => [...actions],
-              class: "flex-[1.8_1_0%] pr-4 cursor-pointer"
+              class: "!flex-none w-[180px] pr-4 cursor-pointer"
             }
           ]
         };
