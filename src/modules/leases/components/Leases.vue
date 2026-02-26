@@ -103,7 +103,7 @@ import {
 
 import { RouteNames } from "@/router";
 
-import BigNumber, { type IBigNumber } from "@/common/components/BigNumber.vue";
+import BigNumber from "@/common/components/BigNumber.vue";
 import ListHeader from "@/common/components/ListHeader.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
@@ -132,7 +132,6 @@ import {
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
-import TableNumber from "@/common/components/TableNumber.vue";
 import type { LeaseInfo } from "@/common/api";
 
 const leasesStore = useLeasesStore();
@@ -174,13 +173,13 @@ const columns = computed<TableColumnProps[]>(() =>
         { label: "", class: "!flex-none w-[40px]" }
       ]
     : [
-        { label: i18n.t("message.lease"), variant: "left", class: "max-w-[150px]" },
-        { label: i18n.t("message.asset"), variant: "left" },
-        { label: i18n.t("message.type"), variant: "left", class: "max-w-[45px]" },
-        { label: i18n.t("message.pnl"), class: "max-w-[200px]" },
-        { label: i18n.t("message.lease-size") },
-        { label: i18n.t("message.liquidation-lease-table"), class: "max-w-[200px]" },
-        { label: "", class: "max-w-[220px]" }
+        { label: i18n.t("message.lease"), variant: "left", class: "flex-[1.1_1_0%]" },
+        { label: i18n.t("message.asset"), variant: "left", class: "flex-[1.7_1_0%]" },
+        { label: i18n.t("message.type"), variant: "left", class: "flex-[0.6_1_0%]" },
+        { label: i18n.t("message.pnl"), class: "flex-[1.6_1_0%]" },
+        { label: i18n.t("message.lease-size"), class: "flex-[1.7_1_0%]" },
+        { label: i18n.t("message.liquidation-lease-table"), class: "flex-[1.5_1_0%]" },
+        { label: "", class: "flex-[1.8_1_0%]" }
       ]
 );
 
@@ -294,10 +293,13 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         }
 
         const liquidation = loading
-          ? { component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }) }
+          ? {
+              component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }),
+              class: "flex-[1.5_1_0%]"
+            }
           : {
               value: formatPriceUsd(displayData.liquidationPrice.toString()),
-              class: "max-w-[200px]"
+              class: "flex-[1.5_1_0%]"
             };
 
         const actions: Component[] = getActions(item, displayData);
@@ -311,7 +313,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
               click: () => {
                 router.push(`/${RouteNames.LEASES}/${item.address}`);
               },
-              class: "text-typography-link font-semibold max-w-[150px] cursor-pointer"
+              class: "text-typography-link font-semibold flex-[1.1_1_0%] cursor-pointer"
             },
             {
               image: getAssetIcon(item),
@@ -319,44 +321,35 @@ const leasesData = computed<TableRowItemProps[]>(() => {
               value: asset?.shortName ?? "",
               subValue: asset?.name ?? "",
               variant: "left",
-              textClass: "line-clamp-1 [display:-webkit-box]"
+              textClass: "line-clamp-1 [display:-webkit-box]",
+              class: "flex-[1.7_1_0%]"
             },
             {
               value: positionType,
               variant: "left",
-              class: "max-w-[45px]"
+              class: "flex-[0.6_1_0%]"
             },
+            loading
+              ? {
+                  component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }),
+                  class: "flex-[1.6_1_0%]"
+                }
+              : {
+                  value: `${pnlData.status ? "+" : ""}${pnlData.percent}%`,
+                  subValue: hide.value ? "****" : pnlData.amount,
+                  textClass: pnlData.status ? "text-typography-success" : "text-typography-error",
+                  subValueClass: pnlData.status ? "text-typography-success" : "text-typography-error",
+                  class: "flex-[1.6_1_0%] text-14"
+                },
             {
-              component: () =>
-                loading
-                  ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
-                  : h<IBigNumber>(BigNumber, {
-                      pnlStatus: {
-                        positive: pnlData.status,
-                        value: `${pnlData.status ? "+" : ""}${pnlData.percent}% (${hide.value ? "****" : pnlData.amount})`,
-                        badge: {
-                          content: pnlData.percent,
-                          base: false
-                        }
-                      }
-                    }),
-              class: "max-w-[200px]"
-            },
-            {
-              component: () =>
-                loading
-                  ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
-                  : h(TableNumber, {
-                      value: value.value,
-                      subValue: value.subValue,
-                      tooltip: value.tooltip
-                    }),
-              class: "font-semibold break-all"
+              value: loading ? "" : value.value,
+              subValue: loading ? "" : value.subValue,
+              class: "flex-[1.7_1_0%] font-semibold"
             },
             liquidation,
             {
               component: () => [...actions],
-              class: "max-w-[220px] pr-4 cursor-pointer"
+              class: "flex-[1.8_1_0%] pr-4 cursor-pointer"
             }
           ]
         };
