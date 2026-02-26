@@ -81,7 +81,7 @@
               </div>
             </template>
 
-            <template v-if="sliderValue > 0 && sliderValue < midPosition">
+            <template v-if="sliderValue > 0 && sliderValue < midPosition && !coversFullDebt">
               <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
@@ -109,7 +109,7 @@
               </div>
             </template>
 
-            <template v-if="sliderValue == midPosition">
+            <template v-if="sliderValue == midPosition || (coversFullDebt && sliderValue > 0 && sliderValue < midPosition)">
               <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
@@ -133,7 +133,9 @@
                   name="check-solid"
                   class="mt-0.5 shrink-0 fill-icon-success"
                 />
-                {{ positionLeft }} {{ $t("message.preview-closed-rest") }}
+                <div>
+                  <template v-if="shortReturnAtom"><strong>{{ shortReturnAtom }}</strong> {{ $t("message.and") }}&nbsp;</template><strong>{{ positionLeft }}</strong> {{ $t("message.preview-closed-rest") }}
+                </div>
               </div>
 
               <div class="flex items-start gap-2 text-14">
@@ -179,8 +181,7 @@
                   class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <div>
-                  <strong>{{ payout }} {{ lpn }}</strong> {{ $t("message.and") }} <strong>{{ positionLeft }}</strong>
-                  {{ $t("message.preview-closed-rest") }}
+                  <template v-if="shortReturnAtom"><strong>{{ shortReturnAtom }}</strong> {{ $t("message.and") }}&nbsp;</template><strong>{{ positionLeft }}</strong> {{ $t("message.preview-closed-rest") }}
                 </div>
               </div>
 
@@ -433,16 +434,17 @@ const debtData = computed(() => {
     const positionType = configStore.getPositionType(lease.value.protocol);
 
     if (positionType === "Short") {
-      // For Short: debt is in the underlying asset (e.g. ATOM), use debt.ticker
+      const sd = shortDebtAtom.value;
+      if (!sd) return { debt: "", price: "", asset: "", fee: "" };
       const debtTicker = lease.value.debt.ticker;
       const debtCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
-      const asset = d.quo(price);
-      const value = new Dec(amount.value).mul(new Dec(swapFee.value));
+      const currentDebtPrice = new Dec(pricesStore.prices[`${debtTicker}@${lease.value.protocol}`]?.price ?? "1");
+      const value = new Dec(amount.value.length ? amount.value : "0").mul(new Dec(swapFee.value));
       return {
         fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
         asset: debtCurrency?.shortName ?? debtTicker,
-        price: formatPriceUsd(price.toString(MAX_DECIMALS)),
-        debt: `${formatTokenBalance(asset)} ${debtCurrency?.shortName ?? debtTicker}`
+        price: formatPriceUsd(currentDebtPrice.toString(MAX_DECIMALS)),
+        debt: `${formatTokenBalance(sd.amount)} ${sd.symbol}`
       };
     } else {
       const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
@@ -549,6 +551,60 @@ const positionLeft = computed(() => {
   }
 
   return `${left.toString(Number(currencyData!.decimal_digits))} ${currencyData!.shortName}`;
+});
+
+// For short positions: stable values derived directly from chain data and current
+// price — intentionally NOT using getRepayment/swapFee so the preview doesn't flash
+// when the async fee arrives.
+
+// Outstanding debt in ATOM (human-readable), taken from displayData which is already
+// correctly computed with decimal_digits applied — same source as the Summary widget.
+const shortDebtAtom = computed(() => {
+  const positionType = configStore.getPositionType(lease.value?.protocol!);
+  if (positionType !== "Short" || !lease.value || !displayData.value || lease.value.status !== "opened") return null;
+
+  const debtTicker = lease.value.debt.ticker;
+  const debtCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
+
+  return { amount: displayData.value.totalDebt, symbol: debtCurrency.shortName };
+});
+
+// For Short positions: does the entered USDC amount buy enough ATOM to fully cover the debt?
+// Uses chain-based debt and current market price — no dependency on swapFee or getRepayment,
+// so the result is stable from the first render (no flashing when swapFee arrives).
+const coversFullDebt = computed(() => {
+  if (!shortDebtAtom.value || !lease.value) return false;
+  const v = amount.value;
+  if (!v || v.length === 0) return false;
+
+  const debtTicker = lease.value.debt.ticker;
+  const priceEntry = pricesStore.prices[`${debtTicker}@${lease.value.protocol}`];
+  if (!priceEntry?.price) return false;
+
+  const currentDebtPrice = new Dec(priceEntry.price);
+  const amountUsdc = new Dec(v);
+  const atomBought = amountUsdc.quo(currentDebtPrice);
+  return atomBought.gte(shortDebtAtom.value.amount);
+});
+
+// ATOM the user gets back: input USDC buys X ATOM at current price, minus the debt.
+// Uses amount.value directly — no dependency on swapFee or getRepayment.
+const shortReturnAtom = computed(() => {
+  if (!shortDebtAtom.value || !lease.value) return null;
+  const v = amount.value;
+  if (!v || v.length === 0) return null;
+
+  const debtTicker = lease.value.debt.ticker;
+  const priceEntry = pricesStore.prices[`${debtTicker}@${lease.value.protocol}`];
+  if (!priceEntry?.price) return null;
+
+  const currentDebtPrice = new Dec(priceEntry.price);
+  const amountUsdc = new Dec(v);
+  const atomBought = amountUsdc.quo(currentDebtPrice);
+  const excess = atomBought.sub(shortDebtAtom.value.amount);
+
+  if (excess.isNegative() || excess.isZero()) return null;
+  return `${formatTokenBalance(excess)} ${shortDebtAtom.value.symbol}`;
 });
 
 function onSetAmount(percent: number) {
@@ -750,8 +806,15 @@ function getRepayment(p: number) {
   const price = getPrice()!;
 
   if (positionType === "Short") {
+    // For short positions, debt is in the debt asset (e.g. ATOM).
+    // Convert to the position currency (e.g. USDC) using the current market price.
+    // Add a 1% price buffer so the suggested amount covers the debt even if the
+    // volatile asset price rises slightly between now and transaction execution.
+    const SHORT_PRICE_BUFFER = new Dec("1.01");
+    const debtTicker = lease.value.debt.ticker;
+    const debtAssetPrice = new Dec(pricesStore.prices[`${debtTicker}@${lease.value.protocol}`]?.price ?? "1");
     const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency!.key as string].price);
-    const repayment = repaymentInStable.mul(price);
+    const repayment = repaymentInStable.mul(debtAssetPrice).mul(SHORT_PRICE_BUFFER);
     return {
       repayment: repayment.quo(selected_asset_price),
       repaymentInStable: repayment,
