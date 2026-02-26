@@ -160,6 +160,15 @@ pub struct LeaseRulesConfig {
     /// Asset restrictions (which assets to ignore)
     #[serde(default)]
     pub asset_restrictions: AssetRestrictions,
+    /// Seconds into the future to project due interest/margin when querying lease state.
+    /// The lease contract returns projected interest accrued up to (now + this value),
+    /// giving users a more accurate picture of what they'll owe at repayment time.
+    #[serde(default = "default_due_projection_secs")]
+    pub due_projection_secs: u64,
+}
+
+fn default_due_projection_secs() -> u64 {
+    400
 }
 
 /// Downpayment range for an asset
@@ -613,6 +622,7 @@ mod tests {
                 ignore_long: vec![],
                 ignore_short: vec![],
             },
+            due_projection_secs: 400,
         };
 
         let json = serde_json::to_string_pretty(&config).unwrap();
@@ -621,5 +631,14 @@ mod tests {
             .downpayment_ranges
             .contains_key("OSMOSIS-OSMOSIS-USDC_NOBLE"));
         assert_eq!(deserialized.asset_restrictions.ignore_all.len(), 1);
+        assert_eq!(deserialized.due_projection_secs, 400);
+    }
+
+    #[test]
+    fn test_lease_rules_config_default_due_projection() {
+        // Existing JSON without due_projection_secs should get the default of 400
+        let json = r#"{"downpayment_ranges": {}, "asset_restrictions": {}}"#;
+        let config: LeaseRulesConfig = serde_json::from_str(json).unwrap();
+        assert_eq!(config.due_projection_secs, 400);
     }
 }

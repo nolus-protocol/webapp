@@ -477,23 +477,14 @@ impl ChainClient {
     // Lease Contract Queries
     // ========================================================================
 
-    /// Get lease status from a Lease contract
+    /// Get lease status from a Lease contract with due projection.
+    /// `due_projection_secs` projects interest/margin into the future so users see
+    /// a more accurate picture of what they'll owe at repayment time.
     pub async fn get_lease_status(
-        &self,
-        lease_address: &str,
-    ) -> Result<LeaseStatusResponse, AppError> {
-        // Lease contract expects "state" query with empty object
-        let query = json!({ "state": {} });
-        self.query_contract(lease_address, query).await
-    }
-
-    /// Get lease status with due projection
-    pub async fn get_lease_status_with_projection(
         &self,
         lease_address: &str,
         due_projection_secs: u64,
     ) -> Result<LeaseStatusResponse, AppError> {
-        // Lease contract expects "state" query with optional due_projection_secs
         let query = json!({ "state": { "due_projection_secs": due_projection_secs } });
         self.query_contract(lease_address, query).await
     }

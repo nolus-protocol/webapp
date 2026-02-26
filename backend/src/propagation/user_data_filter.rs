@@ -310,6 +310,7 @@ mod tests {
                 ignore_long: vec!["RISKY_LONG".to_string()],
                 ignore_short: vec!["RISKY_SHORT".to_string()],
             },
+            due_projection_secs: 400,
         }
     }
 

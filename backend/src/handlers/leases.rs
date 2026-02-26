@@ -294,8 +294,10 @@ pub async fn get_leases(
     crate::validation::validate_bech32_address(&query.address, "address")?;
     debug!("Getting leases for owner: {}", query.address);
 
-    // Read filter context from cache
+    // Read filter context and gated config from cache
     let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let due_projection_secs = gated.lease_rules.due_projection_secs;
 
     let admin_address = &state.config.protocols.admin_contract;
 
@@ -368,7 +370,7 @@ pub async fn get_leases(
                         async move {
                             match tokio::time::timeout(
                                 Duration::from_secs(10),
-                                fetch_lease_info(&state, &lease_address, &protocol),
+                                fetch_lease_info(&state, &lease_address, &protocol, due_projection_secs),
                             )
                             .await
                             {
@@ -437,7 +439,10 @@ pub async fn get_lease(
         details: None,
     })?;
 
-    fetch_lease_info(&state, &address, &protocol)
+    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let due_projection_secs = gated.lease_rules.due_projection_secs;
+
+    fetch_lease_info(&state, &address, &protocol, due_projection_secs)
         .await
         .map(Json)
 }
@@ -685,9 +690,13 @@ async fn fetch_lease_info(
     state: &AppState,
     lease_address: &str,
     protocol: &str,
+    due_projection_secs: u64,
 ) -> Result<LeaseInfo, AppError> {
-    // Get lease status from contract
-    let lease_status = state.chain_client.get_lease_status(lease_address).await?;
+    // Get lease status from contract with due projection
+    let lease_status = state
+        .chain_client
+        .get_lease_status(lease_address, due_projection_secs)
+        .await?;
 
     // Try to get historical data from ETL
     let etl_data = state
@@ -1230,6 +1239,12 @@ pub async fn fetch_leases_for_monitoring(
     owner: &str,
 ) -> Result<Vec<LeaseMonitorInfo>, AppError> {
     let admin_address = &state.config.protocols.admin_contract;
+    let due_projection_secs = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?
+        .lease_rules
+        .due_projection_secs;
 
     // Get active protocols
     let protocols = state
@@ -1279,7 +1294,13 @@ pub async fn fetch_leases_for_monitoring(
                         let addr = addr.clone();
                         let protocol = protocol.clone();
                         async move {
-                            fetch_lease_monitor_info_internal(&chain_client, &addr, &protocol).await
+                            fetch_lease_monitor_info_internal(
+                                &chain_client,
+                                &addr,
+                                &protocol,
+                                due_projection_secs,
+                            )
+                            .await
                         }
                     })
                     .collect();
@@ -1308,8 +1329,11 @@ async fn fetch_lease_monitor_info_internal(
     chain_client: &crate::external::chain::ChainClient,
     lease_address: &str,
     protocol: &str,
+    due_projection_secs: u64,
 ) -> Result<LeaseMonitorInfo, AppError> {
-    let lease_status = chain_client.get_lease_status(lease_address).await?;
+    let lease_status = chain_client
+        .get_lease_status(lease_address, due_projection_secs)
+        .await?;
 
     let info = match &lease_status {
         LeaseStatusResponse::Opening(opening) => LeaseMonitorInfo {
