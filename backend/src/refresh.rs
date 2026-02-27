@@ -57,6 +57,8 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
         refresh_gated_protocols(&state),
         refresh_gated_networks(&state),
         refresh_gas_fee_config(&state),
+        refresh_annual_inflation(&state),
+        refresh_staking_pool(&state),
     );
 
     info!("Essential data warm-up complete");
@@ -119,7 +121,12 @@ pub fn start_all(state: Arc<AppState>, event_channels: &EventChannels) {
     // Group 4: Domain data (60s, independent)
     spawn_refresh("domain_data", state.clone(), 60, |s| {
         Box::pin(async move {
-            tokio::join!(refresh_pools(s), refresh_validators(s));
+            tokio::join!(
+                refresh_pools(s),
+                refresh_validators(s),
+                refresh_annual_inflation(s),
+                refresh_staking_pool(s),
+            );
         })
     });
 
@@ -617,15 +624,14 @@ pub async fn refresh_prices(state: &Arc<AppState>) {
 
 /// Refresh earn pools from chain + ETL
 pub async fn refresh_pools(state: &Arc<AppState>) {
-    let admin_address = &state.config.protocols.admin_contract;
-
-    let protocols = match state.chain_client.get_admin_protocols(admin_address).await {
-        Ok(p) => p,
-        Err(e) => {
-            warn!("Failed to refresh pools: {}", e);
+    let contracts_map = match state.data_cache.protocol_contracts.load() {
+        Some(c) => c,
+        None => {
+            warn!("Failed to refresh pools: protocol contracts not cached");
             return;
         }
     };
+    let protocols: Vec<String> = contracts_map.keys().cloned().collect();
 
     let etl_pools = match state.etl_client.fetch_pools().await {
         Ok(pools) => Some(pools),
@@ -695,6 +701,22 @@ pub async fn refresh_validators(state: &Arc<AppState>) {
         .collect();
 
     state.data_cache.validators.store(result);
+}
+
+/// Refresh annual inflation from chain
+pub async fn refresh_annual_inflation(state: &Arc<AppState>) {
+    match state.chain_client.get_annual_inflation().await {
+        Ok(resp) => state.data_cache.annual_inflation.store(resp),
+        Err(e) => warn!("Failed to refresh annual_inflation: {}", e),
+    }
+}
+
+/// Refresh staking pool from chain
+pub async fn refresh_staking_pool(state: &Arc<AppState>) {
+    match state.chain_client.get_staking_pool().await {
+        Ok(resp) => state.data_cache.staking_pool.store(resp),
+        Err(e) => warn!("Failed to refresh staking_pool: {}", e),
+    }
 }
 
 /// Refresh gated assets (deduplicated view with prices)

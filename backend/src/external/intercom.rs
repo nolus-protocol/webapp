@@ -110,8 +110,9 @@ impl IntercomClient {
 
         // Flatten attributes into a HashMap for the JWT payload
         let attributes_map: HashMap<String, serde_json::Value> = {
-            let value = serde_json::to_value(attributes)
-                .map_err(|e| AppError::Internal(format!("Failed to serialize attributes: {}", e)))?;
+            let value = serde_json::to_value(attributes).map_err(|e| {
+                AppError::Internal(format!("Failed to serialize attributes: {}", e))
+            })?;
             match value {
                 serde_json::Value::Object(map) => map.into_iter().collect(),
                 _ => HashMap::new(),
@@ -168,7 +169,9 @@ mod tests {
             has_earn_positions: true,
             has_staking_positions: true,
             is_vesting_account: false,
-            positions_dashboard_url: "https://crtl.kostovster.io/chain-data/wallet-explorer?address=nolus1abc123".to_string(),
+            positions_dashboard_url:
+                "https://crtl.kostovster.io/chain-data/wallet-explorer?address=nolus1abc123"
+                    .to_string(),
         }
     }
 
@@ -247,7 +250,8 @@ mod tests {
         assert_eq!(
             token_data.claims.attributes.get("positions_dashboard_url"),
             Some(&serde_json::Value::String(
-                "https://crtl.kostovster.io/chain-data/wallet-explorer?address=nolus1abc123".to_string()
+                "https://crtl.kostovster.io/chain-data/wallet-explorer?address=nolus1abc123"
+                    .to_string()
             ))
         );
     }

@@ -463,7 +463,10 @@ pub async fn track_transaction(
 pub async fn get_swap_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let result = state.data_cache.swap_config.load_or_unavailable("Swap config")?;
+    let result = state
+        .data_cache
+        .swap_config
+        .load_or_unavailable("Swap config")?;
 
     Ok(Json(result))
 }

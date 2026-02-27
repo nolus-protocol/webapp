@@ -28,7 +28,10 @@ pub struct HiddenProposalsResponse {
 pub async fn get_hidden_proposals(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<HiddenProposalsResponse>, AppError> {
-    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
     let ui_settings = gated.ui_settings;
 
     Ok(Json(HiddenProposalsResponse {
@@ -192,7 +195,10 @@ pub async fn get_staking_pool(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<chain::StakingPoolResponse>, AppError> {
     debug!("Fetching staking pool");
-    let pool = state.chain_client.get_staking_pool().await?;
+    let pool = state
+        .data_cache
+        .staking_pool
+        .load_or_unavailable("Staking pool")?;
     Ok(Json(pool))
 }
 
@@ -208,16 +214,18 @@ pub struct AprResponse {
 pub async fn get_apr(State(state): State<Arc<AppState>>) -> Result<Json<AprResponse>, AppError> {
     debug!("Fetching APR");
 
-    let (inflation_response, pool_response) = tokio::try_join!(
-        state.chain_client.get_annual_inflation(),
-        state.chain_client.get_staking_pool()
-    )?;
+    let inflation_response = state
+        .data_cache
+        .annual_inflation
+        .load_or_unavailable("Annual inflation")?;
+    let pool_response = state
+        .data_cache
+        .staking_pool
+        .load_or_unavailable("Staking pool")?;
 
     let annual_inflation: f64 = inflation_response.annual_inflation.parse().unwrap_or(0.0);
-    let _bonded_tokens: f64 = pool_response.pool.bonded_tokens.parse().unwrap_or(1.0);
 
-    // APR calculation: (inflation * total_supply) / bonded_tokens
-    // Simplified: we just return the raw values and let frontend calculate
+    // APR calculation: simplified — just return the raw values and let frontend calculate
     let apr = annual_inflation;
 
     Ok(Json(AprResponse {

@@ -125,7 +125,10 @@ pub async fn get_pools(
     debug!("Getting all earn pools");
 
     // Read filter context and pools from cache
-    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load_or_unavailable("Filter context")?;
 
     let pools = state.data_cache.pools.load_or_unavailable("Earn pools")?;
 
@@ -164,7 +167,10 @@ pub async fn get_pool(
     debug!("Getting pool for protocol: {}", protocol);
 
     // Read filter context from cache and check if protocol is configured
-    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load_or_unavailable("Filter context")?;
     if !filter_ctx.is_earn_position_visible(&protocol) {
         return Err(AppError::NotFound {
             resource: format!("Pool for protocol: {}", protocol),
@@ -196,19 +202,21 @@ pub async fn get_positions(
     debug!("Getting earn positions for owner: {}", query.address);
 
     // Read filter context from cache
-    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load_or_unavailable("Filter context")?;
 
-    let admin_address = &state.config.protocols.admin_contract;
+    // Get all protocols from cache and filter to configured ones
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
 
-    // Get all protocols and filter to configured ones
-    let all_protocols = state
-        .chain_client
-        .get_admin_protocols(admin_address)
-        .await?;
-
-    let protocols: Vec<String> = all_protocols
-        .into_iter()
+    let protocols: Vec<String> = contracts_map
+        .keys()
         .filter(|p| filter_ctx.is_earn_position_visible(p))
+        .cloned()
         .collect();
 
     // Fetch ETL pool data for APY
@@ -280,11 +288,15 @@ pub async fn deposit(
         request.protocol
     );
 
-    let admin_address = &state.config.protocols.admin_contract;
-    let protocol_contracts = state
-        .chain_client
-        .get_admin_protocol(admin_address, &request.protocol)
-        .await?;
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let contract_info = contracts_map
+        .get(&request.protocol)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Protocol {}", request.protocol),
+        })?;
 
     // Build deposit message
     // Deposit to LPP is done by sending funds to the contract
@@ -295,7 +307,7 @@ pub async fn deposit(
     let execute_msg = serde_json::json!({
         "@type": "/cosmwasm.wasm.v1.MsgExecuteContract",
         "sender": "", // Will be filled by frontend with wallet address
-        "contract": protocol_contracts.contracts.lpp,
+        "contract": contract_info.lpp,
         "msg": deposit_msg,
         "funds": [{
             "denom": "", // Will be filled with LPN IBC denom
@@ -320,11 +332,15 @@ pub async fn withdraw(
         request.protocol
     );
 
-    let admin_address = &state.config.protocols.admin_contract;
-    let protocol_contracts = state
-        .chain_client
-        .get_admin_protocol(admin_address, &request.protocol)
-        .await?;
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let contract_info = contracts_map
+        .get(&request.protocol)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Protocol {}", request.protocol),
+        })?;
 
     // Build withdraw message
     // Withdraw from LPP burns nLPN and returns LPN
@@ -337,7 +353,7 @@ pub async fn withdraw(
     let execute_msg = serde_json::json!({
         "@type": "/cosmwasm.wasm.v1.MsgExecuteContract",
         "sender": "", // Will be filled by frontend with wallet address
-        "contract": protocol_contracts.contracts.lpp,
+        "contract": contract_info.lpp,
         "msg": withdraw_msg,
         "funds": []
     });
@@ -408,14 +424,17 @@ pub async fn fetch_pool_info(
     protocol: &str,
     etl_pools: &Option<Vec<crate::external::etl::EtlPool>>,
 ) -> Result<EarnPool, AppError> {
-    let admin_address = &state.config.protocols.admin_contract;
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let contract_info = contracts_map
+        .get(protocol)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Protocol {}", protocol),
+        })?;
 
-    let protocol_contracts = state
-        .chain_client
-        .get_admin_protocol(admin_address, protocol)
-        .await?;
-
-    let lpp_address = &protocol_contracts.contracts.lpp;
+    let lpp_address = &contract_info.lpp;
 
     // Get LPP balance and deposit capacity
     let (lpp_balance, deposit_capacity, lpn_ticker) = tokio::try_join!(
@@ -489,14 +508,17 @@ async fn fetch_position_info(
     owner: &str,
     etl_pools: &Option<Vec<crate::external::etl::EtlPool>>,
 ) -> Result<Option<EarnPosition>, AppError> {
-    let admin_address = &state.config.protocols.admin_contract;
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let contract_info = contracts_map
+        .get(protocol)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Protocol {}", protocol),
+        })?;
 
-    let protocol_contracts = state
-        .chain_client
-        .get_admin_protocol(admin_address, protocol)
-        .await?;
-
-    let lpp_address = &protocol_contracts.contracts.lpp;
+    let lpp_address = &contract_info.lpp;
 
     // Get lender deposit
     let deposit = state
@@ -582,13 +604,12 @@ pub async fn fetch_earn_positions_for_monitoring(
     state: &AppState,
     address: &str,
 ) -> Result<(Vec<EarnPositionInfo>, String), AppError> {
-    let admin_address = &state.config.protocols.admin_contract;
-
-    // Get all protocols
-    let protocols = state
-        .chain_client
-        .get_admin_protocols(admin_address)
-        .await?;
+    // Get all protocols from cache
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let protocols: Vec<String> = contracts_map.keys().cloned().collect();
 
     // Fetch all positions in parallel
     let position_futures: Vec<_> = protocols
@@ -629,14 +650,17 @@ async fn fetch_position_for_monitoring(
     protocol: &str,
     owner: &str,
 ) -> Result<Option<EarnPositionInfo>, AppError> {
-    let admin_address = &state.config.protocols.admin_contract;
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let contract_info = contracts_map
+        .get(protocol)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Protocol {}", protocol),
+        })?;
 
-    let protocol_contracts = state
-        .chain_client
-        .get_admin_protocol(admin_address, protocol)
-        .await?;
-
-    let lpp_address = &protocol_contracts.contracts.lpp;
+    let lpp_address = &contract_info.lpp;
 
     // Get lender deposit
     let deposit = state

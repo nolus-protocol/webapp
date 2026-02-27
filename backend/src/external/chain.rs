@@ -8,13 +8,34 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::Semaphore;
-use tracing::{debug, error};
+use tracing::{debug, error, warn};
 
 use crate::error::AppError;
 
 /// Maximum concurrent LCD/REST requests to the chain node.
 /// Prevents burst overload on cold start and during cache refresh cycles.
 const MAX_CONCURRENT_CHAIN_QUERIES: usize = 32;
+
+/// Maximum retries for transient HTTP errors (429, 503).
+const MAX_RETRIES: u32 = 3;
+
+/// Initial backoff delay in milliseconds before first retry.
+const INITIAL_BACKOFF_MS: u64 = 100;
+
+/// HTTP status codes that trigger retry with backoff.
+const RETRYABLE_STATUS_CODES: [u16; 2] = [429, 503];
+
+/// Simple jitter using system time nanoseconds (no rand crate needed).
+fn rand_jitter(max: u64) -> u64 {
+    if max == 0 {
+        return 0;
+    }
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .subsec_nanos() as u64;
+    nanos % max
+}
 
 /// Client for querying Cosmos chains via RPC/REST
 #[derive(Clone)]
@@ -73,19 +94,81 @@ impl ChainClient {
         &self.client
     }
 
-    /// Query a CosmWasm contract
-    async fn query_contract<T: for<'de> Deserialize<'de>>(
-        &self,
-        contract_address: &str,
-        query_msg: serde_json::Value,
-    ) -> Result<T, AppError> {
-        // Acquire semaphore permit to limit concurrent chain queries
+    /// Execute an HTTP GET with semaphore gating, 429/503 retry, and exponential backoff.
+    ///
+    /// - Acquires a semaphore permit (held for duration including retries)
+    /// - On 429/503: retries up to MAX_RETRIES times with exponential backoff + jitter
+    /// - On other status codes: returns the response for caller to handle
+    /// - Respects Retry-After header when present
+    async fn chain_get(&self, url: &str) -> Result<reqwest::Response, AppError> {
         let _permit = self
             .query_semaphore
             .acquire()
             .await
             .map_err(|e| AppError::Internal(format!("Semaphore closed: {}", e)))?;
 
+        let mut backoff_ms = INITIAL_BACKOFF_MS;
+
+        for attempt in 0..=MAX_RETRIES {
+            let response = self
+                .client
+                .get(url)
+                .send()
+                .await
+                .map_err(|e| AppError::ChainRpc {
+                    chain: "nolus".to_string(),
+                    message: format!("Request failed: {}", e),
+                })?;
+
+            let status = response.status().as_u16();
+
+            if !RETRYABLE_STATUS_CODES.contains(&status) {
+                return Ok(response);
+            }
+
+            // Last attempt — return error
+            if attempt == MAX_RETRIES {
+                let body = response.text().await.unwrap_or_default();
+                return Err(AppError::ChainRpc {
+                    chain: "nolus".to_string(),
+                    message: format!("HTTP {} after {} retries: {}", status, MAX_RETRIES, body),
+                });
+            }
+
+            // Parse Retry-After header if present (seconds)
+            let retry_after_ms = response
+                .headers()
+                .get("retry-after")
+                .and_then(|v| v.to_str().ok())
+                .and_then(|v| v.parse::<u64>().ok())
+                .map(|secs| secs * 1000);
+
+            let wait_ms = retry_after_ms.unwrap_or(backoff_ms);
+            let jitter = rand_jitter(wait_ms / 4);
+            let actual_wait = wait_ms + jitter;
+
+            warn!(
+                "Chain query got HTTP {}, retry {}/{} after {}ms: {}",
+                status,
+                attempt + 1,
+                MAX_RETRIES,
+                actual_wait,
+                url
+            );
+
+            tokio::time::sleep(std::time::Duration::from_millis(actual_wait)).await;
+            backoff_ms *= 2;
+        }
+
+        unreachable!()
+    }
+
+    /// Query a CosmWasm contract
+    async fn query_contract<T: for<'de> Deserialize<'de>>(
+        &self,
+        contract_address: &str,
+        query_msg: serde_json::Value,
+    ) -> Result<T, AppError> {
         let query_b64 = base64::Engine::encode(
             &base64::engine::general_purpose::STANDARD,
             serde_json::to_vec(&query_msg).map_err(|e| AppError::Internal(e.to_string()))?,
@@ -98,15 +181,7 @@ impl ChainClient {
 
         debug!("Querying contract: {}", url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             let status = response.status();
@@ -198,15 +273,7 @@ impl ChainClient {
             self.rest_url, address, denom
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Balance query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -232,15 +299,7 @@ impl ChainClient {
     pub async fn get_all_balances(&self, address: &str) -> Result<Vec<BankBalance>, AppError> {
         let url = format!("{}/cosmos/bank/v1beta1/balances/{}", self.rest_url, address);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Balance query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -275,15 +334,7 @@ impl ChainClient {
             self.rest_url
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Validators query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -312,15 +363,7 @@ impl ChainClient {
             self.rest_url, delegator
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Delegations query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -350,15 +393,7 @@ impl ChainClient {
             self.rest_url, delegator
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Rewards query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -383,15 +418,7 @@ impl ChainClient {
             self.rest_url, delegator
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Unbonding delegations query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -553,15 +580,7 @@ impl ChainClient {
             self.rest_url, limit, reverse
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Proposals query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -583,15 +602,7 @@ impl ChainClient {
             self.rest_url, proposal_id
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Tally query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -617,15 +628,7 @@ impl ChainClient {
             self.rest_url, proposal_id, voter
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Vote query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if response.status() == reqwest::StatusCode::NOT_FOUND {
             return Ok(None);
@@ -650,15 +653,7 @@ impl ChainClient {
     pub async fn get_tallying_params(&self) -> Result<TallyingParamsResponse, AppError> {
         let url = format!("{}/cosmos/gov/v1/params/tallying", self.rest_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Tallying params query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -677,15 +672,7 @@ impl ChainClient {
     pub async fn get_staking_pool(&self) -> Result<StakingPoolResponse, AppError> {
         let url = format!("{}/cosmos/staking/v1beta1/pool", self.rest_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Staking pool query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -704,15 +691,7 @@ impl ChainClient {
     pub async fn get_annual_inflation(&self) -> Result<AnnualInflationResponse, AppError> {
         let url = format!("{}/nolus/mint/v1beta1/annual_inflation", self.rest_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Annual inflation query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -727,19 +706,30 @@ impl ChainClient {
         })
     }
 
+    /// Get staking params
+    pub async fn get_staking_params(&self) -> Result<StakingParamsResponse, AppError> {
+        let url = format!("{}/cosmos/staking/v1beta1/params", self.rest_url);
+
+        let response = self.chain_get(&url).await?;
+
+        if !response.status().is_success() {
+            return Err(AppError::ChainRpc {
+                chain: "nolus".to_string(),
+                message: format!("HTTP {}", response.status()),
+            });
+        }
+
+        response.json().await.map_err(|e| AppError::ChainRpc {
+            chain: "nolus".to_string(),
+            message: format!("Failed to parse staking params: {}", e),
+        })
+    }
+
     /// Get account info (for vesting)
     pub async fn get_account(&self, address: &str) -> Result<AccountResponse, AppError> {
         let url = format!("{}/cosmos/auth/v1beta1/accounts/{}", self.rest_url, address);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Account query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -761,15 +751,7 @@ impl ChainClient {
             self.rest_url, denom
         );
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Denom metadata query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if response.status() == reqwest::StatusCode::NOT_FOUND {
             return Ok(None);
@@ -803,15 +785,7 @@ impl ChainClient {
         let rpc_url = self.rest_url.replace("/rest", "").replace("lcd", "rpc");
         let url = format!("{}/abci_info", rpc_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("ABCI info query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -854,15 +828,7 @@ impl ChainClient {
         let rpc_url = self.rest_url.replace("/rest", "").replace("lcd", "rpc");
         let url = format!("{}/status", rpc_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Status query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -915,15 +881,7 @@ impl ChainClient {
     pub async fn get_tax_params(&self) -> Result<TaxParamsResponse, AppError> {
         let url = format!("{}/nolus/tax/v2/params", self.rest_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("Tax params query failed: {}", e),
-            })?;
+        let response = self.chain_get(&url).await?;
 
         if !response.status().is_success() {
             return Err(AppError::ChainRpc {
@@ -1366,6 +1324,20 @@ pub struct StakingPool {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnnualInflationResponse {
     pub annual_inflation: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StakingParamsResponse {
+    pub params: StakingParamsRaw,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StakingParamsRaw {
+    pub unbonding_time: String,
+    pub max_validators: u32,
+    pub max_entries: u32,
+    pub bond_denom: String,
+    pub min_commission_rate: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

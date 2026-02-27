@@ -35,11 +35,10 @@ mod tests {
 
     #[test]
     fn test_valid_osmo_address() {
-        assert!(validate_bech32_address(
-            "osmo1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3aq6l09",
-            "address"
-        )
-        .is_ok());
+        assert!(
+            validate_bech32_address("osmo1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3aq6l09", "address")
+                .is_ok()
+        );
     }
 
     #[test]

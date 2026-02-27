@@ -55,9 +55,7 @@ impl Service<Request<Body>> for SpaFallback {
             // a future version changes the status code. Without this, nginx
             // stripping trailing slashes causes an infinite loop:
             //   /assets → 307 /assets/ → nginx 301 /assets → …
-            if response.status() == StatusCode::NOT_FOUND
-                || response.status().is_redirection()
-            {
+            if response.status() == StatusCode::NOT_FOUND || response.status().is_redirection() {
                 // Create a new request for index.html
                 let index_req = Request::builder()
                     .uri(Uri::from_static("/index.html"))

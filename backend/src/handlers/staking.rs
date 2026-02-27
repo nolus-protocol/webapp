@@ -148,7 +148,10 @@ pub struct StakingParams {
 pub async fn get_validators(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<Validator>>, AppError> {
-    let validators = state.data_cache.validators.load_or_unavailable("Validators")?;
+    let validators = state
+        .data_cache
+        .validators
+        .load_or_unavailable("Validators")?;
 
     Ok(Json(validators))
 }
@@ -161,9 +164,11 @@ pub async fn get_validator(
 ) -> Result<Json<Validator>, AppError> {
     debug!("Getting validator: {}", address);
 
-    // Get all validators and find the one we need
-    // In a production system, we'd have a dedicated endpoint
-    let validators = state.chain_client.get_validators().await?;
+    // Get validator from cache
+    let validators = state
+        .data_cache
+        .validators
+        .load_or_unavailable("Validators")?;
 
     let validator = validators
         .into_iter()
@@ -172,22 +177,7 @@ pub async fn get_validator(
             resource: format!("Validator {}", address),
         })?;
 
-    Ok(Json(Validator {
-        operator_address: validator.operator_address,
-        moniker: validator.description.moniker,
-        identity: validator.description.identity,
-        website: validator.description.website,
-        details: validator.description.details,
-        commission_rate: validator.commission.commission_rates.rate,
-        max_commission_rate: validator.commission.commission_rates.max_rate,
-        max_commission_change_rate: validator.commission.commission_rates.max_change_rate,
-        tokens: validator.tokens,
-        delegator_shares: validator.delegator_shares,
-        unbonding_height: validator.unbonding_height,
-        unbonding_time: validator.unbonding_time,
-        status: parse_validator_status(&validator.status),
-        jailed: validator.jailed,
-    }))
+    Ok(Json(validator))
 }
 
 /// GET /api/staking/positions?delegator=...
@@ -199,18 +189,16 @@ pub async fn get_positions(
     crate::validation::validate_bech32_address(&query.address, "address")?;
     debug!("Getting staking positions for: {}", query.address);
 
-    // Fetch delegations, rewards, unbonding, and validators in parallel
-    debug!("Fetching delegations, rewards, unbonding, and validators...");
-    let (delegations_result, rewards_result, unbonding_result, validators_result) = tokio::join!(
+    // Fetch user-specific data in parallel; validators come from cache
+    debug!("Fetching delegations, rewards, and unbonding...");
+    let (delegations_result, rewards_result, unbonding_result) = tokio::join!(
         state.chain_client.get_delegations(&query.address),
         state.chain_client.get_rewards(&query.address),
         state.chain_client.get_unbonding_delegations(&query.address),
-        state.chain_client.get_validators(),
     );
     debug!("Delegations result: {:?}", delegations_result.is_ok());
     debug!("Rewards result: {:?}", rewards_result.is_ok());
     debug!("Unbonding result: {:?}", unbonding_result.is_ok());
-    debug!("Validators result: {:?}", validators_result.is_ok());
 
     let delegations = delegations_result.unwrap_or_default();
     let rewards_response = match rewards_result {
@@ -221,13 +209,7 @@ pub async fn get_positions(
         }
     };
     let unbonding_delegations = unbonding_result.unwrap_or_default();
-    let validators = match validators_result {
-        Ok(v) => Some(v),
-        Err(e) => {
-            warn!("Failed to fetch validators for staking positions: {}", e);
-            None
-        }
-    };
+    let validators = state.data_cache.validators.load();
 
     // Build delegations list
     let delegation_positions: Vec<StakingPosition> = delegations
@@ -236,7 +218,7 @@ pub async fn get_positions(
             let moniker = validators.as_ref().and_then(|vs| {
                 vs.iter()
                     .find(|v| v.operator_address == d.delegation.validator_address)
-                    .map(|v| v.description.moniker.clone())
+                    .map(|v| v.moniker.clone())
             });
 
             StakingPosition {
@@ -301,7 +283,7 @@ pub async fn get_positions(
             let moniker = validators.as_ref().and_then(|vs| {
                 vs.iter()
                     .find(|v| v.operator_address == u.validator_address)
-                    .map(|v| v.description.moniker.clone())
+                    .map(|v| v.moniker.clone())
             });
 
             UnbondingPosition {
@@ -337,48 +319,7 @@ pub async fn get_staking_params(
 ) -> Result<Json<StakingParams>, AppError> {
     debug!("Getting staking params");
 
-    // Query staking params from chain
-    let url = format!(
-        "{}/cosmos/staking/v1beta1/params",
-        state.config.external.nolus_rest_url
-    );
-
-    let response = state
-        .chain_client
-        .client
-        .get(&url)
-        .send()
-        .await
-        .map_err(|e| AppError::ChainRpc {
-            chain: "nolus".to_string(),
-            message: format!("Failed to get staking params: {}", e),
-        })?;
-
-    if !response.status().is_success() {
-        return Err(AppError::ChainRpc {
-            chain: "nolus".to_string(),
-            message: format!("HTTP {}", response.status()),
-        });
-    }
-
-    #[derive(Deserialize)]
-    struct ParamsResponse {
-        params: StakingParamsRaw,
-    }
-
-    #[derive(Deserialize)]
-    struct StakingParamsRaw {
-        unbonding_time: String,
-        max_validators: u32,
-        max_entries: u32,
-        bond_denom: String,
-        min_commission_rate: String,
-    }
-
-    let result: ParamsResponse = response.json().await.map_err(|e| AppError::ChainRpc {
-        chain: "nolus".to_string(),
-        message: format!("Failed to parse staking params: {}", e),
-    })?;
+    let result = state.chain_client.get_staking_params().await?;
 
     Ok(Json(StakingParams {
         unbonding_time: result.params.unbonding_time,

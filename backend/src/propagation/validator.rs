@@ -44,7 +44,8 @@ impl PropagationValidator {
         etl_networks
             .into_iter()
             .filter(|network| {
-                !config.networks.contains_key(&network.to_uppercase()) || !config.networks[&network.to_uppercase()].is_configured()
+                !config.networks.contains_key(&network.to_uppercase())
+                    || !config.networks[&network.to_uppercase()].is_configured()
             })
             .collect()
     }

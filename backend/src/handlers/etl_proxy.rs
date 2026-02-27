@@ -149,7 +149,10 @@ pub struct StatsOverviewBatch {
 pub async fn batch_stats_overview(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<StatsOverviewBatch>, crate::error::AppError> {
-    let response = state.data_cache.stats_overview.load_or_unavailable("Stats overview")?;
+    let response = state
+        .data_cache
+        .stats_overview
+        .load_or_unavailable("Stats overview")?;
 
     Ok(Json(response))
 }
@@ -166,7 +169,10 @@ pub struct LoansStatsBatch {
 pub async fn batch_loans_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<LoansStatsBatch>, crate::error::AppError> {
-    let response = state.data_cache.loans_stats.load_or_unavailable("Loans stats")?;
+    let response = state
+        .data_cache
+        .loans_stats
+        .load_or_unavailable("Loans stats")?;
 
     Ok(Json(response))
 }

@@ -279,11 +279,7 @@ fn env_bool(key: &str, default: bool) -> bool {
 fn env_ip_list(key: &str) -> Vec<IpAddr> {
     std::env::var(key)
         .ok()
-        .map(|v| {
-            v.split(',')
-                .filter_map(|s| s.trim().parse().ok())
-                .collect()
-        })
+        .map(|v| v.split(',').filter_map(|s| s.trim().parse().ok()).collect())
         .unwrap_or_default()
 }
 

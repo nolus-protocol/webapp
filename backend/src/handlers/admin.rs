@@ -550,6 +550,12 @@ pub async fn invalidate_cache(
                 "lease_configs" => {
                     tokio::spawn(async move { crate::refresh::refresh_lease_configs(&s).await });
                 }
+                "annual_inflation" => {
+                    tokio::spawn(async move { crate::refresh::refresh_annual_inflation(&s).await });
+                }
+                "staking_pool" => {
+                    tokio::spawn(async move { crate::refresh::refresh_staking_pool(&s).await });
+                }
                 other => {
                     return Err(AppError::Validation {
                         message: format!("Unknown cache field: {}", other),
@@ -584,14 +590,13 @@ pub async fn intercom_hash(
 
     // Fetch all portfolio data in parallel
     let wallet = &request.wallet;
-    let (balances_result, leases_result, earn_result, delegations_result, account_result) =
-        tokio::join!(
-            compute_total_balance_usd(&state, wallet),
-            crate::handlers::leases::fetch_leases_for_monitoring(&state, wallet),
-            crate::handlers::earn::fetch_earn_positions_for_monitoring(&state, wallet),
-            state.chain_client.get_delegations(wallet),
-            state.chain_client.get_account(wallet),
-        );
+    let (balances_result, leases_result, earn_result, delegations_result, account_result) = tokio::join!(
+        compute_total_balance_usd(&state, wallet),
+        crate::handlers::leases::fetch_leases_for_monitoring(&state, wallet),
+        crate::handlers::earn::fetch_earn_positions_for_monitoring(&state, wallet),
+        state.chain_client.get_delegations(wallet),
+        state.chain_client.get_account(wallet),
+    );
 
     // Balance
     let total_balance_usd = balances_result.unwrap_or_else(|e| {
@@ -637,10 +642,7 @@ pub async fn intercom_hash(
     let (staking_vested_nls, is_vesting_account) = match account_result {
         Ok(account_resp) => extract_vesting(&account_resp.account),
         Err(e) => {
-            warn!(
-                "[Intercom] Failed to fetch account for {}: {}",
-                wallet, e
-            );
+            warn!("[Intercom] Failed to fetch account for {}: {}", wallet, e);
             ("0.000000".to_string(), false)
         }
     };
@@ -727,7 +729,10 @@ fn compute_nls_price_usd(state: &AppState) -> f64 {
     };
 
     // Find NLS currency by bank_symbol "unls"
-    let nls_currency = currencies.currencies.values().find(|c| c.bank_symbol == "unls");
+    let nls_currency = currencies
+        .currencies
+        .values()
+        .find(|c| c.bank_symbol == "unls");
     match nls_currency {
         Some(currency) => prices
             .prices

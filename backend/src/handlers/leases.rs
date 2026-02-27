@@ -258,7 +258,10 @@ pub async fn get_lease_config(
 ) -> Result<Json<LeaseConfigResponse>, AppError> {
     debug!("Fetching lease config for protocol: {}", protocol);
 
-    let lease_configs = state.data_cache.lease_configs.load_or_unavailable("Lease configs")?;
+    let lease_configs = state
+        .data_cache
+        .lease_configs
+        .load_or_unavailable("Lease configs")?;
 
     let config = lease_configs
         .get(&protocol)
@@ -295,11 +298,15 @@ pub async fn get_leases(
     debug!("Getting leases for owner: {}", query.address);
 
     // Read filter context and gated config from cache
-    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
-    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load_or_unavailable("Filter context")?;
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
     let due_projection_secs = gated.lease_rules.due_projection_secs;
-
-    let admin_address = &state.config.protocols.admin_contract;
 
     // Get all protocols or filter to specific one, then apply gated filter
     let protocols: Vec<String> = match &query.protocol {
@@ -312,15 +319,16 @@ pub async fn get_leases(
             }
         }
         None => {
-            // Get all protocols from chain and filter to configured ones
-            let all_protocols = state
-                .chain_client
-                .get_admin_protocols(admin_address)
-                .await?;
+            // Get all protocols from cache and filter to configured ones
+            let contracts_map = state
+                .data_cache
+                .protocol_contracts
+                .load_or_unavailable("Protocol contracts")?;
 
-            all_protocols
-                .into_iter()
+            contracts_map
+                .keys()
                 .filter(|p| filter_ctx.is_protocol_visible(p))
+                .cloned()
                 .collect()
         }
     };
@@ -332,18 +340,19 @@ pub async fn get_leases(
             let state = state.clone();
             let protocol = protocol.clone();
             let owner = query.address.clone();
-            let admin_address = admin_address.clone();
             let filter_ctx = filter_ctx.clone();
             async move {
-                // Get protocol contracts
-                let protocol_contracts = match state
-                    .chain_client
-                    .get_admin_protocol(&admin_address, &protocol)
-                    .await
-                {
-                    Ok(p) => p,
-                    Err(e) => {
-                        error!("Failed to get protocol {}: {}", protocol, e);
+                // Get protocol contracts from cache
+                let contract_info = match state.data_cache.protocol_contracts.load() {
+                    Some(map) => match map.get(&protocol) {
+                        Some(c) => c.clone(),
+                        None => {
+                            error!("Protocol {} not found in contracts cache", protocol);
+                            return Vec::new();
+                        }
+                    },
+                    None => {
+                        error!("Protocol contracts cache empty for {}", protocol);
                         return Vec::new();
                     }
                 };
@@ -351,7 +360,7 @@ pub async fn get_leases(
                 // Get lease addresses for this owner
                 let lease_addresses = match state
                     .chain_client
-                    .get_customer_leases(&protocol_contracts.contracts.leaser, &owner)
+                    .get_customer_leases(&contract_info.leaser, &owner)
                     .await
                 {
                     Ok(leases) => leases,
@@ -370,7 +379,12 @@ pub async fn get_leases(
                         async move {
                             match tokio::time::timeout(
                                 Duration::from_secs(10),
-                                fetch_lease_info(&state, &lease_address, &protocol, due_projection_secs),
+                                fetch_lease_info(
+                                    &state,
+                                    &lease_address,
+                                    &protocol,
+                                    due_projection_secs,
+                                ),
                             )
                             .await
                             {
@@ -439,7 +453,10 @@ pub async fn get_lease(
         details: None,
     })?;
 
-    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
     let due_projection_secs = gated.lease_rules.due_projection_secs;
 
     fetch_lease_info(&state, &address, &protocol, due_projection_secs)
@@ -514,16 +531,20 @@ pub async fn get_lease_quote(
 ) -> Result<Json<LeaseQuoteResponse>, AppError> {
     debug!("Getting lease quote for protocol: {}", request.protocol);
 
-    let admin_address = &state.config.protocols.admin_contract;
-    let protocol_contracts = state
-        .chain_client
-        .get_admin_protocol(admin_address, &request.protocol)
-        .await?;
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let contract_info = contracts_map
+        .get(&request.protocol)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Protocol {}", request.protocol),
+        })?;
 
     let quote = state
         .chain_client
         .get_lease_quote(
-            &protocol_contracts.contracts.leaser,
+            &contract_info.leaser,
             &request.downpayment_amount,
             &request.downpayment_ticker,
             request.max_ltd,
@@ -554,11 +575,15 @@ pub async fn open_lease(
         request.protocol
     );
 
-    let admin_address = &state.config.protocols.admin_contract;
-    let protocol_contracts = state
-        .chain_client
-        .get_admin_protocol(admin_address, &request.protocol)
-        .await?;
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
+    let contract_info = contracts_map
+        .get(&request.protocol)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("Protocol {}", request.protocol),
+        })?;
 
     // Build the open lease message
     // The actual transaction needs to be signed by the user's wallet
@@ -572,7 +597,7 @@ pub async fn open_lease(
     let execute_msg = serde_json::json!({
         "@type": "/cosmwasm.wasm.v1.MsgExecuteContract",
         "sender": "", // Will be filled by frontend with wallet address
-        "contract": protocol_contracts.contracts.leaser,
+        "contract": contract_info.leaser,
         "msg": open_msg,
         "funds": [{
             "denom": "", // Will be filled with IBC denom
@@ -1238,7 +1263,6 @@ pub async fn fetch_leases_for_monitoring(
     state: &AppState,
     owner: &str,
 ) -> Result<Vec<LeaseMonitorInfo>, AppError> {
-    let admin_address = &state.config.protocols.admin_contract;
     let due_projection_secs = state
         .data_cache
         .gated_config
@@ -1246,15 +1270,14 @@ pub async fn fetch_leases_for_monitoring(
         .lease_rules
         .due_projection_secs;
 
-    // Get active protocols
-    let protocols = state
-        .chain_client
-        .get_admin_protocols(admin_address)
-        .await?;
+    // Get active protocols from cache
+    let contracts_map = state
+        .data_cache
+        .protocol_contracts
+        .load_or_unavailable("Protocol contracts")?;
 
-    // Filter to active protocols only
-    let active_protocols: Vec<_> = protocols
-        .iter()
+    let active_protocols: Vec<_> = contracts_map
+        .keys()
         .filter(|p| state.config.protocols.active_protocols.contains(*p))
         .cloned()
         .collect();
@@ -1264,22 +1287,19 @@ pub async fn fetch_leases_for_monitoring(
         .iter()
         .map(|protocol| {
             let chain_client = state.chain_client.clone();
-            let admin_address = admin_address.clone();
+            let contracts_map = contracts_map.clone();
             let protocol = protocol.clone();
             let owner = owner.to_string();
             async move {
-                // Get protocol contracts
-                let protocol_contracts = match chain_client
-                    .get_admin_protocol(&admin_address, &protocol)
-                    .await
-                {
-                    Ok(p) => p,
-                    Err(_) => return Vec::new(),
+                // Get protocol contracts from cache
+                let contract_info = match contracts_map.get(&protocol) {
+                    Some(c) => c,
+                    None => return Vec::new(),
                 };
 
                 // Get lease addresses for this owner
                 let lease_addresses = match chain_client
-                    .get_customer_leases(&protocol_contracts.contracts.leaser, &owner)
+                    .get_customer_leases(&contract_info.leaser, &owner)
                     .await
                 {
                     Ok(leases) => leases,

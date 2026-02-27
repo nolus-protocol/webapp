@@ -79,7 +79,10 @@ pub struct ProtocolCurrenciesResponse {
 pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
-    let response = state.data_cache.gated_protocols.load_or_unavailable("Protocols")?;
+    let response = state
+        .data_cache
+        .gated_protocols
+        .load_or_unavailable("Protocols")?;
 
     Ok(Json(response))
 }
@@ -95,7 +98,10 @@ pub async fn get_protocol_currencies(
     Path(protocol): Path<String>,
 ) -> Result<Json<ProtocolCurrenciesResponse>, AppError> {
     // Read gated config from cache
-    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
     let lease_rules = gated.lease_rules;
@@ -218,7 +224,10 @@ pub async fn get_network_protocols(
     Path(network): Path<String>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
     // Read gated config from cache
-    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
 

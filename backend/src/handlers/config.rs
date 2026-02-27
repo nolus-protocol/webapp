@@ -101,7 +101,10 @@ pub struct ContractsInfo {
 pub async fn get_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<AppConfigResponse>, AppError> {
-    let response = state.data_cache.app_config.load_or_unavailable("App config")?;
+    let response = state
+        .data_cache
+        .app_config
+        .load_or_unavailable("App config")?;
 
     Ok(Json(response))
 }

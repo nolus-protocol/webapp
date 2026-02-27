@@ -87,7 +87,10 @@ pub struct BalanceInfo {
 pub async fn get_currencies(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<CurrenciesResponse>, AppError> {
-    let response = state.data_cache.currencies.load_or_unavailable("Currencies")?;
+    let response = state
+        .data_cache
+        .currencies
+        .load_or_unavailable("Currencies")?;
 
     Ok(Json(response))
 }
@@ -150,10 +153,16 @@ pub async fn get_balances(
     }
 
     // Read filter context from cache
-    let filter_ctx = state.data_cache.filter_context.load_or_unavailable("Filter context")?;
+    let filter_ctx = state
+        .data_cache
+        .filter_context
+        .load_or_unavailable("Filter context")?;
 
     // Read currencies and prices from cache, fetch balances from chain
-    let currencies_response = state.data_cache.currencies.load_or_unavailable("Currencies")?;
+    let currencies_response = state
+        .data_cache
+        .currencies
+        .load_or_unavailable("Currencies")?;
 
     let prices_response = state.data_cache.prices.load_or_unavailable("Prices")?;
 

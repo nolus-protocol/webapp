@@ -93,7 +93,10 @@ pub struct ProtocolAssetDetail {
 pub async fn get_assets(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<AssetsResponse>, AppError> {
-    let response = state.data_cache.gated_assets.load_or_unavailable("Assets")?;
+    let response = state
+        .data_cache
+        .gated_assets
+        .load_or_unavailable("Assets")?;
 
     Ok(Json(response))
 }
@@ -136,7 +139,10 @@ pub async fn get_asset(
     debug!("Fetching asset: {}", ticker);
 
     // Load gated configs from cache
-    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
 
@@ -236,7 +242,10 @@ pub async fn get_network_assets(
     Path(network): Path<String>,
 ) -> Result<Json<AssetsResponse>, AppError> {
     // Read gated config from cache
-    let gated = state.data_cache.gated_config.load_or_unavailable("Gated config")?;
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
     let currency_config = gated.currency_display;
     let network_config = gated.network_config;
 

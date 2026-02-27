@@ -107,9 +107,12 @@ pub async fn list_protocols(
             let network_configured = network_config
                 .as_ref()
                 .and_then(|config| {
-                    p.network
-                        .as_ref()
-                        .and_then(|n| config.networks.get(&n.to_uppercase()).map(|s| s.is_configured()))
+                    p.network.as_ref().and_then(|n| {
+                        config
+                            .networks
+                            .get(&n.to_uppercase())
+                            .map(|s| s.is_configured())
+                    })
                 })
                 .unwrap_or(false);
 

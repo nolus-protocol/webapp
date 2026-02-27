@@ -364,7 +364,11 @@ impl TranslationStorage {
         // Ensure directory exists
         if let Some(parent) = path.parent() {
             fs::create_dir_all(parent).await.map_err(|e| {
-                AppError::Internal(format!("Failed to create directory {}: {}", parent.display(), e))
+                AppError::Internal(format!(
+                    "Failed to create directory {}: {}",
+                    parent.display(),
+                    e
+                ))
             })?;
         }
 
@@ -934,9 +938,9 @@ fn set_nested_value(value: &mut Value, key: &str, new_value: Value) -> Result<()
     }
 
     // Set the final value
-    let last_key = parts.last().ok_or_else(|| {
-        AppError::Internal("Empty key parts in set_nested_value".into())
-    })?;
+    let last_key = parts
+        .last()
+        .ok_or_else(|| AppError::Internal("Empty key parts in set_nested_value".into()))?;
 
     if let Some(obj) = current.as_object_mut() {
         obj.insert(last_key.to_string(), new_value);

@@ -18,6 +18,7 @@ use crate::config_store::gated_types::{
     CurrencyDisplayConfig, GatedNetworkConfig, LeaseRulesConfig, SwapSettingsConfig,
     UiSettingsConfig,
 };
+use crate::external::chain::{AnnualInflationResponse, StakingPoolResponse};
 use crate::handlers::config::AppConfigResponse;
 use crate::handlers::currencies::{CurrenciesResponse, PricesResponse};
 use crate::handlers::earn::EarnPool;
@@ -145,6 +146,12 @@ pub struct AppDataCache {
     /// Bonded validators
     pub validators: Cached<Vec<Validator>>,
 
+    /// Annual inflation (from Nolus mint module, changes per governance proposal)
+    pub annual_inflation: Cached<AnnualInflationResponse>,
+
+    /// Staking pool (bonded/not-bonded tokens)
+    pub staking_pool: Cached<StakingPoolResponse>,
+
     /// Gated assets (deduplicated, enriched view)
     pub gated_assets: Cached<AssetsResponse>,
 
@@ -187,6 +194,8 @@ impl AppDataCache {
             filter_context: Cached::new(),
             pools: Cached::new(),
             validators: Cached::new(),
+            annual_inflation: Cached::new(),
+            staking_pool: Cached::new(),
             gated_assets: Cached::new(),
             gated_protocols: Cached::new(),
             gated_networks: Cached::new(),
@@ -209,6 +218,8 @@ impl AppDataCache {
             filter_context: self.field_status("filter_context", &self.filter_context),
             pools: self.field_status("pools", &self.pools),
             validators: self.field_status("validators", &self.validators),
+            annual_inflation: self.field_status("annual_inflation", &self.annual_inflation),
+            staking_pool: self.field_status("staking_pool", &self.staking_pool),
             gated_assets: self.field_status("gated_assets", &self.gated_assets),
             gated_protocols: self.field_status("gated_protocols", &self.gated_protocols),
             gated_networks: self.field_status("gated_networks", &self.gated_networks),
@@ -254,6 +265,8 @@ pub struct CacheStatusSummary {
     pub filter_context: CacheFieldStatus,
     pub pools: CacheFieldStatus,
     pub validators: CacheFieldStatus,
+    pub annual_inflation: CacheFieldStatus,
+    pub staking_pool: CacheFieldStatus,
     pub gated_assets: CacheFieldStatus,
     pub gated_protocols: CacheFieldStatus,
     pub gated_networks: CacheFieldStatus,
