@@ -48,6 +48,7 @@
     position="bottom-left"
     :parent="popoverParent"
     @close="onClose"
+    :fullscreen-on-mobile="false"
     class="!max-w-[220px]"
   >
     <template #content>

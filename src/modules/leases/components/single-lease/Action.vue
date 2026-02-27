@@ -24,6 +24,7 @@
         return isOpen;
       }
     "
+    :fullscreen-on-mobile="false"
     class="popover-dropdown !h-fit !w-auto !max-w-[160px] !rounded-xl !border !border-border-default"
   >
     <template #content>

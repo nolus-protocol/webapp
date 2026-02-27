@@ -12,6 +12,7 @@
     position="bottom-right"
     :parent="popoverParent"
     @close="isOpen = !isOpen"
+    :fullscreen-on-mobile="false"
     class="!max-w-[160px]"
   >
     <template #content>
