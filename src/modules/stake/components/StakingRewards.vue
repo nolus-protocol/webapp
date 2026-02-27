@@ -65,10 +65,13 @@ import { Dec } from "@keplr-wallet/unit";
 import { NATIVE_ASSET } from "@/config/global";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { isMobile } from "@/common/utils";
 
 import EmptyState from "@/common/components/EmptyState.vue";
 import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
+
+const mobile = isMobile();
 
 defineProps<{
   rewards?: {

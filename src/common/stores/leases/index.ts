@@ -301,10 +301,12 @@ export const useLeasesStore = defineStore("leases", () => {
         const existing = leaseDetails.value.get(wsLease.address);
         const merged = existing ? { ...existing, ...wsLease } : (wsLease as LeaseInfo);
 
-        // Update in main list
+        // Update in main list, or add if not yet present
         const index = leases.value.findIndex((l) => l.address === merged.address);
         if (index !== -1) {
           leases.value[index] = merged;
+        } else {
+          leases.value.push(merged);
         }
 
         // Update cache

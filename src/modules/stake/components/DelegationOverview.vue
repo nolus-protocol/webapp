@@ -108,7 +108,10 @@ import UnbondingsTable from "@/modules/stake/components/UnbondingsTable.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import { NATIVE_ASSET } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
+import { isMobile } from "@/common/utils";
 import type { IObjectKeys } from "@/common/types";
+
+const mobile = isMobile();
 
 defineProps<{
   stableDelegated: string;

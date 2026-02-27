@@ -20,6 +20,8 @@
             v-bind="slide.image"
             :src="emptyState[slide.image.name as keyof typeof emptyState]"
             :class="['mx-auto w-full max-w-[255px] items-center object-contain', slide.image.class]"
+            width="255"
+            height="267"
           />
           <span class="text-20 font-semibold text-typography-default">{{ slide.title }}</span>
           <span class="text-14 font-normal text-typography-default">{{ slide.description }}</span>

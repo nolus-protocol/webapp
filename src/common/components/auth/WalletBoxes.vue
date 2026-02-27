@@ -7,6 +7,7 @@
   >
     <img
       width="32"
+      height="32"
       :src="icon"
     />
     {{ label }}

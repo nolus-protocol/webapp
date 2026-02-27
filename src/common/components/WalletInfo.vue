@@ -33,6 +33,7 @@
           <div class="flex w-full gap-2">
             <img
               width="32"
+              height="32"
               :src="NolusIcon"
             />
             <div class="flex flex-col text-typography-secondary">

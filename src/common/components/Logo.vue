@@ -7,7 +7,7 @@
       <span class="frontface"></span>
       <span class="backface">
         <svg
-          class="fill-accent"
+          class="fill-orange-400"
           xmlns="http://www.w3.org/2000/svg"
           width="16"
           height="16"
@@ -57,7 +57,7 @@ html {
       align-items: center;
       backface-visibility: hidden;
       border-radius: 50%;
-      background-color: var(--color-brand-accent);
+      background-color: var(--color-orange-400);
       grid-area: 1 / 1;
       border: 2px solid transparent;
     }
@@ -73,7 +73,7 @@ html {
 
     .backface {
       background-color: var(--color-background-level-2);
-      border-color: var(--color-brand-accent);
+      border-color: var(--color-orange-400);
       transform: rotateY(180deg);
     }
   }
