@@ -163,7 +163,18 @@ export const useLeasesStore = defineStore("leases", () => {
     error.value = null;
 
     try {
-      leases.value = await BackendApi.getLeases(owner.value);
+      const freshLeases = await BackendApi.getLeases(owner.value);
+      const freshAddresses = new Set(freshLeases.map((l) => l.address));
+
+      // Preserve transitional leases (opening/closing/in_progress) that the
+      // backend hasn't indexed yet to avoid momentary flicker in the UI.
+      const preservedLeases = leases.value.filter(
+        (existing) =>
+          !freshAddresses.has(existing.address) &&
+          (existing.status === "opening" || existing.status === "closing" || existing.in_progress)
+      );
+
+      leases.value = [...freshLeases, ...preservedLeases];
       lastUpdated.value = new Date();
 
       // Update cache

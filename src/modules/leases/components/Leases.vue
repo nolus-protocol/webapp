@@ -339,13 +339,20 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                   subValue: hide.value ? "****" : pnlData.amount,
                   textClass: pnlData.status ? "text-typography-success" : "text-typography-error",
                   subValueClass: pnlData.status ? "text-typography-success" : "text-typography-error",
+                  variant: "right",
                   class: "flex-[1.6_1_0%] text-14"
                 },
-            {
-              value: loading ? "" : value.value,
-              subValue: loading ? "" : value.subValue,
-              class: "flex-[1.7_1_0%] font-semibold"
-            },
+            loading
+              ? {
+                  component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }),
+                  class: "flex-[1.7_1_0%]"
+                }
+              : {
+                  value: value.value,
+                  subValue: value.subValue,
+                  variant: "right",
+                  class: "flex-[1.7_1_0%] font-semibold"
+                },
             liquidation,
             {
               component: () => [...actions],
