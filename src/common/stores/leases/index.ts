@@ -176,20 +176,28 @@ export const useLeasesStore = defineStore("leases", () => {
       const freshLeases = await BackendApi.getLeases(owner.value);
       const freshAddresses = new Set(freshLeases.map((l) => l.address));
 
-      // Preserve transitional leases (opening/closing/in_progress) that the
-      // backend hasn't indexed yet to avoid momentary flicker in the UI.
+      // Preserve transitional leases (opening/closing) that the backend
+      // hasn't indexed yet to avoid momentary flicker in the UI.
+      // Note: only preserve genuine transitional statuses, NOT opened leases
+      // with optimistic in_progress — those should be cleared when the
+      // backend stops returning them (lease reached terminal state).
       const preservedLeases = leases.value.filter(
         (existing) =>
-          !freshAddresses.has(existing.address) &&
-          (existing.status === "opening" || existing.status === "closing" || existing.in_progress)
+          !freshAddresses.has(existing.address) && (existing.status === "opening" || existing.status === "closing")
       );
 
       // Don't let stale HTTP data regress leases whose status the WebSocket
       // has already advanced — keep the cached version when it's ahead.
+      // Also preserve optimistic in_progress when the backend hasn't caught up yet.
       const mergedFresh = freshLeases.map((fresh) => {
         const cached = leaseDetails.value.get(fresh.address);
-        if (cached && (STATUS_ORDER[fresh.status] ?? 0) < (STATUS_ORDER[cached.status] ?? 0)) {
+        if (!cached) return fresh;
+        if ((STATUS_ORDER[fresh.status] ?? 0) < (STATUS_ORDER[cached.status] ?? 0)) {
           return cached;
+        }
+        // Preserve optimistic in_progress when backend returns same status without it
+        if (cached.in_progress && !fresh.in_progress && fresh.status === cached.status) {
+          return { ...fresh, in_progress: cached.in_progress };
         }
         return fresh;
       });
@@ -230,10 +238,12 @@ export const useLeasesStore = defineStore("leases", () => {
 
       leaseDetails.value.set(address, lease);
 
-      // Update in the main list if present
+      // Update in the main list, or add if not yet present
       const index = leases.value.findIndex((l) => l.address === address);
       if (index !== -1) {
         leases.value[index] = lease;
+      } else if (owner.value) {
+        leases.value.push(lease);
       }
 
       return lease;
@@ -256,6 +266,22 @@ export const useLeasesStore = defineStore("leases", () => {
       error.value = e instanceof Error ? e.message : "Failed to fetch lease history";
       console.error("[LeasesStore] Failed to fetch lease history:", e);
       return [];
+    }
+  }
+
+  /**
+   * Optimistically mark a lease as having an in-progress operation.
+   * Called right after broadcastTx so the UI updates immediately
+   * (e.g. shows "Closing...") without waiting for the backend.
+   */
+  function markLeaseInProgress(address: string, operation: "close" | "repayment"): void {
+    const inProgress: LeaseInfo["in_progress"] =
+      operation === "close" ? { close: {} } : { repayment: {} };
+
+    const index = leases.value.findIndex((l) => l.address === address);
+    if (index !== -1) {
+      leases.value[index] = { ...leases.value[index], in_progress: inProgress };
+      leaseDetails.value.set(address, leases.value[index]);
     }
   }
 
@@ -332,6 +358,7 @@ export const useLeasesStore = defineStore("leases", () => {
     fetchLeaseDetails,
     fetchLeaseHistory,
     getQuote,
+    markLeaseInProgress,
     setOwner,
     cleanup,
     refresh

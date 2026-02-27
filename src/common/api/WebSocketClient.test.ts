@@ -17,7 +17,7 @@ class MockWebSocket {
   onclose: ((event: CloseEvent) => void) | null = null;
   onerror: ((event: Event) => void) | null = null;
   onmessage: ((event: MessageEvent) => void) | null = null;
-  
+
   sentMessages: string[] = [];
 
   constructor(public url: string) {}
@@ -61,15 +61,15 @@ describe("WebSocketClientImpl", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    
+
     originalWebSocket = global.WebSocket as typeof WebSocket;
-    
+
     // Create mock WebSocket constructor
     global.WebSocket = vi.fn((url: string) => {
       mockWs = new MockWebSocket(url);
       return mockWs as unknown as WebSocket;
     }) as unknown as typeof WebSocket;
-    
+
     Object.assign(global.WebSocket, {
       CONNECTING: 0,
       OPEN: 1,
@@ -92,10 +92,10 @@ describe("WebSocketClientImpl", () => {
   describe("connection", () => {
     it("should connect to WebSocket server", async () => {
       const connectPromise = client.connect();
-      
+
       // Simulate successful connection
       mockWs.simulateOpen();
-      
+
       await connectPromise;
 
       expect(client.getConnectionState()).toBe("connected");
@@ -107,9 +107,9 @@ describe("WebSocketClientImpl", () => {
       client.onConnectionStateChange((state) => states.push(state));
 
       const connectPromise = client.connect();
-      
+
       expect(states).toContain("connecting");
-      
+
       mockWs.simulateOpen();
       await connectPromise;
 
@@ -192,7 +192,7 @@ describe("WebSocketClientImpl", () => {
     it("should not unsubscribe if other callbacks exist", () => {
       const callback1 = vi.fn();
       const callback2 = vi.fn();
-      
+
       const unsub1 = client.subscribePrices(callback1);
       client.subscribePrices(callback2);
 
@@ -281,7 +281,7 @@ describe("WebSocketClientImpl", () => {
 
     it("should handle error messages", () => {
       const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-      
+
       mockWs.simulateMessage({
         type: "error",
         message: "Test error",
@@ -316,7 +316,7 @@ describe("WebSocketClientImpl", () => {
 
       // Simulate disconnect and reconnect
       mockWs.close();
-      
+
       vi.advanceTimersByTime(1000);
       mockWs.simulateOpen();
 

@@ -853,6 +853,7 @@ async function marketCloseLease() {
 
       const { txHash: _txHash, txBytes, usedFee: _usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      leasesStore.markLeaseInProgress(lease.value.address, "close");
       balancesStore.fetchBalances();
       reload();
       dialog?.value?.close();

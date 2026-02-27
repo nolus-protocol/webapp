@@ -935,6 +935,14 @@ async fn handle_subscribe(
     match Subscription::from_client_message(topic, params) {
         Ok(sub) => {
             let topic_name = sub.topic_name().to_string();
+
+            // Capture the owner address before moving sub into add_subscription
+            let lease_owner = if let Subscription::Leases { address } = &sub {
+                Some(address.clone())
+            } else {
+                None
+            };
+
             match state.ws_manager.add_subscription(conn_id, sub) {
                 Ok(true) => {
                     send_message(
@@ -942,6 +950,19 @@ async fn handle_subscribe(
                         state,
                         ServerMessage::Subscribed { topic: topic_name },
                     );
+
+                    // For lease subscriptions, trigger an initial check to populate
+                    // the reverse index (lease_address → owner). Without this, the
+                    // first contract event after subscription can't be routed to the
+                    // correct owner, delaying updates by up to 60 seconds.
+                    if let Some(owner) = lease_owner {
+                        let state = state.clone();
+                        tokio::spawn(async move {
+                            if let Err(e) = check_owner_leases(&state, &owner).await {
+                                debug!("Initial lease check for {}: {}", owner, e);
+                            }
+                        });
+                    }
                 }
                 Ok(false) => {} // Connection not found, will be cleaned up
                 Err(()) => {

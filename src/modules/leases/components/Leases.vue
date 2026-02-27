@@ -370,6 +370,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
 });
 
 onMounted(() => {
+  leasesStore.refresh();
   timeOut = setInterval(() => {
     leasesStore.refresh();
   }, UPDATE_LEASES);

@@ -536,6 +536,7 @@ async function repayLease() {
 
       const { txBytes } = await leaseClient.simulateRepayLeaseTx(wallet, funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
+      leasesStore.markLeaseInProgress(lease.value.address, "repayment");
       balancesStore.fetchBalances();
       historyStore.loadActivities();
       reload();
