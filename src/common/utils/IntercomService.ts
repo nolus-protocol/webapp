@@ -1,5 +1,5 @@
 import { INTERCOM_API } from "@/config/global";
-import { boot, Intercom as messenger, showArticle, showNewMessage, shutdown, update } from "@intercom/messenger-js-sdk";
+import { boot, Intercom as messenger, showArticle, showNewMessage, shutdown } from "@intercom/messenger-js-sdk";
 import { BackendApi } from "@/common/api";
 
 /**

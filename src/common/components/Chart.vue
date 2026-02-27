@@ -47,9 +47,9 @@ import { useI18n } from "vue-i18n";
 import EmptyState from "@/common/components/EmptyState.vue";
 
 export interface IChart {
-  updateChart: Function;
-  fns: Function[];
-  getClosestDataPoint: Function;
+  updateChart: (...args: unknown[]) => void;
+  fns: (() => Promise<unknown>)[];
+  getClosestDataPoint: (...args: unknown[]) => unknown;
   loader?: boolean;
   disableSkeleton?: boolean;
   dataLength: number;

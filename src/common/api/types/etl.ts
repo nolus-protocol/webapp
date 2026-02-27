@@ -333,7 +333,7 @@ export interface TxEntry {
   to?: string;
   tx_hash: string;
   type: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 /**

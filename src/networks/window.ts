@@ -1,7 +1,9 @@
+import type { Keplr } from "@keplr-wallet/types";
+
 export interface Window {
-  ethereum?: any;
-  keplr?: any;
-  leap?: any;
-  phantom?: any;
-  solflare?: any;
+  ethereum?: Record<string, unknown>;
+  keplr?: Keplr;
+  leap?: Keplr;
+  phantom?: Record<string, unknown>;
+  solflare?: Record<string, unknown>;
 }

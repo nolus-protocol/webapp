@@ -17,7 +17,7 @@ import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
 import { plot, barY, axisX, text, ruleY } from "@observablehq/plot";
-import { CHART_AXIS, computeYTicks } from "@/common/utils/ChartUtils";
+import { computeYTicks } from "@/common/utils/ChartUtils";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { select, pointer, type Selection } from "d3";
@@ -89,7 +89,7 @@ async function setStats() {
   ];
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   const values = responses.value.map((d) => d.value);
@@ -143,7 +143,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   select(nextChart)
     .on("mousemove", (event) => {
-      const [x] = pointer(event, nextChart as any);
+      const [x] = pointer(event, nextChart);
       const width = (nextChart as HTMLElement).clientWidth;
 
       const closestData = getClosestDataPoint(x, width);

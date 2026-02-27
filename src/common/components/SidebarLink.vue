@@ -15,7 +15,6 @@
 </template>
 
 <script lang="ts" setup>
-import { RouteNames } from "@/router";
 import SidebarIcon from "@/common/components/icons/SidebarIcon.vue";
 
 const props = defineProps<{

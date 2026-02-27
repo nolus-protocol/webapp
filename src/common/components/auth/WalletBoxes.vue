@@ -27,7 +27,7 @@ import { Spinner, ToastType } from "web-components";
 
 const disabled = ref(false);
 const wallet = useWalletStore();
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const i18n = useI18n();
 
 const props = defineProps<{

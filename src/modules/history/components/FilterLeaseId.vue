@@ -70,7 +70,7 @@ import { BackendApi } from "@/common/api";
 import { inject, ref, onMounted, onBeforeUnmount, computed, watch } from "vue";
 import { Checkbox, SvgIcon, Button, Input, Size } from "web-components";
 
-const onClose = inject("close", (filters?: IObjectKeys) => {});
+const onClose = inject("close", (_filters?: IObjectKeys) => {});
 
 const search = ref("");
 

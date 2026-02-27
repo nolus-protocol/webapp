@@ -72,7 +72,7 @@ async function setStats() {
   }
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
@@ -116,7 +116,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   select(plotChart)
     .on("mousemove", (event) => {
-      const [x, y] = pointer(event, plotChart);
+      const [_x, y] = pointer(event, plotChart);
 
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {

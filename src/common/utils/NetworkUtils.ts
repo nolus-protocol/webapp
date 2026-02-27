@@ -125,7 +125,7 @@ export class NetworkUtils {
       const rpc = await getClient();
       const client = await connectComet(rpc);
 
-      const [sender]: any = await Promise.allSettled([
+      const [sender] = await Promise.allSettled([
         load_sender
           ? client.txSearch({
               query: `message.sender='${address}'`,
@@ -138,7 +138,7 @@ export class NetworkUtils {
       const data = [];
       let sender_total = 0;
 
-      if (sender.value) {
+      if (sender.status === "fulfilled" && sender.value) {
         sender_total = (sender.value as TxSearchResponse).totalCount;
         for (const item of (sender.value as TxSearchResponse).txs) {
           const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
@@ -176,7 +176,7 @@ export class NetworkUtils {
           const block = await client.block(item.height);
           item.blockDate = block.block.header.time;
           return item;
-        } catch (error) {
+        } catch {
           return item;
         }
       });

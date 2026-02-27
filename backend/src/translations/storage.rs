@@ -279,12 +279,12 @@ impl TranslationStorage {
 
         let source_lang = languages.get_source_language().map(|l| &l.key);
         let source_key_count = if let Some(src) = source_lang {
-            self.count_keys(src).await.unwrap_or(0)
+            self.count_keys(src).await?
         } else {
             0
         };
 
-        let key_count = self.count_keys(lang).await.unwrap_or(0);
+        let key_count = self.count_keys(lang).await?;
         let pending_count = self.count_pending_for_lang(lang).await;
         let missing_count = if language.is_source {
             0
@@ -363,7 +363,9 @@ impl TranslationStorage {
 
         // Ensure directory exists
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).await.ok();
+            fs::create_dir_all(parent).await.map_err(|e| {
+                AppError::Internal(format!("Failed to create directory {}: {}", parent.display(), e))
+            })?;
         }
 
         let json = serde_json::to_string_pretty(content)
@@ -406,7 +408,7 @@ impl TranslationStorage {
         let old_value = get_nested_value(&locale, key).map(|v| v.to_string());
 
         // Set the nested value
-        set_nested_value(&mut locale, key, Value::String(value.to_string()));
+        set_nested_value(&mut locale, key, Value::String(value.to_string()))?;
 
         self.save_active(lang, &locale).await?;
 
@@ -839,7 +841,7 @@ impl TranslationStorage {
             .load_active(lang)
             .await
             .unwrap_or_else(|_| serde_json::json!({}));
-        set_nested_value(&mut locale, key, Value::String(value.to_string()));
+        set_nested_value(&mut locale, key, Value::String(value.to_string()))?;
         self.save_active(lang, &locale).await
     }
 
@@ -908,11 +910,11 @@ fn get_nested_value<'a>(value: &'a Value, key: &str) -> Option<&'a Value> {
 }
 
 /// Set a nested value in JSON using dot notation
-fn set_nested_value(value: &mut Value, key: &str, new_value: Value) {
+fn set_nested_value(value: &mut Value, key: &str, new_value: Value) -> Result<(), AppError> {
     let parts: Vec<&str> = key.split('.').collect();
 
     if parts.is_empty() {
-        return;
+        return Ok(());
     }
 
     let mut current = value;
@@ -924,15 +926,26 @@ fn set_nested_value(value: &mut Value, key: &str, new_value: Value) {
         }
         current = current
             .as_object_mut()
-            .unwrap()
+            .ok_or_else(|| {
+                AppError::Internal("JSON structure error during set_nested_value".into())
+            })?
             .entry(part.to_string())
             .or_insert_with(|| serde_json::json!({}));
     }
 
     // Set the final value
+    let last_key = parts.last().ok_or_else(|| {
+        AppError::Internal("Empty key parts in set_nested_value".into())
+    })?;
+
     if let Some(obj) = current.as_object_mut() {
-        obj.insert(parts.last().unwrap().to_string(), new_value);
+        obj.insert(last_key.to_string(), new_value);
+    } else {
+        return Err(AppError::Internal(
+            "Cannot set value on non-object JSON node".into(),
+        ));
     }
+    Ok(())
 }
 
 /// Count total keys in a JSON value (recursive)
@@ -978,7 +991,7 @@ mod tests {
     #[test]
     fn test_set_nested_value() {
         let mut json = serde_json::json!({});
-        set_nested_value(&mut json, "a.b.c", Value::String("value".to_string()));
+        set_nested_value(&mut json, "a.b.c", Value::String("value".to_string())).unwrap();
 
         assert_eq!(json["a"]["b"]["c"], "value");
     }

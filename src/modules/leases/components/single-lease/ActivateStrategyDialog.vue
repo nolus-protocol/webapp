@@ -52,7 +52,7 @@ import { Button, Dialog, Input, SvgIcon } from "web-components";
 const dialog = ref<typeof Dialog | null>(null);
 
 defineProps<{
-  strategy: { heading: string; content: string; icon: any };
+  strategy: { heading: string; content: string; icon: string };
 }>();
 
 defineExpose({ show: () => dialog?.value?.show() });

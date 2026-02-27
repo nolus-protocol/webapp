@@ -147,14 +147,11 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
-import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useI18n } from "vue-i18n";
 import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import type { LeaseInfo } from "@/common/api";
 
-const timeOut = 250;
-let time: NodeJS.Timeout;
 
 const route = useRoute();
 const router = useRouter();
@@ -169,7 +166,6 @@ const i18n = useI18n();
 const amount = ref("");
 const amountErrorMsg = ref("");
 const selectedCurrency = ref(0);
-const ignoreDownpaymentAssets = ref<string[]>();
 const isLoading = ref(false);
 const swapFee = ref(0);
 const sliderValue = ref(0);
@@ -178,7 +174,7 @@ const disabled = ref(false);
 const sliderValueDec = ref(new Dec(0));
 
 const reload = inject("reload", () => {});
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
@@ -332,7 +328,7 @@ function handleAmountChange(event: string) {
 const debt = computed(() => {
   const selectedCurrency = currency.value;
   if (selectedCurrency) {
-    const { repayment, repaymentInStable } = getRepayment(100)!;
+    const { repayment } = getRepayment(100)!;
     const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
     return {
@@ -346,6 +342,7 @@ const debt = computed(() => {
       ).hideDenom(true)
     };
   }
+  return undefined;
 });
 
 function getRepayment(p: number) {
@@ -373,7 +370,7 @@ function getRepayment(p: number) {
   const positionType = configStore.getPositionType(lease.value.protocol);
 
   if (positionType === "Short") {
-    let lpn = getLpnByProtocol(lease.value.protocol);
+    const lpn = getLpnByProtocol(lease.value.protocol);
     const price = new Dec(pricesStore.prices[lpn!.key as string].price);
     const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency!.key as string].price);
     const repayment = repaymentInStable.mul(price);
@@ -418,46 +415,6 @@ function additionalInterest() {
   return debt;
 }
 
-//Set SWAP FEE
-const setSwapFee = async () => {
-  clearTimeout(time);
-  time = setTimeout(async () => {
-    if (!lease.value) return;
-
-    const lease_currency = currency.value;
-    const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
-
-    const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-      debt.value!.amount.toDec().toString(),
-      lease_currency.ibcData,
-      lease_currency.decimal_digits
-    ).amount.toString();
-
-    let amountIn = 0;
-    let amountOut = 0;
-    const [r] = await Promise.all([
-      SkipRouter.getRoute(lease_currency.ibcData, currecy.ibcData, microAmount).then((data) => {
-        amountIn += Number(data.usd_amount_in ?? 0);
-        amountOut += Number(data.usd_amount_out ?? 0);
-
-        return Number(data?.swap_price_impact_percent ?? 0);
-      })
-    ]);
-
-    const out_a = Math.max(amountOut, amountIn);
-    const in_a = Math.min(amountOut, amountIn);
-
-    const diff = out_a - in_a;
-    let fee = 0;
-
-    if (in_a > 0) {
-      fee = diff / in_a;
-    }
-
-    swapFee.value = fee;
-  }, timeOut);
-};
 
 function isAmountValid() {
   let isValid = true;
@@ -541,7 +498,7 @@ function getDebtValue() {
 
   const positionType = configStore.getPositionType(lease.value!.protocol);
   if (positionType === "Short") {
-    let lpn = getLpnByProtocol(lease.value!.protocol);
+    const lpn = getLpnByProtocol(lease.value!.protocol);
     const price = new Dec(pricesStore.prices[lpn!.key as string].price);
     return debt.mul(price);
   }
@@ -598,14 +555,14 @@ async function repayLease() {
 
 watch(
   () => [amount.value, selectedCurrency.value],
-  (currentValue, oldValue) => {
+  () => {
     isAmountValid();
   }
 );
 
 watch(
   () => [currency.value?.key],
-  (currentValue, oldValue) => {
+  () => {
     // setSwapFee();
   },
   {
@@ -637,7 +594,7 @@ const detbPartial = computed(() => {
         rest: `${formatTokenBalance(rest)} ${currecy?.shortName ?? ""}`
       };
     } else {
-      let lpn = getLpnByProtocol(lease.value.protocol);
+      const lpn = getLpnByProtocol(lease.value.protocol);
       return {
         payment: `${formatTokenBalance(d)} ${lpn.shortName}`,
         rest: `${formatTokenBalance(rest)} ${lpn.shortName}`
@@ -661,7 +618,7 @@ const debtData = computed(() => {
     if (positionType === "Short") {
       return `${formatTokenBalance(d)} ${currecy?.shortName ?? ""}`;
     } else {
-      let lpn = getLpnByProtocol(lease.value.protocol);
+      const lpn = getLpnByProtocol(lease.value.protocol);
       return `${formatTokenBalance(d)} ${lpn.shortName}`;
     }
   }
@@ -674,17 +631,17 @@ const liquidation = computed(() => {
     return formatUsd(0);
   }
 
-  let liquidationVal = new Dec(0);
   const ticker = lease.value.amount.ticker;
   const unitAssetInfo = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
   const lpn = getLpnByProtocol(lease.value.protocol);
 
-  let unitAsset = new Dec(lease.value.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
-  let stableAsset = new Dec(lease.value.debt.principal, Number(lpn?.decimal_digits ?? 0)).sub(
+  const unitAsset = new Dec(lease.value.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
+  const stableAsset = new Dec(lease.value.debt.principal, Number(lpn?.decimal_digits ?? 0)).sub(
     new Dec(amount.value.length > 0 ? amount.value : 0)
   );
 
   const positionType = configStore.getPositionType(lease.value.protocol);
+  let liquidationVal: Dec;
   if (positionType === "Long") {
     liquidationVal = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
   } else {

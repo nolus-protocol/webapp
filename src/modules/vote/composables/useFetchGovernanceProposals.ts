@@ -10,7 +10,6 @@ export const useFetchGovernanceProposals = () => {
   const limit = ref(6);
 
   const fetchGovernanceProposals = async ({
-    timeout,
     proposals,
     pagination,
     initialLoad,
@@ -56,12 +55,12 @@ export const useFetchGovernanceProposals = () => {
     };
 
     initialLoad.value = true;
-    timeout = setTimeout(() => {
+    setTimeout(() => {
       showSkeleton.value = false;
     }, LOAD_TIMEOUT);
   };
 
-  const fetchData = async (url: string) => {
+  const fetchData = async (_url: string) => {
     try {
       const [proposalsResponse, reqConfig] = await Promise.all([
         BackendApi.getProposals(limit.value),

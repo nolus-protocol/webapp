@@ -1,7 +1,7 @@
 import { sha256 } from "@cosmjs/crypto";
 import { bech32 } from "bech32";
 import { ChainConstants, NolusClient } from "@nolus/nolusjs";
-import { toBase64, toHex } from "@cosmjs/encoding";
+import { toHex } from "@cosmjs/encoding";
 
 import {
   AuthInfo,
@@ -105,10 +105,10 @@ export class SolanaWallet implements Wallet {
   makeWCOfflineSigner(): OfflineDirectSigner & {
     type: WalletTypes;
     chainId: string;
-    simulateMultiTx?: Function;
-    simulateTx?: Function;
-    getSequence?: Function;
-    getGasInfo?: Function;
+    simulateMultiTx?: (...args: unknown[]) => unknown;
+    simulateTx?: (...args: unknown[]) => unknown;
+    getSequence?: (...args: unknown[]) => unknown;
+    getGasInfo?: (...args: unknown[]) => unknown;
     registry?: Registry;
   } {
     const address = this.address;
@@ -141,7 +141,7 @@ export class SolanaWallet implements Wallet {
           | MsgWithdrawDelegatorReward,
         msgTypeUrl: string,
         memo = ""
-      ): Promise<any> {
+      ) {
         return this.simulateMultiTx([{ msg, msgTypeUrl }], memo);
       },
 
@@ -159,7 +159,7 @@ export class SolanaWallet implements Wallet {
           msgTypeUrl: string;
         }[],
         memo = ""
-      ): Promise<any> {
+      ) {
         const { accountNumber, sequence } = await this.getSequence();
         const anyMsgs = messages.map((m) => this.registry.encodeAsAny({ typeUrl: m.msgTypeUrl, value: m.msg }));
 
@@ -173,7 +173,7 @@ export class SolanaWallet implements Wallet {
           value: Ed25519PubKey.encode({ key: pubkey }).finish()
         };
 
-        const { gasInfo, gas, usedFee } = await this.getGasInfo(messages, memo, encodeEd25519Pubkey(pubkey), sequence);
+        const { gasInfo: _gasInfo, gas: _gas, usedFee } = await this.getGasInfo(messages, memo, encodeEd25519Pubkey(pubkey), sequence);
         const feeProto = Fee.fromPartial({
           amount: usedFee.amount,
           gasLimit: BigInt(usedFee.gas)
@@ -217,7 +217,7 @@ export class SolanaWallet implements Wallet {
         };
       },
 
-      async signDirect(_: string, signDoc: ProtoSignDoc): Promise<DirectSignResponse> {
+      async signDirect(_: string, _signDoc: ProtoSignDoc): Promise<DirectSignResponse> {
         throw "not supported";
       }
     };

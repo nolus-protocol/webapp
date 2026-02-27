@@ -420,11 +420,11 @@ function getAssetIcon(item: LeaseInfo) {
 
   if (positionType === "Long") {
     if (item.status === "opening" && item.opening_info) {
-      return configStore.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`]!;
+      return configStore.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`] as string;
     }
   } else if (positionType === "Short") {
     if (item.status === "opening" && item.opening_info) {
-      return configStore.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`]!;
+      return configStore.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`] as string;
     }
     return configStore.assetIcons?.[`${item.debt.ticker}@${item.protocol}`] as string;
   }

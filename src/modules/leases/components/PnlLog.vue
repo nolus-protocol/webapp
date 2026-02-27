@@ -195,12 +195,12 @@ const leasesHistory = computed(() => {
       const protocol = getProtocolByContract(item.LS_loan_pool_id);
       const ticker = item.LS_asset_symbol;
       const positionType = configStore.getPositionType(protocol);
-      let currency =
+      const currency =
         positionType === "Short" ? getLpnByProtocol(protocol) : getCurrencyByTickerForProtocol(ticker, protocol);
 
       const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
-      let pnl_amount = formatUsd(pnl.toString(2));
-      let pnl_status = pnl.isZero() || pnl.isPositive();
+      const pnl_amount = formatUsd(pnl.toString(2));
+      const pnl_status = pnl.isZero() || pnl.isPositive();
 
       const raw = item.LS_timestamp;
       const date = new Date(raw);

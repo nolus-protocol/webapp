@@ -7,7 +7,7 @@ import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 
 const td = new TextDecoder();
 
-function parseUtf8Json(bytes?: Uint8Array): any {
+function parseUtf8Json(bytes?: Uint8Array): Record<string, unknown> {
   if (!bytes || bytes.length === 0) return {};
   try {
     return JSON.parse(td.decode(bytes));
@@ -16,15 +16,16 @@ function parseUtf8Json(bytes?: Uint8Array): any {
   }
 }
 
-export function reorderCoinsDeep(input: any): any {
+export function reorderCoinsDeep(input: unknown): unknown {
   if (Array.isArray(input)) return input.map(reorderCoinsDeep);
   if (input && typeof input === "object") {
-    const keys = Object.keys(input);
-    const isCoin = keys.length === 2 && "denom" in input && "amount" in input;
-    if (isCoin) return { amount: String(input.amount ?? "0"), denom: String(input.denom ?? "") };
+    const obj = input as Record<string, unknown>;
+    const keys = Object.keys(obj);
+    const isCoin = keys.length === 2 && "denom" in obj && "amount" in obj;
+    if (isCoin) return { amount: String(obj.amount ?? "0"), denom: String(obj.denom ?? "") };
 
-    const out: Record<string, any> = {};
-    for (const k of keys) out[k] = reorderCoinsDeep(input[k]);
+    const out: Record<string, unknown> = {};
+    for (const k of keys) out[k] = reorderCoinsDeep(obj[k]);
     return out;
   }
   return input;

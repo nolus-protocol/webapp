@@ -19,7 +19,7 @@ export const validateAddress = (address: string) => {
   try {
     fromBech32(address);
     return "";
-  } catch (e) {
+  } catch {
     return i18n.global.t("message.invalid-address");
   }
 };
@@ -97,7 +97,7 @@ export const getMicroAmount = (denom: string, amount: string) => {
   return { coinMinimalDenom: asset.ibcData, coinDecimals: asset.decimal_digits, mAmount };
 };
 
-export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, memo = "") => {
+export const transferCurrency = async (denom: string, amount: string, receiverAddress: string, _memo = "") => {
   const wallet = useWalletStore().wallet;
 
   const result: {

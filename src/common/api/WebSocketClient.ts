@@ -155,7 +155,7 @@ export type ConnectionStateCallback = (state: ConnectionState) => void;
 interface Subscription {
   topic: SubscriptionTopic;
   params?: Record<string, unknown>;
-  callbacks: Set<Function>;
+  callbacks: Set<(...args: unknown[]) => void>;
 }
 
 /**
@@ -399,7 +399,7 @@ class WebSocketClientImpl {
     if (subscription) {
       subscription.callbacks.forEach((callback) => {
         try {
-          (callback as Function)(...args);
+          callback(...args);
         } catch (error) {
           console.error("[WebSocket] Callback error", error);
         }
@@ -412,7 +412,7 @@ class WebSocketClientImpl {
       if (key.startsWith("leases:")) {
         subscription.callbacks.forEach((callback) => {
           try {
-            (callback as Function)(lease);
+            callback(lease);
           } catch (error) {
             console.error("[WebSocket] Lease callback error", error);
           }
@@ -441,7 +441,7 @@ class WebSocketClientImpl {
   private subscribe(
     key: string,
     topic: SubscriptionTopic,
-    callback: Function,
+    callback: (...args: unknown[]) => void,
     params?: Record<string, unknown>
   ): Unsubscribe {
     let subscription = this.subscriptions.get(key);

@@ -9,6 +9,8 @@ use async_trait::async_trait;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
+use tracing::warn;
+
 use crate::config::AppConfig;
 use crate::error::AppError;
 use crate::external::base_client::{ApiWrapper, ExternalApiClient, WrappedResponseExt};
@@ -187,7 +189,13 @@ impl ReferralClient {
         let status = response.status();
 
         if !status.is_success() {
-            let body = response.text().await.unwrap_or_default();
+            let body = match response.text().await {
+                Ok(text) => text,
+                Err(e) => {
+                    warn!("Failed to read error response body: {}", e);
+                    "<unreadable response body>".to_string()
+                }
+            };
 
             // Parse specific error messages
             if status == reqwest::StatusCode::CONFLICT {

@@ -93,7 +93,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
@@ -164,7 +164,7 @@ const assets = computed(() => {
       .sort((a, b) => (a.disabled === b.disabled ? 0 : a.disabled ? 1 : -1));
 
     return items;
-  } catch (e) {
+  } catch {
     return [];
   }
 });
@@ -174,7 +174,7 @@ const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const i18n = useI18n();
 
 const input = ref("0");
@@ -213,7 +213,7 @@ async function onInit() {
 }
 
 const apr = computed(() => {
-  let [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
+  const [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
 
   const a = earnStore.getProtocolApr(protocol);
   return a;
@@ -260,7 +260,7 @@ async function transferAmount() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
 
-      const { txHash, txBytes, usedFee } = await lppClient.simulateDepositTx(wallet, [
+      const { txBytes } = await lppClient.simulateDepositTx(wallet, [
         {
           denom: microAmount.coinMinimalDenom,
           amount: microAmount.mAmount.amount.toString()

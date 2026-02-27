@@ -127,7 +127,7 @@ async function setStats() {
   chart.value?.update();
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   const bucketOrder = ["<0", "0-50", "51–100", "101–300", "301+"];
@@ -165,7 +165,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   select(plotChart)
     .on("mousemove", (event) => {
-      const [x, y] = pointer(event, plotChart);
+      const [, y] = pointer(event, plotChart);
 
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {

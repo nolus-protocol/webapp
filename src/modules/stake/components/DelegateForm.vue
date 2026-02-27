@@ -86,7 +86,7 @@ import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
@@ -124,7 +124,7 @@ const stable = computed(() => {
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
     return formatDecAsUsd(stable);
-  } catch (e) {
+  } catch {
     return "";
   }
 });
@@ -176,9 +176,11 @@ async function delegate() {
   const remainder = amount % division;
   const amounts = [];
 
-  validators = validators.sort((a: any, b: any) => {
-    return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
-  });
+  validators = validators.sort(
+    (a: { commission: { commission_rates: { rate: string } } }, b: { commission: { commission_rates: { rate: string } } }) => {
+      return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
+    }
+  );
 
   for (const v of validators) {
     amounts.push({
@@ -215,11 +217,11 @@ async function getValidators() {
   }
 
   let validators = await NetworkUtils.loadValidators();
-  let loadedValidators = [];
+  const loadedValidators = [];
   if (validators.length > STAKING.SLICE) {
     validators = validators
       .slice(STAKING.SLICE)
-      .filter((item: any) => {
+      .filter((item: { unbonding_time: string; jailed: boolean }) => {
         const date = new Date(item.unbonding_time);
         const time = Date.now() - date.getTime();
 
@@ -229,7 +231,7 @@ async function getValidators() {
 
         return false;
       })
-      .filter((item: any) => {
+      .filter((item: { commission: { commission_rates: { rate: string } } }) => {
         const commission = Number(item.commission.commission_rates.rate);
         if (commission <= STAKING.PERCENT) {
           return true;

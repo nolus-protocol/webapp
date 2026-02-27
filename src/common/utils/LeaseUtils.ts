@@ -59,57 +59,53 @@ export class LeaseUtils {
   }
 
   public static async getLeaseData(leaseAddress: string): Promise<LeaseAttributes> {
-    try {
-      const result = await BackendApi.getLeaseOpening(leaseAddress);
+    const result = await BackendApi.getLeaseOpening(leaseAddress);
 
-      if (!result) {
-        const item = {
-          timestamp: new Date(),
-          downPayment: new Dec(0),
-          leasePositionStable: new Dec(0),
-          price: new Dec(0),
-          downPaymentFee: new Dec(0),
-          lpnPrice: new Dec(0),
-          fee: new Dec(0),
-          pnlAmount: new Dec(0),
-          repayment_value: new Dec(0)
-        };
-
-        return item;
-      }
-
-      const downpaymentTicker = result.lease.LS_cltr_symbol;
-      const contract = getProtocolByContract(result.lease.LS_loan_pool_id);
-      const downPaymentCurrency = getCurrencyByTickerForProtocol(downpaymentTicker, contract);
-      const lpn = getLpnByProtocol(contract);
-      let leasePositionTicker = result.lease.LS_asset_symbol;
-      let l_c = result.lease.LS_asset_symbol;
-
-      const configStore = useConfigStore();
-      if (configStore.isShortPosition(contract)) {
-        leasePositionTicker = lpn.ticker;
-      }
-
-      const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
-      const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
-      const currency = configStore.currenciesData[`${l_c}@${contract}`];
-
-      return {
-        history: result?.history ?? [],
-        pnlAmount: new Dec(result.pnl, currency.decimal_digits),
-        fee: new Dec(result.fee, currency.decimal_digits),
-        downPayment,
-        downpaymentTicker: result.lease.LS_cltr_symbol,
-        leasePositionTicker,
-        leasePositionStable: leasePositionStable,
-        timestamp: new Date(result.lease.LS_timestamp),
-        price: new Dec(result.downpayment_price),
-        lpnPrice: new Dec(result.lpn_price),
-        ls_asset_symbol: result.lease.LS_asset_symbol,
-        repayment_value: new Dec(result.repayment_value)
+    if (!result) {
+      const item = {
+        timestamp: new Date(),
+        downPayment: new Dec(0),
+        leasePositionStable: new Dec(0),
+        price: new Dec(0),
+        downPaymentFee: new Dec(0),
+        lpnPrice: new Dec(0),
+        fee: new Dec(0),
+        pnlAmount: new Dec(0),
+        repayment_value: new Dec(0)
       };
-    } catch (error) {
-      throw error;
+
+      return item;
     }
+
+    const downpaymentTicker = result.lease.LS_cltr_symbol;
+    const contract = getProtocolByContract(result.lease.LS_loan_pool_id);
+    const downPaymentCurrency = getCurrencyByTickerForProtocol(downpaymentTicker, contract);
+    const lpn = getLpnByProtocol(contract);
+    let leasePositionTicker = result.lease.LS_asset_symbol;
+    const l_c = result.lease.LS_asset_symbol;
+
+    const configStore = useConfigStore();
+    if (configStore.isShortPosition(contract)) {
+      leasePositionTicker = lpn.ticker;
+    }
+
+    const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
+    const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
+    const currency = configStore.currenciesData[`${l_c}@${contract}`];
+
+    return {
+      history: result?.history ?? [],
+      pnlAmount: new Dec(result.pnl, currency.decimal_digits),
+      fee: new Dec(result.fee, currency.decimal_digits),
+      downPayment,
+      downpaymentTicker: result.lease.LS_cltr_symbol,
+      leasePositionTicker,
+      leasePositionStable: leasePositionStable,
+      timestamp: new Date(result.lease.LS_timestamp),
+      price: new Dec(result.downpayment_price),
+      lpnPrice: new Dec(result.lpn_price),
+      ls_asset_symbol: result.lease.LS_asset_symbol,
+      repayment_value: new Dec(result.repayment_value)
+    };
   }
 }

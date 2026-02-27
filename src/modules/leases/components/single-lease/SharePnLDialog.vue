@@ -14,6 +14,7 @@
               <button
                 class="w-full max-w-[108px] overflow-hidden rounded"
                 v-for="(img, index) of images"
+                :key="index"
                 :class="{ selected: index == imageIndex }"
                 @click="setBackgroundIndex(index)"
               >
@@ -428,7 +429,7 @@ function setPricePerSymbol(ctx: CanvasRenderingContext2D) {
 function setPosition(ctx: CanvasRenderingContext2D) {
   const pos = Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
   const symbol = pos < 0 ? "-" : "+";
-  let [a, d] = Math.abs(pos).toFixed(2).split(".");
+  const [a, d] = Math.abs(pos).toFixed(2).split(".");
 
   if (pos < 0) {
     ctx.fillStyle = colors.red;

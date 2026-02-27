@@ -9,7 +9,7 @@
 
 import { Dec } from "@keplr-wallet/unit";
 import type { LeaseInfo } from "@/common/api";
-import { PERCENT, PERMILLE, INTEREST_DECIMALS, MONTHS, LEASE_DUE } from "@/config/global";
+import { PERCENT, PERMILLE, MONTHS, LEASE_DUE } from "@/config/global";
 
 // ============================================================================
 // Types
@@ -248,7 +248,7 @@ export class LeaseCalculator {
     const healthDec = new Dec(1).sub(ltv.quo(new Dec(0.7)));
     const health = Math.min(100, Math.max(0, Number(healthDec.mul(new Dec(PERCENT)).toString(2))));
 
-    let healthStatus: "green" | "yellow" | "red" = "green";
+    let healthStatus: "green" | "yellow" | "red";
     if (health >= 25) {
       healthStatus = "green";
     } else if (health > 10) {

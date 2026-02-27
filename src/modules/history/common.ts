@@ -195,7 +195,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
             steps: detailedSteps
           }
         ];
-      } catch (e) {
+      } catch {
         return [formatMessageType(msg.type), null];
       }
     }
@@ -465,6 +465,7 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
         Logger.error(error);
         return formatMessageType(msg.type);
       }
+      return formatMessageType(msg.type);
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
       return i18n.t("message.vote-history");
@@ -487,7 +488,7 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
   }
 }
 
-export function icon(msg: IObjectKeys, i18n: IObjectKeys) {
+export function icon(msg: IObjectKeys, _i18n: IObjectKeys) {
   switch (msg.type) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
       return "assets";
@@ -537,6 +538,7 @@ export function icon(msg: IObjectKeys, i18n: IObjectKeys) {
         Logger.error(error);
         return "assets";
       }
+      return "assets";
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
       return "vote";

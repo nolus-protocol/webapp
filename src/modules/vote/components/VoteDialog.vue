@@ -122,11 +122,11 @@ const historyStore = useHistoryStore();
 const i18n = useI18n();
 const props = defineProps<{
   proposal: Proposal;
-  bondedTokens: Dec | any;
-  quorumTokens: Dec | any;
+  bondedTokens: Dec;
+  quorumTokens: Dec;
 }>();
 
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const labels = ref({
   yes_count: i18n.t(`message.yes_count`),
   abstain_count: i18n.t(`message.abstain_count`),

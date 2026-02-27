@@ -9,7 +9,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use tracing::debug;
+use tracing::{debug, warn};
 
 use crate::{error::AppError, external::chain, AppState};
 
@@ -111,20 +111,34 @@ pub async fn get_proposals(
 
         // For voting proposals, fetch tally
         if proposal.status == "PROPOSAL_STATUS_VOTING_PERIOD" {
-            if let Ok(tally_response) = state.chain_client.get_proposal_tally(&proposal.id).await {
-                response.tally = Some(tally_response.tally);
+            match state.chain_client.get_proposal_tally(&proposal.id).await {
+                Ok(tally_response) => {
+                    response.tally = Some(tally_response.tally);
+                }
+                Err(e) => {
+                    warn!("Failed to fetch tally for proposal {}: {}", proposal.id, e);
+                }
             }
 
             // If voter is provided, check if they voted
             if let Some(ref voter) = query.voter {
-                if let Ok(Some(vote_response)) = state
+                match state
                     .chain_client
                     .get_proposal_vote(&proposal.id, voter)
                     .await
                 {
-                    response.voted = Some(!vote_response.vote.options.is_empty());
-                } else {
-                    response.voted = Some(false);
+                    Ok(Some(vote_response)) => {
+                        response.voted = Some(!vote_response.vote.options.is_empty());
+                    }
+                    Ok(None) => {
+                        response.voted = Some(false);
+                    }
+                    Err(e) => {
+                        warn!(
+                            "Failed to check vote for proposal {} voter {}: {}",
+                            proposal.id, voter, e
+                        );
+                    }
                 }
             }
         }

@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { Uint64 } from "@cosmjs/math";
 import { assert } from "@cosmjs/utils";
 import { BaseAccount, ModuleAccount } from "cosmjs-types/cosmos/auth/v1beta1/auth";
@@ -11,11 +10,11 @@ import {
   PeriodicVestingAccount
 } from "cosmjs-types/cosmos/vesting/v1beta1/vesting";
 
-function uint64FromProto(input) {
+function uint64FromProto(input: bigint | number | string) {
   return Uint64.fromString(input.toString());
 }
 
-function accountFromBaseAccount(input) {
+function accountFromBaseAccount(input: BaseAccount) {
   const { address, pubKey, accountNumber, sequence } = input;
   const pubkey = pubKey ? (0, decodePubkey)(pubKey) : null;
   return {
@@ -26,7 +25,7 @@ function accountFromBaseAccount(input) {
   };
 }
 
-export function accountFromAny(input) {
+export function accountFromAny(input: { typeUrl: string; value: Uint8Array }) {
   const { typeUrl, value } = input;
   switch (typeUrl) {
     // auth

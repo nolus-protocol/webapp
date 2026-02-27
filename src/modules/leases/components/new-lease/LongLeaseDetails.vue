@@ -165,7 +165,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { Button, SvgIcon } from "web-components";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY } from "@/config/global";
+import { MONTHS, NATIVE_CURRENCY } from "@/config/global";
 import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
@@ -205,7 +205,7 @@ onUnmounted(() => {
 
 watch(
   () => [props.lease],
-  (value) => {
+  () => {
     setSwapFee();
   }
 );
@@ -229,7 +229,7 @@ const sizeAmount = computed(() => {
 });
 
 const stable = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value?.key!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value?.key as string]?.price ?? 0);
   const v = props.lease?.total?.amount ?? "0";
   const stable = price.mul(new Dec(v, asset.value?.decimal_digits ?? 0)).sub(new Dec(swapStableFee.value));
 
@@ -242,7 +242,7 @@ const asset = computed(() => {
 });
 
 const lpn = computed(() => {
-  const [t, p] = downPaymentAsset.value.key.split("@");
+  const [, p] = downPaymentAsset.value.key.split("@");
   const lpn = getLpnByProtocol(p);
   return lpn;
 });
@@ -363,7 +363,7 @@ async function setSwapFee() {
       const lpn = getLpnByProtocol(p);
       let amountIn = 0;
       let amountOut = 0;
-      const [r, r2] = await Promise.all([
+      await Promise.all([
         SkipRouter.getRoute(currency.ibcData, asset.value.ibcData, microAmount).then((data) => {
           amountIn += Number(data.usd_amount_in ?? 0);
           amountOut += Number(data.usd_amount_out ?? 0);

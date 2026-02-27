@@ -63,7 +63,7 @@ const pagination = ref({
   total: 0,
   next_key: ""
 });
-let timeout = null as NodeJS.Timeout | null;
+const timeout = null as NodeJS.Timeout | null;
 
 const proposals = ref([] as Proposal[]);
 const selectedProposal = ref({

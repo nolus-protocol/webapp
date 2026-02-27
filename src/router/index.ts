@@ -22,7 +22,7 @@ const router = createRouter({
     if (to.hash.length > 0) {
       return scrollHash(to.hash);
     }
-    return { top: 0 } as any;
+    return { top: 0 };
   },
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -73,8 +73,8 @@ router
 const preloadAllRoutes = () => {
   router.getRoutes().forEach((route) => {
     const preload = route.components?.default;
-    if (preload instanceof Function) {
-      (preload as Function)();
+    if (typeof preload === "function") {
+      preload();
     }
   });
 };

@@ -120,13 +120,13 @@
 <script lang="ts" setup>
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
 import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption } from "web-components";
-import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../config/global/network";
+import { NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
-import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { h } from "vue";
@@ -139,7 +139,6 @@ import { NETWORK_DATA } from "@/networks/config";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
-import { StepperVariant, Stepper } from "web-components";
 import type { RouteResponse } from "@/common/types/skipRoute";
 import { WalletTypes } from "@/networks/types";
 
@@ -165,7 +164,6 @@ const txHashes = ref<{ hash: string; status: SwapStatus; url: string | null }[]>
 
 const firstInputAmount = ref();
 const secondInputAmount = ref();
-const showDetails = ref(false);
 
 const swapFee = ref("");
 const loading = ref(false);
@@ -214,14 +212,14 @@ const assets = computed(() => {
 });
 
 const firstCalculatedBalance = computed(() => {
-  const price = new Dec(pricesStore.prices[selectedFirstCurrencyOption.value?.value!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[selectedFirstCurrencyOption.value?.value as string]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
 });
 
 const secondCalculatedBalance = computed(() => {
-  const price = new Dec(pricesStore.prices[selectedSecondCurrencyOption.value?.value!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[selectedSecondCurrencyOption.value?.value as string]?.price ?? 0);
   const v = swapToAmount?.value?.length ? swapToAmount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);

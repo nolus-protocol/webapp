@@ -127,7 +127,7 @@ import { CONFIRM_STEP } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { Alert, AlertType } from "web-components";
 
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
 const data = ref<ITransactionData & HistoryData>();

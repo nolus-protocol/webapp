@@ -181,9 +181,7 @@ import {
   Size,
   type AssetItemProps,
   AssetItem,
-  ToastType,
-  StepperVariant,
-  Stepper
+  ToastType
 } from "web-components";
 import { RouteNames } from "@/router";
 import { tabs } from "../types";
@@ -194,8 +192,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
-import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
@@ -225,13 +222,12 @@ const pricesStore = usePricesStore();
 const historyStore = useHistoryStore();
 const i18n = useI18n();
 const router = useRouter();
-const showDetails = ref(false);
 
 const selectedCurrency = ref(0);
 const selectedLoanCurrency = ref(0);
 const isLoading = ref(false);
 const isDisabled = ref(false);
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const reload = inject("reload", () => {});
 
 const amount = ref("");
@@ -420,14 +416,6 @@ const balances = computed(() => {
   });
 });
 
-const swapAmount = computed(() => {
-  let total = leaseApply.value?.total;
-  const currency = coinList.value[selectedLoanCurrency.value];
-  const a = new Dec(total?.amount ?? 0, currency.decimal_digits);
-
-  return `${formatTokenBalance(a)} ${currency.label}`;
-});
-
 function handleAmountChange(event: string) {
   amount.value = event;
 }
@@ -555,8 +543,8 @@ async function calculate() {
 
       const lease = selectedCurrency;
 
-      let [downPaymentTicker, protocol] = selectedDownPaymentCurrency.key.split("@");
-      let [leaseTicker] = lease.key.split("@");
+      const [downPaymentTicker, protocol] = selectedDownPaymentCurrency.key.split("@");
+      const [leaseTicker] = lease.key.split("@");
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
@@ -577,7 +565,7 @@ async function calculate() {
     } else {
       leaseApply.value = null;
     }
-  } catch (error) {
+  } catch {
     amountErrorMsg.value = i18n.t("message.no-liquidity");
     leaseApply.value = null;
   }
@@ -616,11 +604,11 @@ async function openLease() {
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
-      let [leaseTicker, protocol] = selectedCurrency.key.split("@");
+      const [leaseTicker, protocol] = selectedCurrency.key.split("@");
 
       const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
-      const { txHash, txBytes, usedFee } = await leaserClient.simulateOpenLeaseTx(
+      const { txBytes } = await leaserClient.simulateOpenLeaseTx(
         wallet,
         leaseTicker,
         ltd.value,
@@ -652,49 +640,5 @@ async function openLease() {
   }
 }
 
-function getIconByProtocol() {
-  try {
-    const selectedDownPaymentCurrency = currency.value;
-    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
 
-    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
-    const networkName = configStore.getNetworkNameByProtocol(protocol);
-    if (networkName) {
-      // Use the network value to find the network and get its icon
-      const network = configStore.getNetworkByValue(networkName);
-      return network?.icon;
-    }
-    return null;
-  } catch (error) {
-    console.error("Invalid address format:", error);
-    return null;
-  }
-}
-
-const protocolName = computed(() => {
-  try {
-    const selectedDownPaymentCurrency = currency.value;
-    const [_, protocol] = selectedDownPaymentCurrency.key.split("@");
-
-    // Get the network name from the protocol info (e.g., "Osmosis", "Neutron")
-    return configStore.getNetworkNameByProtocol(protocol) ?? null;
-  } catch (error) {
-    console.error("Invalid address format:", error);
-    return null;
-  }
-});
-
-const borrowStable = computed(() => {
-  let [_, protocol] = currency.value.key.split("@");
-  const lpn = getLpnByProtocol(protocol);
-  const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
-  const v = leaseApply.value?.borrow?.amount ?? "0";
-  const stable = price.mul(new Dec(v, lpn.decimal_digits));
-  return stable;
-});
-
-const stepperTransfer = computed(() => {
-  const a = new Dec(amount.value.length > 0 ? amount.value : 0);
-  return a.add(borrowStable.value);
-});
 </script>

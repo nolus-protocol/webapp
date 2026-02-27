@@ -39,7 +39,7 @@ import { RouteNames } from "@/router";
 import { EarnAssets } from "./components";
 import { EarnAssetsDialog } from "./enums";
 
-import { computed, h, provide, ref, watch } from "vue";
+import { computed, h, provide, ref } from "vue";
 import { type LabelProps, type TableRowItemProps } from "web-components";
 
 import {

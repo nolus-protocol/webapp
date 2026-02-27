@@ -7,7 +7,7 @@ import { useHistoryStore } from "../../history";
  * This is a facade getter for backwards compatibility.
  * Components access walletStore.history[id] to get/update pending transfers.
  */
-export function history(state: State) {
+export function history(_state: State) {
   const historyStore = useHistoryStore();
   return historyStore.pendingTransfers;
 }
@@ -18,7 +18,7 @@ export function history(state: State) {
  * This is a facade getter for backwards compatibility.
  * Components use walletStore.historyItems for listing pending transfers.
  */
-export function historyItems(state: State) {
+export function historyItems(_state: State) {
   const historyStore = useHistoryStore();
   return historyStore.pendingTransfersList;
 }
@@ -29,7 +29,7 @@ export function historyItems(state: State) {
  * This is a facade getter for backwards compatibility.
  * Components access walletStore.activities.data for transaction history.
  */
-export function activities(state: State) {
+export function activities(_state: State) {
   const historyStore = useHistoryStore();
   return historyStore.activities;
 }

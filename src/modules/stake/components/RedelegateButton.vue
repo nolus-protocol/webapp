@@ -33,7 +33,7 @@ const historyStore = useHistoryStore();
 const stakingStore = useStakingStore();
 const i18n = useI18n();
 
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const props = defineProps<{
   src: string;
@@ -55,7 +55,6 @@ async function delegate() {
       division = validators?.length;
     }
 
-    const decimals = NATIVE_ASSET.decimal_digits;
     const amountDec = Decimal.fromUserInput(props.amount, 0);
     const totalAmount = BigInt(amountDec.atomics); // integer in base units
 
@@ -63,9 +62,11 @@ async function delegate() {
     const quotient = totalAmount / divisionBig;
     const remainder = totalAmount % divisionBig;
 
-    validators = validators.sort((a: any, b: any) => {
-      return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
-    });
+    validators = validators.sort(
+      (a: { commission: { commission_rates: { rate: string } } }, b: { commission: { commission_rates: { rate: string } } }) => {
+        return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
+      }
+    );
 
     const amounts: { value: bigint; validator: string }[] = [];
 
@@ -102,7 +103,7 @@ async function delegate() {
       type: ToastType.success,
       message: i18n.t("message.delegate-successful")
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     Logger.error(err);
   } finally {
     loading.value = false;
@@ -116,11 +117,11 @@ async function getValidators() {
   }
 
   let validators = await NetworkUtils.loadValidators();
-  let loadedValidators = [];
+  const loadedValidators = [];
   if (validators.length > STAKING.SLICE) {
     validators = validators
       .slice(STAKING.SLICE)
-      .filter((item: any) => {
+      .filter((item: { unbonding_time: string; jailed: boolean }) => {
         const date = new Date(item.unbonding_time);
         const time = Date.now() - date.getTime();
 
@@ -130,7 +131,7 @@ async function getValidators() {
 
         return false;
       })
-      .filter((item: any) => {
+      .filter((item: { commission: { commission_rates: { rate: string } } }) => {
         const commission = Number(item.commission.commission_rates.rate);
         if (commission <= STAKING.PERCENT) {
           return true;

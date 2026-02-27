@@ -6,20 +6,21 @@ import { Wallet, NETWORK_DATA } from "@/networks";
 import { fetchEndpoints } from "./EndpointService";
 
 function getExtension(prop: "keplr" | "leap"): Promise<Keplr | undefined> {
-  const ext = (window as any)[prop];
+  const w = window as unknown as Record<string, Keplr | undefined>;
+  const ext = w[prop];
 
   if (ext) {
     return Promise.resolve(ext);
   }
 
   if (document.readyState === "complete") {
-    return Promise.resolve((window as any)[prop]);
+    return Promise.resolve(w[prop]);
   }
 
   return new Promise((resolve) => {
     const documentStateChange = (event: Event) => {
       if (event.target && (event.target as Document).readyState === "complete") {
-        resolve((window as any)[prop]);
+        resolve(w[prop]);
         document.removeEventListener("readystatechange", documentStateChange);
       }
     };

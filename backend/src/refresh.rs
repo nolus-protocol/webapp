@@ -491,12 +491,21 @@ pub async fn refresh_prices(state: &Arc<AppState>) {
 
     let price_futures: Vec<_> = active_protocols
         .iter()
-        .map(|(protocol_name, protocol_info)| {
+        .filter_map(|(protocol_name, protocol_info)| {
             let chain_client = state.chain_client.clone();
-            let oracle = protocol_info.contracts.oracle.clone().unwrap();
+            let oracle = match protocol_info.contracts.oracle.clone() {
+                Some(o) => o,
+                None => {
+                    error!(
+                        "Protocol {} has no oracle address, skipping prices",
+                        protocol_name
+                    );
+                    return None;
+                }
+            };
             let protocol_name = (*protocol_name).clone();
             let currencies_map = currencies_map.clone();
-            async move {
+            Some(async move {
                 let mut protocol_prices = Vec::new();
 
                 let base_currency = match chain_client.get_base_currency(&oracle).await {
@@ -585,7 +594,7 @@ pub async fn refresh_prices(state: &Arc<AppState>) {
                 }
 
                 protocol_prices
-            }
+            })
         })
         .collect();
 

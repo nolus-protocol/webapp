@@ -61,7 +61,7 @@ async function authenticateKeplrLike(
   } else if (!extension.experimentalSuggestChain) {
     throw new Error(`${label} version is not latest. Please upgrade your ${label} wallet`);
   } else {
-    let chainId = "";
+    let chainId: string;
 
     try {
       chainId = await wallet.getChainId();
@@ -69,7 +69,7 @@ async function authenticateKeplrLike(
       await extension.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
     } catch (e) {
       Logger.error(e);
-      throw new Error("Failed to fetch suggest chain.");
+      throw new Error("Failed to fetch suggest chain.", { cause: e });
     }
 
     await extension.enable(chainId);
@@ -79,7 +79,7 @@ async function authenticateKeplrLike(
 
       return await createWallet(
         wallet,
-        offlineSigner as any,
+        offlineSigner,
         network.prefix,
         network.gasMultiplier,
         network.gasPrice,
@@ -107,7 +107,7 @@ export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkDat
 
   return await createWallet(
     wallet,
-    signer as any,
+    signer,
     network.prefix,
     network.gasMultiplier,
     network.gasPrice,
@@ -123,7 +123,7 @@ export async function authenticateSolFlare(wallet: Wallet, network: NetworkData)
 
   return await createWallet(
     wallet,
-    signer as any,
+    signer,
     network.prefix,
     network.gasMultiplier,
     network.gasPrice,
@@ -139,7 +139,7 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
     wallet,
     new LedgerSigner(transport, {
       prefix: network.prefix,
-      hdPaths: paths as any
+      hdPaths: paths
     }),
     network.prefix,
     network.gasMultiplier,

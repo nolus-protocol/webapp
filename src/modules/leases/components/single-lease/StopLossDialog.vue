@@ -144,7 +144,7 @@ const sliderValue = ref(0);
 const loading = ref(false);
 const disabled = ref(false);
 const reload = inject("reload", () => {});
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
@@ -164,10 +164,6 @@ function initLease() {
   }
 }
 
-const config = computed(() => {
-  if (!lease.value) return undefined;
-  return configStore.contracts[lease.value.protocol];
-});
 
 onMounted(() => {
   dialog?.value?.show();
@@ -282,7 +278,7 @@ function isAmountValid() {
     const currencyData = getCurrency()!;
     const price = getPrice()!;
 
-    if (amount || amount !== "") {
+    if (amount.value || amount.value !== "") {
       const isLowerThanOrEqualsToZero = a.lte(new Dec(0));
 
       if (isLowerThanOrEqualsToZero) {
@@ -326,7 +322,8 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(operation);
-  } catch (_e: unknown) {
+  } catch {
+    // intentionally empty - wallet operation errors are handled internally
   } finally {
     disabled.value = false;
   }
@@ -351,7 +348,7 @@ async function operation() {
       const takeProfit = lease.value.close_policy?.take_profit;
       const stopLoss = Number(percent!.mul(new Dec(PERMILLE)).round().toString());
 
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(
+      const { txHash: _txHash, txBytes, usedFee: _usedFee } = await leaseClient.simulateChangeClosePolicyTx(
         wallet,
         stopLoss,
         takeProfit,
@@ -406,14 +403,14 @@ const totalAmount = computed(() => {
     if (!asset) return new Dec(0);
     const price = pricesStore.prices[asset.key];
     if (!price) return new Dec(0);
-    let k = new Dec(lease.value.amount.amount ?? 0, currency.value.decimal_digits).quo(new Dec(price.price));
+    const k = new Dec(lease.value.amount.amount ?? 0, currency.value.decimal_digits).quo(new Dec(price.price));
     return k;
   }
 });
 
 watch(
   () => [amount.value, selectedCurrency.value],
-  (currentValue, oldValue) => {
+  () => {
     isAmountValid();
   }
 );

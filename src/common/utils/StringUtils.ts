@@ -15,7 +15,7 @@ export class StringUtils {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
       }
-    } catch (e) {
+    } catch {
       return false;
     }
     return true;

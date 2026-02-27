@@ -143,7 +143,7 @@ const sliderValue = ref(0);
 const loading = ref(false);
 const disabled = ref(false);
 const reload = inject("reload", () => {});
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
@@ -163,10 +163,6 @@ function initLease() {
   }
 }
 
-const config = computed(() => {
-  if (!lease.value) return undefined;
-  return configStore.contracts[lease.value.protocol];
-});
 
 onMounted(() => {
   dialog?.value?.show();
@@ -251,7 +247,7 @@ const totalAmount = computed(() => {
     if (!price) return new Dec(0);
     // Use LPN for decimal digits for short positions
     const lpn = getLpnByProtocol(lease.value.protocol);
-    let k = new Dec(lease.value.amount.amount ?? 0, lpn?.decimal_digits ?? 0).quo(new Dec(price.price));
+    const k = new Dec(lease.value.amount.amount ?? 0, lpn?.decimal_digits ?? 0).quo(new Dec(price.price));
     return k;
   }
 });
@@ -300,7 +296,7 @@ function isAmountValid() {
     const currencyData = getCurrencyByTicker(lease.value.amount.ticker!);
     const price = getPrice()!;
 
-    if (amount || amount !== "") {
+    if (amount.value || amount.value !== "") {
       const isLowerThanOrEqualsToZero = a.lte(new Dec(0));
 
       if (isLowerThanOrEqualsToZero) {
@@ -339,7 +335,8 @@ async function onSendClick() {
   try {
     disabled.value = true;
     await walletOperation(operation);
-  } catch (_e: unknown) {
+  } catch {
+    // intentionally empty - wallet operation errors are handled internally
   } finally {
     disabled.value = false;
   }
@@ -364,7 +361,7 @@ async function operation() {
 
       const takeProfit = Number(percent!.mul(new Dec(PERMILLE)).round().toString());
       const stopLoss = lease.value.close_policy?.stop_loss;
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateChangeClosePolicyTx(
+      const { txHash: _txHash, txBytes, usedFee: _usedFee } = await leaseClient.simulateChangeClosePolicyTx(
         wallet,
         stopLoss,
         takeProfit,
@@ -402,7 +399,7 @@ function getPercent() {
 
 watch(
   () => [amount.value, selectedCurrency.value],
-  (currentValue, oldValue) => {
+  () => {
     isAmountValid();
   }
 );

@@ -1,8 +1,8 @@
 import { createI18n } from "vue-i18n";
-import { nextTick } from "vue";
+import { nextTick, type WritableComputedRef } from "vue";
 import { languages } from "./config/global";
 
-const options = { locale: "en", fallbackLocale: "en", legacy: false, globalInjection: true };
+const options = { locale: "en", fallbackLocale: "en", legacy: false, globalInjection: true } as const;
 
 export const i18n = createI18n(options);
 
@@ -12,7 +12,7 @@ export function setupI18n() {
 }
 
 function setI18nLanguage(locale: string) {
-  (i18n.global.locale as any).value = locale;
+  (i18n.global.locale as WritableComputedRef<string>).value = locale;
   document.querySelector("html")?.setAttribute("lang", locale);
 }
 

@@ -12,7 +12,7 @@ export interface ILoan {
   LS_pnl: string;
   LS_timestamp: string;
   Type: string;
-  Block: Number;
+  Block: number;
   LS_asset_symbol: string;
   LS_loan_pool_id: string;
   LS_Close_Strategy: string;

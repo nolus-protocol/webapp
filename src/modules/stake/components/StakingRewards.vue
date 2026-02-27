@@ -29,13 +29,15 @@
       />
     </div>
 
-    <Asset
-      v-if="!showEmpty"
-      v-for="reward of rewards"
-      :icon="reward.icon"
-      :amount="reward.amount"
-      :stable-amount="reward.stableAmount"
-    />
+    <template v-if="!showEmpty">
+      <Asset
+        v-for="(reward, index) of rewards"
+        :key="index"
+        :icon="reward.icon"
+        :amount="reward.amount"
+        :stable-amount="reward.stableAmount"
+      />
+    </template>
 
     <EmptyState
       v-if="showEmpty"
@@ -79,7 +81,7 @@ defineProps<{
 }>();
 
 const i18n = useI18n();
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
 const historyStore = useHistoryStore();

@@ -34,7 +34,7 @@ export interface ExternalCurrency {
   ibcData: string;
   icon: string;
   coingeckoId: string | null;
-  balance?: UnitCoin | any;
+  balance?: UnitCoin;
 }
 
 export interface ExternalCurrencies {

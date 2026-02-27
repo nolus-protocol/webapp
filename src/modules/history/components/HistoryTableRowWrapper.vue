@@ -92,16 +92,16 @@ function getTimeStamp() {
 function getStatus() {
   switch (props.transaction.historyData.status) {
     case CONFIRM_STEP.PENDING: {
-      return { value: i18n.t(`message.loading`), variant: "warning" } as any;
+      return { value: i18n.t(`message.loading`), variant: "warning" } as LabelProps;
     }
     case CONFIRM_STEP.ERROR: {
-      return { value: i18n.t(`message.error`), variant: "error" } as any;
+      return { value: i18n.t(`message.error`), variant: "error" } as LabelProps;
     }
   }
   if (props.transaction.code != null && props.transaction.code !== 0) {
-    return { value: i18n.t(`message.failed`), variant: "error" } as any;
+    return { value: i18n.t(`message.failed`), variant: "error" } as LabelProps;
   }
-  return { value: i18n.t(`message.completed`), variant: "success" } as any;
+  return { value: i18n.t(`message.completed`), variant: "success" } as LabelProps;
 }
 
 const onActivityClick = () => {

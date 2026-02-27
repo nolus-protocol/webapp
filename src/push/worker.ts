@@ -19,7 +19,6 @@ import { idbGet } from "./database.ts";
 const icon = "/icons/icon-128x128.png";
 const defaultLanguage = "en";
 const permille = 1000;
-const version = 1;
 
 async function handlePushEvent(event: PushEvent) {
   let payload: IObjectKeys = {};
@@ -151,7 +150,7 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.waitUntil(self.clients.openWindow(targetUrl));
 });
 
-self.addEventListener("pushsubscriptionchange", (event: PushSubscriptionChangeEvent | any) => {
+self.addEventListener("pushsubscriptionchange", (event: ExtendableEvent) => {
   const key = urlB64ToUint8Array(publicKey);
   event.waitUntil(
     self.registration.pushManager

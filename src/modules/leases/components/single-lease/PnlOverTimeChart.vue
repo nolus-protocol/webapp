@@ -52,10 +52,6 @@ const marginBottom = 40;
 
 const i18n = useI18n();
 const chartTimeRange = ref(CHART_RANGES["1"]);
-const options = Object.values(CHART_RANGES).map((value) => ({
-  ...value,
-  value: value.label
-}));
 
 const data = ref<ChartData[]>([
   {
@@ -103,7 +99,7 @@ watch(
   }
 );
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";

@@ -13,7 +13,7 @@ import { h } from "vue";
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import { HISTORY_ACTIONS } from "@/modules/history/types";
 import { useConfigStore } from "@/common/stores/config";
-import { formatNumber, formatTokenBalance, formatCoinPretty } from "@/common/utils/NumberFormatUtils";
+import { formatTokenBalance, formatCoinPretty } from "@/common/utils/NumberFormatUtils";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { BackendApi } from "@/common/api";
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
@@ -23,7 +23,6 @@ import { i18n } from "@/i18n";
 import { Dec } from "@keplr-wallet/unit";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1/gov";
 import type { TxEntry, TransactionFilters } from "@/common/api/types";
-import { Buffer } from "buffer";
 
 export const useHistoryStore = defineStore("history", () => {
   // ==========================================================================
@@ -93,8 +92,8 @@ export const useHistoryStore = defineStore("history", () => {
       case HISTORY_ACTIONS.RECEIVE: {
         const token = CurrencyUtils.convertMinimalDenomToDenom(
           historyData.skipRoute.amountOut,
-          currency?.ibcData!,
-          currency?.shortName!,
+          currency?.ibcData,
+          currency?.shortName,
           Number(currency?.decimal_digits)
         );
         historyData.msg = i18nInstance.t("message.receive-action", {
@@ -107,8 +106,8 @@ export const useHistoryStore = defineStore("history", () => {
       case HISTORY_ACTIONS.SEND: {
         const token = CurrencyUtils.convertMinimalDenomToDenom(
           historyData.skipRoute.amountIn,
-          currency?.ibcData!,
-          currency?.shortName!,
+          currency?.ibcData,
+          currency?.shortName,
           Number(currency?.decimal_digits)
         );
         historyData.msg = i18nInstance.t("message.send-action", {
@@ -226,7 +225,7 @@ export const useHistoryStore = defineStore("history", () => {
   /**
    * Transform raw ETL transactions to display format
    */
-  function transformTransactions(rawTxs: TxEntry[], walletAddress: string): IObjectKeys[] {
+  function transformTransactions(rawTxs: TxEntry[], _walletAddress: string): IObjectKeys[] {
     return rawTxs.map((item) => {
       return {
         ...item,

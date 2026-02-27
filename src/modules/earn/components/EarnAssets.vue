@@ -77,6 +77,6 @@ defineProps<{
   stableAmount: string;
   anualYield: string;
   earningsAmount: string;
-  onSearch: Function;
+  onSearch: (query: string) => void;
 }>();
 </script>

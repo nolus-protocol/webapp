@@ -108,7 +108,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
 import { SwapStatus } from "../enums";
-import { AdvancedFormControl, Button, Dropdown, AssetItem, Input, Size, type AssetItemProps } from "web-components";
+import { AdvancedFormControl, Button, AssetItem, Input, type AssetItemProps } from "web-components";
 import { NETWORK_DATA } from "@/networks/config";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
@@ -221,7 +221,7 @@ const tempRoute = ref<IObjectKeys | null>();
 let chainsData: Chain[] = [];
 
 let skipRouteConfig: SkipRouteConfigType | null;
-let id = Date.now();
+const id = Date.now();
 const wallet = ref(walletStore.wallet?.address);
 const onClose = inject("close", () => {});
 
@@ -306,7 +306,9 @@ const calculatedBalance = computed(() => {
 function destroyClient() {
   try {
     client.destroy();
-  } catch (error) {}
+  } catch {
+    // intentionally empty - destroy errors are non-critical
+  }
 }
 
 function setHistory() {
@@ -504,7 +506,7 @@ async function onSwap() {
     } else {
       await onSwapCosmos();
     }
-  } catch (_error: unknown) {
+  } catch {
     step.value = CONFIRM_STEP.ERROR;
   }
 }
@@ -513,7 +515,7 @@ async function onSwapNative() {
   try {
     isDisabled.value = true;
     await walletOperation(transferAmount);
-  } catch (_error: unknown) {
+  } catch {
     step.value = CONFIRM_STEP.ERROR;
   } finally {
     isDisabled.value = false;
@@ -558,7 +560,7 @@ async function transferAmount() {
           walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
           walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
         }
-        switch ((error as any).code) {
+        switch ((error as { code?: number }).code) {
           case ErrorCodes.GasError: {
             step.value = CONFIRM_STEP.GasError;
             break;

@@ -156,7 +156,7 @@ import BigNumber from "@/common/components/BigNumber.vue";
 import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { Button, SvgIcon } from "web-components";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { MAX_DECIMALS, MONTHS, NATIVE_CURRENCY } from "@/config/global";
+import { MONTHS, NATIVE_CURRENCY } from "@/config/global";
 import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
@@ -196,7 +196,7 @@ onUnmounted(() => {
 
 watch(
   () => [props.lease],
-  (value) => {
+  (_value) => {
     setSwapFee();
   }
 );
@@ -243,19 +243,13 @@ const totalLoan = computed(() => {
   return amount.toString(asset.value.decimal_digits);
 });
 
-const assetLoan = computed(() => {
-  const [t, p] = asset.value?.key?.split("@") ?? [];
-  const lpn = getLpnByProtocol(p);
-  return lpn;
-});
-
 const asset = computed(() => {
   const currency = configStore.currenciesData?.[props.loanCurrency];
   return currency;
 });
 
 const lpn = computed(() => {
-  const [t, p] = loanAsset.value.key.split("@");
+  const [_t, p] = loanAsset.value.key.split("@");
   const lpn = getLpnByProtocol(p);
   return lpn;
 });
@@ -336,7 +330,7 @@ const percentLique = computed(() => {
     const p = price.sub(lprice).quo(price);
 
     return `${p.abs().mul(new Dec(100)).toString(0)}`;
-  } catch (e) {
+  } catch {
     return "0";
   }
 });
@@ -388,7 +382,7 @@ const setSwapFee = async () => {
       const lpn = getLpnByProtocol(p);
       let amountIn = 0;
       let amountOut = 0;
-      const [r, r2] = await Promise.all([
+      await Promise.all([
         SkipRouter.getRoute(currency.ibcData, asset.value.ibcData, microAmount).then((data) => {
           amountIn += Number(data.usd_amount_in ?? 0);
           amountOut += Number(data.usd_amount_out ?? 0);

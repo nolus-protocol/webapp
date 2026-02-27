@@ -93,7 +93,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
-import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { CurrencyUtils, NolusClient, type NolusWallet } from "@nolus/nolusjs";
@@ -147,7 +147,7 @@ const pricesStore = usePricesStore();
 const historyStore = useHistoryStore();
 const loadLPNCurrency = inject("loadLPNCurrency", () => false);
 const onClose = inject("close", () => {});
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const input = ref("0");
 const error = ref("");
@@ -289,7 +289,7 @@ async function transferAmount() {
         microAmount.mAmount.amount = new Dec(microAmount.mAmount.amount).quo(calculatedPrice).truncate();
       }
 
-      const { txHash, txBytes, usedFee } = await lppClient.simulateBurnDepositTx(
+      const { txBytes } = await lppClient.simulateBurnDepositTx(
         wallet,
         microAmount.mAmount.amount.toString()
       );

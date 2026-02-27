@@ -52,6 +52,6 @@ const columns = computed<TableColumnProps[]>(() =>
 
 defineProps<{
   items: TableRowItemProps[];
-  onSearch: Function;
+  onSearch: (query: string) => void;
 }>();
 </script>

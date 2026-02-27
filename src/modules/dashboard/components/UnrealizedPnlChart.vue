@@ -73,7 +73,7 @@ watch(
   { immediate: true }
 );
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
@@ -204,7 +204,10 @@ function getClosestDataPoint(cPosition: number) {
   return closest;
 }
 
-function processPositionDebtData(response: any) {
+function processPositionDebtData(response: {
+  position?: { time: string; amount: string }[];
+  debt?: { time: string; amount: string }[];
+}) {
   const data: { [key: string]: { position?: string; debt?: string } } = {};
 
   for (const item of response.position || []) {

@@ -247,16 +247,16 @@ import WidgetHeader from "@/common/components/WidgetHeader.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PnlOverTimeChart from "./PnlOverTimeChart.vue";
 import { NATIVE_CURRENCY } from "@/config/global";
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, ref } from "vue";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { formatNumber, getAdaptivePriceDecimals } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
+import { NolusClient, NolusWallet } from "@nolus/nolusjs";
 import { dateParser, IntercomService, isMobile, Logger, walletOperation } from "@/common/utils";
-import { useRoute, useRouter } from "vue-router";
+import { useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
 import { TEMPLATES } from "../common";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -282,9 +282,8 @@ const walletStore = useWalletStore();
 const loadingStopLoss = ref(false);
 const loadingTakeProfit = ref(false);
 const i18n = useI18n();
-const route = useRoute();
 const reload = inject("reload", () => {});
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const pnl = computed(() => {
   if (!props.displayData) {
@@ -339,7 +338,7 @@ const pricerPerAsset = computed(() => {
   if (posType === "long") {
     return asset.value;
   } else if (posType === "short") {
-    const p = props.lease?.protocol!;
+    const p = props.lease?.protocol as string;
     const debtTicker = props.lease?.debt?.ticker;
     const currency = configStore.currenciesData![`${debtTicker}@${p}`];
     return currency;
@@ -376,7 +375,6 @@ const takeProfit = computed(() => {
 const asset = computed(() => {
   if (!props.lease) return undefined;
   const ticker = props.lease.amount.ticker;
-  const protocol = props.lease.protocol;
   const item = getCurrencyByTicker(ticker);
   return item ? getCurrencyByDenom(item.ibcData as string) : undefined;
 });

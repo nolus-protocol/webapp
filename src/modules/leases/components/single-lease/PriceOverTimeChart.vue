@@ -84,7 +84,7 @@ watch(
 );
 
 const currency = computed(() => {
-  const positionType = configStore.getPositionType(props.lease?.protocol!);
+  const positionType = configStore.getPositionType(props.lease?.protocol as string);
   const ticker =
     positionType === "Short"
       ? props.lease?.debt?.ticker
@@ -126,14 +126,14 @@ async function setData() {
 
 function getLiquidations() {
   let asset = new Dec(0);
-  let asset2 = new Dec(0);
+  const asset2 = new Dec(0);
 
   const liquidations: {
     amount: Dec;
     date: Date;
   }[] = [];
 
-  const protocolKey = props.lease?.protocol!;
+  const protocolKey = props.lease?.protocol as string;
 
   if (props.lease?.status === "opened") {
     const historyElements = [...(props.lease?.etl_data?.history ?? [])].reverse();
@@ -165,7 +165,7 @@ function getLiquidations() {
 function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
   let liquidation = new Dec(0);
   if (props.lease?.status === "opened") {
-    const protocolKey = props.lease?.protocol!;
+    const protocolKey = props.lease?.protocol as string;
     const ticker = props.lease?.amount.ticker;
     const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
     const lpn = getLpnByProtocol(protocolKey);
@@ -186,25 +186,25 @@ function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
 }
 
 async function loadData(intetval: string) {
-  const positionType = configStore.getPositionType(props.lease?.protocol!);
+  const positionType = configStore.getPositionType(props.lease?.protocol as string);
   const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
 
   if (positionType === "Long") {
-    let [key, protocol]: string[] = ticker?.includes("@")
+    const [key, protocol]: string[] = ticker?.includes("@")
       ? ticker.split("@")
       : [ticker as string, props.lease!.protocol];
 
     const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
     return prices;
   } else {
-    const lpn = getLpnByProtocol(props.lease?.protocol!);
-    let [key, protocol] = lpn.key.split("@");
+    const lpn = getLpnByProtocol(props.lease?.protocol as string);
+    const [key, protocol] = lpn.key.split("@");
     const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
     return prices;
   }
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";

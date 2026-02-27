@@ -242,8 +242,14 @@ pub async fn get_positions(
             Ok(Some(position)) => {
                 // Add to total if we have USD value
                 if let Some(usd) = &position.deposited_usd {
-                    if let Ok(val) = usd.parse::<f64>() {
-                        total_deposited_usd += val;
+                    match usd.parse::<f64>() {
+                        Ok(val) => total_deposited_usd += val,
+                        Err(e) => {
+                            warn!(
+                                "Failed to parse deposited_usd '{}' for position in {}: {}",
+                                usd, position.protocol, e
+                            );
+                        }
                     }
                 }
                 positions.push(position);

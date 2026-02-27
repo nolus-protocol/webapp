@@ -21,7 +21,7 @@ import type { IBadgeProps, SvgProps } from "web-components";
 import { Badge, SvgIcon } from "web-components";
 import type { Component } from "vue";
 
-const props = defineProps<{
+defineProps<{
   icon?: SvgProps & Component;
   label: string;
   badge?: IBadgeProps & Component;

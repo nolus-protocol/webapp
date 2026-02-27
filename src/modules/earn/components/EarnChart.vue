@@ -63,7 +63,7 @@ watch(
   }
 );
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
@@ -158,16 +158,16 @@ function getClosestDataPoint(cPosition: number) {
 }
 
 async function loadData() {
-  let apr = new Dec(getApr(props.currencyKey) ?? 0);
+  const apr = new Dec(getApr(props.currencyKey) ?? 0);
   data.value = [];
   if (apr.isZero()) {
     data.value = [];
   } else {
-    let amount = props.amount;
+    const amount = props.amount;
     const value = [];
     for (let i = 0; i <= period; i++) {
-      let b = new Dec(1).add(apr).pow(new Int(i));
-      let a = amount.mul(b);
+      const b = new Dec(1).add(apr).pow(new Int(i));
+      const a = amount.mul(b);
       value.push({
         amount: Number(a.toString(2)),
         date: i
@@ -180,7 +180,7 @@ async function loadData() {
 }
 
 function getApr(key: string) {
-  let [_, protocol] = key.split("@");
+  const [_, protocol] = key.split("@");
   return earnStore.getProtocolApr(protocol) / PERCENT;
 }
 </script>

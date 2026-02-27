@@ -66,7 +66,7 @@ async function setStats() {
   await statsStore.fetchMonthlyLeases(props.period);
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";
@@ -80,7 +80,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   const plotChart = rectY(
     loans.value,
-    // @ts-ignore
+    // @ts-expect-error -- Observable Plot binX typing mismatch with rectY options
     binX({ y: "sum" }, { x: "date", y: "amount", fill: "#19A96C", thresholds: timeMonth })
   ).plot({
     style: { fontSize: CHART_AXIS.fontSize },

@@ -63,7 +63,7 @@ export function initTheme(): void {
 
   // Listen for system theme changes when using "sync" mode
   if (theme === "sync") {
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (_e) => {
       const currentTheme = getTheme();
       if (currentTheme === "sync") {
         applyTheme("sync");

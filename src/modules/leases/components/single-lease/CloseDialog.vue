@@ -268,7 +268,6 @@ import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import {
-  formatNumber,
   formatDecAsUsd,
   formatUsd,
   formatPriceUsd,
@@ -312,7 +311,7 @@ const sliderValue = ref(0);
 const loading = ref(false);
 const disabled = ref(false);
 const reload = inject("reload", () => {});
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
@@ -380,7 +379,7 @@ const currency = computed(() => {
 const price = computed(() => {
   const positionType = configStore.getPositionType(lease.value!.protocol);
   if (positionType === "Short") {
-    let lpn = getLpnByProtocol(lease.value!.protocol);
+    const lpn = getLpnByProtocol(lease.value!.protocol);
     return new Dec(pricesStore.prices[lpn?.key]?.price, lpn?.decimal_digits).toString(lpn?.decimal_digits);
   } else {
     return new Dec(pricesStore.prices[currency.value?.key]?.price, currency.value?.decimal_digits).toString(
@@ -394,7 +393,7 @@ const priceUsd = computed(() => formatPriceUsd(price.value));
 const remaining = computed(() => {
   const data = getAmountValue(amount.value == "" ? "0" : amount.value);
   const positionType = configStore.getPositionType(lease.value!.protocol);
-  let lpn = getLpnByProtocol(lease.value!.protocol);
+  const lpn = getLpnByProtocol(lease.value!.protocol);
 
   if (positionType === "Short") {
     const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
@@ -407,7 +406,7 @@ const remaining = computed(() => {
 
 const paidDebt = computed(() => {
   const positionType = configStore.getPositionType(lease.value!.protocol);
-  let lpn = getLpnByProtocol(lease.value!.protocol);
+  const lpn = getLpnByProtocol(lease.value!.protocol);
 
   if (positionType === "Short") {
     const price = new Dec(pricesStore.prices[lpn.key!]?.price ?? 0);
@@ -451,7 +450,7 @@ const debtData = computed(() => {
       const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
       const asset = d.mul(price);
       const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
-      let lpn = getLpnByProtocol(lease.value.protocol);
+      const lpn = getLpnByProtocol(lease.value.protocol);
       return {
         fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
         asset: currecy.shortName,
@@ -497,6 +496,7 @@ const debt = computed(() => {
       ).hideDenom(true)
     };
   }
+  return undefined;
 });
 
 const lpn = computed(() => {
@@ -527,7 +527,7 @@ const payout = computed(() => {
   }
 
   const positionType = configStore.getPositionType(lease.value.protocol);
-  let lpnData = getLpnByProtocol(lease.value.protocol);
+  const lpnData = getLpnByProtocol(lease.value.protocol);
 
   if (positionType === "Short") {
     const lpnPrice = new Dec(pricesStore.prices[lpnData!.key as string].price);
@@ -560,7 +560,7 @@ const positionLeft = computed(() => {
 // Outstanding debt in ATOM (human-readable), taken from displayData which is already
 // correctly computed with decimal_digits applied — same source as the Summary widget.
 const shortDebtAtom = computed(() => {
-  const positionType = configStore.getPositionType(lease.value?.protocol!);
+  const positionType = configStore.getPositionType(lease.value?.protocol as string);
   if (positionType !== "Short" || !lease.value || !displayData.value || lease.value.status !== "opened") return null;
 
   const debtTicker = lease.value.debt.ticker;
@@ -675,7 +675,7 @@ async function setSwapFee() {
   clearTimeout(time);
   time = setTimeout(async () => {
     const lease_currency = currency.value;
-    let lpnCurrency = getLpnByProtocol(lease.value?.protocol as string);
+    const lpnCurrency = getLpnByProtocol(lease.value?.protocol as string);
     let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
       debt.value!.amount.toDec().toString(),
       lease_currency.ibcData,
@@ -685,7 +685,7 @@ async function setSwapFee() {
     let amountIn = 0;
     let amountOut = 0;
 
-    const positionType = configStore.getPositionType(lease.value?.protocol!);
+    const positionType = configStore.getPositionType(lease.value?.protocol as string);
     if (positionType === "Short" && lpnCurrency) {
       microAmount = CurrencyUtils.convertDenomToMinimalDenom(
         debt.value!.amount.toDec().toString(),
@@ -694,7 +694,7 @@ async function setSwapFee() {
       ).amount.toString();
     }
 
-    const [r] = await Promise.all([
+    await Promise.all([
       SkipRouter.getRoute(lease_currency.ibcData, lpnCurrency!.ibcData, microAmount).then((data) => {
         amountIn += Number(data.usd_amount_in ?? 0);
         amountOut += Number(data.usd_amount_out ?? 0);
@@ -736,7 +736,7 @@ function isAmountValid() {
 
     const minAmountTemp = new Dec(minimumLeaseAmount);
     const amountInStable = new Dec(a.length == 0 ? "0" : a).mul(price);
-    if (amount || amount !== "") {
+    if (amount.value || amount.value !== "") {
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(a, "", Number(currencyData.decimal_digits));
       const value = new Dec(amountInMinimalDenom.amount, Number(currencyData.decimal_digits));
 
@@ -851,7 +851,7 @@ async function marketCloseLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(cosmWasmClient, lease.value.address);
 
-      const { txHash, txBytes, usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
+      const { txHash: _txHash, txBytes, usedFee: _usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       balancesStore.fetchBalances();
       reload();
@@ -890,14 +890,14 @@ function getCurrency() {
 
 watch(
   () => [amount.value, selectedCurrency.value],
-  (currentValue, oldValue) => {
+  () => {
     isAmountValid();
   }
 );
 
 watch(
   () => [currency.value?.key],
-  (currentValue, oldValue) => {
+  () => {
     setSwapFee();
   },
   {
@@ -910,7 +910,7 @@ function getAmountValue(a: string) {
   const [_, protocolKey] = selectedCurrency.key.split("@");
   const lpnData = getLpnByProtocol(protocolKey);
 
-  let amount = new Dec(a);
+  const amount = new Dec(a);
   const price = new Dec(pricesStore.prices[selectedCurrency!.key as string]?.price ?? 0);
   const { repayment, repaymentInStable } = getRepayment(100)!;
 

@@ -12,7 +12,6 @@
 import Chart from "@/common/components/Chart.vue";
 import { lineY, plot } from "@observablehq/plot";
 import { pointer, select, type Selection } from "d3";
-import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
 import {
   CHART_AXIS,
@@ -32,7 +31,6 @@ const props = defineProps<{
 
 type ChartData = { date: Date; borrowed: number; supplied: number };
 
-const mobile = isMobile();
 const chartHeight = 250;
 let chartWidth: number;
 let marginLeft: number;
@@ -68,7 +66,7 @@ watch(
   () => loadData()
 );
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, any>) {
+function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
   plotContainer.innerHTML = "";

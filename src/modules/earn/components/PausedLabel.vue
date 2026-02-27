@@ -10,5 +10,5 @@
 
 <script lang="ts" setup>
 defineProps<{ value: string; variant: LabelVariant }>();
-import { Label, SvgIcon, type LabelVariant } from "web-components";
+import { Label, type LabelVariant } from "web-components";
 </script>

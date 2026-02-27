@@ -61,7 +61,7 @@ import {
   formatPercent
 } from "@/common/utils/NumberFormatUtils";
 import { isMobile } from "@/common/utils";
-import { NATIVE_ASSET, NATIVE_CURRENCY, PERCENT } from "@/config/global";
+import { NATIVE_ASSET, PERCENT } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useStakingStore } from "@/common/stores/staking";
 import { usePricesStore } from "@/common/stores/prices";

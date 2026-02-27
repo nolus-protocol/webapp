@@ -121,83 +121,83 @@ export class SkipRouter {
     return route;
   }
 
-  static async submitRoute(route: RouteResponse, wallets: { [key: string]: BaseWallet }, callback: Function) {
-    try {
-      return await SkipRouter.transaction(route, wallets, callback);
-    } catch (error) {
-      throw error;
-    }
+  static async submitRoute(
+    route: RouteResponse,
+    wallets: { [key: string]: BaseWallet },
+    callback: (tx: IObjectKeys, wallet: BaseWallet, chainId: string) => Promise<void>
+  ) {
+    return await SkipRouter.transaction(route, wallets, callback);
   }
 
-  private static async transaction(route: RouteResponse, wallets: { [key: string]: BaseWallet }, callback: Function) {
-    try {
-      const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
-      const addressList = [];
-      const addresses: Record<string, string> = {};
+  private static async transaction(
+    route: RouteResponse,
+    wallets: { [key: string]: BaseWallet },
+    callback: (tx: IObjectKeys, wallet: BaseWallet, chainId: string) => Promise<void>
+  ) {
+    const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
+    const addressList = [];
+    const addresses: Record<string, string> = {};
 
-      for (const key in wallets) {
-        addresses[key] = wallets[key].address!;
+    for (const key in wallets) {
+      addresses[key] = wallets[key].address!;
+    }
+
+    for (const id of route.chain_ids) {
+      addressList.push(addresses[id]);
+    }
+
+    const add: {
+      amount_in: string;
+      amount_out: string;
+      source_asset_denom: string;
+      dest_asset_denom: string;
+    } = {
+      amount_in: "",
+      amount_out: "",
+      source_asset_denom: "",
+      dest_asset_denom: ""
+    };
+
+    if (route.revert) {
+      add.amount_in = route.amount_in;
+      add.amount_out = route.amount_out;
+      add.source_asset_denom = route.source_asset_denom;
+      add.dest_asset_denom = route.dest_asset_denom;
+    } else {
+      add.amount_in = route.amount_out;
+      add.amount_out = route.amount_in;
+      add.source_asset_denom = route.source_asset_denom;
+      add.dest_asset_denom = route.dest_asset_denom;
+    }
+
+    const request: MessagesRequest = {
+      source_asset_chain_id: route.source_asset_chain_id,
+      dest_asset_chain_id: route.dest_asset_chain_id,
+      chain_ids_to_affiliates: SkipRouter.getAffialates(route, config),
+      timeout_seconds: config.timeoutSeconds,
+      operations: route.operations,
+      slippage_tolerance_percent: config.slippage.toString(),
+      address_list: addressList,
+      ...add
+    };
+
+    const response = await client.getMessages(request as MessagesRequest);
+
+    for (const tx of response?.txs ?? []) {
+      const chainId = tx?.cosmos_tx?.chain_id;
+      const wallet = wallets[chainId];
+
+      const msgs = [];
+      for (const m of tx.cosmos_tx.msgs) {
+        const msgJSON = JSON.parse(m.msg);
+        const message = SkipRouter.getTx(m, msgJSON);
+        msgs.push({
+          msg: message,
+          msgTypeUrl: m.msg_type_url
+        });
       }
-
-      for (const id of route.chain_ids) {
-        addressList.push(addresses[id]);
-      }
-
-      const add: {
-        amount_in: string;
-        amount_out: string;
-        source_asset_denom: string;
-        dest_asset_denom: string;
-      } = {
-        amount_in: "",
-        amount_out: "",
-        source_asset_denom: "",
-        dest_asset_denom: ""
-      };
-
-      if (route.revert) {
-        add.amount_in = route.amount_in;
-        add.amount_out = route.amount_out;
-        add.source_asset_denom = route.source_asset_denom;
-        add.dest_asset_denom = route.dest_asset_denom;
-      } else {
-        add.amount_in = route.amount_out;
-        add.amount_out = route.amount_in;
-        add.source_asset_denom = route.source_asset_denom;
-        add.dest_asset_denom = route.dest_asset_denom;
-      }
-
-      const request: MessagesRequest = {
-        source_asset_chain_id: route.source_asset_chain_id,
-        dest_asset_chain_id: route.dest_asset_chain_id,
-        chain_ids_to_affiliates: SkipRouter.getAffialates(route, config),
-        timeout_seconds: config.timeoutSeconds,
-        operations: route.operations,
-        slippage_tolerance_percent: config.slippage.toString(),
-        address_list: addressList,
-        ...add
-      };
-
-      const response = await client.getMessages(request as MessagesRequest);
-
-      for (const tx of response?.txs ?? []) {
-        const chainId = tx?.cosmos_tx?.chain_id;
-        const wallet = wallets[chainId];
-
-        const msgs = [];
-        for (const m of tx.cosmos_tx.msgs) {
-          const msgJSON = JSON.parse(m.msg);
-          const message = SkipRouter.getTx(m, msgJSON);
-          msgs.push({
-            msg: message,
-            msgTypeUrl: m.msg_type_url
-          });
-        }
-        const txData = await wallet.simulateMultiTx(msgs as any, "");
-        await callback(txData, wallet, chainId);
-      }
-    } catch (error) {
-      throw error;
+      const txData = await wallet.simulateMultiTx(msgs, "");
+      await callback(txData, wallet, chainId);
     }
   }
 
@@ -258,7 +258,7 @@ export class SkipRouter {
         chain_id: chainId,
         tx_hash: hash
       });
-    } catch (error) {
+    } catch {
       await this.subTrack(chainId, hash, attempts);
     }
   }

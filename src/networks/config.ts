@@ -5,16 +5,14 @@
  * This file only provides helper functions and legacy exports for backward compatibility.
  */
 
-import { CURRENT_NETWORK_KEY, DEFAULT_PRIMARY_NETWORK } from "@/config/global/networks";
-
 import { embedChainInfo as nolusChainInfo } from "./list/nolus/constants";
 import { embedChainInfo as osmoChainInfo } from "./list/osmosis/constants";
 import { embedChainInfo as neutronChainInfo } from "./list/neutron/constants";
 
 import { useConfigStore } from "@/common/stores/config";
-import type { ExternalCurrencies } from "@/common/types";
+import type { ExternalCurrencies, NetworkData } from "@/common/types";
 
-const CHAIN_INFO_EMBEDDERS: { [key: string]: Function } = {
+const CHAIN_INFO_EMBEDDERS: { [key: string]: (...args: unknown[]) => unknown } = {
   NOLUS: nolusChainInfo,
   OSMOSIS: osmoChainInfo,
   NEUTRON: neutronChainInfo
@@ -26,7 +24,6 @@ const CHAIN_INFO_EMBEDDERS: { [key: string]: Function } = {
 function getNetworkData() {
   const configStore = useConfigStore();
   const networks = configStore.networks;
-  const currentNetwork = localStorage.getItem(CURRENT_NETWORK_KEY) || DEFAULT_PRIMARY_NETWORK;
 
   // Build list from backend networks - filter based on current environment
   const list = networks.map((n) => ({
@@ -45,7 +42,7 @@ function getNetworkData() {
   }));
 
   // Build supportedNetworks map
-  const supportedNetworks: { [key: string]: any } = {};
+  const supportedNetworks: { [key: string]: NetworkData } = {};
   for (const network of networks) {
     if (network.chain_type === "cosmos") {
       supportedNetworks[network.key] = {

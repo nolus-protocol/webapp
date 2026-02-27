@@ -148,22 +148,22 @@ export function getCreatedAtForHuman(createdAt: Date | null) {
     return null;
   }
 
-  let currentDate = new Date();
-  let diff = currentDate.getTime() - (createdAt as Date).getTime();
+  const currentDate = new Date();
+  const diff = currentDate.getTime() - (createdAt as Date).getTime();
 
   if (diff < 0) {
     return one_s;
   }
 
   if (diff < min) {
-    let time = Math.floor(diff / sec);
+    const time = Math.floor(diff / sec);
     if (time <= 1) {
       return one_s;
     }
     return `${time} ${many_s}`;
   }
   if (diff < hour) {
-    let time = Math.floor(diff / min);
+    const time = Math.floor(diff / min);
     if (time <= 1) {
       return one_m;
     }
@@ -171,7 +171,7 @@ export function getCreatedAtForHuman(createdAt: Date | null) {
   }
 
   if (diff < day) {
-    let time = Math.floor(diff / hour);
+    const time = Math.floor(diff / hour);
     if (time <= 1) {
       return one_h;
     }

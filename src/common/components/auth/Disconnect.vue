@@ -84,7 +84,7 @@ const i18n = useI18n();
 const router = useRouter();
 const configStore = useConfigStore();
 
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 onBeforeUnmount(() => {
   dialog?.value?.close();

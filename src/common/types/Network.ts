@@ -24,7 +24,7 @@ export interface NetworkData {
   explorer: string;
   key: string;
   currencies: () => ExternalCurrencies;
-  embedChainInfo: Function;
+  embedChainInfo: (...args: unknown[]) => unknown;
   fees: {
     transfer_amount: number;
   };

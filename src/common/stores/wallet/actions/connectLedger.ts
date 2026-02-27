@@ -36,7 +36,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
         ledgerWallet = await NolusWalletFactory.nolusLedgerWallet(
           new LedgerSigner(transport, {
             prefix: ChainConstants.BECH32_PREFIX_ACC_ADDR,
-            hdPaths: paths as any
+            hdPaths: paths
           })
         );
 
@@ -57,7 +57,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
           }
         }
         breakLoop = true;
-        throw new Error(e instanceof Error ? e.message : String(e));
+        throw new Error(e instanceof Error ? e.message : String(e), { cause: e });
       }
     }
 

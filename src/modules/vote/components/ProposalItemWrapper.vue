@@ -36,11 +36,11 @@ const props = defineProps({
     required: true
   },
   bondedTokens: {
-    type: Object as PropType<Dec | any>,
+    type: Object as PropType<Dec>,
     required: true
   },
   quorum: {
-    type: Object as PropType<Dec | any>,
+    type: Object as PropType<Dec>,
     required: true
   }
 });

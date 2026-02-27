@@ -175,7 +175,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     amount: Coin[],
     gasMultiplier: number,
     gasPrice: string,
-    memo = ""
+    _memo = ""
   ) {
     const msg = MsgSend.fromPartial({
       fromAddress: this.address,
@@ -228,7 +228,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       return { sequence: account?.sequence, accountNumber: account?.accountNumber };
     } catch (error) {
       Logger.error(error);
-      throw new Error("Insufficient amount");
+      throw new Error("Insufficient amount", { cause: error });
     }
   }
 
@@ -236,7 +236,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     try {
       const account = await this.queryClientBase.auth.account(searchAddress);
 
-      //@ts-ignore
+      // @ts-expect-error -- accountFromAny expects decoded account, cosmjs typing mismatch
       return account ? (0, accountFromAny)(account) : null;
     } catch (error: unknown) {
       if (/rpc error: code = NotFound/i.test(String(error))) {
@@ -287,14 +287,14 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     }
     const pubkey = encodePubkey(this.getPubKey(accountFromSigner.pubkey));
     const signMode = SignMode.SIGN_MODE_LEGACY_AMINO_JSON;
-    //@ts-ignore
+    // @ts-expect-error -- aminoTypes.toAmino expects AminoConverters but receives EncodeObject
     const msgs = messages.map((msg) => this.aminoTypes.toAmino(msg));
     const signDoc = makeSignDocAmino(msgs, fee, chainId, memo, accountNumber, sequence);
     const { signature, signed } = await this.offlineSigner.signAmino(signerAddress, signDoc);
     const signedTxBody: TxBodyEncodeObject = {
       typeUrl: "/cosmos.tx.v1beta1.TxBody",
       value: {
-        //@ts-ignore
+        // @ts-expect-error -- aminoTypes.fromAmino expects AminoMsg but receives StdSignDoc msg
         messages: signed.msgs.map((msg) => this.aminoTypes.fromAmino(msg)),
         memo: signed.memo
       }
@@ -372,7 +372,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     }
 
     const sequence = await this.sequence();
-    const { gasInfo } = await this.forceGetQueryClient().tx.simulate(encodedMSGS, memo, pubkey, sequence?.sequence!);
+    const { gasInfo } = await this.forceGetQueryClient().tx.simulate(encodedMSGS, memo, pubkey, sequence?.sequence as number);
 
     const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * this.gasMultiplier);
     const usedFee = calculateFee(gas, this.gasPriceData);

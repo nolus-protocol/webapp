@@ -1,4 +1,5 @@
 import type { Keplr } from "@keplr-wallet/types";
+import type { OfflineDirectSigner } from "@cosmjs/proto-signing";
 import { type Store } from "../types";
 
 import { EnvNetworkUtils, WalletManager } from "@/common/utils";
@@ -23,7 +24,7 @@ export async function connectKeplrLike(
   } else if (!extension.experimentalSuggestChain) {
     throw new Error(`${label} version is not latest. Please upgrade your ${label} wallet`);
   } else {
-    let chainId = "";
+    let chainId: string;
 
     try {
       const networkConfig = await fetchEndpoints(ChainConstants.CHAIN_KEY);
@@ -39,7 +40,7 @@ export async function connectKeplrLike(
         )
       );
     } catch (e: unknown) {
-      throw new Error(e instanceof Error ? e.message : String(e));
+      throw new Error(e instanceof Error ? e.message : String(e), { cause: e });
     }
 
     await extension.enable(chainId);
@@ -48,7 +49,9 @@ export async function connectKeplrLike(
       const offlineSigner = extension.getOfflineSignerOnlyAmino(chainId, {
         preferNoSetFee: true
       });
-      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(offlineSigner as any);
+      const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(
+        offlineSigner as unknown as OfflineDirectSigner
+      );
       await nolusWalletOfflineSigner.useAccount();
 
       store.wallet = nolusWalletOfflineSigner;

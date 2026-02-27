@@ -78,7 +78,7 @@ enum Emitters {
   onSecondChange = "on-second-change"
 }
 
-const emit = defineEmits([Emitters.onFirstChange, Emitters.onSecondChange]);
+const emit = defineEmits(["on-first-change", "on-second-change"]);
 
 const props = defineProps<{
   firstInputValue?: string;
@@ -92,7 +92,7 @@ const props = defineProps<{
   disabled?: boolean;
   isLoading?: boolean;
   itemsHeadline?: string[];
-  itemTemplate?: (item: any) => Component;
+  itemTemplate?: (item: AdvancedCurrencyFieldOption) => Component;
   onSwap?: (e: Event) => void;
 }>();
 

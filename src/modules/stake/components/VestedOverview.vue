@@ -36,7 +36,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 const pricesStore = usePricesStore();
 const wallet = useWalletStore();
 
-const props = defineProps<{
+defineProps<{
   vestedTokens: { endTime: string; amount: { amount: string; denom: string } }[];
 }>();
 

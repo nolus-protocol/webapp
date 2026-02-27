@@ -14,11 +14,7 @@ import {
   type LeaseInfo,
   type LeaseQuoteRequest,
   type LeaseQuoteResponse,
-  type LeaseHistoryEntry,
-  type LeaseClosePolicy,
-  type LeaseInProgress,
-  type LeaseOpeningStateInfo,
-  type LeaseEtlData
+  type LeaseHistoryEntry
 } from "@/common/api";
 import { usePricesStore } from "../prices";
 import { useConfigStore } from "../config";
@@ -29,6 +25,20 @@ import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 
 // Re-export LeaseDisplayData from LeaseCalculator for convenience
 export type { LeaseDisplayData } from "@/common/utils";
+
+/**
+ * Status progression order — higher index means more advanced.
+ * Used to prevent stale HTTP responses from regressing a lease's
+ * status when the WebSocket has already delivered a fresher update.
+ */
+const STATUS_ORDER: Record<string, number> = {
+  opening: 0,
+  opened: 1,
+  paid_off: 2,
+  closing: 3,
+  closed: 4,
+  liquidated: 4
+};
 
 export const useLeasesStore = defineStore("leases", () => {
   // State
@@ -174,7 +184,17 @@ export const useLeasesStore = defineStore("leases", () => {
           (existing.status === "opening" || existing.status === "closing" || existing.in_progress)
       );
 
-      leases.value = [...freshLeases, ...preservedLeases];
+      // Don't let stale HTTP data regress leases whose status the WebSocket
+      // has already advanced — keep the cached version when it's ahead.
+      const mergedFresh = freshLeases.map((fresh) => {
+        const cached = leaseDetails.value.get(fresh.address);
+        if (cached && (STATUS_ORDER[fresh.status] ?? 0) < (STATUS_ORDER[cached.status] ?? 0)) {
+          return cached;
+        }
+        return fresh;
+      });
+
+      leases.value = [...mergedFresh, ...preservedLeases];
       lastUpdated.value = new Date();
 
       // Update cache
@@ -200,6 +220,14 @@ export const useLeasesStore = defineStore("leases", () => {
       // to a Long protocol when none is supplied, which is wrong for Shorts.
       const resolvedProtocol = protocol || getLease(address)?.protocol;
       const lease = await BackendApi.getLease(address, resolvedProtocol);
+
+      // Don't let a stale HTTP response regress a lease whose status the
+      // WebSocket has already advanced (e.g. "opening" → "opened").
+      const existing = leaseDetails.value.get(address);
+      if (existing && (STATUS_ORDER[lease.status] ?? 0) < (STATUS_ORDER[existing.status] ?? 0)) {
+        return existing;
+      }
+
       leaseDetails.value.set(address, lease);
 
       // Update in the main list if present

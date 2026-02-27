@@ -390,7 +390,13 @@ impl TranslationAuditLog {
 
         // Ensure parent directory exists
         if let Some(parent) = self.file_path.parent() {
-            fs::create_dir_all(parent).await.ok();
+            fs::create_dir_all(parent).await.map_err(|e| {
+                AppError::Internal(format!(
+                    "Failed to create directory {}: {}",
+                    parent.display(),
+                    e
+                ))
+            })?;
         }
 
         // Write to temp file first, then rename (atomic)

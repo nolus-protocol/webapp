@@ -7,7 +7,7 @@
 
 use reqwest::Response;
 use serde::de::DeserializeOwned;
-use tracing::error;
+use tracing::{error, warn};
 
 use crate::error::AppError;
 
@@ -34,7 +34,13 @@ impl ResponseExt for Response {
     async fn check_status(self, api_name: &str, context: &str) -> Result<Response, AppError> {
         if !self.status().is_success() {
             let status = self.status();
-            let body = self.text().await.unwrap_or_default();
+            let body = match self.text().await {
+                Ok(text) => text,
+                Err(e) => {
+                    warn!("Failed to read error response body: {}", e);
+                    "<unreadable response body>".to_string()
+                }
+            };
             error!("{} {} failed: {} - {}", api_name, context, status, body);
             return Err(AppError::ExternalApi {
                 api: api_name.to_string(),

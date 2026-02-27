@@ -110,7 +110,7 @@ import { NATIVE_ASSET } from "@/config/global";
 import { useWalletStore } from "@/common/stores/wallet";
 import type { IObjectKeys } from "@/common/types";
 
-const props = defineProps<{
+defineProps<{
   stableDelegated: string;
   delegated: string;
   validators: TableRowItemProps[];

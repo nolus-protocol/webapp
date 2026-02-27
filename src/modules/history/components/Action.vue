@@ -58,7 +58,7 @@ const i18n = useI18n();
 const popoverParent = ref();
 const isOpen = ref(false);
 const props = defineProps<IAction>();
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const emitter = defineEmits(["click"]);
 
 function copyHash() {

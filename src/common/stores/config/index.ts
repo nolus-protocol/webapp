@@ -393,7 +393,7 @@ export const useConfigStore = defineStore("config", () => {
   }
 
   /** Get all asset tickers for the current network (from fetched assets) */
-  function getAssetTickersForNetwork(networkFilter: string): string[] {
+  function getAssetTickersForNetwork(_networkFilter: string): string[] {
     // Assets are fetched per-network via /api/networks/{network}/assets
     // So all assets in the response belong to the current network
     return assets.value.map((a) => a.ticker);

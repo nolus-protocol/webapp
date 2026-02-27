@@ -7,11 +7,7 @@ let register: Promise<ServiceWorkerRegistration>;
 export function notificationSubscribe(
   address: string
 ): Promise<PushSubscription | typeof STATUS.not_supported | typeof STATUS.permission_denied> {
-  try {
-    return requestPermissions(address);
-  } catch (e) {
-    throw e;
-  }
+  return requestPermissions(address);
 }
 
 async function subscribeUser(

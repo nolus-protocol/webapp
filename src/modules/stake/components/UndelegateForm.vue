@@ -76,7 +76,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
-import { formatNumber, formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
+import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { usePricesStore } from "@/common/stores/prices";
 import { coin } from "@cosmjs/stargate";
@@ -96,7 +96,7 @@ const input = ref("0");
 const validationError = ref("");
 const disabled = ref(false);
 
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 // Staking store positions are fetched by connectionStore.connectWallet()
 
@@ -128,7 +128,7 @@ const stable = computed(() => {
     const v = input?.value?.length ? input?.value : "0";
     const stable = price.mul(new Dec(v));
     return formatDecAsUsd(stable);
-  } catch (e) {
+  } catch {
     return "";
   }
 });

@@ -93,7 +93,7 @@ const wallet = useWalletStore();
 
 const i18n = useI18n();
 const type = WalletManager.getWalletConnectMechanism();
-const onShowToast = inject("onShowToast", (data: { type: ToastType; message: string }) => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const emitter = defineEmits(["onDisconnect"]);
 
 const connections: {

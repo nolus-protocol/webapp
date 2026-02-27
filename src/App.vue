@@ -18,7 +18,7 @@ import { Toast, ToastType } from "web-components";
 import { initWorker } from "./push/lib";
 import { getCookie, setCookie } from "./common/utils/cookieUtils";
 import { LANGUAGE_KEY } from "./common/utils";
-import { getTheme, setTheme } from "./common/utils/ThemeManager";
+import { getTheme } from "./common/utils/ThemeManager";
 import { useI18n } from "vue-i18n";
 import { BackendApi } from "./common/api/BackendApi";
 
