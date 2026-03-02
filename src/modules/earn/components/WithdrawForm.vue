@@ -289,10 +289,7 @@ async function transferAmount() {
         microAmount.mAmount.amount = new Dec(microAmount.mAmount.amount).quo(calculatedPrice).truncate();
       }
 
-      const { txBytes } = await lppClient.simulateBurnDepositTx(
-        wallet,
-        microAmount.mAmount.amount.toString()
-      );
+      const { txBytes } = await lppClient.simulateBurnDepositTx(wallet, microAmount.mAmount.amount.toString());
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       await Promise.all([loadLPNCurrency(), balancesStore.fetchBalances()]);

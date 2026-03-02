@@ -467,25 +467,23 @@ pub async fn fetch_pool_info(
         })
         .unwrap_or(0.0);
 
-    // Calculate available liquidity
-    let total_balance: u128 = lpp_balance.balance.amount.parse().unwrap_or_else(|_| {
-        warn!(
-            "Failed to parse LPP balance for {}: {}",
+    // Calculate available liquidity — parse failures are chain data errors, not safe to default
+    let total_balance: u128 = lpp_balance.balance.amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Unparseable LPP balance for {}: '{}'",
             protocol, lpp_balance.balance.amount
-        );
-        0
-    });
+        ))
+    })?;
     let total_principal: u128 = lpp_balance
         .total_principal_due
         .amount
         .parse()
-        .unwrap_or_else(|_| {
-            warn!(
-                "Failed to parse LPP total_principal_due for {}: {}",
+        .map_err(|_| {
+            AppError::Internal(format!(
+                "Unparseable LPP total_principal_due for {}: '{}'",
                 protocol, lpp_balance.total_principal_due.amount
-            );
-            0
-        });
+            ))
+        })?;
     let available = total_balance.saturating_sub(total_principal);
 
     Ok(EarnPool {
@@ -526,13 +524,12 @@ async fn fetch_position_info(
         .get_lender_deposit(lpp_address, owner)
         .await?;
 
-    let deposit_amount: u128 = deposit.amount.parse().unwrap_or_else(|_| {
-        warn!(
-            "Failed to parse deposit amount for {} owner {}: {}",
+    let deposit_amount: u128 = deposit.amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Unparseable deposit amount for {} owner {}: '{}'",
             protocol, owner, deposit.amount
-        );
-        0
-    });
+        ))
+    })?;
 
     // Skip if no deposit
     if deposit_amount == 0 {
@@ -545,21 +542,19 @@ async fn fetch_position_info(
         state.chain_client.get_lpn(lpp_address),
     )?;
 
-    // Calculate LPN value from nLPN
-    let price_quote: u128 = lpp_price.amount_quote.amount.parse().unwrap_or_else(|_| {
-        warn!(
-            "Failed to parse LPP price_quote for {}: {}",
+    // Calculate LPN value from nLPN — fallback to 1 inverts the price ratio
+    let price_quote: u128 = lpp_price.amount_quote.amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Unparseable LPP price_quote for {}: '{}'",
             protocol, lpp_price.amount_quote.amount
-        );
-        1
-    });
-    let price_amount: u128 = lpp_price.amount.amount.parse().unwrap_or_else(|_| {
-        warn!(
-            "Failed to parse LPP price_amount for {}: {}",
+        ))
+    })?;
+    let price_amount: u128 = lpp_price.amount.amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Unparseable LPP price_amount for {}: '{}'",
             protocol, lpp_price.amount.amount
-        );
-        1
-    });
+        ))
+    })?;
     let lpp_price_ratio = if price_amount > 0 {
         price_quote as f64 / price_amount as f64
     } else {
@@ -668,13 +663,12 @@ async fn fetch_position_for_monitoring(
         .get_lender_deposit(lpp_address, owner)
         .await?;
 
-    let deposit_amount: u128 = deposit.amount.parse().unwrap_or_else(|_| {
-        warn!(
-            "Failed to parse WS deposit amount for {} owner {}: {}",
+    let deposit_amount: u128 = deposit.amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Unparseable WS deposit amount for {} owner {}: '{}'",
             protocol, owner, deposit.amount
-        );
-        0
-    });
+        ))
+    })?;
 
     // Skip if no deposit
     if deposit_amount == 0 {
@@ -685,20 +679,18 @@ async fn fetch_position_for_monitoring(
     let lpp_price = state.chain_client.get_lpp_price(lpp_address).await?;
 
     // Calculate LPN value from nLPN
-    let price_quote: u128 = lpp_price.amount_quote.amount.parse().unwrap_or_else(|_| {
-        warn!(
-            "Failed to parse WS LPP price_quote for {}: {}",
+    let price_quote: u128 = lpp_price.amount_quote.amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Unparseable WS LPP price_quote for {}: '{}'",
             protocol, lpp_price.amount_quote.amount
-        );
-        1
-    });
-    let price_amount: u128 = lpp_price.amount.amount.parse().unwrap_or_else(|_| {
-        warn!(
-            "Failed to parse WS LPP price_amount for {}: {}",
+        ))
+    })?;
+    let price_amount: u128 = lpp_price.amount.amount.parse().map_err(|_| {
+        AppError::Internal(format!(
+            "Unparseable WS LPP price_amount for {}: '{}'",
             protocol, lpp_price.amount.amount
-        );
-        1
-    });
+        ))
+    })?;
     let lpp_price_ratio = if price_amount > 0 {
         price_quote as f64 / price_amount as f64
     } else {

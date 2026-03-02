@@ -18,6 +18,4 @@ import SidebarLink from "../SidebarLink.vue";
 import { sidebarIconMap, mainMenuRoutes, routePath } from "./menuConfig";
 </script>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>

@@ -177,7 +177,10 @@ async function delegate() {
   const amounts = [];
 
   validators = validators.sort(
-    (a: { commission: { commission_rates: { rate: string } } }, b: { commission: { commission_rates: { rate: string } } }) => {
+    (
+      a: { commission: { commission_rates: { rate: string } } },
+      b: { commission: { commission_rates: { rate: string } } }
+    ) => {
       return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
     }
   );

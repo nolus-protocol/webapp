@@ -114,13 +114,7 @@ import { NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
 
 import { type BaseWallet, Wallet } from "@/networks";
-import {
-  CONFIRM_STEP,
-  type ExternalCurrency,
-  type IObjectKeys,
-  type Network,
-  type SkipRouteConfigType
-} from "@/common/types";
+import { CONFIRM_STEP, type ExternalCurrency, type Network, type SkipRouteConfigType } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
@@ -139,7 +133,8 @@ import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/Nu
 import { tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
-import { SkipRouter } from "@/common/utils/SkipRoute";
+import { SkipRouter, type SkipTxResult } from "@/common/utils/SkipRoute";
+import type { NetworkInfo } from "@/common/api/types/config";
 import { Dec } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { ErrorCodes } from "@/config/global";
@@ -217,7 +212,7 @@ const isLoading = ref(false);
 const disablePicker = ref(false);
 const isDisabled = ref(false);
 const receiverAddress = ref("");
-const tempRoute = ref<IObjectKeys | null>();
+const tempRoute = ref<RouteResponse | null>(null);
 let chainsData: Chain[] = [];
 
 let skipRouteConfig: SkipRouteConfigType | null;
@@ -653,7 +648,7 @@ async function onSwapCosmos() {
 }
 
 async function submit(wallets: { [key: string]: BaseWallet }) {
-  await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, wallet: BaseWallet, chainId: string) => {
+  await SkipRouter.submitRoute(route!, wallets, async (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => {
     walletStore.history[id].historyData.route.activeStep++;
     walletStore.history[id].historyData.routeDetails.activeStep++;
 
@@ -669,9 +664,9 @@ async function submit(wallets: { [key: string]: BaseWallet }) {
       walletStore.history[id].historyData.txHashes = txHashes.value;
     }
 
-    await wallet.broadcastTx(tx.txBytes as Uint8Array);
-    await SkipRouter.track(chainId, (tx as IObjectKeys).txHash);
-    await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainId);
+    await wallet.broadcastTx(tx.txBytes);
+    await SkipRouter.track(chainId, tx.txHash);
+    await SkipRouter.fetchStatus(tx.txHash, chainId);
 
     element.status = SwapStatus.success;
   });
@@ -683,7 +678,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     [native]: walletStore.wallet
   };
 
-  const chainToParse: { [key: string]: IObjectKeys } = getChains(route!);
+  const chainToParse: { [key: string]: NetworkInfo } = getChains(route!);
   const promises = [];
   for (const chain in chainToParse) {
     const fn = async function () {
@@ -723,7 +718,7 @@ async function getRoute() {
 }
 
 function getChains(route?: RouteResponse) {
-  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chainToParse: { [key: string]: NetworkInfo } = {};
   const native = walletStore.wallet.signer.chain_id as string;
   const chains = chainsData.filter((item) => {
     if (item.chain_id == native) {
@@ -746,7 +741,7 @@ function getChains(route?: RouteResponse) {
 }
 
 function getChainIds(route?: RouteResponse) {
-  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chainToParse: { [key: string]: NetworkInfo } = {};
   const chains = chainsData.filter((item) => {
     return route!.chain_ids?.includes?.(item.chain_id);
   });

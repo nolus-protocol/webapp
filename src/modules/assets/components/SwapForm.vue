@@ -131,15 +131,16 @@ import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
 import { h } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
-import { MultipleCurrencyEventType, type IObjectKeys, type SkipRouteConfigType } from "@/common/types";
+import { MultipleCurrencyEventType, type SkipRouteConfigType } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { type BaseWallet } from "@/networks";
 import { SwapStatus } from "../enums";
 import { NETWORK_DATA } from "@/networks/config";
-import { SkipRouter } from "@/common/utils/SkipRoute";
+import { SkipRouter, type SkipTxResult } from "@/common/utils/SkipRoute";
 import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
 import type { RouteResponse } from "@/common/types/skipRoute";
+import type { NetworkInfo } from "@/common/api/types/config";
 import { WalletTypes } from "@/networks/types";
 
 let time: NodeJS.Timeout;
@@ -284,13 +285,21 @@ async function onNextClick() {
   }
 }
 
-function updateAmount(value: IObjectKeys) {
+function updateAmount(value: {
+  input: { value: string };
+  currency: { value: string };
+  type: MultipleCurrencyEventType;
+}) {
   amount.value = value.input.value ?? 0;
   selectedFirstCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
   updateRoute();
 }
 
-function updateSwapToAmount(value: IObjectKeys) {
+function updateSwapToAmount(value: {
+  input: { value: string };
+  currency: { value: string };
+  type: MultipleCurrencyEventType;
+}) {
   swapToAmount.value = value.input.value;
   selectedSecondCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
 
@@ -448,7 +457,7 @@ async function onSwap() {
       addresses[key] = wallets[key].address!;
     }
 
-    await SkipRouter.submitRoute(route!, wallets, async (tx: IObjectKeys, baseWallet: BaseWallet) => {
+    await SkipRouter.submitRoute(route!, wallets, async (tx: SkipTxResult, baseWallet: BaseWallet) => {
       const element = {
         hash: tx.txHash,
         status: SwapStatus.pending,
@@ -456,10 +465,10 @@ async function onSwap() {
       };
 
       txHashes.value.push(element);
-      await baseWallet.broadcastTx(tx.txBytes as Uint8Array);
+      await baseWallet.broadcastTx(tx.txBytes);
       const chainid = await baseWallet.getChainId();
-      await SkipRouter.track(chainid, (tx as IObjectKeys).txHash);
-      await SkipRouter.fetchStatus((tx as IObjectKeys).txHash, chainid);
+      await SkipRouter.track(chainid, tx.txHash);
+      await SkipRouter.fetchStatus(tx.txHash, chainid);
 
       element.status = SwapStatus.success;
       await balancesStore.fetchBalances();
@@ -488,7 +497,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
     [native]: wallet.wallet
   };
 
-  const chainToParse: { [key: string]: IObjectKeys } = {};
+  const chainToParse: { [key: string]: NetworkInfo } = {};
   const chains = (await SkipRouter.getChains()).filter((item) => {
     if (item.chain_id == native) {
       return false;

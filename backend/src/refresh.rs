@@ -536,19 +536,25 @@ pub async fn refresh_prices(state: &Arc<AppState>) {
                     };
 
                 let lpn_key = format!("{}@{}", base_currency, protocol_name);
-                let lpn_decimals = currencies_map
-                    .get(&lpn_key)
-                    .map(|c| c.decimal_digits)
-                    .unwrap_or(6);
+                let lpn_decimals = match currencies_map.get(&lpn_key).map(|c| c.decimal_digits) {
+                    Some(d) => d,
+                    None => {
+                        warn!("Currency {} not found in currencies map, skipping protocol price calculation", lpn_key);
+                        return protocol_prices;
+                    }
+                };
 
                 // Get stable currency decimals for proper price calculation
                 // The stable currency ticker is in amount_quote.ticker
                 let stable_ticker = &stable_price.amount_quote.ticker;
                 let stable_key = format!("{}@{}", stable_ticker, protocol_name);
-                let stable_decimals = currencies_map
-                    .get(&stable_key)
-                    .map(|c| c.decimal_digits)
-                    .unwrap_or(6);
+                let stable_decimals = match currencies_map.get(&stable_key).map(|c| c.decimal_digits) {
+                    Some(d) => d,
+                    None => {
+                        warn!("Stable currency {} not found in currencies map, skipping protocol price calculation", stable_key);
+                        return protocol_prices;
+                    }
+                };
 
                 // Calculate LPN price with decimal adjustment
                 // Formula: (quote_amount / amount) * 10^(lpn_decimals - stable_decimals)
@@ -573,10 +579,13 @@ pub async fn refresh_prices(state: &Arc<AppState>) {
                     Ok(oracle_prices) => {
                         for price in oracle_prices.prices {
                             let key = format!("{}@{}", price.amount.ticker, protocol_name);
-                            let asset_decimals = currencies_map
-                                .get(&key)
-                                .map(|c| c.decimal_digits)
-                                .unwrap_or(6);
+                            let asset_decimals = match currencies_map.get(&key).map(|c| c.decimal_digits) {
+                                Some(d) => d,
+                                None => {
+                                    warn!("Currency {} not found in currencies map, skipping asset price", key);
+                                    continue;
+                                }
+                            };
 
                             let asset_price = calculate_price_with_decimals(
                                 &price.amount_quote.amount,
@@ -737,10 +746,13 @@ pub async fn refresh_gated_assets(state: &Arc<AppState>) {
         }
     };
 
-    let prices = state.data_cache.prices.load().unwrap_or(PricesResponse {
-        prices: HashMap::new(),
-        updated_at: String::new(),
-    });
+    let prices = match state.data_cache.prices.load() {
+        Some(p) => p,
+        None => {
+            warn!("Prices not loaded yet, skipping gated_assets refresh");
+            return;
+        }
+    };
 
     let configured_protocols = PropagationFilter::filter_protocols(
         &etl_protocols,
@@ -1255,15 +1267,13 @@ pub async fn refresh_gas_fee_config(state: &Arc<AppState>) {
     }
 
     // Gas multiplier from gated network config for NOLUS (single source of truth)
-    let gas_multiplier = gated
-        .network_config
-        .networks
-        .get("NOLUS")
-        .map(|n| n.gas_multiplier)
-        .unwrap_or_else(|| {
-            warn!("NOLUS network not found in gated config, gas_multiplier unavailable");
-            3.5
-        });
+    let gas_multiplier = match gated.network_config.networks.get("NOLUS").map(|n| n.gas_multiplier) {
+        Some(m) => m,
+        None => {
+            error!("NOLUS network not found in gated config — cannot compute gas fees");
+            return;
+        }
+    };
 
     let config = crate::handlers::fees::GasFeeConfigResponse {
         gas_prices,

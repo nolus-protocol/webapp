@@ -45,7 +45,10 @@
 <script lang="ts" setup>
 import { Button, Label, type LabelProps, type TableRowItemProps } from "web-components";
 import { RouteNames } from "@/router";
-import type { IObjectKeys } from "@/common/types";
+interface UnbondingDelegation {
+  validator_address: string;
+  entries: { completion_time: string; balance: string }[];
+}
 
 import ListHeader from "@/common/components/ListHeader.vue";
 import VestedOverview from "./components/VestedOverview.vue";
@@ -125,9 +128,10 @@ const stableDelegated = computed(() => {
   return stable.toString(2);
 });
 
-// Show empty state when user has no active delegations (unbonding-only doesn't count)
+// Show empty state when user has no visible delegations or unbondings
+// (dust delegations with balance < 1000 unls are filtered from validatorRows)
 const showEmpty = computed(() => {
-  return !walletConnected.value || stakingStore.delegations.length === 0;
+  return !walletConnected.value || (validatorRows.value.length === 0 && unboundingDelegations.value.length === 0);
 });
 
 // Total rewards
@@ -155,7 +159,7 @@ const stableRewards = computed(() => {
 });
 
 // Unbonding delegations
-const unboundingDelegations = computed<IObjectKeys[]>(() => {
+const unboundingDelegations = computed<UnbondingDelegation[]>(() => {
   // Unbonding positions are now separate in the store
   return stakingStore.unbonding.map((u) => ({
     validator_address: u.validator_address,

@@ -18,7 +18,6 @@
 <script lang="ts" setup>
 import { useI18n } from "vue-i18n";
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps } from "web-components";
-import type { IObjectKeys } from "@/common/types";
 import { computed } from "vue";
 import { NATIVE_ASSET } from "@/config/global";
 import { usePricesStore } from "@/common/stores/prices";
@@ -42,8 +41,13 @@ const columns = computed<TableColumnProps[]>(() =>
       ]
 );
 
+interface UnbondingDelegation {
+  validator_address: string;
+  entries: { completion_time: string; balance: string }[];
+}
+
 const props = defineProps<{
-  unboundingDelegations: IObjectKeys[];
+  unboundingDelegations: UnbondingDelegation[];
   showEmpty: boolean;
 }>();
 

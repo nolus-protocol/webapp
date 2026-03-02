@@ -81,6 +81,7 @@ export const useConnectionStore = defineStore("connection", () => {
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to initialize app";
       console.error("[ConnectionStore] Failed to initialize app:", e);
+      throw e;
     } finally {
       initializing.value = false;
     }

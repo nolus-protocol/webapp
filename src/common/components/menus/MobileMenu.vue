@@ -39,7 +39,7 @@
             icon="vote"
             :content="$t('message.vote')"
           />
-          
+
           <SidebarLink
             @click="close"
             :to="{ name: RouteNames.STATS }"

@@ -372,7 +372,12 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     }
 
     const sequence = await this.sequence();
-    const { gasInfo } = await this.forceGetQueryClient().tx.simulate(encodedMSGS, memo, pubkey, sequence?.sequence as number);
+    const { gasInfo } = await this.forceGetQueryClient().tx.simulate(
+      encodedMSGS,
+      memo,
+      pubkey,
+      sequence?.sequence as number
+    );
 
     const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * this.gasMultiplier);
     const usedFee = calculateFee(gas, this.gasPriceData);

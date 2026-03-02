@@ -1142,55 +1142,56 @@ fn calculate_pnl(
     let asset_key = format!("{}@{}", asset_ticker, protocol);
     let lpn_key = format!("{}@{}", lpn_ticker, protocol);
 
-    let asset_currency = currencies.currencies.get(&asset_key);
-    let lpn_currency = currencies.currencies.get(&lpn_key);
+    let asset_decimals = currencies.currencies.get(&asset_key)?.decimal_digits as i32;
+    let lpn_decimals = currencies.currencies.get(&lpn_key)?.decimal_digits as i32;
 
-    let asset_decimals = asset_currency.map(|c| c.decimal_digits).unwrap_or(6) as i32;
-    let lpn_decimals = lpn_currency.map(|c| c.decimal_digits).unwrap_or(6) as i32;
-
-    // Look up prices
+    // Look up prices — no price means no PnL (better than wrong PnL)
     let asset_price: f64 = prices
         .prices
         .get(&asset_key)
-        .and_then(|p| p.price_usd.parse().ok())
-        .unwrap_or(0.0);
+        .and_then(|p| p.price_usd.parse().ok())?;
     let lpn_price: f64 = prices
         .prices
         .get(&lpn_key)
-        .and_then(|p| p.price_usd.parse().ok())
-        .unwrap_or(0.0);
+        .and_then(|p| p.price_usd.parse().ok())?;
 
-    // Calculate asset value in USD
-    let asset_amount: f64 = opened.amount.amount.parse().unwrap_or(0.0);
+    // Calculate asset value in USD — unparseable chain amount = corrupt data
+    let asset_amount: f64 = opened.amount.amount.parse().ok()?;
     let asset_value_usd = (asset_amount / 10_f64.powi(asset_decimals)) * asset_price;
 
     // Calculate total debt in USD
-    let debt_total: f64 = total_debt.parse().unwrap_or(0.0);
+    let debt_total: f64 = total_debt.parse().ok()?;
     let total_debt_usd = (debt_total / 10_f64.powi(lpn_decimals)) * lpn_price;
 
     // Parse ETL data: downpayment uses LPN decimals
-    let downpayment_raw: f64 = etl
-        .lease
-        .downpayment_amount
-        .as_deref()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(0.0);
+    // None legitimately means 0 (no downpayment recorded); parse failure is a data issue
+    let downpayment_raw: f64 = match etl.lease.downpayment_amount.as_deref() {
+        Some(s) => s.parse().unwrap_or_else(|_| {
+            warn!("Unparseable downpayment for lease {}: '{}'", opened.amount.ticker, s);
+            0.0
+        }),
+        None => 0.0,
+    };
     let downpayment = downpayment_raw / 10_f64.powi(lpn_decimals);
 
     // Fee uses asset decimals (matching frontend behavior)
-    let fee_raw: f64 = etl
-        .fee
-        .as_deref()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(0.0);
+    let fee_raw: f64 = match etl.fee.as_deref() {
+        Some(s) => s.parse().unwrap_or_else(|_| {
+            warn!("Unparseable fee for lease {}: '{}'", opened.amount.ticker, s);
+            0.0
+        }),
+        None => 0.0,
+    };
     let fee = fee_raw / 10_f64.powi(asset_decimals);
 
     // repayment_value is already formatted as a decimal number
-    let repayment_value: f64 = etl
-        .repayment_value
-        .as_deref()
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(0.0);
+    let repayment_value: f64 = match etl.repayment_value.as_deref() {
+        Some(s) => s.parse().unwrap_or_else(|_| {
+            warn!("Unparseable repayment_value for lease {}: '{}'", opened.amount.ticker, s);
+            0.0
+        }),
+        None => 0.0,
+    };
 
     // PnL formula
     let pnl_amount = asset_value_usd - total_debt_usd - downpayment + fee - repayment_value;

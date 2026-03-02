@@ -100,6 +100,16 @@ import type {
 } from "./types";
 
 import { ApiError as ApiErrorClass, transformCurrenciesResponse } from "./types";
+import { z } from "zod";
+import {
+  PricesResponseSchema,
+  GasFeeConfigResponseSchema,
+  LeasesResponseSchema,
+  LeaseInfoSchema,
+  EarnPoolSchema,
+  EarnPositionsResponseSchema,
+  BalancesResponseSchema
+} from "./schemas";
 
 // Backend URL from environment, falls back to same-origin (for Vite dev proxy)
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
@@ -155,6 +165,7 @@ export class BackendApiClient {
       body?: unknown;
       params?: Record<string, string | number | boolean | undefined>;
       headers?: Record<string, string>;
+      schema?: z.ZodType<T>;
     } = {}
   ): Promise<T> {
     const url = this.baseUrl ? new URL(`${this.baseUrl}${path}`) : new URL(path, window.location.origin);
@@ -177,7 +188,16 @@ export class BackendApiClient {
       }
     }
 
-    const fetchPromise = this.doFetch<T>(method, urlString, options);
+    const fetchPromise = this.doFetch<T>(method, urlString, options).then((data) => {
+      if (options.schema) {
+        const result = options.schema.safeParse(data);
+        if (!result.success) {
+          console.error(`[BackendApi] Schema validation failed for ${path}:`, result.error);
+          throw new ApiErrorClass(0, "validation_error", `Invalid response from ${path}`);
+        }
+      }
+      return data;
+    });
 
     if (cacheKey) {
       this.inFlight.set(cacheKey, fetchPromise);
@@ -252,7 +272,9 @@ export class BackendApiClient {
   }
 
   async getPrices(): Promise<PriceData> {
-    const response = await this.request<PricesResponse>("GET", "/api/prices");
+    const response = await this.request<PricesResponse>("GET", "/api/prices", {
+      schema: PricesResponseSchema as z.ZodType<PricesResponse>
+    });
     const priceData: PriceData = {};
     for (const [key, info] of Object.entries(response.prices)) {
       priceData[key] = {
@@ -265,7 +287,8 @@ export class BackendApiClient {
 
   async getBalances(address: string): Promise<BalancesResponse> {
     return this.request<BalancesResponse>("GET", "/api/balances", {
-      params: { address }
+      params: { address },
+      schema: BalancesResponseSchema as z.ZodType<BalancesResponse>
     });
   }
 
@@ -275,14 +298,16 @@ export class BackendApiClient {
 
   async getLeases(owner: string): Promise<LeaseInfo[]> {
     const response = await this.request<LeasesResponse>("GET", "/api/leases", {
-      params: { owner }
+      params: { owner },
+      schema: LeasesResponseSchema as z.ZodType<LeasesResponse>
     });
     return response.leases;
   }
 
   async getLease(address: string, protocol?: string): Promise<LeaseInfo> {
     return this.request<LeaseInfo>("GET", `/api/leases/${address}`, {
-      params: protocol ? { protocol } : undefined
+      params: protocol ? { protocol } : undefined,
+      schema: LeaseInfoSchema as z.ZodType<LeaseInfo>
     });
   }
 
@@ -301,12 +326,15 @@ export class BackendApiClient {
   // =========================================================================
 
   async getEarnPools(): Promise<EarnPool[]> {
-    return this.request<EarnPool[]>("GET", "/api/earn/pools");
+    return this.request<EarnPool[]>("GET", "/api/earn/pools", {
+      schema: z.array(EarnPoolSchema) as z.ZodType<EarnPool[]>
+    });
   }
 
   async getEarnPositions(address: string): Promise<EarnPositionsResponse> {
     return this.request<EarnPositionsResponse>("GET", "/api/earn/positions", {
-      params: { address }
+      params: { address },
+      schema: EarnPositionsResponseSchema as z.ZodType<EarnPositionsResponse>
     });
   }
 
@@ -541,7 +569,9 @@ export class BackendApiClient {
   // =========================================================================
 
   async getGasFeeConfig(): Promise<GasFeeConfigResponse> {
-    return this.request<GasFeeConfigResponse>("GET", "/api/fees/gas-config");
+    return this.request<GasFeeConfigResponse>("GET", "/api/fees/gas-config", {
+      schema: GasFeeConfigResponseSchema as z.ZodType<GasFeeConfigResponse>
+    });
   }
 
   // =========================================================================

@@ -152,7 +152,6 @@ import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
 import type { LeaseInfo } from "@/common/api";
 
-
 const route = useRoute();
 const router = useRouter();
 const pricesStore = usePricesStore();
@@ -414,7 +413,6 @@ function additionalInterest() {
 
   return debt;
 }
-
 
 function isAmountValid() {
   let isValid = true;

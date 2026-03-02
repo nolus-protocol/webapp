@@ -585,12 +585,11 @@ async function openLease() {
 
       const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
-      const { txHash: _txHash, txBytes, usedFee: _usedFee } = await leaserClient.simulateOpenLeaseTx(
-        wallet,
-        leaseTicker,
-        ltd.value,
-        funds
-      );
+      const {
+        txHash: _txHash,
+        txBytes,
+        usedFee: _usedFee
+      } = await leaserClient.simulateOpenLeaseTx(wallet, leaseTicker, ltd.value, funds);
 
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
 
@@ -616,5 +615,4 @@ async function openLease() {
     }
   }
 }
-
 </script>

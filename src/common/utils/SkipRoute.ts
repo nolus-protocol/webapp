@@ -1,11 +1,25 @@
-import type { IObjectKeys, SkipRouteConfigType } from "../types";
+import type { SkipRouteConfigType } from "../types";
 import type { Chain, RouteRequest, RouteResponse, MessagesRequest, MessagesResponse } from "../types/skipRoute";
+import type { SkipRouteRequest, SkipMessagesRequest, SkipMsg } from "@/common/api/types/swap";
 
 import { fetchNetworkStatus, getSkipRouteConfig } from "./ConfigService";
 import { BackendApi } from "@/common/api";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
+
+/** Result of simulateMultiTx — contains the transaction data */
+export interface SkipTxResult {
+  txHash: string;
+  txBytes: Uint8Array;
+  [key: string]: unknown;
+}
+
+/** Status response from Skip transaction tracking */
+interface SkipTransactionStatus {
+  state: string;
+  error: string;
+}
 
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
@@ -23,11 +37,11 @@ class Swap {
   }
 
   async getRoute(request: RouteRequest): Promise<RouteResponse> {
-    return BackendApi.getSkipRoute(request as IObjectKeys) as Promise<RouteResponse>;
+    return BackendApi.getSkipRoute(request as SkipRouteRequest) as Promise<RouteResponse>;
   }
 
   async getMessages(request: MessagesRequest): Promise<MessagesResponse> {
-    return BackendApi.getSkipMessages(request as IObjectKeys) as Promise<MessagesResponse>;
+    return BackendApi.getSkipMessages(request as SkipMessagesRequest) as Promise<MessagesResponse>;
   }
 
   async getTransactionStatus({
@@ -88,7 +102,7 @@ export class SkipRouter {
     revert: boolean = false,
     sourceId?: string,
     destSourceId?: string,
-    options: IObjectKeys = {}
+    options: Partial<RouteRequest> = {}
   ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
     const request: RouteRequest = {
@@ -124,7 +138,7 @@ export class SkipRouter {
   static async submitRoute(
     route: RouteResponse,
     wallets: { [key: string]: BaseWallet },
-    callback: (tx: IObjectKeys, wallet: BaseWallet, chainId: string) => Promise<void>
+    callback: (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => Promise<void>
   ) {
     return await SkipRouter.transaction(route, wallets, callback);
   }
@@ -132,7 +146,7 @@ export class SkipRouter {
   private static async transaction(
     route: RouteResponse,
     wallets: { [key: string]: BaseWallet },
-    callback: (tx: IObjectKeys, wallet: BaseWallet, chainId: string) => Promise<void>
+    callback: (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => Promise<void>
   ) {
     const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
     const addressList = [];
@@ -201,7 +215,7 @@ export class SkipRouter {
     }
   }
 
-  static async fetchStatus(hash: string, chainId: string): Promise<IObjectKeys> {
+  static async fetchStatus(hash: string, chainId: string): Promise<SkipTransactionStatus> {
     const client = await SkipRouter.getClient();
     const status = await client.getTransactionStatus({ chain_id: chainId, tx_hash: hash });
 
@@ -236,15 +250,16 @@ export class SkipRouter {
     });
   }
 
-  private static getAffialates(route: IObjectKeys, config: SkipRouteConfigType) {
-    if (route.swapVenue?.name) {
-      const affiliateAddress = config[route.swapVenue.name as keyof typeof config] as string;
+  private static getAffialates(route: RouteResponse, config: SkipRouteConfigType) {
+    const venue = route.swap_venues?.[0];
+    if (venue?.name) {
+      const affiliateAddress = config[venue.name as keyof typeof config] as string;
       const affiliates = {
         address: affiliateAddress,
         basisPointsFee: config.fee.toString()
       };
       return {
-        [route.swapVenue.chainId as string]: { affiliates: [affiliates] }
+        [venue.chain_id]: { affiliates: [affiliates] }
       };
     }
 
@@ -272,7 +287,7 @@ export class SkipRouter {
     }
   }
 
-  private static getTx(msg: IObjectKeys, msgJSON: IObjectKeys) {
+  private static getTx(msg: SkipMsg, msgJSON: Record<string, unknown>) {
     switch (msg.msg_type_url) {
       case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
         return MsgTransfer.fromPartial({

@@ -275,8 +275,7 @@ export const useLeasesStore = defineStore("leases", () => {
    * (e.g. shows "Closing...") without waiting for the backend.
    */
   function markLeaseInProgress(address: string, operation: "close" | "repayment"): void {
-    const inProgress: LeaseInfo["in_progress"] =
-      operation === "close" ? { close: {} } : { repayment: {} };
+    const inProgress: LeaseInfo["in_progress"] = operation === "close" ? { close: {} } : { repayment: {} };
 
     const index = leases.value.findIndex((l) => l.address === address);
     if (index !== -1) {

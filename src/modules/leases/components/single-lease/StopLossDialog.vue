@@ -164,7 +164,6 @@ function initLease() {
   }
 }
 
-
 onMounted(() => {
   dialog?.value?.show();
   initLease();
@@ -348,12 +347,11 @@ async function operation() {
       const takeProfit = lease.value.close_policy?.take_profit;
       const stopLoss = Number(percent!.mul(new Dec(PERMILLE)).round().toString());
 
-      const { txHash: _txHash, txBytes, usedFee: _usedFee } = await leaseClient.simulateChangeClosePolicyTx(
-        wallet,
-        stopLoss,
-        takeProfit,
-        funds
-      );
+      const {
+        txHash: _txHash,
+        txBytes,
+        usedFee: _usedFee
+      } = await leaseClient.simulateChangeClosePolicyTx(wallet, stopLoss, takeProfit, funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       balancesStore.fetchBalances();
       historyStore.loadActivities();

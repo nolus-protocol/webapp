@@ -173,7 +173,11 @@ export class SolanaWallet implements Wallet {
           value: Ed25519PubKey.encode({ key: pubkey }).finish()
         };
 
-        const { gasInfo: _gasInfo, gas: _gas, usedFee } = await this.getGasInfo(messages, memo, encodeEd25519Pubkey(pubkey), sequence);
+        const {
+          gasInfo: _gasInfo,
+          gas: _gas,
+          usedFee
+        } = await this.getGasInfo(messages, memo, encodeEd25519Pubkey(pubkey), sequence);
         const feeProto = Fee.fromPartial({
           amount: usedFee.amount,
           gasLimit: BigInt(usedFee.gas)

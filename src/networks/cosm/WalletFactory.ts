@@ -105,14 +105,7 @@ export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkDat
   await metamask.connectCustom(node, network);
   const signer = metamask.makeWCOfflineSigner();
 
-  return await createWallet(
-    wallet,
-    signer,
-    network.prefix,
-    network.gasMultiplier,
-    network.gasPrice,
-    network.explorer
-  );
+  return await createWallet(wallet, signer, network.prefix, network.gasMultiplier, network.gasPrice, network.explorer);
 }
 
 export async function authenticateSolFlare(wallet: Wallet, network: NetworkData) {
@@ -121,14 +114,7 @@ export async function authenticateSolFlare(wallet: Wallet, network: NetworkData)
   await sol.connectCustom(node, network);
   const signer = sol.makeWCOfflineSigner();
 
-  return await createWallet(
-    wallet,
-    signer,
-    network.prefix,
-    network.gasMultiplier,
-    network.gasPrice,
-    network.explorer
-  );
+  return await createWallet(wallet, signer, network.prefix, network.gasMultiplier, network.gasPrice, network.explorer);
 }
 
 async function authenticateLedger(wallet: Wallet, network: NetworkData) {

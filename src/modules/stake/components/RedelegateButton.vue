@@ -63,7 +63,10 @@ async function delegate() {
     const remainder = totalAmount % divisionBig;
 
     validators = validators.sort(
-      (a: { commission: { commission_rates: { rate: string } } }, b: { commission: { commission_rates: { rate: string } } }) => {
+      (
+        a: { commission: { commission_rates: { rate: string } } },
+        b: { commission: { commission_rates: { rate: string } } }
+      ) => {
         return Number(b.commission.commission_rates.rate) - Number(a.commission.commission_rates.rate);
       }
     );

@@ -109,7 +109,9 @@
               </div>
             </template>
 
-            <template v-if="sliderValue == midPosition || (coversFullDebt && sliderValue > 0 && sliderValue < midPosition)">
+            <template
+              v-if="sliderValue == midPosition || (coversFullDebt && sliderValue > 0 && sliderValue < midPosition)"
+            >
               <div class="flex items-start gap-2 text-14">
                 <SvgIcon
                   name="check-solid"
@@ -134,7 +136,9 @@
                   class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <div>
-                  <template v-if="shortReturnAtom"><strong>{{ shortReturnAtom }}</strong> {{ $t("message.and") }}&nbsp;</template><strong>{{ positionLeft }}</strong> {{ $t("message.preview-closed-rest") }}
+                  <template v-if="shortReturnAtom"
+                    ><strong>{{ shortReturnAtom }}</strong> {{ $t("message.and") }}&nbsp;</template
+                  ><strong>{{ positionLeft }}</strong> {{ $t("message.preview-closed-rest") }}
                 </div>
               </div>
 
@@ -181,7 +185,9 @@
                   class="mt-0.5 shrink-0 fill-icon-success"
                 />
                 <div>
-                  <template v-if="shortReturnAtom"><strong>{{ shortReturnAtom }}</strong> {{ $t("message.and") }}&nbsp;</template><strong>{{ positionLeft }}</strong> {{ $t("message.preview-closed-rest") }}
+                  <template v-if="shortReturnAtom"
+                    ><strong>{{ shortReturnAtom }}</strong> {{ $t("message.and") }}&nbsp;</template
+                  ><strong>{{ positionLeft }}</strong> {{ $t("message.preview-closed-rest") }}
                 </div>
               </div>
 
@@ -851,7 +857,11 @@ async function marketCloseLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
       const leaseClient = new Lease(cosmWasmClient, lease.value.address);
 
-      const { txHash: _txHash, txBytes, usedFee: _usedFee } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
+      const {
+        txHash: _txHash,
+        txBytes,
+        usedFee: _usedFee
+      } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       leasesStore.markLeaseInProgress(lease.value.address, "close");
       balancesStore.fetchBalances();

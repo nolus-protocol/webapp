@@ -332,26 +332,12 @@ impl AppConfig {
                 api_key: env::var("ADMIN_API_KEY").unwrap_or_else(|_| String::new()),
             },
             protocols: ProtocolsConfig {
-                admin_contract: env::var("ADMIN_CONTRACT").unwrap_or_else(|_| {
-                    "nolus1gurgpv8savnfw66lckwzn4zk7fp394lpe667dhu7aw48u40lj6jsqxf8nd".to_string()
-                }),
-                dispatcher_contract: env::var("DISPATCHER_CONTRACT").unwrap_or_else(|_| {
-                    "nolus14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s0k0puz".to_string()
-                }),
-                active_protocols: env::var("ACTIVE_PROTOCOLS")
-                    .map(|s| s.split(',').map(|p| p.trim().to_string()).collect())
-                    .unwrap_or_else(|_| {
-                        vec![
-                            "OSMOSIS-OSMOSIS-USDC_NOBLE".to_string(),
-                            "OSMOSIS-OSMOSIS-USDC_AXELAR".to_string(),
-                            "OSMOSIS-OSMOSIS-ALL_BTC".to_string(),
-                            "OSMOSIS-OSMOSIS-ALL_SOL".to_string(),
-                            "OSMOSIS-OSMOSIS-ATOM".to_string(),
-                            "OSMOSIS-OSMOSIS-OSMO".to_string(),
-                            "OSMOSIS-OSMOSIS-AKT".to_string(),
-                            "NEUTRON-ASTROPORT-USDC_NOBLE".to_string(),
-                        ]
-                    }),
+                admin_contract: Self::get_required_env("ADMIN_CONTRACT", "Admin contract address")?,
+                dispatcher_contract: Self::get_required_env("DISPATCHER_CONTRACT", "Dispatcher contract address")?,
+                active_protocols: Self::get_required_env("ACTIVE_PROTOCOLS", "Active protocols (comma-separated)")?
+                    .split(',')
+                    .map(|p| p.trim().to_string())
+                    .collect(),
             },
         })
     }
