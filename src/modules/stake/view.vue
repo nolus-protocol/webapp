@@ -125,14 +125,14 @@ const stableDelegated = computed(() => {
   return stable.toString(2);
 });
 
-// Show empty state
+// Show empty state when user has no active delegations (unbonding-only doesn't count)
 const showEmpty = computed(() => {
-  return !walletConnected.value || !stakingStore.hasPositions;
+  return !walletConnected.value || stakingStore.delegations.length === 0;
 });
 
 // Total rewards
 const rewards = computed(() => {
-  if (!stakingStore.hasPositions) return [];
+  if (stakingStore.delegations.length === 0) return [];
 
   // Use totalRewards from store (already aggregated by backend)
   const rewardsAmount = new Dec(stakingStore.totalRewards, NATIVE_ASSET.decimal_digits);

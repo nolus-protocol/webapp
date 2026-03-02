@@ -53,7 +53,7 @@
       />
     </div>
     <div class="flex flex-col">
-      <template v-if="!showEmpty && unboundingDelegations.length > 0">
+      <template v-if="unboundingDelegations.length > 0">
         <div class="flex items-center gap-2 text-18 font-semibold">
           {{ $t("message.undelegating-balance") }}
           <Tooltip
