@@ -21,9 +21,6 @@ pub enum ConfigError {
 
     #[error("Admin API is enabled but no API key is configured")]
     AdminEnabledNoKey,
-
-    #[error("No active protocols configured")]
-    NoActiveProtocols,
 }
 
 /// Result of configuration validation
@@ -110,8 +107,6 @@ pub struct ProtocolsConfig {
     pub admin_contract: String,
     /// Dispatcher contract address
     pub dispatcher_contract: String,
-    /// Protocol filters (which protocols are active)
-    pub active_protocols: Vec<String>,
 }
 
 impl Default for ProtocolsConfig {
@@ -122,16 +117,6 @@ impl Default for ProtocolsConfig {
                 .to_string(),
             dispatcher_contract: "nolus14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s0k0puz"
                 .to_string(),
-            active_protocols: vec![
-                "OSMOSIS-OSMOSIS-USDC_NOBLE".to_string(),
-                "OSMOSIS-OSMOSIS-USDC_AXELAR".to_string(),
-                "OSMOSIS-OSMOSIS-ALL_BTC".to_string(),
-                "OSMOSIS-OSMOSIS-ALL_SOL".to_string(),
-                "OSMOSIS-OSMOSIS-ATOM".to_string(),
-                "OSMOSIS-OSMOSIS-OSMO".to_string(),
-                "OSMOSIS-OSMOSIS-AKT".to_string(),
-                "NEUTRON-ASTROPORT-USDC_NOBLE".to_string(),
-            ],
         }
     }
 }
@@ -191,11 +176,6 @@ impl AppConfig {
                 field: "DISPATCHER_CONTRACT".to_string(),
                 value: self.protocols.dispatcher_contract.clone(),
             });
-        }
-
-        // Must have at least one active protocol
-        if self.protocols.active_protocols.is_empty() {
-            errors.push(ConfigError::NoActiveProtocols);
         }
 
         // ====================================================================
@@ -334,10 +314,6 @@ impl AppConfig {
             protocols: ProtocolsConfig {
                 admin_contract: Self::get_required_env("ADMIN_CONTRACT", "Admin contract address")?,
                 dispatcher_contract: Self::get_required_env("DISPATCHER_CONTRACT", "Dispatcher contract address")?,
-                active_protocols: Self::get_required_env("ACTIVE_PROTOCOLS", "Active protocols (comma-separated)")?
-                    .split(',')
-                    .map(|p| p.trim().to_string())
-                    .collect(),
             },
         })
     }
@@ -388,24 +364,6 @@ mod tests {
         let config = ProtocolsConfig::default();
         assert!(!config.admin_contract.is_empty());
         assert!(!config.dispatcher_contract.is_empty());
-        assert!(!config.active_protocols.is_empty());
-        assert!(config
-            .active_protocols
-            .contains(&"OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()));
-    }
-
-    #[test]
-    fn test_active_protocols_parsing() {
-        let protocols_str = "PROTOCOL_A, PROTOCOL_B, PROTOCOL_C";
-        let parsed: Vec<String> = protocols_str
-            .split(',')
-            .map(|p| p.trim().to_string())
-            .collect();
-
-        assert_eq!(parsed.len(), 3);
-        assert!(parsed.contains(&"PROTOCOL_A".to_string()));
-        assert!(parsed.contains(&"PROTOCOL_B".to_string()));
-        assert!(parsed.contains(&"PROTOCOL_C".to_string()));
     }
 
     #[test]
@@ -419,23 +377,6 @@ mod tests {
         let config = ProtocolsConfig::default();
         assert!(config.admin_contract.starts_with("nolus1"));
         assert!(config.dispatcher_contract.starts_with("nolus1"));
-    }
-
-    #[test]
-    fn test_default_protocol_list_completeness() {
-        let config = ProtocolsConfig::default();
-
-        let has_osmosis = config
-            .active_protocols
-            .iter()
-            .any(|p| p.starts_with("OSMOSIS"));
-        assert!(has_osmosis, "Should have at least one Osmosis protocol");
-
-        let has_neutron = config
-            .active_protocols
-            .iter()
-            .any(|p| p.starts_with("NEUTRON"));
-        assert!(has_neutron, "Should have at least one Neutron protocol");
     }
 
     // ========================================================================
@@ -508,18 +449,6 @@ mod tests {
     }
 
     #[test]
-    fn test_validate_no_active_protocols() {
-        let mut config = create_test_config();
-        config.protocols.active_protocols = vec![];
-        let result = config.validate();
-        assert!(!result.is_ok());
-        assert!(result
-            .errors
-            .iter()
-            .any(|e| matches!(e, ConfigError::NoActiveProtocols)));
-    }
-
-    #[test]
     fn test_validate_admin_enabled_no_key() {
         let mut config = create_test_config();
         config.admin.enabled = true;
@@ -563,7 +492,7 @@ mod tests {
         assert!(with_warning.has_warnings());
 
         let with_error = ValidationResult {
-            errors: vec![ConfigError::NoActiveProtocols],
+            errors: vec![ConfigError::AdminEnabledNoKey],
             warnings: vec![],
         };
         assert!(!with_error.is_ok());

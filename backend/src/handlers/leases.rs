@@ -1271,7 +1271,12 @@ pub async fn fetch_leases_for_monitoring(
         .lease_rules
         .due_projection_secs;
 
-    // Get active protocols from cache
+    // Get active protocols from ETL-sourced app_config cache
+    let app_config = state
+        .data_cache
+        .app_config
+        .load_or_unavailable("App config")?;
+
     let contracts_map = state
         .data_cache
         .protocol_contracts
@@ -1279,7 +1284,13 @@ pub async fn fetch_leases_for_monitoring(
 
     let active_protocols: Vec<_> = contracts_map
         .keys()
-        .filter(|p| state.config.protocols.active_protocols.contains(*p))
+        .filter(|p| {
+            app_config
+                .protocols
+                .get(*p)
+                .map(|info| info.is_active)
+                .unwrap_or(false)
+        })
         .cloned()
         .collect();
 
