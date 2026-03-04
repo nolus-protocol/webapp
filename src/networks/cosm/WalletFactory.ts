@@ -13,7 +13,7 @@ import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/sta
 import { AminoTypes } from "@cosmjs/stargate";
 import { WalletManager, WalletUtils, Logger } from "@/common/utils";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
-import { type BaseWallet } from "./BaseWallet";
+import { BaseWallet } from "./BaseWallet";
 import { MetaMaskWallet } from "../evm";
 import { SolanaWallet } from "../sol";
 
@@ -32,7 +32,6 @@ async function createWallet(
   gasPrice: string,
   explorer: string
 ): Promise<BaseWallet> {
-  const { BaseWallet } = await import("./BaseWallet");
   const baseWallet = new BaseWallet(
     wallet.getTendermintClient(),
     offlineDirectSigner,

@@ -559,16 +559,6 @@ watch(
   }
 );
 
-watch(
-  () => [currency.value?.key],
-  () => {
-    // setSwapFee();
-  },
-  {
-    deep: true
-  }
-);
-
 function getPrice() {
   if (!lease.value || !displayData.value) return new Dec(0);
   return displayData.value.openingPrice;

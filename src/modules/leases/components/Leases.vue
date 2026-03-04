@@ -236,7 +236,6 @@ const leasesData = computed<TableRowItemProps[]>(() => {
           const navigate = () => {
             router.push(`/${RouteNames.LEASES}/${item.address}`);
           };
-          const displayData = leasesStore.getLeaseDisplayData(item);
           const isOpened = item.status === "opened";
 
           return {

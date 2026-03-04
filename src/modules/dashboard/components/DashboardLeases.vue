@@ -67,13 +67,12 @@ import EmptyState from "@/common/components/EmptyState.vue";
 
 import { Button, Widget } from "web-components";
 import { RouteNames } from "@/router";
-import { computed, ref, watch } from "vue";
+import { computed, ref } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore } from "@/common/stores/leases";
-import { usePricesStore } from "@/common/stores/prices";
-import { IntercomService, isMobile, Logger, WalletManager } from "@/common/utils";
+import { IntercomService, isMobile, WalletManager } from "@/common/utils";
 import { useWalletConnected } from "@/common/composables";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -83,7 +82,6 @@ const mobile = isMobile();
 const router = useRouter();
 const wallet = useWalletStore();
 const leasesStore = useLeasesStore();
-const pricesStore = usePricesStore();
 const configStore = useConfigStore();
 const walletConnected = useWalletConnected();
 
@@ -140,25 +138,4 @@ const pnlPercent = computed(() => {
   return totalPnl.quo(totalDownpayment).mul(new Dec(100));
 });
 
-// Update Intercom with network-filtered lease stats
-watch(
-  [networkFilteredLeases, () => pricesStore.prices],
-  () => {
-    try {
-      let totalDebtUsd = new Dec(0);
-      let totalValueUsd = new Dec(0);
-      let totalPnl = new Dec(0);
-
-      for (const lease of networkFilteredLeases.value) {
-        const displayData = leasesStore.getLeaseDisplayData(lease);
-        totalDebtUsd = totalDebtUsd.add(displayData.totalDebtUsd);
-        totalValueUsd = totalValueUsd.add(displayData.assetValueUsd);
-        totalPnl = totalPnl.add(displayData.pnlAmount);
-      }
-    } catch (e) {
-      Logger.error(e);
-    }
-  },
-  { deep: true }
-);
 </script>
