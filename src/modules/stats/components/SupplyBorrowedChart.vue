@@ -80,7 +80,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       : data.value;
 
   const allValues = chartData.flatMap((d) => [d.borrowed, d.supplied]);
-  const yDomain: [number, number] = [Math.min(...allValues), Math.max(...allValues)];
+  const yDomain: [number, number] = [0, Math.max(...allValues)];
   const tickFormat = createUsdTickFormat(yDomain);
   const yTicks = computeYTicks(yDomain);
   marginLeft = computeMarginLeft(yDomain, tickFormat, yTicks);
@@ -94,6 +94,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     marginBottom: marginBottom,
     y: {
       type: "linear",
+      domain: yDomain,
       grid: true,
       label: null,
       tickSize: 0,
