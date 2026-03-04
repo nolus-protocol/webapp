@@ -83,7 +83,7 @@ import PositionHealthWidget from "./single-lease/PositionHealthWidget.vue";
 import LeaseLogWidget from "./single-lease/LeaseLogWidget.vue";
 import { useRoute, useRouter } from "vue-router";
 import { IntercomService, Logger } from "@/common/utils";
-import { computed, onMounted, onUnmounted, provide, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, provide, ref, watch, watchEffect } from "vue";
 import { Alert, AlertType } from "web-components";
 import ProgressDots from "@/common/components/ProgressDots.vue";
 import { TEMPLATES } from "./common";
@@ -100,9 +100,19 @@ const balancesStore = useBalancesStore();
 
 let timeOut: NodeJS.Timeout;
 
-// Lease state
+// Lease state — single source of truth is the store. All updates (HTTP poll,
+// WebSocket) flow through the store; this ref is kept in sync reactively.
+// Once data exists, it never reverts to null — prevents content blink.
 const lease = ref<LeaseInfo | null>(null);
 const leaseAddress = computed(() => route.params.id as string);
+
+watchEffect(() => {
+  const storeLease = leasesStore.getLease(leaseAddress.value);
+  if (storeLease) {
+    lease.value = storeLease;
+  }
+});
+
 const protocol = computed(() => lease.value?.protocol ?? leasesStore.getLease(leaseAddress.value)?.protocol ?? "");
 
 // Computed display data for child components
@@ -111,7 +121,9 @@ const displayData = computed<LeaseDisplayData | null>(() => {
   return leasesStore.getLeaseDisplayData(lease.value);
 });
 
-async function getLease() {
+// Fetches lease data into the store. Does NOT touch lease.value directly —
+// the watchEffect above picks up store changes reactively.
+async function fetchLease() {
   try {
     // We must know the protocol before fetching — the backend defaults to a
     // Long protocol when none is supplied, which produces wrong data for Shorts.
@@ -124,17 +136,14 @@ async function getLease() {
     }
     if (!proto) return; // still unknown — don't fetch with wrong default
 
-    const result = await leasesStore.fetchLeaseDetails(leaseAddress.value, proto);
-    if (result) {
-      lease.value = result;
-    }
+    await leasesStore.fetchLeaseDetails(leaseAddress.value, proto);
   } catch (error) {
     Logger.error(error);
   }
 }
 
 function reload() {
-  getLease();
+  fetchLease();
   balancesStore.fetchBalances();
 }
 
@@ -176,30 +185,19 @@ const openingSubState = computed(() => {
 });
 
 onMounted(() => {
-  getLease();
-  timeOut = setInterval(() => {
-    getLease();
-  }, UPDATE_LEASES);
+  fetchLease();
+  timeOut = setInterval(fetchLease, UPDATE_LEASES);
 });
 
 onUnmounted(() => {
   clearInterval(timeOut);
 });
 
-// Watch for route changes
+// On route params change, fetch the new lease into the store.
+// The watchEffect handles syncing store → lease.value.
 watch(
   () => route.params.id,
-  () => getLease()
-);
-
-// Watch for WebSocket-driven store updates (real-time in_progress changes)
-watch(
-  () => leasesStore.getLease(leaseAddress.value),
-  (updated) => {
-    if (updated) {
-      lease.value = updated;
-    }
-  }
+  () => fetchLease()
 );
 
 // Redirect to positions list when lease reaches a terminal state
