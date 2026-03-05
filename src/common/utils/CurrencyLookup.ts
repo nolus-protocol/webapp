@@ -82,6 +82,14 @@ export function tryGetCurrencyByDenom(denom: string): CurrencyInfo | null {
 }
 
 /**
+ * Try to get currency by symbol, returns null instead of throwing
+ */
+export function tryGetCurrencyBySymbol(symbol: string): CurrencyInfo | null {
+  const configStore = useConfigStore();
+  return configStore.getCurrencyBySymbol(symbol) ?? null;
+}
+
+/**
  * Get currency by ticker for a specific protocol.
  * Constructs the key as "ticker@protocol" and looks up by key.
  * Used by lease/earn/history contexts where the protocol is known.

@@ -487,7 +487,7 @@ export class BackendApiClient {
   }
 
   async getDenomMetadata(denom: string): Promise<DenomMetadataInfo | null> {
-    return this.request<DenomMetadataInfo | null>("GET", `/api/governance/denoms/${denom}`);
+    return this.request<DenomMetadataInfo | null>("GET", `/api/governance/denoms/${encodeURIComponent(denom)}`);
   }
 
   // =========================================================================

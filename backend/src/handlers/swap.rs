@@ -1,284 +1,206 @@
 //! Swap handlers for cross-chain token swaps via Skip API
 //!
 //! Endpoints:
-//! - GET /api/swap/quote - Get a quote for swapping currencies
-//! - POST /api/swap/execute - Build transaction messages to execute a swap
-//! - GET /api/swap/status/:tracking_id - Get the status of a swap
-//! - GET /api/swap/history - Get swap history for an address
-//! - GET /api/swap/supported-pairs - Get supported swap pairs
+//! - POST /api/swap/route - Get optimal route (enriched with gated config)
+//! - POST /api/swap/messages - Get transaction messages (enriched with gated config)
+//! - GET /api/swap/status/:tx_hash - Get the status of a swap
+//! - GET /api/swap/chains - Get supported chains
+//! - POST /api/swap/track - Track a transaction
+//! - GET /api/swap/config - Get UI swap configuration
 
 use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-
-use crate::external::base_client::ExternalApiClient;
+use serde::Deserialize;
 use std::sync::Arc;
 use tracing::debug;
 
 use crate::error::AppError;
-use crate::external::skip::{SkipChain, SkipMessagesRequest, SkipRouteRequest};
+use crate::external::base_client::ExternalApiClient;
+use crate::external::skip::SkipChain;
 use crate::AppState;
 
 // ============================================================================
-// Request/Response Types
+// Route Handler
 // ============================================================================
 
+/// Slim route request from frontend — backend injects all Skip config
 #[derive(Debug, Deserialize)]
-pub struct SwapQuoteQuery {
-    /// Source asset denom (e.g., "unls" or IBC denom)
-    pub source_denom: String,
-    /// Source chain ID (e.g., "pirin-1")
-    pub source_chain_id: String,
-    /// Destination asset denom
-    pub dest_denom: String,
-    /// Destination chain ID
-    pub dest_chain_id: String,
-    /// Amount to swap (in base units)
-    pub amount: String,
-    /// Slippage tolerance as percentage (e.g., "1.0" for 1%)
-    pub slippage_tolerance: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SwapQuote {
-    /// Amount being sent
-    pub amount_in: String,
-    /// Expected amount to receive
-    pub amount_out: String,
-    /// Source asset info
-    pub source: SwapAsset,
-    /// Destination asset info
-    pub dest: SwapAsset,
-    /// Exchange rate (amount_out / amount_in)
-    pub exchange_rate: String,
-    /// Price impact percentage
-    pub price_impact_percent: Option<String>,
-    /// Route information
-    pub route: SwapRouteInfo,
-    /// Estimated fees
-    pub estimated_fees: Vec<SwapFee>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwapAsset {
-    pub denom: String,
-    pub chain_id: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwapRouteInfo {
-    /// Number of hops
-    pub hop_count: usize,
-    /// Chain IDs involved
-    pub chain_ids: Vec<String>,
-    /// Whether this involves a DEX swap
-    pub does_swap: bool,
-    /// Operations in the route
-    pub operations: Vec<serde_json::Value>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwapFee {
-    pub amount: String,
-    pub denom: String,
-    pub chain_id: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ExecuteSwapRequest {
-    /// Source asset denom
-    pub source_denom: String,
-    /// Source chain ID
-    pub source_chain_id: String,
-    /// Destination asset denom
-    pub dest_denom: String,
-    /// Destination chain ID
-    pub dest_chain_id: String,
-    /// Amount to swap
-    pub amount: String,
-    /// Slippage tolerance percentage
-    pub slippage_tolerance: Option<String>,
-    /// Map of chain_id to address for each chain in the route
-    pub addresses: HashMap<String, String>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct SwapTransactionResponse {
-    /// Transaction messages to sign
-    pub messages: Vec<SwapMessage>,
-    /// Memo for the transaction
-    pub memo: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SwapMessage {
-    pub chain_id: String,
-    pub msg_type_url: String,
-    pub msg: serde_json::Value,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum SwapStatusType {
-    Pending,
-    InProgress,
-    Completed,
-    Failed,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SwapHistoryEntry {
-    pub tx_hash: String,
-    pub source: SwapAsset,
-    pub dest: SwapAsset,
-    pub amount_in: String,
+pub struct RouteRequest {
+    pub source_asset_denom: String,
+    pub source_asset_chain_id: String,
+    pub dest_asset_denom: String,
+    pub dest_asset_chain_id: String,
+    pub amount_in: Option<String>,
     pub amount_out: Option<String>,
-    pub status: SwapStatusType,
-    pub timestamp: String,
+    /// Optional network hint to filter swap venues (e.g., "osmosis")
+    pub network: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SwapPair {
-    pub source: SwapAsset,
-    pub dest: SwapAsset,
-    pub available: bool,
-}
-
-// ============================================================================
-// Handlers
-// ============================================================================
-
-/// GET /api/swap/quote
-/// Get a quote for swapping currencies via Skip API
-pub async fn get_quote(
+/// POST /api/swap/route
+/// Enriches slim request with gated config, calls Skip API
+pub async fn get_route(
     State(state): State<Arc<AppState>>,
-    Query(query): Query<SwapQuoteQuery>,
-) -> Result<Json<SwapQuote>, AppError> {
+    Json(request): Json<RouteRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
     debug!(
-        "Getting swap quote: {} {} -> {} {}",
-        query.amount, query.source_denom, query.dest_denom, query.dest_chain_id
+        "Getting swap route: {} -> {}",
+        request.source_asset_denom, request.dest_asset_denom
     );
 
-    let route_request = SkipRouteRequest {
-        source_asset_denom: query.source_denom.clone(),
-        source_asset_chain_id: query.source_chain_id.clone(),
-        dest_asset_denom: query.dest_denom.clone(),
-        dest_asset_chain_id: query.dest_chain_id.clone(),
-        amount_in: query.amount.clone(),
-        slippage_tolerance_percent: query.slippage_tolerance.clone(),
-    };
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
 
-    let route = state.skip_client.get_route(route_request).await?;
+    let swap = &gated.swap_settings;
+    let network_config = &gated.network_config;
 
-    // Calculate exchange rate
-    let amount_in: f64 = query.amount.parse().map_err(|_| AppError::Validation {
-        message: format!("Invalid amount format: {}", query.amount),
-        field: Some("amount".to_string()),
-        details: None,
-    })?;
-    let amount_out: f64 = route
-        .amount_out
-        .parse()
-        .map_err(|_| AppError::ExternalApi {
-            api: "Skip".to_string(),
-            message: format!("Invalid amount_out from Skip API: {}", route.amount_out),
-        })?;
-    let exchange_rate = if amount_in > 0.0 {
-        format!("{:.8}", amount_out / amount_in)
-    } else {
-        "0".to_string()
-    };
-
-    // Build fees list
-    let fees = route
-        .estimated_fees
-        .unwrap_or_default()
-        .into_iter()
-        .map(|f| SwapFee {
-            amount: f.amount,
-            denom: f.denom,
-            chain_id: f.chain_id,
+    // Build swap_venues from network config, filtered by network hint if provided
+    let swap_venues: Vec<serde_json::Value> = network_config
+        .networks
+        .values()
+        .filter_map(|ns| {
+            let venue = ns.swap_venue.as_ref()?;
+            if let Some(ref hint) = request.network {
+                if !ns.chain_id.starts_with(hint) {
+                    return None;
+                }
+            }
+            Some(serde_json::json!({
+                "name": venue.name,
+                "chain_id": ns.chain_id,
+            }))
         })
         .collect();
 
-    Ok(Json(SwapQuote {
-        amount_in: route.amount_in,
-        amount_out: route.amount_out,
-        source: SwapAsset {
-            denom: query.source_denom,
-            chain_id: query.source_chain_id,
+    let mut body = serde_json::json!({
+        "source_asset_denom": request.source_asset_denom,
+        "source_asset_chain_id": request.source_asset_chain_id,
+        "dest_asset_denom": request.dest_asset_denom,
+        "dest_asset_chain_id": request.dest_asset_chain_id,
+        "cumulative_affiliate_fee_bps": swap.fee.to_string(),
+        "go_fast": swap.go_fast,
+        "smart_relay": swap.smart_relay,
+        "allow_multi_tx": swap.allow_multi_tx,
+        "allow_unsafe": swap.allow_unsafe,
+        "swap_venues": swap_venues,
+        "bridges": swap.bridges,
+        "experimental_features": swap.experimental_features,
+        "smart_swap_options": {
+            "split_routes": swap.smart_swap_options.split_routes,
+            "evm_swaps": swap.smart_swap_options.evm_swaps,
         },
-        dest: SwapAsset {
-            denom: query.dest_denom,
-            chain_id: query.dest_chain_id,
-        },
-        exchange_rate,
-        price_impact_percent: route.swap_price_impact_percent,
-        route: SwapRouteInfo {
-            hop_count: route.chain_ids.len().saturating_sub(1),
-            chain_ids: route.chain_ids,
-            does_swap: route.does_swap,
-            operations: route.operations,
-        },
-        estimated_fees: fees,
-    }))
-}
+    });
 
-/// POST /api/swap/execute
-/// Build transaction messages to execute a swap via Skip API
-pub async fn execute_swap(
-    State(state): State<Arc<AppState>>,
-    Json(request): Json<ExecuteSwapRequest>,
-) -> Result<Json<SwapTransactionResponse>, AppError> {
-    debug!(
-        "Building swap transaction: {} {} -> {} {}",
-        request.amount, request.source_denom, request.dest_denom, request.dest_chain_id
-    );
-
-    let messages_request = SkipMessagesRequest {
-        source_asset_denom: request.source_denom.clone(),
-        source_asset_chain_id: request.source_chain_id.clone(),
-        dest_asset_denom: request.dest_denom.clone(),
-        dest_asset_chain_id: request.dest_chain_id.clone(),
-        amount_in: request.amount.clone(),
-        chain_ids_to_addresses: request.addresses,
-        slippage_tolerance_percent: request.slippage_tolerance,
-    };
-
-    let response = state.skip_client.get_messages(messages_request).await?;
-
-    // Convert Skip messages to our format
-    let mut messages: Vec<SwapMessage> = Vec::with_capacity(response.msgs.len());
-    for m in response.msgs {
-        // Parse the msg string as JSON
-        let msg_value: serde_json::Value =
-            serde_json::from_str(&m.msg).map_err(|e| AppError::ExternalApi {
-                api: "Skip".to_string(),
-                message: format!("Failed to parse message JSON from Skip API: {}", e),
-            })?;
-
-        messages.push(SwapMessage {
-            chain_id: m.chain_id,
-            msg_type_url: m.msg_type_url,
-            msg: msg_value,
-        });
+    if let Some(ref amount_in) = request.amount_in {
+        body["amount_in"] = serde_json::json!(amount_in);
+    }
+    if let Some(ref amount_out) = request.amount_out {
+        body["amount_out"] = serde_json::json!(amount_out);
     }
 
-    Ok(Json(SwapTransactionResponse {
-        messages,
-        memo: "Swap via Nolus".to_string(),
-    }))
+    let url = format!("{}/v2/fungible/route", state.skip_client.base_url());
+    let response = state.skip_client.post_raw(&url, &body).await?;
+    Ok(Json(response))
 }
 
+// ============================================================================
+// Messages Handler
+// ============================================================================
+
+/// Slim messages request from frontend — backend injects slippage, timeout, affiliates
+#[derive(Debug, Deserialize)]
+pub struct MessagesRequest {
+    pub source_asset_denom: String,
+    pub source_asset_chain_id: String,
+    pub dest_asset_denom: String,
+    pub dest_asset_chain_id: String,
+    pub amount_in: String,
+    pub amount_out: String,
+    pub operations: Vec<serde_json::Value>,
+    pub address_list: Vec<String>,
+}
+
+/// POST /api/swap/messages
+/// Enriches slim request with slippage, timeout, affiliates from gated config
+pub async fn get_messages(
+    State(state): State<Arc<AppState>>,
+    Json(request): Json<MessagesRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    debug!(
+        "Getting swap messages: {} -> {}",
+        request.source_asset_denom, request.dest_asset_denom
+    );
+
+    let gated = state
+        .data_cache
+        .gated_config
+        .load_or_unavailable("Gated config")?;
+
+    let swap = &gated.swap_settings;
+    let network_config = &gated.network_config;
+
+    // Build affiliates by finding swap venues in operations and looking up their addresses
+    let mut chain_ids_to_affiliates = serde_json::Map::new();
+    for op in &request.operations {
+        let venue_name = op
+            .get("swap")
+            .and_then(|s| s.get("swap_venue"))
+            .and_then(|v| v.get("name"))
+            .and_then(|n| n.as_str());
+
+        if let Some(name) = venue_name {
+            for ns in network_config.networks.values() {
+                if let Some(ref venue) = ns.swap_venue {
+                    if venue.name == name {
+                        if let Some(ref address) = venue.address {
+                            chain_ids_to_affiliates.insert(
+                                ns.chain_id.clone(),
+                                serde_json::json!({
+                                    "affiliates": [{
+                                        "address": address,
+                                        "basisPointsFee": swap.fee.to_string(),
+                                    }]
+                                }),
+                            );
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    let body = serde_json::json!({
+        "source_asset_chain_id": request.source_asset_chain_id,
+        "source_asset_denom": request.source_asset_denom,
+        "dest_asset_chain_id": request.dest_asset_chain_id,
+        "dest_asset_denom": request.dest_asset_denom,
+        "amount_in": request.amount_in,
+        "amount_out": request.amount_out,
+        "operations": request.operations,
+        "address_list": request.address_list,
+        "chain_ids_to_affiliates": chain_ids_to_affiliates,
+        "slippage_tolerance_percent": swap.slippage.to_string(),
+        "timeout_seconds": swap.timeout_seconds,
+    });
+
+    let url = format!("{}/v2/fungible/msgs", state.skip_client.base_url());
+    let response = state.skip_client.post_raw(&url, &body).await?;
+    Ok(Json(response))
+}
+
+// ============================================================================
+// Status, Chains, Track, Config Handlers
+// ============================================================================
+
 /// GET /api/swap/status/:tx_hash
-/// Get the status of a swap by querying Skip API
 pub async fn get_status(
     State(state): State<Arc<AppState>>,
     Path(tx_hash): Path<String>,
-    Query(query): Query<SwapStatusChainQuery>,
+    Query(query): Query<StatusQuery>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     debug!("Getting swap status for tx: {}", tx_hash);
 
@@ -290,74 +212,15 @@ pub async fn get_status(
     );
 
     let response = state.skip_client.get_raw(&url).await?;
-
     Ok(Json(response))
 }
 
 #[derive(Debug, Deserialize)]
-pub struct SwapStatusChainQuery {
+pub struct StatusQuery {
     pub chain_id: String,
 }
 
-/// GET /api/swap/history
-/// Get swap history for an address (not implemented - would need indexer)
-pub async fn get_history(
-    State(_state): State<Arc<AppState>>,
-) -> Result<Json<Vec<SwapHistoryEntry>>, AppError> {
-    // Swap history would require an indexer service or database
-    // Skip API doesn't provide historical data
-    // For now, return empty array
-    Ok(Json(vec![]))
-}
-
-/// GET /api/swap/supported-pairs
-/// Get list of commonly used swap pairs (hardcoded for now)
-pub async fn get_supported_pairs(
-    State(_state): State<Arc<AppState>>,
-) -> Result<Json<Vec<SwapPair>>, AppError> {
-    // Return common swap pairs
-    // In production, this could be fetched from Skip's assets API
-    let pairs = vec![
-        SwapPair {
-            source: SwapAsset {
-                denom: "unls".to_string(),
-                chain_id: "pirin-1".to_string(),
-            },
-            dest: SwapAsset {
-                denom: "uosmo".to_string(),
-                chain_id: "osmosis-1".to_string(),
-            },
-            available: true,
-        },
-        SwapPair {
-            source: SwapAsset {
-                denom: "unls".to_string(),
-                chain_id: "pirin-1".to_string(),
-            },
-            dest: SwapAsset {
-                denom: "uatom".to_string(),
-                chain_id: "cosmoshub-4".to_string(),
-            },
-            available: true,
-        },
-        SwapPair {
-            source: SwapAsset {
-                denom: "uosmo".to_string(),
-                chain_id: "osmosis-1".to_string(),
-            },
-            dest: SwapAsset {
-                denom: "unls".to_string(),
-                chain_id: "pirin-1".to_string(),
-            },
-            available: true,
-        },
-    ];
-
-    Ok(Json(pairs))
-}
-
 /// GET /api/swap/chains
-/// Get supported chains from Skip API
 #[derive(Debug, Deserialize)]
 pub struct ChainsQuery {
     #[serde(default = "default_true")]
@@ -387,47 +250,14 @@ pub async fn get_chains(
     Ok(Json(response.chains))
 }
 
-/// POST /api/swap/route
-/// Get optimal route for a swap - pass-through to Skip API
-pub async fn get_route(
-    State(state): State<Arc<AppState>>,
-    Json(request): Json<serde_json::Value>,
-) -> Result<Json<serde_json::Value>, AppError> {
-    debug!("Getting swap route via Skip API");
-
-    // Pass through to Skip API directly for maximum compatibility
-    let url = format!("{}/v2/fungible/route", state.skip_client.base_url());
-
-    let response = state.skip_client.post_raw(&url, &request).await?;
-
-    Ok(Json(response))
-}
-
-/// POST /api/swap/messages
-/// Get transaction messages for a swap route - pass-through to Skip API
-pub async fn get_messages(
-    State(state): State<Arc<AppState>>,
-    Json(request): Json<serde_json::Value>,
-) -> Result<Json<serde_json::Value>, AppError> {
-    debug!("Getting swap messages via Skip API: {}", request);
-
-    // Pass through to Skip API directly for maximum compatibility
-    let url = format!("{}/v2/fungible/msgs", state.skip_client.base_url());
-
-    let response = state.skip_client.post_raw(&url, &request).await?;
-
-    Ok(Json(response))
-}
-
 /// POST /api/swap/track
-/// Track/register a transaction with Skip API
 #[derive(Debug, Deserialize)]
 pub struct TrackRequest {
     pub chain_id: String,
     pub tx_hash: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, serde::Serialize)]
 pub struct TrackResponse {
     pub tx_hash: String,
     pub explorer_link: Option<String>,
@@ -453,12 +283,8 @@ pub async fn track_transaction(
     }))
 }
 
-// ============================================================================
-// Swap Configuration
-// ============================================================================
-
 /// GET /api/swap/config
-/// Returns Skip route configuration with dynamically generated transfers from ETL data.
+/// Returns UI-only swap configuration (blacklist, defaults, transfers).
 /// Reads from background-refreshed cache (zero latency).
 pub async fn get_swap_config(
     State(state): State<Arc<AppState>>,

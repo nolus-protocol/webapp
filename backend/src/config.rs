@@ -313,7 +313,10 @@ impl AppConfig {
             },
             protocols: ProtocolsConfig {
                 admin_contract: Self::get_required_env("ADMIN_CONTRACT", "Admin contract address")?,
-                dispatcher_contract: Self::get_required_env("DISPATCHER_CONTRACT", "Dispatcher contract address")?,
+                dispatcher_contract: Self::get_required_env(
+                    "DISPATCHER_CONTRACT",
+                    "Dispatcher contract address",
+                )?,
             },
         })
     }

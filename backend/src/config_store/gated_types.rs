@@ -231,6 +231,51 @@ pub struct SwapSettingsConfig {
     /// Resolved to denom at runtime via ETL data
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_to_currency: Option<String>,
+    /// Enable Go Fast transfers
+    #[serde(default = "default_bool_true")]
+    pub go_fast: bool,
+    /// Enable smart relay
+    #[serde(default = "default_bool_true")]
+    pub smart_relay: bool,
+    /// Allow multi-transaction routes
+    #[serde(default = "default_bool_true")]
+    pub allow_multi_tx: bool,
+    /// Allow routes with poor execution quality
+    #[serde(default = "default_bool_true")]
+    pub allow_unsafe: bool,
+    /// Bridge protocols to use (e.g., ["IBC"])
+    #[serde(default = "default_bridges")]
+    pub bridges: Vec<String>,
+    /// Experimental protocol features (e.g., ["stargate", "eureka"])
+    #[serde(default = "default_experimental_features")]
+    pub experimental_features: Vec<String>,
+    /// Smart swap options for route optimization
+    #[serde(default)]
+    pub smart_swap_options: SmartSwapOptions,
+}
+
+/// Smart swap route optimization options
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SmartSwapOptions {
+    /// Enable route splitting for better pricing
+    #[serde(default = "default_bool_true")]
+    pub split_routes: bool,
+    /// Enable EVM swaps on supported networks
+    #[serde(default = "default_bool_true")]
+    pub evm_swaps: bool,
+}
+
+impl Default for SmartSwapOptions {
+    fn default() -> Self {
+        Self {
+            split_routes: true,
+            evm_swaps: true,
+        }
+    }
+}
+
+fn default_bool_true() -> bool {
+    true
 }
 
 fn default_slippage() -> u32 {
@@ -247,6 +292,14 @@ fn default_fee() -> u32 {
 
 fn default_timeout() -> String {
     "60".to_string()
+}
+
+fn default_bridges() -> Vec<String> {
+    vec!["IBC".to_string()]
+}
+
+fn default_experimental_features() -> Vec<String> {
+    vec!["stargate".to_string(), "eureka".to_string()]
 }
 
 // ============================================================================

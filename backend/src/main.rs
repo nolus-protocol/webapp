@@ -323,13 +323,7 @@ fn create_router(state: Arc<AppState>) -> Router {
         )
         // Swap (read)
         .route("/swap/config", get(handlers::swap::get_swap_config))
-        .route("/swap/quote", get(handlers::swap::get_quote))
         .route("/swap/status/{tx_hash}", get(handlers::swap::get_status))
-        .route("/swap/history", get(handlers::swap::get_history))
-        .route(
-            "/swap/supported-pairs",
-            get(handlers::swap::get_supported_pairs),
-        )
         .route("/swap/chains", get(handlers::swap::get_chains))
         // Referral (read)
         .route(
@@ -480,7 +474,6 @@ fn create_router(state: Arc<AppState>) -> Router {
             post(handlers::staking::claim_rewards),
         )
         // Swap (write)
-        .route("/swap/execute", post(handlers::swap::execute_swap))
         .route("/swap/track", post(handlers::swap::track_transaction))
         .route("/swap/route", post(handlers::swap::get_route))
         .route("/swap/messages", post(handlers::swap::get_messages))

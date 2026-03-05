@@ -1,8 +1,7 @@
-import type { SkipRouteConfigType } from "../types";
 import type { Chain, RouteRequest, RouteResponse, MessagesRequest, MessagesResponse } from "../types/skipRoute";
 import type { SkipRouteRequest, SkipMessagesRequest, SkipMsg } from "@/common/api/types/swap";
 
-import { fetchNetworkStatus, getSkipRouteConfig } from "./ConfigService";
+import { fetchNetworkStatus } from "./ConfigService";
 import { BackendApi } from "@/common/api";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
@@ -102,27 +101,15 @@ export class SkipRouter {
     revert: boolean = false,
     sourceId?: string,
     destSourceId?: string,
-    options: Partial<RouteRequest> = {}
+    network?: string
   ) {
-    const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
+    const client = await SkipRouter.getClient();
     const request: RouteRequest = {
       source_asset_denom: sourceDenom,
       source_asset_chain_id: sourceId ?? SkipRouter.chainId,
       dest_asset_denom: destDenom,
       dest_asset_chain_id: destSourceId ?? SkipRouter.chainId,
-      cumulative_affiliate_fee_bps: config.fee.toString(),
-      go_fast: true,
-      smart_relay: true,
-      allow_multi_tx: true,
-      allow_unsafe: true,
-      swap_venues: config.swap_venues,
-      bridges: ["IBC"],
-      experimental_features: ["stargate", "eureka"],
-      smart_swap_options: {
-        split_routes: true,
-        evm_swaps: true
-      },
-      ...options
+      network
     };
     if (revert) {
       request.amount_out = amount;
@@ -148,7 +135,7 @@ export class SkipRouter {
     wallets: { [key: string]: BaseWallet },
     callback: (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => Promise<void>
   ) {
-    const [client, config] = await Promise.all([SkipRouter.getClient(), getSkipRouteConfig()]);
+    const client = await SkipRouter.getClient();
     const addressList = [];
     const addresses: Record<string, string> = {};
 
@@ -187,10 +174,7 @@ export class SkipRouter {
     const request: MessagesRequest = {
       source_asset_chain_id: route.source_asset_chain_id,
       dest_asset_chain_id: route.dest_asset_chain_id,
-      chain_ids_to_affiliates: SkipRouter.getAffialates(route, config),
-      timeout_seconds: config.timeoutSeconds,
       operations: route.operations,
-      slippage_tolerance_percent: config.slippage.toString(),
       address_list: addressList,
       ...add
     };
@@ -250,43 +234,6 @@ export class SkipRouter {
     });
   }
 
-  private static getAffialates(route: RouteResponse, config: SkipRouteConfigType) {
-    const venue = route.swap_venues?.[0];
-    if (venue?.name) {
-      const affiliateAddress = config[venue.name as keyof typeof config] as string;
-      const affiliates = {
-        address: affiliateAddress,
-        basisPointsFee: config.fee.toString()
-      };
-      return {
-        [venue.chain_id]: { affiliates: [affiliates] }
-      };
-    }
-
-    return {};
-  }
-
-  static async track(chainId: string, hash: string, attempts = 0) {
-    try {
-      const client = await SkipRouter.getClient();
-      await client.getTransactionTrack({
-        chain_id: chainId,
-        tx_hash: hash
-      });
-    } catch {
-      await this.subTrack(chainId, hash, attempts);
-    }
-  }
-
-  static async subTrack(chainId: string, hash: string, attempts = 0) {
-    try {
-      await SkipRouter.wait(4000);
-      await this.track(chainId, hash, attempts);
-    } catch (error) {
-      console.error("[SkipRoute] subTrack failed:", error);
-    }
-  }
-
   private static getTx(msg: SkipMsg, msgJSON: Record<string, unknown>) {
     switch (msg.msg_type_url) {
       case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
@@ -321,5 +268,21 @@ export class SkipRouter {
     const client = await SkipRouter.getClient();
     SkipRouter.chains = client.getChains() as Promise<Chain[]>;
     return SkipRouter.chains;
+  }
+
+  static async track(chainId: string, hash: string, attempts = 0) {
+    const client = await SkipRouter.getClient();
+    try {
+      await client.getTransactionTrack({
+        chain_id: chainId,
+        tx_hash: hash
+      });
+    } catch {
+      if (attempts >= 5) {
+        throw new Error("Transaction tracking failed — please check your transaction manually");
+      }
+      await SkipRouter.wait(4000);
+      await SkipRouter.track(chainId, hash, attempts + 1);
+    }
   }
 }

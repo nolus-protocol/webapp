@@ -1,5 +1,5 @@
 {
-  "api_url": "https://api.skip.money",
+  "api_url": "https://api.skip.build",
   "blacklist": [],
   "slippage": 1,
   "gas_multiplier": 2,
@@ -10,5 +10,15 @@
     "osmosis": "USDC_NOBLE",
     "neutron": "USDC_NOBLE"
   },
-  "swap_to_currency": "NLS"
+  "swap_to_currency": "NLS",
+  "go_fast": true,
+  "smart_relay": true,
+  "allow_multi_tx": true,
+  "allow_unsafe": false,
+  "bridges": ["IBC"],
+  "experimental_features": ["stargate", "eureka"],
+  "smart_swap_options": {
+    "split_routes": true,
+    "evm_swaps": false
+  }
 }

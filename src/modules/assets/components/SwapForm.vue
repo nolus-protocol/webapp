@@ -379,10 +379,7 @@ async function setRoute(token: Coin, revert = false) {
       loading.value = true;
       error.value = "";
 
-      const config = await getSkipRouteConfig();
       const network = configStore.protocolFilter.toLowerCase();
-      const venue = config.swap_venues.find((v) => v.chain_id.startsWith(network));
-      const options = venue ? { swap_venues: [venue] } : {};
 
       if (revert) {
         route = await SkipRouter.getRoute(
@@ -392,7 +389,7 @@ async function setRoute(token: Coin, revert = false) {
           revert,
           undefined,
           undefined,
-          options
+          network
         );
         firstInputAmount.value = new Dec(route?.amount_in, selectedFirstCurrencyOption.value!.decimal_digits).toString(
           selectedFirstCurrencyOption.value!.decimal_digits
@@ -406,7 +403,7 @@ async function setRoute(token: Coin, revert = false) {
           revert,
           undefined,
           undefined,
-          options
+          network
         );
         secondInputAmount.value = new Dec(
           route?.amount_out,

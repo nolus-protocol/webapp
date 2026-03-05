@@ -77,24 +77,6 @@ impl SkipClient {
         self.get_url(url).await
     }
 
-    /// Get optimal swap route
-    pub async fn get_route(
-        &self,
-        request: SkipRouteRequest,
-    ) -> Result<SkipRouteResponse, AppError> {
-        let url = format!("{}/v2/fungible/route", self.base_url);
-        self.post_url(&url, &request).await
-    }
-
-    /// Get messages for a route
-    pub async fn get_messages(
-        &self,
-        request: SkipMessagesRequest,
-    ) -> Result<SkipMessagesResponse, AppError> {
-        let url = format!("{}/v2/fungible/msgs_direct", self.base_url);
-        self.post_url(&url, &request).await
-    }
-
     /// Get transaction status
     pub async fn get_status(
         &self,
@@ -139,62 +121,6 @@ impl SkipClient {
 // ============================================================================
 // Skip Request/Response Types
 // ============================================================================
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipRouteRequest {
-    pub source_asset_denom: String,
-    pub source_asset_chain_id: String,
-    pub dest_asset_denom: String,
-    pub dest_asset_chain_id: String,
-    pub amount_in: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub slippage_tolerance_percent: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipRouteResponse {
-    pub amount_in: String,
-    pub amount_out: String,
-    pub operations: Vec<serde_json::Value>,
-    pub chain_ids: Vec<String>,
-    #[serde(default)]
-    pub does_swap: bool,
-    pub estimated_amount_out: Option<String>,
-    pub swap_price_impact_percent: Option<String>,
-    pub estimated_fees: Option<Vec<SkipFee>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipFee {
-    pub amount: String,
-    pub denom: String,
-    pub chain_id: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipMessagesRequest {
-    pub source_asset_denom: String,
-    pub source_asset_chain_id: String,
-    pub dest_asset_denom: String,
-    pub dest_asset_chain_id: String,
-    pub amount_in: String,
-    pub chain_ids_to_addresses: std::collections::HashMap<String, String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub slippage_tolerance_percent: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipMessagesResponse {
-    pub msgs: Vec<SkipChainMessage>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipChainMessage {
-    pub chain_id: String,
-    pub path: Vec<String>,
-    pub msg: String,
-    pub msg_type_url: String,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SkipStatusResponse {

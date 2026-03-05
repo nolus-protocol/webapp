@@ -137,5 +137,4 @@ const pnlPercent = computed(() => {
 
   return totalPnl.quo(totalDownpayment).mul(new Dec(100));
 });
-
 </script>

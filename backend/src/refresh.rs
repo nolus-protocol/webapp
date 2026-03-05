@@ -1044,7 +1044,6 @@ pub async fn refresh_swap_config(state: &Arc<AppState>) {
     };
 
     let swap_settings = &gated.swap_settings;
-    let network_config = &gated.network_config;
 
     // Build protocol -> network lookup
     let mut protocol_to_network: HashMap<String, String> = HashMap::new();
@@ -1108,32 +1107,13 @@ pub async fn refresh_swap_config(state: &Arc<AppState>) {
         transfers_map.insert(network, serde_json::json!({ "currencies": currencies }));
     }
 
+    // Build public config response (UI-only fields)
     let mut response = serde_json::Map::new();
-    response.insert(
-        "api_url".to_string(),
-        serde_json::json!(swap_settings.api_url),
-    );
     response.insert(
         "blacklist".to_string(),
         serde_json::json!(swap_settings.blacklist),
     );
-    response.insert(
-        "slippage".to_string(),
-        serde_json::json!(swap_settings.slippage),
-    );
-    response.insert(
-        "gas_multiplier".to_string(),
-        serde_json::json!(swap_settings.gas_multiplier),
-    );
     response.insert("fee".to_string(), serde_json::json!(swap_settings.fee));
-    response.insert(
-        "fee_address".to_string(),
-        serde_json::json!(swap_settings.fee_address.clone().unwrap_or_default()),
-    );
-    response.insert(
-        "timeoutSeconds".to_string(),
-        serde_json::json!(swap_settings.timeout_seconds),
-    );
 
     let swap_to_denom = swap_settings
         .swap_to_currency
@@ -1159,19 +1139,6 @@ pub async fn refresh_swap_config(state: &Arc<AppState>) {
         );
     }
 
-    let mut venues = Vec::new();
-    for network_settings in network_config.networks.values() {
-        if let Some(ref venue) = network_settings.swap_venue {
-            if let Some(ref address) = venue.address {
-                response.insert(venue.name.clone(), serde_json::json!(address));
-            }
-            venues.push(serde_json::json!({
-                "name": venue.name,
-                "chain_id": network_settings.chain_id,
-            }));
-        }
-    }
-    response.insert("swap_venues".to_string(), serde_json::json!(venues));
     response.insert(
         "transfers".to_string(),
         serde_json::Value::Object(transfers_map),
@@ -1267,7 +1234,12 @@ pub async fn refresh_gas_fee_config(state: &Arc<AppState>) {
     }
 
     // Gas multiplier from gated network config for NOLUS (single source of truth)
-    let gas_multiplier = match gated.network_config.networks.get("NOLUS").map(|n| n.gas_multiplier) {
+    let gas_multiplier = match gated
+        .network_config
+        .networks
+        .get("NOLUS")
+        .map(|n| n.gas_multiplier)
+    {
         Some(m) => m,
         None => {
             error!("NOLUS network not found in gated config — cannot compute gas fees");

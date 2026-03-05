@@ -4,10 +4,10 @@ import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 import { Messages } from "./types";
 import { Logger, StringUtils } from "@/common/utils";
 import {
-  getCurrencyByDenom,
   getCurrencyByTicker,
   getCurrencyByTickerForProtocol,
-  getCurrencyBySymbol,
+  tryGetCurrencyByDenom,
+  tryGetCurrencyBySymbol,
   getProtocolByContract,
   getLpnByProtocol
 } from "@/common/utils/CurrencyLookup";
@@ -580,58 +580,44 @@ function truncateString(text: string) {
 }
 
 function getCurrency(amount: Coin) {
-  const info = getCurrencyByDenom(amount.denom);
-  const token = CurrencyUtils.convertMinimalDenomToDenom(
+  const info = tryGetCurrencyByDenom(amount.denom);
+  return CurrencyUtils.convertMinimalDenomToDenom(
     amount?.amount,
-    info?.ibcData,
+    info?.ibcData ?? amount.denom,
     info?.shortName ?? truncateString(amount.denom),
     Number(info?.decimal_digits ?? 0)
   );
-
-  return token;
 }
 
 async function fetchCurrency(amount: Coin, symbol?: string) {
-  let coin;
-  try {
-    coin = getCurrencyByDenom(amount.denom);
-  } catch (e) {
-    console.log(e);
-  }
-
-  if (!coin && symbol) {
-    try {
-      coin = getCurrencyBySymbol(symbol);
-    } catch (e) {
-      console.log(e);
-    }
-  }
+  const coin = tryGetCurrencyByDenom(amount.denom) ?? (symbol ? tryGetCurrencyBySymbol(symbol) : null);
 
   if (coin) {
     return CurrencyUtils.convertMinimalDenomToDenom(
       amount?.amount,
-      coin?.ibcData,
-      coin?.shortName ?? truncateString(amount.denom),
-      Number(coin?.decimal_digits ?? 0)
+      coin.ibcData,
+      coin.shortName ?? truncateString(amount.denom),
+      Number(coin.decimal_digits ?? 0)
     );
   }
 
   try {
     const metadata = await BackendApi.getDenomMetadata(amount.denom);
-    const c = metadata?.denom_units?.at(0);
-    const currency = getCurrencyBySymbol(c?.denom ?? amount.denom);
+    const resolved = metadata?.denom_units?.at(0);
+    const currency = tryGetCurrencyBySymbol(resolved?.denom ?? amount.denom);
 
-    return CurrencyUtils.convertMinimalDenomToDenom(
-      amount?.amount,
-      currency?.ibcData,
-      currency?.shortName ?? truncateString(amount.denom),
-      Number(currency?.decimal_digits ?? 0)
-    );
+    if (currency) {
+      return CurrencyUtils.convertMinimalDenomToDenom(
+        amount?.amount,
+        currency.ibcData,
+        currency.shortName ?? truncateString(amount.denom),
+        Number(currency.decimal_digits ?? 0)
+      );
+    }
   } catch (e) {
-    console.log(e);
+    console.error("[history] getDenomMetadata failed:", e);
   }
 
-  // Last resort: show truncated denom with raw amount
   return CurrencyUtils.convertMinimalDenomToDenom(amount?.amount, amount.denom, truncateString(amount.denom), 0);
 }
 

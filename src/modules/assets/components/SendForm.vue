@@ -710,8 +710,7 @@ async function getRoute() {
     transferAmount.atomics,
     false,
     undefined,
-    chainId,
-    {}
+    chainId
   );
 
   return route;

@@ -30,10 +30,6 @@ export interface RouteResponse {
   does_swap: boolean;
   estimated_amount_out: string;
   swap_price_impact_percent: string;
-  swap_venues: {
-    name: string;
-    chain_id: string;
-  }[];
   txs_required: number;
   usd_amount_in: string;
   usd_amount_out: string;

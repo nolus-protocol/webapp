@@ -3,74 +3,6 @@
  * Includes Skip Route API types
  */
 
-export interface SwapQuoteRequest {
-  source_asset: string;
-  source_chain: string;
-  dest_asset: string;
-  dest_chain: string;
-  amount: string;
-}
-
-export interface SwapQuoteResponse {
-  route: SwapRoute;
-  amount_out: string;
-  amount_out_usd: string;
-  fees: SwapFee[];
-  price_impact: string;
-  estimated_time_seconds: number;
-}
-
-export interface SwapRoute {
-  id: string;
-  operations: SwapOperation[];
-}
-
-export interface SwapOperation {
-  type: "swap" | "transfer";
-  chain_id: string;
-  from_asset: string;
-  to_asset: string;
-  pool_id?: string;
-}
-
-export interface SwapFee {
-  amount: string;
-  denom: string;
-  chain_id: string;
-}
-
-export interface SwapExecuteRequest {
-  route: SwapRoute;
-  sender_address: string;
-  recipient_address: string;
-  slippage_tolerance: string;
-}
-
-export interface SwapExecuteResponse {
-  messages: SwapMessage[];
-  estimated_gas: string;
-}
-
-export interface SwapMessage {
-  chain_id: string;
-  type_url: string;
-  value: string;
-}
-
-export interface SwapStatusResponse {
-  status: SwapStatusType;
-  transfers: TransferStatus[];
-  error?: string;
-}
-
-export type SwapStatusType = "pending" | "in_progress" | "completed" | "failed";
-
-export interface TransferStatus {
-  chain_id: string;
-  tx_hash?: string;
-  status: "pending" | "submitted" | "confirmed" | "failed";
-}
-
 // =========================================================================
 // Skip Route API types
 // =========================================================================
@@ -95,15 +27,7 @@ export interface SkipRouteRequest {
   dest_asset_chain_id: string;
   amount_in?: string;
   amount_out?: string;
-  cumulative_affiliate_fee_bps?: string;
-  go_fast?: boolean;
-  smart_relay?: boolean;
-  allow_multi_tx?: boolean;
-  allow_unsafe?: boolean;
-  swap_venues?: unknown[];
-  experimental_features?: string[];
-  smart_swap_options?: unknown;
-  slippage_tolerance_percent?: string;
+  network?: string;
 }
 
 export interface SkipRouteResponse {
@@ -136,10 +60,7 @@ export interface SkipMessagesRequest {
   amount_in: string;
   amount_out: string;
   operations: unknown[];
-  chain_ids_to_affiliates?: Record<string, { affiliates: { address: string; basisPointsFee: string }[] }>;
-  timeout_seconds?: number;
-  slippage_tolerance_percent?: string;
-  address_list?: string[];
+  address_list: string[];
 }
 
 export interface SkipMessagesResponse {

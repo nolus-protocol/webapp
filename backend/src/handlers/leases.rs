@@ -1167,7 +1167,10 @@ fn calculate_pnl(
     // None legitimately means 0 (no downpayment recorded); parse failure is a data issue
     let downpayment_raw: f64 = match etl.lease.downpayment_amount.as_deref() {
         Some(s) => s.parse().unwrap_or_else(|_| {
-            warn!("Unparseable downpayment for lease {}: '{}'", opened.amount.ticker, s);
+            warn!(
+                "Unparseable downpayment for lease {}: '{}'",
+                opened.amount.ticker, s
+            );
             0.0
         }),
         None => 0.0,
@@ -1177,7 +1180,10 @@ fn calculate_pnl(
     // Fee uses asset decimals (matching frontend behavior)
     let fee_raw: f64 = match etl.fee.as_deref() {
         Some(s) => s.parse().unwrap_or_else(|_| {
-            warn!("Unparseable fee for lease {}: '{}'", opened.amount.ticker, s);
+            warn!(
+                "Unparseable fee for lease {}: '{}'",
+                opened.amount.ticker, s
+            );
             0.0
         }),
         None => 0.0,
@@ -1187,7 +1193,10 @@ fn calculate_pnl(
     // repayment_value is already formatted as a decimal number
     let repayment_value: f64 = match etl.repayment_value.as_deref() {
         Some(s) => s.parse().unwrap_or_else(|_| {
-            warn!("Unparseable repayment_value for lease {}: '{}'", opened.amount.ticker, s);
+            warn!(
+                "Unparseable repayment_value for lease {}: '{}'",
+                opened.amount.ticker, s
+            );
             0.0
         }),
         None => 0.0,

@@ -576,15 +576,7 @@ async function getRoute() {
 
   const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
 
-  const route = await SkipRouter.getRoute(
-    asset.balance.denom,
-    asset.from!,
-    transferAmount.atomics,
-    false,
-    chainId,
-    null,
-    {}
-  );
+  const route = await SkipRouter.getRoute(asset.balance.denom, asset.from!, transferAmount.atomics, false, chainId);
   return route;
 }
 
