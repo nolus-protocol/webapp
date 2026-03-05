@@ -3,6 +3,7 @@ import type { SkipRouteRequest, SkipMessagesRequest, SkipMsg } from "@/common/ap
 
 import { fetchNetworkStatus } from "./ConfigService";
 import { BackendApi } from "@/common/api";
+import { i18n } from "@/i18n";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
@@ -209,16 +210,16 @@ export class SkipRouter {
 
     switch (status.state) {
       case "STATE_ABANDONED": {
-        throw new Error("STATE_ABANDONED");
+        throw new Error(i18n.t("message.tx-state-abandoned"));
       }
       case "STATE_COMPLETED_SUCCESS": {
         return status;
       }
       case "STATE_COMPLETED_ERROR": {
-        throw new Error("STATE_COMPLETED_ERROR");
+        throw new Error(i18n.t("message.tx-state-error"));
       }
       case "STATE_PENDING_ERROR": {
-        throw new Error("STATE_PENDING_ERROR");
+        throw new Error(i18n.t("message.tx-state-pending-error"));
       }
     }
 
@@ -256,7 +257,7 @@ export class SkipRouter {
         });
       }
       default: {
-        throw new Error("Action not supported");
+        throw new Error(i18n.t("message.tx-action-not-supported"));
       }
     }
   }
@@ -279,7 +280,7 @@ export class SkipRouter {
       });
     } catch {
       if (attempts >= 5) {
-        throw new Error("Transaction tracking failed — please check your transaction manually");
+        throw new Error(i18n.t("message.tx-tracking-failed"));
       }
       await SkipRouter.wait(4000);
       await SkipRouter.track(chainId, hash, attempts + 1);
