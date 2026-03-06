@@ -51,23 +51,17 @@ const wallet = useWalletStore();
 const analyticsStore = useAnalyticsStore();
 const chart = ref<typeof Chart>();
 
-// Watch for position/debt data changes from analytics store
+// Watch for position/debt data changes from analytics store.
+// The store's useWalletWatcher already fetches dashboard data (including
+// positionDebtValue) on wallet connect — no need to fetch again here.
+// `immediate: true` picks up data that arrived before this component mounted.
+let lastResponseRef: unknown = null;
 watch(
   () => analyticsStore.positionDebtValue,
   (response) => {
-    if (response) {
+    if (response && response !== lastResponseRef) {
+      lastResponseRef = response;
       processPositionDebtData(response);
-    }
-  },
-  { immediate: true }
-);
-
-// Watch for wallet changes to trigger fetch
-watch(
-  () => wallet.wallet?.address,
-  () => {
-    if (wallet.wallet?.address) {
-      loadData();
     }
   },
   { immediate: true }
@@ -241,7 +235,10 @@ function processPositionDebtData(response: {
 }
 
 async function loadData() {
-  if (wallet.wallet?.address) {
+  // The analytics store's useWalletWatcher already fetches positionDebtValue
+  // as part of fetchDashboardData(). Only fetch here if the store hasn't
+  // loaded it yet (e.g. component mounted before the store finished).
+  if (wallet.wallet?.address && !analyticsStore.positionDebtValue) {
     await analyticsStore.fetchPositionDebtValue();
   }
 }

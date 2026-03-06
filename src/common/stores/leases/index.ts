@@ -298,6 +298,13 @@ export const useLeasesStore = defineStore("leases", () => {
       WebSocketClient.subscribeLeases(addr, (wsLease) => {
         // Merge with existing data (WebSocket sends partial data, no ETL)
         const existing = leaseDetails.value.get(wsLease.address);
+
+        // Don't let a stale WebSocket event regress a lease whose status
+        // has already advanced (same guard as fetchLeaseDetails).
+        if (existing && (STATUS_ORDER[wsLease.status] ?? 0) < (STATUS_ORDER[existing.status] ?? 0)) {
+          return;
+        }
+
         const merged = existing ? { ...existing, ...wsLease } : (wsLease as LeaseInfo);
 
         // Update in main list, or add if not yet present

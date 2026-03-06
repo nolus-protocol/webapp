@@ -77,7 +77,7 @@ const likert = {
 };
 
 watch(
-  () => [props.lease, props.interval],
+  () => [props.lease?.address, props.lease?.status, props.interval],
   () => {
     setData();
   }
