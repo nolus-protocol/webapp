@@ -10,6 +10,9 @@ jobs:
     name: Build and deploy
     runs-on: [self-hosted, frontend-deploy]
 
+    env:
+      PATH: /root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
     steps:
       - uses: actions/checkout@v4
 
@@ -18,23 +21,40 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Build SSR
+      - name: Build frontend (SPA)
+        env:
+          VITE_BACKEND_URL: https://app.nolus.io
+          VITE_WS_URL: wss://app.nolus.io/ws
+          VITE_APP_URL: https://app.nolus.io
         run: |
           npm ci
-          npm run build:production
+          npm run build
+
+      - name: Build Rust backend
+        run: |
+          cd backend
+          cargo build --release
 
       - name: Prepare deployment bundle
         run: |
           mkdir -p deploy-bundle
           cp -r dist/ deploy-bundle/
-          cp -r server/ deploy-bundle/
-          cp package.json deploy-bundle/
-          cd deploy-bundle && npm install --production --ignore-scripts
+          cp backend/target/release/nolus-backend deploy-bundle/
+          cp -r backend/config/ deploy-bundle/
 
       - name: Deploy via rclone
         run: |
-          rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app/ --verbose
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
+            rm -f /opt/deploy/builds/app/nolus-backend && \
+            sudo chown -R ${{ vars.DEPLOY_USER }}:${{ vars.DEPLOY_USER }} /opt/deploy/builds/app/config/"
 
-      - name: Restart SSR server
+          rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app/ \
+            --filter "- .env" \
+            --verbose
+
+      - name: Restart backend
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "sudo systemctl restart webapp-prod"
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
+            chmod +x /opt/deploy/builds/app/nolus-backend && \
+            sudo chown -R www-data:www-data /opt/deploy/builds/app/config/ && \
+            sudo systemctl restart webapp-prod"
