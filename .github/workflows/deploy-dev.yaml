@@ -27,6 +27,7 @@ jobs:
           VITE_WS_URL: wss://app-dev.nolus.io/ws
           VITE_APP_URL: https://app-dev.nolus.io
         run: |
+          npm update web-components
           npm ci
           npm run build
 
