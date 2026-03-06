@@ -19,8 +19,10 @@
 //! A lease is visible if:
 //! - Protocol is configured (see above)
 //! - Asset not in `ignore_all`
-//! - For long positions: asset not in `ignore_long`
-//! - For short positions: asset not in `ignore_short`
+//!
+//! Note: `ignore_long`/`ignore_short` only affect which assets are available
+//! for **new** position creation (handled by the gated_protocols handler).
+//! Existing leases are always shown regardless of these lists.
 //!
 //! ### Earn Positions
 //! An earn position is visible if:
@@ -54,10 +56,6 @@ pub struct UserDataFilterContext {
     pub configured_currencies: HashSet<String>,
     /// Assets to ignore completely
     pub ignore_all: HashSet<String>,
-    /// Assets to ignore for long positions
-    pub ignore_long: HashSet<String>,
-    /// Assets to ignore for short positions
-    pub ignore_short: HashSet<String>,
 }
 
 impl UserDataFilterContext {
@@ -120,15 +118,11 @@ impl UserDataFilterContext {
         // Build restriction sets
         let restrictions = &lease_rules.asset_restrictions;
         let ignore_all: HashSet<String> = restrictions.ignore_all.iter().cloned().collect();
-        let ignore_long: HashSet<String> = restrictions.ignore_long.iter().cloned().collect();
-        let ignore_short: HashSet<String> = restrictions.ignore_short.iter().cloned().collect();
 
         Self {
             configured_protocols,
             configured_currencies,
             ignore_all,
-            ignore_long,
-            ignore_short,
         }
     }
 
@@ -152,26 +146,17 @@ impl UserDataFilterContext {
     /// A lease is visible if:
     /// - Protocol is configured
     /// - Asset ticker is not in ignore_all
-    /// - For long positions: asset not in ignore_long
-    /// - For short positions: asset not in ignore_short
+    ///
+    /// Note: ignore_long/ignore_short only gate new position creation
+    /// (handled by gated_protocols handler), not existing lease visibility.
     pub fn is_lease_visible(&self, protocol_name: &str, asset_ticker: &str) -> bool {
-        // Get protocol info (also checks if configured)
-        let protocol_info = match self.get_protocol_info(protocol_name) {
-            Some(info) => info,
-            None => return false,
-        };
-
-        // Asset must not be in ignore_all
-        if self.ignore_all.contains(asset_ticker) {
+        // Protocol must be configured
+        if self.get_protocol_info(protocol_name).is_none() {
             return false;
         }
 
-        // Check position-specific restrictions based on protocol's position type
-        match protocol_info.position_type.to_lowercase().as_str() {
-            "long" => !self.ignore_long.contains(asset_ticker),
-            "short" => !self.ignore_short.contains(asset_ticker),
-            _ => true, // Unknown position type, allow by default
-        }
+        // Asset must not be in ignore_all
+        !self.ignore_all.contains(asset_ticker)
     }
 
     /// Check if an earn position should be visible
@@ -352,7 +337,7 @@ mod tests {
     }
 
     #[test]
-    fn test_lease_visibility_with_position_type() {
+    fn test_lease_visibility() {
         let ctx = UserDataFilterContext::from_config(
             &mock_etl_protocols(),
             &mock_currency_config(),
@@ -369,14 +354,11 @@ mod tests {
         // Lease with ignored asset (ignore_all)
         assert!(!ctx.is_lease_visible("OSMOSIS-OSMOSIS-USDC_NOBLE", "DEPRECATED_TOKEN"));
 
-        // Long protocol with asset in ignore_long - should be hidden
-        assert!(!ctx.is_lease_visible("OSMOSIS-OSMOSIS-USDC_NOBLE", "RISKY_LONG"));
-        // Short protocol with same asset in ignore_long - should be visible
+        // ignore_long/ignore_short do NOT hide existing leases —
+        // they only gate new position creation (in gated_protocols handler)
+        assert!(ctx.is_lease_visible("OSMOSIS-OSMOSIS-USDC_NOBLE", "RISKY_LONG"));
         assert!(ctx.is_lease_visible("OSMOSIS-OSMOSIS-SHORT", "RISKY_LONG"));
-
-        // Short protocol with asset in ignore_short - should be hidden
-        assert!(!ctx.is_lease_visible("OSMOSIS-OSMOSIS-SHORT", "RISKY_SHORT"));
-        // Long protocol with same asset in ignore_short - should be visible
+        assert!(ctx.is_lease_visible("OSMOSIS-OSMOSIS-SHORT", "RISKY_SHORT"));
         assert!(ctx.is_lease_visible("OSMOSIS-OSMOSIS-USDC_NOBLE", "RISKY_SHORT"));
     }
 
