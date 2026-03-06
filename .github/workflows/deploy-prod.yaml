@@ -40,21 +40,19 @@ jobs:
           mkdir -p deploy-bundle
           cp -r dist/ deploy-bundle/
           cp backend/target/release/nolus-backend deploy-bundle/
-          cp -r backend/config/ deploy-bundle/
 
       - name: Deploy via rclone
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
-            rm -f /opt/deploy/builds/app/nolus-backend && \
-            sudo chown -R ${{ vars.DEPLOY_USER }}:${{ vars.DEPLOY_USER }} /opt/deploy/builds/app/config/"
+            rm -f /opt/deploy/builds/app/nolus-backend"
 
           rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app/ \
             --filter "- .env" \
+            --filter "- config/" \
             --verbose
 
       - name: Restart backend
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
             chmod +x /opt/deploy/builds/app/nolus-backend && \
-            sudo chown -R www-data:www-data /opt/deploy/builds/app/config/ && \
             sudo systemctl restart webapp-prod"
