@@ -15,7 +15,7 @@ import { BackendApi } from "@/common/api";
  * 4. Frontend calls disconnect() on wallet disconnect
  */
 class IntercomServiceClass {
-  private loaded = false;
+  private scriptLoaded = false;
   private currentWallet: string | null = null;
 
   /**
@@ -35,11 +35,11 @@ class IntercomServiceClass {
         intercom_user_jwt: data.token
       };
 
-      if (this.loaded) {
+      if (this.scriptLoaded) {
         boot(baseData);
       } else {
         messenger(baseData);
-        this.loaded = true;
+        this.scriptLoaded = true;
       }
 
       return true;
@@ -54,7 +54,6 @@ class IntercomServiceClass {
    */
   async disconnect(): Promise<void> {
     shutdown();
-    this.loaded = false;
     this.currentWallet = null;
 
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -80,7 +79,7 @@ class IntercomServiceClass {
    * Check if Intercom is loaded
    */
   isLoaded(): boolean {
-    return this.loaded;
+    return this.scriptLoaded;
   }
 
   /**
