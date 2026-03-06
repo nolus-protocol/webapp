@@ -3,7 +3,10 @@
   <div class="toast">
     <Toast
       v-if="toast.show"
+      :key="toast.key"
       :type="toast.type"
+      :timeout="4000"
+      :on-close="() => (toast.show = false)"
     >
       {{ toast.message }}
     </Toast>
@@ -22,7 +25,6 @@ import { getTheme } from "./common/utils/ThemeManager";
 import { useI18n } from "vue-i18n";
 import { BackendApi } from "./common/api/BackendApi";
 
-let interval: NodeJS.Timeout;
 const i18n = useI18n();
 
 provide("onShowToast", onShowToast);
@@ -51,19 +53,17 @@ onMounted(() => {
 const toast = ref({
   show: false,
   type: ToastType.success,
-  message: ""
+  message: "",
+  key: 0
 });
 
 function onShowToast({ type, message }: { type: ToastType; message: string }) {
   toast.value = {
     show: true,
     type,
-    message
+    message,
+    key: toast.value.key + 1
   };
-  clearTimeout(interval);
-  interval = setTimeout(() => {
-    toast.value.show = false;
-  }, 4000);
 }
 </script>
 
