@@ -273,7 +273,7 @@ const balances = computed(() => {
   let repaymentCurrency;
 
   if (positionType === "Short") {
-    // Short: debt is in the underlying asset (e.g. ATOM), use debt.ticker
+    // Short: debt is in LPN (e.g. USDC_NOBLE), use debt.ticker
     const debtTicker = lease.value.debt.ticker;
     repaymentCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
   } else {
@@ -283,29 +283,10 @@ const balances = computed(() => {
 
   if (!repaymentCurrency) return [];
 
-  // Look for the repayment currency in wallet balances
-  const match = totalBalances.value.find((item) => item.ibcData === repaymentCurrency!.ibcData);
-  if (match) return [match];
-
-  // Always show the currency even with zero balance so the user can see what to repay with
-  const zeroCurrency = { ...repaymentCurrency, balance: { denom: repaymentCurrency.ibcData, amount: "0" } };
-  return [zeroCurrency];
-});
-
-const totalBalances = computed(() => {
-  const assets = [];
-
-  for (const key in configStore.currenciesData ?? {}) {
-    const currency = configStore.currenciesData![key];
-    const c = { ...currency };
-    const item = balancesStore.balances.find((item) => item.denom == currency.ibcData);
-    if (item) {
-      c.balance = item;
-      assets.push(c);
-    }
-  }
-
-  return assets;
+  // Use the protocol-specific currency directly (not a cross-protocol find by ibcData)
+  // to ensure the .key matches the price entry in pricesStore.
+  const walletBalance = balancesStore.balances.find((item) => item.denom === repaymentCurrency!.ibcData);
+  return [{ ...repaymentCurrency, balance: walletBalance ?? { denom: repaymentCurrency.ibcData, amount: "0" } }];
 });
 
 function handleAmountChange(event: string) {

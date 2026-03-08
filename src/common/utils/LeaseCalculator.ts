@@ -118,11 +118,17 @@ export class LeaseCalculator {
     const { health, healthStatus } = this.calculateHealth(lease, assetValueUsd, totalDebtUsd);
 
     // Parse ETL data (needed for PnL calculation)
-    // Note: downpayment uses LPN decimals, fee uses asset decimals (to match production)
+    // Downpayment uses collateral asset decimals (LS_cltr_amnt_stable = asset_micro × price),
+    // fee uses leased asset decimals.
+    const collateralDecimals = lease.etl_data?.collateral_symbol
+      ? (this.currencyProvider.getCurrency(lease.etl_data.collateral_symbol, protocol)?.decimal_digits ??
+        lpnCurrency?.decimal_digits ??
+        6)
+      : (lpnCurrency?.decimal_digits ?? 6);
     const { downPayment, openingPrice, fee, repaymentValue } = this.parseEtlData(
       lease,
       positionType,
-      lpnCurrency?.decimal_digits ?? 6,
+      collateralDecimals,
       currency?.decimal_digits ?? 8
     );
 
@@ -365,13 +371,13 @@ export class LeaseCalculator {
 
   /**
    * Parse ETL data from lease
-   * @param lpnDecimals - decimals for LPN currency (used for downpayment)
-   * @param assetDecimals - decimals for the leased asset (used for fee, matching production behavior)
+   * @param collateralDecimals - decimals for the collateral asset (used for downpayment)
+   * @param assetDecimals - decimals for the leased asset (used for fee)
    */
   parseEtlData(
     lease: LeaseInfo,
     positionType: string,
-    lpnDecimals: number,
+    collateralDecimals: number,
     assetDecimals: number
   ): {
     downPayment: Dec;
@@ -380,7 +386,7 @@ export class LeaseCalculator {
     repaymentValue: Dec;
   } {
     const downPayment = lease.etl_data?.downpayment_amount
-      ? new Dec(lease.etl_data.downpayment_amount, lpnDecimals)
+      ? new Dec(lease.etl_data.downpayment_amount, collateralDecimals)
       : new Dec(0);
 
     const openingPrice =

@@ -160,8 +160,10 @@ pub struct LeaseOpeningStateInfo {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LeaseEtlData {
-    /// Downpayment amount in USD
+    /// Downpayment amount (LS_cltr_amnt_stable: asset_micro_units × price)
     pub downpayment_amount: Option<String>,
+    /// Collateral symbol (e.g., "USDC_NOBLE" or "ALL_BTC") — determines downpayment decimals
+    pub collateral_symbol: Option<String>,
     /// Opening price per asset
     pub price: Option<String>,
     /// LPN price at opening (for short positions)
@@ -738,6 +740,7 @@ async fn fetch_lease_info(
     // Note: Some fields are at the top level of EtlLeaseOpening, not inside lease
     let etl_info = etl_data.as_ref().map(|d| LeaseEtlData {
         downpayment_amount: d.lease.downpayment_amount.clone(),
+        collateral_symbol: d.lease.collateral_symbol.clone(),
         // Opening price is inside lease.opening_price (was LS_opening_price)
         price: d.lease.opening_price.clone(),
         // lpn_price and fee are at the top level, not inside lease
@@ -1120,7 +1123,7 @@ fn parse_opened_status(status: &Option<serde_json::Value>) -> Option<LeaseInProg
 /// Where:
 ///   - assetValueUsd = Dec(amount, assetDecimals) * assetPrice
 ///   - totalDebtUsd = Dec(debtTotal, lpnDecimals) * lpnPrice
-///   - downPayment = Dec(etl.downpayment_amount, lpnDecimals)
+///   - downPayment = Dec(etl.downpayment_amount, collateralDecimals)
 ///   - fee = Dec(etl.fee, assetDecimals)
 ///   - repaymentValue = parseFloat(etl.repayment_value) (already formatted)
 fn calculate_pnl(
@@ -1163,7 +1166,20 @@ fn calculate_pnl(
     let debt_total: f64 = total_debt.parse().ok()?;
     let total_debt_usd = (debt_total / 10_f64.powi(lpn_decimals)) * lpn_price;
 
-    // Parse ETL data: downpayment uses LPN decimals
+    // Parse ETL data: downpayment uses collateral asset decimals.
+    // LS_cltr_amnt_stable = asset_micro_units × price, so the decimal factor
+    // comes from the collateral asset, not LPN (they differ when the user pays
+    // the downpayment in a non-LPN asset like BTC).
+    let cltr_decimals = etl
+        .lease
+        .collateral_symbol
+        .as_deref()
+        .and_then(|cltr_ticker| {
+            let cltr_key = format!("{}@{}", cltr_ticker, protocol);
+            currencies.currencies.get(&cltr_key).map(|c| c.decimal_digits as i32)
+        })
+        .unwrap_or(lpn_decimals);
+
     // None legitimately means 0 (no downpayment recorded); parse failure is a data issue
     let downpayment_raw: f64 = match etl.lease.downpayment_amount.as_deref() {
         Some(s) => s.parse().unwrap_or_else(|_| {
@@ -1175,7 +1191,7 @@ fn calculate_pnl(
         }),
         None => 0.0,
     };
-    let downpayment = downpayment_raw / 10_f64.powi(lpn_decimals);
+    let downpayment = downpayment_raw / 10_f64.powi(cltr_decimals);
 
     // Fee uses asset decimals (matching frontend behavior)
     let fee_raw: f64 = match etl.fee.as_deref() {
@@ -1646,13 +1662,22 @@ mod tests {
     }
 
     fn make_etl(downpayment: &str, fee: &str, repayment_value: &str) -> EtlLeaseOpening {
+        make_etl_with_collateral(downpayment, fee, repayment_value, None)
+    }
+
+    fn make_etl_with_collateral(
+        downpayment: &str,
+        fee: &str,
+        repayment_value: &str,
+        collateral_symbol: Option<&str>,
+    ) -> EtlLeaseOpening {
         EtlLeaseOpening {
             lease: EtlLeaseInfo {
                 timestamp: None,
                 downpayment_amount: Some(downpayment.to_string()),
                 loan_amount: None,
                 lease_position_ticker: None,
-                collateral_symbol: None,
+                collateral_symbol: collateral_symbol.map(|s| s.to_string()),
                 opening_price: None,
                 history: None,
             },
@@ -1855,6 +1880,56 @@ mod tests {
         );
 
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_calculate_pnl_btc_collateral() {
+        // Reproduces the bug: user pays downpayment in BTC, not USDC.
+        // LS_cltr_amnt_stable = asset_micro × price = 13200000 × 75583.85 ≈ 997706865842
+        // Correct: divide by 10^8 (BTC decimals) = $9977.07
+        // Bug:     divide by 10^6 (USDC decimals) = $997706.87 (100x too large)
+        //
+        // BTC at $90,000, holding 0.46 BTC = $41,400
+        // Debt: 14974 USDC at $1.00 = $14,974
+        // Downpayment: 0.132 BTC at $75,583.85 → LS_cltr_amnt_stable = 997706865842
+        //   Correct downpayment = 997706865842 / 10^8 = $9977.07
+        // Repayment: $1000
+        // PnL = 41400 - 14974 - 9977.07 + 0 - 1000 = $15448.93
+        // PnL% = 15448.93 / (9977.07 + 1000) * 100 = 140.77%
+        let opened = make_opened("ALL_BTC", "46000000", "USDC_NOBLE"); // 0.46 BTC
+        let etl = make_etl_with_collateral(
+            "997706865842", // LS_cltr_amnt_stable (asset_micro × price)
+            "0",
+            "1000",
+            Some("ALL_BTC"), // collateral is BTC, not USDC
+        );
+        let (prices, currencies) = make_prices_and_currencies("90000", "1.0");
+
+        let result = calculate_pnl(
+            "TEST-PROTOCOL",
+            &opened,
+            "14974000000", // ~14974 USDC debt
+            Some(&etl),
+            Some(&prices),
+            Some(&currencies),
+        );
+
+        let pnl = result.unwrap();
+        let amount: f64 = pnl.amount.parse().unwrap();
+        let percent: f64 = pnl.percent.parse().unwrap();
+        // With correct BTC decimals (8): downpayment = $9977.07
+        // PnL ≈ $15448.93, PnL% ≈ 140.77%
+        assert!(
+            (amount - 15448.93).abs() < 1.0,
+            "PnL amount should be ~$15449 but got {}",
+            amount
+        );
+        assert!(
+            (percent - 140.77).abs() < 1.0,
+            "PnL percent should be ~140.8% but got {}",
+            percent
+        );
+        assert!(pnl.pnl_positive);
     }
 
     #[test]

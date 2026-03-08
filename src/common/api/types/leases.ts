@@ -84,8 +84,10 @@ export interface LeaseOpeningStateInfo {
 }
 
 export interface LeaseEtlData {
-  /** Downpayment amount in USD */
+  /** Downpayment amount (LS_cltr_amnt_stable: asset_micro_units × price) */
   downpayment_amount?: string;
+  /** Collateral symbol (e.g., "USDC_NOBLE" or "ALL_BTC") — determines downpayment decimals */
+  collateral_symbol?: string;
   /** Opening price per asset */
   price?: string;
   /** LPN price at opening (for short positions) */
