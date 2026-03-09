@@ -11,6 +11,7 @@
       :calculatedBalance="stable"
       @input="onInput"
       :error-msg="validationError"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
     >
       <template v-slot:label>
         <div class="flex items-center gap-1">
@@ -94,6 +95,7 @@ const i18n = useI18n();
 const router = useRouter();
 const input = ref("0");
 const validationError = ref("");
+const errorInsufficientBalance = computed(() => validationError.value === i18n.t("message.invalid-balance-big"));
 const disabled = ref(false);
 
 const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
