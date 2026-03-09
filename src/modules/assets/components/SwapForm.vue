@@ -126,6 +126,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
+import { tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
 import { usePricesStore } from "@/common/stores/prices";
@@ -157,6 +158,7 @@ const historyStore = useHistoryStore();
 const i18n = useI18n();
 
 const blacklist = ref<string[]>([]);
+const swapCurrencies = ref<{ from: string; to: string; native: boolean; visible?: string }[]>([]);
 const selectedFirstCurrencyOption = ref<AdvancedCurrencyFieldOption | undefined>();
 const selectedSecondCurrencyOption = ref<AdvancedCurrencyFieldOption | undefined>();
 const amount = ref("0");
@@ -188,21 +190,30 @@ const disabledByWallet = computed(() => {
 const assets = computed(() => {
   const data = [];
 
-  for (const asset of balances.value ?? []) {
-    const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
+  for (const c of swapCurrencies.value) {
+    if (c.visible && configStore.protocolFilter != c.visible) continue;
+    if (blacklist.value.includes(c.from)) continue;
+
+    const currency = tryGetCurrencyByDenom(c.from);
+    if (!currency) continue;
+
+    if (balancesStore.ignoredCurrencies.includes(currency.ticker as string)) continue;
+
+    const amount = balancesStore.getBalance(currency.ibcData);
+    const value = new Dec(amount, currency.decimal_digits);
     const balance = formatTokenBalance(value);
 
-    const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
+    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const stable = price.mul(value);
 
     data.push({
-      name: asset.name,
-      value: asset.key,
-      label: asset.shortName,
-      icon: asset.icon,
-      ibcData: asset.ibcData,
-      decimal_digits: asset.decimal_digits,
-      balance: { value: balance, ticker: asset.shortName },
+      name: currency.name,
+      value: currency.key,
+      label: currency.shortName,
+      icon: currency.icon,
+      ibcData: currency.ibcData,
+      decimal_digits: currency.decimal_digits,
+      balance: { value: balance, ticker: currency.shortName },
       stable,
       price: formatDecAsUsd(stable)
     });
@@ -236,15 +247,6 @@ const selectedAsset = computed(() => {
   );
 });
 
-const balances = computed(() => {
-  return balancesStore.filteredBalances.filter((item) => {
-    if (balancesStore.ignoredCurrencies.includes(item.ticker as string)) {
-      return false;
-    }
-    return !blacklist.value.includes(item.ibcData);
-  });
-});
-
 watch(
   () => configStore.initialized,
   () => {
@@ -262,6 +264,10 @@ async function onInit() {
     const config = await getSkipRouteConfig();
     const protocol = configStore.protocolFilter.toLowerCase();
     blacklist.value = config.blacklist;
+
+    const networkTransfers = config.transfers?.[configStore.protocolFilter]?.currencies ?? [];
+    swapCurrencies.value = networkTransfers;
+
     selectedFirstCurrencyOption.value = assets.value.find(
       (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
     )!;
