@@ -16,6 +16,7 @@
       :first-calculated-balance="firstCalculatedBalance"
       :second-calculated-balance="secondCalculatedBalance"
       :error-msg="error"
+      :error-insufficient-balance="errorInsufficientBalance"
       @swap="onSwapItems"
       :item-template="
         (item) =>
@@ -27,7 +28,9 @@
           })
       "
     />
-    <div class="flex justify-end border-t border-b border-border-color px-6 py-4">
+    <div
+      class="flex justify-end border-t border-b border-border-color px-6 py-4"
+    >
       <div class="flex flex-[3] flex-col gap-3 text-right text-16 font-normal text-typography-secondary">
         <p class="flex gap-1 self-end">{{ $t("message.price-impact") }}:</p>
         <p class="flex gap-1 self-end">
@@ -35,7 +38,7 @@
           <span class="w-[18px]"> </span>
         </p>
       </div>
-      <div
+      <div 
         class="ml-2 flex flex-[1] flex-col justify-between gap-2 text-right text-16 font-semibold text-typography-default"
       >
         <template v-if="loading">
@@ -175,6 +178,8 @@ const disabled = ref(false);
 const loadingTx = ref(false);
 const priceImapact = ref(0);
 const onClose = inject("close", () => {});
+
+const errorInsufficientBalance = computed(() => error.value === i18n.t("message.invalid-balance-big"));
 
 const disabledByWallet = computed(() => {
   switch (wallet.wallet?.signer?.type) {

@@ -15,6 +15,7 @@
       :calculatedBalance="stable"
       @input="onInput"
       :error-msg="error"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
       :searchable="true"
       :itemsHeadline="[$t('message.assets'), $t('message.your-balance')]"
       :item-template="
@@ -179,6 +180,7 @@ const i18n = useI18n();
 
 const input = ref("0");
 const error = ref("");
+const errorInsufficientBalance = ref(false);
 const loading = ref(false);
 const disabled = ref(false);
 const supply = ref<{ [key: string]: boolean }>({});
@@ -360,10 +362,12 @@ function validateInputs() {
 
   if (verr.length > 0) {
     error.value = verr;
+    errorInsufficientBalance.value = true;
     return error.value;
   }
 
   error.value = validateAmountV2(input.value, currency.balance.value);
+  errorInsufficientBalance.value = error.value === i18n.t("message.invalid-balance-big");
   return error.value;
 }
 </script>

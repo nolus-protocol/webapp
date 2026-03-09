@@ -15,6 +15,7 @@
       :calculatedBalance="stable"
       @input="onInput"
       :error-msg="error"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
       :searchable="true"
       :itemsHeadline="[$t('message.assets'), $t('message.supplied')]"
       :item-template="
@@ -151,6 +152,7 @@ const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: st
 
 const input = ref("0");
 const error = ref("");
+const errorInsufficientBalance = computed(() => error.value === i18n.t("message.invalid-balance-big"));
 const loading = ref(false);
 const disabled = ref(false);
 const selectedCurrency = ref(0);

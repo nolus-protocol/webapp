@@ -41,6 +41,7 @@
       :disabled-input-field="isDisabled"
       :disabled-currency-picker="disablePicker || isDisabled"
       :error-msg="amountErrorMsg"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
       :selected-currency-option="currency"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
       :item-template="
@@ -204,6 +205,7 @@ const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(balancesStore
 const selectedCurrency = ref(0);
 const amount = ref("");
 const amountErrorMsg = ref("");
+const errorInsufficientBalance = computed(() => amountErrorMsg.value === i18n.t("message.invalid-balance-big"));
 const txHashes = ref<{ hash: string; status: SwapStatus; url: string | null }[]>([]);
 
 const step = ref(CONFIRM_STEP.CONFIRM);

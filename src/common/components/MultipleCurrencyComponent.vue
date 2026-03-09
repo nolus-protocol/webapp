@@ -16,6 +16,7 @@
     :itemsHeadline="itemsHeadline"
     :item-template="itemTemplate"
     :valueOnly="firstInputValue"
+    :inputClass="errorInsufficientBalance? 'text-typography-error' : undefined"
     searchable
   />
   <div class="relative">
@@ -56,19 +57,36 @@
     :itemsHeadline="itemsHeadline"
     :item-template="itemTemplate"
     :valueOnly="secondInputValue"
+    :inputClass="errorInsufficientBalance? 'text-typography-error' : undefined"
     searchable
   />
-  <span
-    :class="{ hidden: !errorMsg?.length }"
-    class="px-6 py-4 text-14 text-typography-error"
-  >
-    {{ errorMsg }}
-  </span>
+  <AnimatePresence>
+    <Motion
+      v-if="errorMsg?.length"
+      :initial="{ opacity: 0, y: 4, overflow: 'hidden' }"
+      :animate="{ opacity: 1, y: 0, overflow: 'hidden', transition: { type: 'spring', stiffness: 400, damping: 20 } }"
+      :exit="{ opacity: 0, y: 4, overflow: 'hidden', transition: { type: 'spring', stiffness: 400, damping: 40 } }"
+      tag="div"
+      class="px-6 py-4 text-14 text-typography-error flex items-center gap-1"
+    >
+      <SvgIcon size="s" name="warning" class="fill-typography-error" />
+      <AnimatePresence mode="wait">
+        <Motion
+          :key="errorMsg"
+          :initial="{ opacity: 0, y: 4 }"
+          :animate="{ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
+          :exit="{ opacity: 0, y: 4, transition: { type: 'spring', stiffness: 400, damping: 40 } }"
+          tag="span"
+        >{{ errorMsg }}</Motion>
+      </AnimatePresence>
+    </Motion>
+  </AnimatePresence>
 </template>
 
 <script lang="ts" setup>
 import { ref, watch, type Component } from "vue";
-import { type AdvancedCurrencyFieldOption, AdvancedFormControl } from "web-components";
+import { type AdvancedCurrencyFieldOption, AdvancedFormControl, SvgIcon } from "web-components";
+import { AnimatePresence, Motion } from "motion-v";
 import DownArrow from "@/common/components/icons/down-arrow.vue";
 import Swap from "@/common/components/icons/swap.vue";
 import { MultipleCurrencyEventType } from "../types";
@@ -89,6 +107,7 @@ const props = defineProps<{
   selectedSecondCurrencyOption: AdvancedCurrencyFieldOption | undefined;
   currencyOptions: AdvancedCurrencyFieldOption[];
   errorMsg?: string;
+  errorInsufficientBalance?: boolean;
   disabled?: boolean;
   isLoading?: boolean;
   itemsHeadline?: string[];
