@@ -38,6 +38,7 @@
     "ledger": "Ledger",
     "cancel": "İptal",
     "swap-same-error": "aynı para birimine takas edilemez",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "Geçersiz adres",
     "invalid-amount": "Geçersiz tutar",
     "invalid-balance-low": "Geçersiz tutar",

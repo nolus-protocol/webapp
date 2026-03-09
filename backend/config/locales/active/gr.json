@@ -36,6 +36,7 @@
     "ledger": "Ledger",
     "cancel": "Ακύρωση",
     "swap-same-error": "δεν είναι δυνατή η ανταλλαγή στο ίδιο νόμισμα",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "Μη έγκυρη διεύθυνση",
     "invalid-amount": "Μη έγκυρο ποσό",
     "invalid-balance-low": "Μη έγκυρο ποσό",

@@ -242,8 +242,8 @@ export class BackendApiClient {
       const errorData = await response.json().catch(() => ({}));
       throw new ApiErrorClass(
         response.status,
-        errorData.error || "unknown_error",
-        errorData.message || `Request failed with status ${response.status}`
+        errorData.error?.code || "unknown_error",
+        errorData.error?.message || `Request failed with status ${response.status}`
       );
     }
 

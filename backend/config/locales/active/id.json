@@ -36,6 +36,7 @@
     "ledger": "Ledger",
     "cancel": "Batal",
     "swap-same-error": "tidak bisa swap ke mata uang yang sama",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "Alamat tidak valid",
     "invalid-amount": "Jumlah tidak valid",
     "invalid-balance-low": "Jumlah tidak valid",

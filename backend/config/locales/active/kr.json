@@ -36,6 +36,7 @@
     "ledger": "Ledger",
     "cancel": "취소",
     "swap-same-error": "같은 통화로는 스왑할 수 없습니다",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "유효하지 않은 주소",
     "invalid-amount": "유효하지 않은 금액",
     "invalid-balance-low": "유효하지 않은 금액",

@@ -38,6 +38,7 @@
     "ledger": "Ledger",
     "cancel": "Cancelar",
     "swap-same-error": "no se puede intercambiar por la misma moneda",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "Dirección inválida",
     "invalid-amount": "Importe inválido",
     "invalid-balance-low": "Importe inválido",

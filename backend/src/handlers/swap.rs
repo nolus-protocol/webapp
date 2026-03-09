@@ -102,7 +102,13 @@ pub async fn get_route(
     }
 
     let url = format!("{}/v2/fungible/route", state.skip_client.base_url());
-    let response = state.skip_client.post_raw(&url, &body).await?;
+    let response = state
+        .skip_client
+        .post_raw(&url, &body)
+        .await
+        .map_err(|e| AppError::SwapRouteFailed {
+            message: e.to_string(),
+        })?;
     Ok(Json(response))
 }
 

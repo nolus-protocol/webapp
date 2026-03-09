@@ -38,6 +38,7 @@
     "ledger": "Ledger",
     "cancel": "取消",
     "swap-same-error": "无法兑换为相同币种",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "无效地址",
     "invalid-amount": "无效金额",
     "invalid-balance-low": "无效金额",

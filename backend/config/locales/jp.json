@@ -38,6 +38,7 @@
     "ledger": "Ledger",
     "cancel": "キャンセル",
     "swap-same-error": "同じ通貨にはスワップできません",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "無効なアドレス",
     "invalid-amount": "無効な金額",
     "invalid-balance-low": "無効な金額",

@@ -38,6 +38,7 @@
     "ledger": "Ledger",
     "cancel": "Отмена",
     "swap-same-error": "нельзя обменять на ту же валюту",
+    "swap-route-failed": "Unable to find a swap route. Try a smaller amount.",
     "invalid-address": "Неверный адрес",
     "invalid-amount": "Неверная сумма",
     "invalid-balance-low": "Неверная сумма",
