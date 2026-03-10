@@ -327,11 +327,11 @@ impl ChainClient {
         self.query_contract(lease_address, query).await
     }
 
-    /// Get validators
-    pub async fn get_validators(&self) -> Result<Vec<ValidatorInfo>, AppError> {
+    /// Get validators by status
+    async fn get_validators_by_status(&self, status: &str) -> Result<Vec<ValidatorInfo>, AppError> {
         let url = format!(
-            "{}/cosmos/staking/v1beta1/validators?status=BOND_STATUS_BONDED&pagination.limit=200",
-            self.rest_url
+            "{}/cosmos/staking/v1beta1/validators?status={}&pagination.limit=200",
+            self.rest_url, status
         );
 
         let response = self.chain_get(&url).await?;
@@ -354,6 +354,21 @@ impl ChainClient {
         })?;
 
         Ok(result.validators)
+    }
+
+    /// Get all validators (bonded + unbonding + unbonded to cover all jailed states).
+    /// Jailed validators start in UNBONDING, then move to UNBONDED after the unbonding period.
+    pub async fn get_validators(&self) -> Result<Vec<ValidatorInfo>, AppError> {
+        let (bonded, unbonding, unbonded) = tokio::try_join!(
+            self.get_validators_by_status("BOND_STATUS_BONDED"),
+            self.get_validators_by_status("BOND_STATUS_UNBONDING"),
+            self.get_validators_by_status("BOND_STATUS_UNBONDED"),
+        )?;
+
+        let mut all = bonded;
+        all.extend(unbonding);
+        all.extend(unbonded);
+        Ok(all)
     }
 
     /// Get delegations for an address
