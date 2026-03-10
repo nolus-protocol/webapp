@@ -139,7 +139,7 @@ const assets = computed(() => {
         label: lpn.shortName,
         ibcData: lpn.ibcData,
         icon: lpn.icon,
-        balance: { value: balance, ticker: lpn.shortName },
+        balance: { value: value.isZero() ? "0" : value.toString(lpn.decimal_digits).replace(/\.?0+$/, ""), customLabel: `${balance} ${lpn.shortName}`, ticker: lpn.shortName },
         stable,
         decimal_digits: lpn.decimal_digits,
         price: formatDecAsUsd(stable)

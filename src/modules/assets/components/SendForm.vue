@@ -154,6 +154,7 @@ const assets = computed(() => {
 
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = formatTokenBalance(value);
+    const exactBalance = value.isZero() ? "0" : value.toString(asset.decimal_digits).replace(/\.?0+$/, "");
     const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
     const stable = price.mul(value);
 
@@ -165,7 +166,8 @@ const assets = computed(() => {
       icon: asset.icon!,
       decimal_digits: asset.decimal_digits!,
       balance: {
-        value: balance,
+        value: exactBalance,
+        customLabel: `${balance} ${asset.shortName}`,
         ticker: asset.shortName!,
         denom: asset.balance.denom,
         amount: asset.balance?.amount

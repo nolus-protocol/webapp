@@ -102,19 +102,16 @@ const disabled = ref(false);
 const i18n = useI18n();
 
 const assets = computed(() => {
-  const balance = formatNumber(
-    new Dec(balancesStore.nativeBalance?.amount ?? "0", NATIVE_ASSET.decimal_digits).toString(
-      NATIVE_ASSET.decimal_digits
-    ),
-    NATIVE_ASSET.decimal_digits
-  );
+  const dec = new Dec(balancesStore.nativeBalance?.amount ?? "0", NATIVE_ASSET.decimal_digits);
+  const balance = formatNumber(dec.toString(NATIVE_ASSET.decimal_digits), NATIVE_ASSET.decimal_digits);
+  const exactBalance = dec.isZero() ? "0" : dec.toString(NATIVE_ASSET.decimal_digits).replace(/\.?0+$/, "");
 
   return [
     {
       value: NATIVE_ASSET.denom,
       label: NATIVE_ASSET.label,
       icon: NATIVE_ASSET.icon,
-      balance: { value: balance, ticker: NATIVE_ASSET.label }
+      balance: { value: exactBalance, customLabel: `${balance} ${NATIVE_ASSET.label}`, ticker: NATIVE_ASSET.label }
     }
   ];
 });

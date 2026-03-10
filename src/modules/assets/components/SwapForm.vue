@@ -218,7 +218,7 @@ const assets = computed(() => {
       icon: currency.icon,
       ibcData: currency.ibcData,
       decimal_digits: currency.decimal_digits,
-      balance: { value: balance, ticker: currency.shortName },
+      balance: { value: value.isZero() ? "0" : value.toString(currency.decimal_digits).replace(/\.?0+$/, ""), customLabel: `${balance} ${currency.shortName}`, ticker: currency.shortName },
       stable,
       price: formatDecAsUsd(stable)
     });

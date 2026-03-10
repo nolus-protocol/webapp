@@ -112,13 +112,14 @@ const assets = computed(() => {
   // Use staking store delegations
   const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
   const balance = formatTokenBalance(amount);
+  const exactBalance = amount.isZero() ? "0" : amount.toString(NATIVE_ASSET.decimal_digits).replace(/\.?0+$/, "");
 
   return [
     {
       value: NATIVE_ASSET.denom,
       label: NATIVE_ASSET.label,
       icon: NATIVE_ASSET.icon,
-      balance: { value: balance, ticker: NATIVE_ASSET.label }
+      balance: { value: exactBalance, customLabel: `${balance} ${NATIVE_ASSET.label}`, ticker: NATIVE_ASSET.label }
     }
   ];
 });
