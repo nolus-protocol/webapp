@@ -227,9 +227,11 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
           {
             class: "max-w-[140px]",
             component: () =>
-              isJailed
-                ? h(RedelegateButton, { src: position.validator_address, amount: position.balance.amount })
-                : h<LabelProps>(Label, { value: i18n.t("message.active"), variant: "secondary" })
+              stakingStore.validatorsLoading && !validator
+                ? null
+                : isJailed
+                  ? h(RedelegateButton, { src: position.validator_address, amount: position.balance.amount })
+                  : h<LabelProps>(Label, { value: i18n.t("message.active"), variant: "secondary" })
           }
         ]
       };
