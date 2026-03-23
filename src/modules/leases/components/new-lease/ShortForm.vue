@@ -2,7 +2,7 @@
   <div
     class="flex w-full flex-1 flex-col self-start rounded-xl border border-border-default bg-neutral-bg-2 shadow-larger"
   >
-    <div class="flex rounded-tl-xl rounded-tr-xl border-b border-border-color bg-neutral-bg-1">
+    <div class="flex rounded-tl-xl rounded-tr-xl bg-border-default gap-px">
       <Radio
         v-for="(tab, index) in tabs"
         :key="index"
@@ -10,6 +10,8 @@
         ref="radioRefs"
         :class="[
           {
+            'bg-neutral-bg-2 border-transparent': activeTabIdx === index,
+            'border-border-default': activeTabIdx !== index,
             'bg-neutral-bg-2': activeTabIdx === index,
             'rounded-tl-xl': index === 0,
             'rounded-tr-xl': index === tabs.length - 1
@@ -17,7 +19,7 @@
         ]"
         :label="$t(`message.${tab.action}`)"
         :checked="activeTabIdx == index"
-        class="flex flex-1 cursor-pointer justify-center border-r border-border-color bg-neutral-bg-1 px-6 py-5 text-16 font-normal text-typography-default"
+        class="flex flex-1 cursor-pointer justify-center border-b bg-neutral-bg-1 px-6 py-5 text-16 font-normal text-typography-default"
         name="dialogTabsGroup"
         @click="handleParentClick(index)"
       />
@@ -42,6 +44,7 @@
       "
       @input="handleAmountChange"
       :error-msg="amountErrorMsg"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
       :item-template="
         (item: any) =>
@@ -232,6 +235,7 @@ const isDisabled = ref(false);
 
 const amount = ref("");
 const amountErrorMsg = ref("");
+const errorInsufficientBalance = computed(() => amountErrorMsg.value === i18n.t("message.invalid-balance-big"));
 const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
 const leaseApply = ref<LeaseApply | null>();
 
