@@ -5,15 +5,15 @@
     size="small"
     icon="history"
     class="text-icon-default"
-    @click="isOpen = !isOpen"
+    :class="popoverRef?.isOpen ? 'active' : ''"
+    @click="popoverRef?.toggle()"
   />
   <TransactionDetails ref="transactionDialogRef" />
   <Popover
-    v-if="isOpen"
+    ref="popoverRef"
     position="bottom-right"
     :parent="popoverParent"
     :title="$t('message.activities')"
-    @close="isOpen = !isOpen"
     class="md:!max-w-[385px]"
   >
     <template #header> </template>
@@ -52,7 +52,6 @@
               @click="
                 () => {
                   router.push(`/${RouteNames.HISTORY}`);
-                  isOpen = false;
                 }
               "
             />
@@ -87,14 +86,13 @@ import { type ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
 
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
+const popoverRef = ref<InstanceType<typeof Popover> | null>(null);
 const popoverParent = ref();
-const isOpen = ref(false);
 
 const router = useRouter();
 const wallet = useWalletStore();
 
 const onActivityClick = (transaction: ITransactionData & HistoryData) => {
   transactionDialogRef.value?.show(transaction);
-  isOpen.value = false;
 };
 </script>

@@ -51,7 +51,7 @@
 import type { IObjectKeys } from "@/common/types";
 import { inject, ref } from "vue";
 import { Checkbox, SvgIcon, Button } from "web-components";
-const onClose = inject("close", (_filters?: IObjectKeys) => {});
+const onClose = inject("applyFilter", (_filters?: IObjectKeys) => {});
 const positions = ref(false);
 const transfers = ref(false);
 const earn = ref(false);

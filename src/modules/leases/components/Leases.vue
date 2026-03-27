@@ -160,7 +160,6 @@ const hide = ref(WalletManager.getHideBalances());
 const mobile = isMobile();
 const search = ref("");
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
-let openMenuId: string | null;
 
 let timeOut: NodeJS.Timeout;
 
@@ -277,10 +276,6 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                     showClose: isOpened && !displayData.inProgressType,
                     showDetails: true,
                     key: `mob-action-${item.address}`,
-                    opened: openMenuId == item.address,
-                    onClick: (data: boolean) => {
-                      openMenuId = data ? item.address : null;
-                    },
                     onSharePnl: () => {
                       sharePnlDialog.value?.show(item, displayData);
                     }
@@ -471,14 +466,6 @@ function getActions(lease: LeaseInfo, displayData: LeaseDisplayData) {
       lease,
       showClose: isOpened,
       key: `action-${lease.address}`,
-      opened: openMenuId == lease.address,
-      onClick: (data: boolean) => {
-        if (data) {
-          openMenuId = lease.address;
-        } else {
-          openMenuId = null;
-        }
-      },
       onSharePnl: () => {
         sharePnlDialog.value?.show(lease, displayData);
       }

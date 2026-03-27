@@ -5,13 +5,13 @@
     icon="more"
     size="small"
     class="!p-2.5 text-icon-default"
-    @click="isOpen = !isOpen"
+    :class="popoverRef?.isOpen ? 'active' : ''"
+    @click="popoverRef?.toggle()"
   />
   <Popover
-    v-if="isOpen"
+    ref="popoverRef"
     position="bottom-right"
     :parent="popoverParent"
-    @close="isOpen = !isOpen"
     :fullscreen-on-mobile="false"
     class="!max-w-[160px]"
   >
@@ -21,7 +21,7 @@
         @click="
           () => {
             emitter('click');
-            close();
+            popoverRef?.close();
           }
         "
       >
@@ -56,8 +56,8 @@ import { useI18n } from "vue-i18n";
 export type IAction = { transaction: ITransactionData & HistoryData };
 
 const i18n = useI18n();
+const popoverRef = ref<InstanceType<typeof Popover> | null>(null);
 const popoverParent = ref();
-const isOpen = ref(false);
 const props = defineProps<IAction>();
 const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const emitter = defineEmits(["click"]);
@@ -67,7 +67,7 @@ function copyHash() {
     StringUtils.copyToClipboard(props.transaction?.tx_hash);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-copied-successfully") });
   }
-  close();
+  popoverRef.value?.close();
 }
 
 function copyTxRaw() {
@@ -82,10 +82,6 @@ function copyTxRaw() {
     StringUtils.copyToClipboard(data);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-raw-copied-successfully") });
   }
-  close();
-}
-
-function close() {
-  isOpen.value = false;
+  popoverRef.value?.close();
 }
 </script>
