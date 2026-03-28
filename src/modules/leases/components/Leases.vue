@@ -109,7 +109,7 @@ import EmptyState from "@/common/components/EmptyState.vue";
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
 
 import { useI18n } from "vue-i18n";
-import { type Component, computed, h, onMounted, onUnmounted, provide, ref, watch } from "vue";
+import { computed, defineComponent, h, markRaw, onMounted, onUnmounted, provide, ref, watch } from "vue";
 import { isMobile, isTablet, IntercomService, Logger, WalletManager } from "@/common/utils";
 import { formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
@@ -160,6 +160,40 @@ const hide = ref(WalletManager.getHideBalances());
 const mobile = isMobile();
 const search = ref("");
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
+
+// Stable component reference — defined once so Vue doesn't unmount/remount when
+// the parent computed re-runs (e.g. on price updates or the 10-second refresh).
+const LeasesActionsCell = markRaw(
+  defineComponent({
+    props: ["lease", "displayData"],
+    setup(props) {
+      return () => {
+        const lease = props.lease as LeaseInfo;
+        const displayData = props.displayData as LeaseDisplayData;
+        const isOpened = lease.status === "opened";
+        const detailsButton = h<ButtonProps>(Button, {
+          label: i18n.t("message.details"),
+          severity: "secondary",
+          size: "medium",
+          key: `details-${lease.address}`,
+          onClick: () => router.push(`/${RouteNames.LEASES}/${lease.address}`)
+        });
+        if (isOpened && displayData.inProgressType) {
+          return [detailsButton];
+        }
+        return [
+          detailsButton,
+          h<IAction>(Action, {
+            lease,
+            showClose: isOpened,
+            key: `action-${lease.address}`,
+            onSharePnl: () => sharePnlDialog.value?.show(lease, displayData)
+          })
+        ];
+      };
+    }
+  })
+);
 
 let timeOut: NodeJS.Timeout;
 
@@ -270,16 +304,13 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                 class: "cursor-pointer"
               },
               {
-                component: () =>
-                  h<IAction>(Action, {
-                    lease: item,
-                    showClose: isOpened && !displayData.inProgressType,
-                    showDetails: true,
-                    key: `mob-action-${item.address}`,
-                    onSharePnl: () => {
-                      sharePnlDialog.value?.show(item, displayData);
-                    }
-                  }),
+                component: markRaw(Action),
+                componentProps: {
+                  lease: item,
+                  showClose: isOpened && !displayData.inProgressType,
+                  showDetails: true,
+                  onSharePnl: () => sharePnlDialog.value?.show(item, displayData)
+                },
                 class: "!flex-none w-[40px]"
               }
             ]
@@ -295,8 +326,6 @@ const leasesData = computed<TableRowItemProps[]>(() => {
               value: formatPriceUsd(displayData.liquidationPrice.toString()),
               class: "flex-[1.5_1_0%]"
             };
-
-        const actions: Component[] = getActions(item, displayData);
 
         return {
           items: [
@@ -349,7 +378,8 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                 },
             liquidation,
             {
-              component: () => [...actions],
+              component: LeasesActionsCell,
+              componentProps: { lease: item, displayData },
               class: "!flex-none w-[180px] pr-4 cursor-pointer"
             }
           ]
@@ -448,34 +478,6 @@ function getAsset(lease: LeaseInfo) {
     Logger.error("[Leases] Error getting asset for lease:", lease.address, e);
     return null;
   }
-}
-
-function getActions(lease: LeaseInfo, displayData: LeaseDisplayData) {
-  const isOpened = lease.status === "opened";
-  const actions = [
-    h<ButtonProps>(Button, {
-      label: i18n.t("message.details"),
-      severity: "secondary",
-      size: "medium",
-      key: `details-${lease.address}`,
-      onClick: () => {
-        router.push(`/${RouteNames.LEASES}/${lease.address}`);
-      }
-    }),
-    h<IAction>(Action, {
-      lease,
-      showClose: isOpened,
-      key: `action-${lease.address}`,
-      onSharePnl: () => {
-        sharePnlDialog.value?.show(lease, displayData);
-      }
-    })
-  ];
-
-  if (isOpened && displayData.inProgressType) {
-    return [actions[0]]; // Keep Details button, hide Action menu
-  }
-  return actions;
 }
 
 function isLeaseInProgress(lease: LeaseInfo): boolean {
