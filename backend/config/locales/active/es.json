@@ -231,6 +231,7 @@
     "toggle-values": "Alternar valores",
     "open": "Abrir",
     "paused": "En pausa",
+    "supply-paused-limit": "Suministro pausado, límite alcanzado",
     "unclaimed-rewards": "Recompensas de earn sin reclamar",
     "active": "Activo",
     "jailed": "Jailed",

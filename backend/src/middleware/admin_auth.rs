@@ -121,17 +121,19 @@ pub async fn admin_auth_middleware(
     next.run(request).await
 }
 
-/// Constant-time string comparison to prevent timing attacks
+/// Constant-time string comparison to prevent timing attacks.
+/// Always iterates over the longer slice to avoid leaking length info via timing.
 fn constant_time_compare(a: &[u8], b: &[u8]) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
+    let len_matches = a.len() == b.len();
+    let max_len = a.len().max(b.len());
 
     let mut result = 0u8;
-    for (x, y) in a.iter().zip(b.iter()) {
+    for i in 0..max_len {
+        let x = if i < a.len() { a[i] } else { 0 };
+        let y = if i < b.len() { b[i] } else { 0 };
         result |= x ^ y;
     }
-    result == 0
+    result == 0 && len_matches
 }
 
 #[cfg(test)]

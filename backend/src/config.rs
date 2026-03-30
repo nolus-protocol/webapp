@@ -56,6 +56,9 @@ pub struct AppConfig {
 pub struct ServerConfig {
     pub host: String,
     pub port: u16,
+    /// Optional list of allowed CORS origins. When None, allows any origin.
+    #[serde(default)]
+    pub cors_origins: Option<Vec<String>>,
 }
 
 impl Default for ServerConfig {
@@ -63,6 +66,7 @@ impl Default for ServerConfig {
         Self {
             host: "0.0.0.0".to_string(),
             port: 3000,
+            cors_origins: None,
         }
     }
 }
@@ -280,6 +284,12 @@ impl AppConfig {
                     .unwrap_or_else(|_| "3000".to_string())
                     .parse()
                     .expect("PORT must be a number"),
+                cors_origins: env::var("CORS_ORIGINS").ok().map(|v| {
+                    v.split(',')
+                        .map(|s| s.trim().to_string())
+                        .filter(|s| !s.is_empty())
+                        .collect()
+                }),
             },
             external,
             admin: AdminConfig {

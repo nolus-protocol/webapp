@@ -1,4 +1,4 @@
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { NolusClient } from "@nolus/nolusjs";
 import { Logger } from "@/common/utils";
 import { UPDATE_BLOCK_INTERVAL } from "@/config/global";
@@ -26,10 +26,19 @@ export function useBlockInfo() {
     }
   }
 
+  let intervalId: ReturnType<typeof setInterval> | null = null;
+
   onMounted(() => {
     setBlock();
     setVersion();
-    setInterval(setBlock, UPDATE_BLOCK_INTERVAL);
+    intervalId = setInterval(setBlock, UPDATE_BLOCK_INTERVAL);
+  });
+
+  onUnmounted(() => {
+    if (intervalId !== null) {
+      clearInterval(intervalId);
+      intervalId = null;
+    }
   });
 
   return { block, version };

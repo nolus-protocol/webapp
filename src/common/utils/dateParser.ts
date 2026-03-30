@@ -28,7 +28,7 @@ function getParams() {
   const many_s_in = i18n.global.t("message.many_s_in");
 
   const one_m = i18n.global.t("message.one_m");
-  const one_m_in = i18n.global.t("message.one_m");
+  const one_m_in = i18n.global.t("message.one_m_in");
   const many_m = i18n.global.t("message.many_m");
   const many_m_in = i18n.global.t("message.many_m_in");
 
@@ -40,7 +40,7 @@ function getParams() {
   const one_d = i18n.global.t("message.one_d");
   const one_d_in = i18n.global.t("message.one_d_in");
   const many_d = i18n.global.t("message.many_d");
-  const many_d_in = i18n.global.t("message.many_d");
+  const many_d_in = i18n.global.t("message.many_d_in");
 
   return {
     months,

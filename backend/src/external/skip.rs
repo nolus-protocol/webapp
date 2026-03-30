@@ -85,7 +85,9 @@ impl SkipClient {
     ) -> Result<SkipStatusResponse, AppError> {
         let url = format!(
             "{}/v2/tx/status?tx_hash={}&chain_id={}",
-            self.base_url, tx_hash, chain_id
+            self.base_url,
+            urlencoding::encode(tx_hash),
+            urlencoding::encode(chain_id)
         );
         self.get_url(&url).await
     }

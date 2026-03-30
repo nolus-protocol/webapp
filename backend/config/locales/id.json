@@ -231,6 +231,7 @@
     "toggle-values": "Tampilkan/sembunyikan nilai",
     "open": "Buka",
     "paused": "Dijeda",
+    "supply-paused-limit": "Pasokan dijeda, batas tercapai",
     "unclaimed-rewards": "Reward earn belum diklaim",
     "active": "Aktif",
     "jailed": "Jailed",

@@ -231,6 +231,7 @@
     "toggle-values": "値を切り替え",
     "open": "オープン",
     "paused": "一時停止",
+    "supply-paused-limit": "供給一時停止、上限に到達",
     "unclaimed-rewards": "未請求の報酬（Earn）",
     "active": "アクティブ",
     "jailed": "Jailed",

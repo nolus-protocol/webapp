@@ -232,6 +232,12 @@ pub async fn rate_limit_middleware(
             }
             .into_response();
         }
+    } else {
+        warn!("No client IP found, rejecting request");
+        return AppError::RateLimited {
+            retry_after: Some(1),
+        }
+        .into_response();
     }
 
     next.run(request).await

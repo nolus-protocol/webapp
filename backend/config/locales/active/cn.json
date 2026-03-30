@@ -231,6 +231,7 @@
     "toggle-values": "切换数值显示",
     "open": "开启",
     "paused": "已暂停",
+    "supply-paused-limit": "供应已暂停，已达上限",
     "unclaimed-rewards": "未领取的 earn rewards",
     "active": "活跃",
     "jailed": "已 Jailed",
