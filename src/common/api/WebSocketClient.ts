@@ -8,9 +8,12 @@
 import type { LeaseInfo, BalanceInfo, StakingPositionsResponse } from "./BackendApi";
 
 // WebSocket URL from environment, falls back to same-origin /ws (for Vite dev proxy)
-const WS_URL =
-  import.meta.env.VITE_WS_URL ||
-  `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`;
+function getWsUrl(): string {
+  return (
+    import.meta.env.VITE_WS_URL ||
+    `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/ws`
+  );
+}
 
 /**
  * Subscription topics supported by the backend
@@ -184,7 +187,7 @@ class WebSocketClientImpl {
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(config: WebSocketClientConfig = {}) {
-    const url = config.url || WS_URL;
+    const url = config.url || getWsUrl();
     if (!url) {
       throw new Error("VITE_WS_URL environment variable is required for WebSocket functionality");
     }
@@ -278,6 +281,7 @@ class WebSocketClientImpl {
   disconnect(): void {
     this.cleanup();
     if (this.ws) {
+      this.ws.onclose = null;
       this.ws.close(1000, "Client disconnect");
       this.ws = null;
     }
@@ -527,8 +531,17 @@ class WebSocketClientImpl {
   }
 }
 
-// Export singleton instance
-export const WebSocketClient = new WebSocketClientImpl();
+// Lazy singleton — deferred to first access so module can be imported in Node/test environments
+let _instance: WebSocketClientImpl | null = null;
+export const WebSocketClient = new Proxy({} as WebSocketClientImpl, {
+  get(_target, prop) {
+    if (!_instance) {
+      _instance = new WebSocketClientImpl();
+    }
+    const value = Reflect.get(_instance, prop, _instance);
+    return typeof value === "function" ? value.bind(_instance) : value;
+  }
+});
 
 // Export class for testing or custom instances
 export { WebSocketClientImpl };

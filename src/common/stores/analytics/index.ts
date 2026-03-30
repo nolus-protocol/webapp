@@ -100,11 +100,14 @@ export const useAnalyticsStore = defineStore("analytics", () => {
   async function fetchDashboardData(): Promise<void> {
     if (!address.value) return;
 
+    const targetAddress = address.value;
     dashboardLoading.value = true;
     error.value = null;
 
     try {
-      const data = await BackendApi.getUserDashboard(address.value);
+      const data = await BackendApi.getUserDashboard(targetAddress);
+
+      if (address.value !== targetAddress) return;
 
       dashboardData.value = {
         earnings: data.earnings,
@@ -162,11 +165,14 @@ export const useAnalyticsStore = defineStore("analytics", () => {
   async function fetchHistoryData(): Promise<void> {
     if (!address.value) return;
 
+    const targetAddress = address.value;
     historyLoading.value = true;
     error.value = null;
 
     try {
-      const data = await BackendApi.getUserHistory(address.value);
+      const data = await BackendApi.getUserHistory(targetAddress);
+
+      if (address.value !== targetAddress) return;
 
       historyData.value = {
         historyStats: data.history_stats,

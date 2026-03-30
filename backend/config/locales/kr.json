@@ -231,6 +231,7 @@
     "toggle-values": "값 전환",
     "open": "열기",
     "paused": "일시정지",
+    "supply-paused-limit": "공급 일시정지, 한도 도달",
     "unclaimed-rewards": "미수령 earn 리워드",
     "active": "활성",
     "jailed": "Jailed",

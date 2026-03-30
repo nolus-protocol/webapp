@@ -231,6 +231,7 @@
     "toggle-values": "Afficher/masquer les valeurs",
     "open": "Ouvrir",
     "paused": "En pause",
+    "supply-paused-limit": "Approvisionnement en pause, limite atteinte",
     "unclaimed-rewards": "Récompenses de gains non réclamées",
     "active": "Actif",
     "jailed": "Jailed",

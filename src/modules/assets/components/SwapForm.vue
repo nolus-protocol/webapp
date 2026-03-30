@@ -482,8 +482,9 @@ async function onSwap() {
       element.status = SwapStatus.success;
       await balancesStore.fetchBalances();
       historyStore.loadActivities();
-      onClose();
     });
+
+    onClose();
 
     if (wallet.history[id]) {
       wallet.history[id].txHashes = txHashes.value;

@@ -208,7 +208,7 @@ export const useEarnStore = defineStore("earn", () => {
       return;
     }
     await Promise.all([fetchPools(), fetchStats(), fetchEtlPools(), fetchSuppliedFunds()]);
-    initialized.value = true;
+    initialized.value = pools.value.length > 0;
   }
 
   /**

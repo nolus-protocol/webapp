@@ -6,7 +6,7 @@
       name="info"
       class="mr-2 fill-icon-secondary"
     />
-    Supply paused, limit reached
+    {{ $t('message.supply-paused-limit') }}
   </div>
 </template>
 

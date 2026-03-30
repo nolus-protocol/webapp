@@ -37,7 +37,7 @@ export class MetaMaskWallet implements Wallet {
         return (window as MetamaskWindow)?.phantom?.ethereum;
       }
       default: {
-        const p0 = (window as MetamaskWindow)?.ethereum?.providers?.pop?.();
+        const p0 = (window as MetamaskWindow)?.ethereum?.providers?.at?.(-1);
         if (p0) {
           return p0;
         }

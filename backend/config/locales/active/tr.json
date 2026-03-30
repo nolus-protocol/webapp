@@ -231,6 +231,7 @@
     "toggle-values": "Değerleri değiştir",
     "open": "Açık",
     "paused": "Duraklatıldı",
+    "supply-paused-limit": "Arz duraklatıldı, limite ulaşıldı",
     "unclaimed-rewards": "Talep edilmemiş earn ödülleri",
     "active": "Aktif",
     "jailed": "Jailed",

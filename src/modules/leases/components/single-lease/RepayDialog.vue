@@ -142,7 +142,7 @@ import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/c
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { minimumLeaseAmount, PERCENT, PERMILLE } from "@/config/global";
+import { minimumLeaseAmount } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 
@@ -379,20 +379,7 @@ function outStandingDebt() {
     .add(new Dec(lease.value.debt.overdue_margin))
     .add(new Dec(lease.value.debt.overdue_interest))
     .add(new Dec(lease.value.debt.due_margin))
-    .add(new Dec(lease.value.debt.due_interest))
-    .add(additionalInterest().roundUpDec());
-
-  return debt;
-}
-
-function additionalInterest() {
-  if (!lease.value || lease.value.status !== "opened") return new Dec(0);
-
-  const principal_due = new Dec(lease.value.debt.principal);
-  const loanInterest = new Dec(lease.value.interest.loan_rate / PERMILLE).add(
-    new Dec(lease.value.interest.margin_rate / PERCENT)
-  );
-  const debt = LeaseUtils.calculateAditionalDebt(principal_due, loanInterest);
+    .add(new Dec(lease.value.debt.due_interest));
 
   return debt;
 }
@@ -454,14 +441,11 @@ function isAmountValid() {
         coinData.decimal_digits
       ).amount.toDec();
       if (b.gt(debt) && debt.gt(minAmountCurrency)) {
-        if (debt.gt(minAmm) && amountInStable.gt(minAmount)) {
-          const n = new Dec(debtInCurrencies.truncate().toString(), coinData.decimal_digits);
-          amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
-            maxAmount: formatTokenBalance(n),
-            symbol: coinData.shortName
-          });
-        }
-
+        const n = new Dec(debtInCurrencies.truncate().toString(), coinData.decimal_digits);
+        amountErrorMsg.value = i18n.t("message.lease-only-max-error", {
+          maxAmount: formatTokenBalance(n),
+          symbol: coinData.shortName
+        });
         isValid = false;
       }
     } else {

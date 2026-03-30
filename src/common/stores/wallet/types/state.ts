@@ -13,6 +13,10 @@ export type State = {
     };
   }[];
 
+  // Delegated vesting/free from base_vesting_account
+  delegated_vesting?: { denom: string; amount: string };
+  delegated_free?: { denom: string; amount: string };
+
   // Staking APR
   apr: number;
 };

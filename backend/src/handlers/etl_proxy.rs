@@ -194,9 +194,13 @@ pub async fn batch_user_dashboard(
     let client = state.etl_client.client.clone();
     let address = query.params.get("address").cloned().unwrap_or_default();
 
-    let url_earnings = format!("{}/api/earnings?address={}", base_url, address);
-    let url_realized_pnl = format!("{}/api/realized-pnl?address={}", base_url, address);
-    let url_position_debt = format!("{}/api/position-debt-value?address={}", base_url, address);
+    let encoded_address = urlencoding::encode(&address);
+    let url_earnings = format!("{}/api/earnings?address={}", base_url, encoded_address);
+    let url_realized_pnl = format!("{}/api/realized-pnl?address={}", base_url, encoded_address);
+    let url_position_debt = format!(
+        "{}/api/position-debt-value?address={}",
+        base_url, encoded_address
+    );
 
     let (earnings, realized_pnl, position_debt_value) = tokio::join!(
         fetch_json(&client, &url_earnings),
@@ -229,8 +233,12 @@ pub async fn batch_user_history(
     let client = state.etl_client.client.clone();
     let address = query.params.get("address").cloned().unwrap_or_default();
 
-    let url_history_stats = format!("{}/api/history-stats?address={}", base_url, address);
-    let url_realized_pnl_data = format!("{}/api/realized-pnl-data?address={}", base_url, address);
+    let encoded_address = urlencoding::encode(&address);
+    let url_history_stats = format!("{}/api/history-stats?address={}", base_url, encoded_address);
+    let url_realized_pnl_data = format!(
+        "{}/api/realized-pnl-data?address={}",
+        base_url, encoded_address
+    );
 
     let (history_stats, realized_pnl_data) = tokio::join!(
         fetch_json(&client, &url_history_stats),
@@ -256,6 +264,8 @@ pub async fn fetch_json(client: &Client, url: &str) -> Result<serde_json::Value,
         .get(url)
         .send()
         .await
+        .map_err(|e| e.to_string())?
+        .error_for_status()
         .map_err(|e| e.to_string())?
         .json()
         .await

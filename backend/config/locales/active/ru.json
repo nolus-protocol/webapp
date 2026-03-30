@@ -231,6 +231,7 @@
     "toggle-values": "Переключить значения",
     "open": "Открыто",
     "paused": "Приостановлено",
+    "supply-paused-limit": "Поставка приостановлена, лимит достигнут",
     "unclaimed-rewards": "Неначисленные награды earn",
     "active": "Активно",
     "jailed": "Jailed",

@@ -231,6 +231,7 @@
     "toggle-values": "Εναλλαγή τιμών",
     "open": "Άνοιγμα",
     "paused": "Σε παύση",
+    "supply-paused-limit": "Η τροφοδοσία σταμάτησε, το όριο επιτεύχθηκε",
     "unclaimed-rewards": "Αδιεκδίκητες ανταμοιβές earn",
     "active": "Ενεργό",
     "jailed": "Jailed",

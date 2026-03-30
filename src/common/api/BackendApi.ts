@@ -184,6 +184,7 @@ export class BackendApiClient {
           console.error(`[BackendApi] Schema validation failed for ${path}:`, result.error);
           throw new ApiErrorClass(0, "validation_error", `Invalid response from ${path}`);
         }
+        return result.data;
       }
       return data;
     });
