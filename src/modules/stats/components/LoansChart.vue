@@ -18,6 +18,7 @@ import { color, select, pointer, type Selection } from "d3";
 import { ref, watch } from "vue";
 import { useConfigStore, useStatsStore } from "@/common/stores";
 
+const styles = window.getComputedStyle(document.documentElement);
 const chartHeight = 400;
 const marginTop = 0;
 const marginBottom = 30;
@@ -103,7 +104,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         x: "loan",
         y: "ticker",
         rx2: 2,
-        fill: "#3470E2",
+        fill: styles.getPropertyValue("--color-primary-default"),
         sort: { y: "x", reverse: true }
       }),
       gridX({})

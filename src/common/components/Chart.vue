@@ -56,7 +56,7 @@ export interface IChart {
 }
 
 const minLength = 3;
-const tooltip = select("body").append("div").attr("class", "custom-tooltip").style("opacity", 0);
+const tooltip = select("body").append("div").attr("class", "custom-tooltip shadow-md bg-neutral-bg-2/75 backdrop-blur-xs").style("opacity", 0);
 const props = defineProps<IChart>();
 const isLoading = ref(true);
 const maxHeight = ref(0);
