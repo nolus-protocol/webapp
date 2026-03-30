@@ -2,12 +2,13 @@
   <div
     class="flex flex-1 flex-col justify-between gap-y-4 border-b border-border-color pb-4 lg:flex-row lg:gap-0 lg:pb-3"
   >
-    <div class="flex items-center">
-      <SvgIcon
-        name="arrow-left"
-        size="l"
-        class="mr-4 cursor-pointer text-icon-default"
+    <div class="flex items-center gap-3">
+      <Button
+        icon="arrow-left"
         @click="goBack"
+        severity="tertiary"
+        size="medium"
+        class="cursor-pointer text-icon-default"
       />
       <div class="flex flex-1 flex-col">
         <div class="flex items-center justify-between">
