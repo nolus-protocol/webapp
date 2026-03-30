@@ -43,13 +43,6 @@ pub struct AuditLogResponse {
     pub limit: usize,
 }
 
-/// Response for listing available locales
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct LocalesListResponse {
-    pub available: Vec<String>,
-    pub default: String,
-}
-
 /// Configuration store that manages all webapp configuration
 #[derive(Debug)]
 pub struct ConfigStore {
@@ -260,45 +253,6 @@ impl ConfigStore {
         }
 
         Ok(locale)
-    }
-
-    /// List available locales
-    pub async fn list_locales(&self) -> Result<LocalesListResponse, AppError> {
-        let locales_dir = self.config_dir.join("locales");
-
-        if !locales_dir.exists() {
-            return Ok(LocalesListResponse::default());
-        }
-
-        let mut entries = fs::read_dir(&locales_dir)
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to read locales directory: {}", e)))?;
-
-        let mut available = Vec::new();
-
-        while let Some(entry) = entries
-            .next_entry()
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to read directory entry: {}", e)))?
-        {
-            let path = entry.path();
-            if path.extension().is_some_and(|ext| ext == "json") {
-                if let Some(stem) = path.file_stem() {
-                    let name = stem.to_string_lossy().to_string();
-                    // Skip non-locale files like audit.json, pending.json, languages.json
-                    if name.len() == 2 || name == "active" {
-                        available.push(name);
-                    }
-                }
-            }
-        }
-
-        available.sort();
-
-        Ok(LocalesListResponse {
-            available,
-            default: "en".to_string(),
-        })
     }
 
     /// Save a locale

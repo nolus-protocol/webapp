@@ -1,7 +1,6 @@
 use serde::Deserialize;
 use std::env;
 use thiserror::Error;
-use tracing::warn;
 
 // ============================================================================
 // Configuration Errors
@@ -225,27 +224,6 @@ impl AppConfig {
     /// Check if a string is a valid URL (basic check)
     fn is_valid_url(&self, url: &str) -> bool {
         url.starts_with("http://") || url.starts_with("https://")
-    }
-
-    /// Validate and log any issues, returning an error if critical issues found
-    pub fn validate_and_log(&self) -> anyhow::Result<()> {
-        let result = self.validate();
-
-        // Log warnings
-        for warning in &result.warnings {
-            warn!("Config warning: {}", warning);
-        }
-
-        // Check for errors
-        if !result.is_ok() {
-            let error_messages: Vec<String> = result.errors.iter().map(|e| e.to_string()).collect();
-            anyhow::bail!(
-                "Configuration validation failed:\n  - {}",
-                error_messages.join("\n  - ")
-            );
-        }
-
-        Ok(())
     }
 
     /// Helper to get required env var or fail fast

@@ -26,8 +26,6 @@
       />
     </template>
     <template #content>
-      <!-- <AvatarSettings /> -->
-
       <ThemeSettings />
     </template>
   </Popover>
@@ -37,7 +35,6 @@
 import { inject, onMounted, ref } from "vue";
 import { Button, Popover, ToastType } from "web-components";
 
-// import AvatarSettings from "./AvatarSettings.vue";
 import ThemeSettings from "./ThemeSettings.vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { notificationSubscribe, notificationUnsubscribe, getSubscriptionStatus } from "../../../push/lib";

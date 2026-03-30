@@ -47,17 +47,6 @@ import type {
   SkipMessagesResponse,
   SkipStatusResponse,
   SkipTrackResponse,
-  // Referral
-  ValidateCodeResponse,
-  RegisterReferrerResponse,
-  ReferrerStatsResponse,
-  ReferralsListResponse,
-  RewardsListResponse,
-  PayoutsListResponse,
-  AssignReferralResponse,
-  ReferralStatusType,
-  RewardStatusType,
-  PayoutStatusType,
   // Governance
   ProposalsResponse,
   TallyResult,
@@ -393,57 +382,6 @@ export class BackendApiClient {
   async trackSkipTransaction(chainId: string, txHash: string): Promise<SkipTrackResponse> {
     return this.request<SkipTrackResponse>("POST", "/api/swap/track", {
       body: { chain_id: chainId, tx_hash: txHash }
-    });
-  }
-
-  // =========================================================================
-  // Referral Program
-  // =========================================================================
-
-  async validateReferralCode(code: string): Promise<ValidateCodeResponse> {
-    return this.request<ValidateCodeResponse>("GET", `/api/referral/validate/${code}`);
-  }
-
-  async registerAsReferrer(walletAddress: string): Promise<RegisterReferrerResponse> {
-    return this.request<RegisterReferrerResponse>("POST", "/api/referral/register", {
-      body: { wallet_address: walletAddress }
-    });
-  }
-
-  async getReferrerStats(walletAddress: string): Promise<ReferrerStatsResponse> {
-    return this.request<ReferrerStatsResponse>("GET", `/api/referral/stats/${walletAddress}`);
-  }
-
-  async getReferrals(
-    walletAddress: string,
-    options?: { status?: ReferralStatusType; limit?: number; offset?: number }
-  ): Promise<ReferralsListResponse> {
-    return this.request<ReferralsListResponse>("GET", `/api/referral/referrals/${walletAddress}`, {
-      params: options
-    });
-  }
-
-  async getReferralRewards(
-    walletAddress: string,
-    options?: { status?: RewardStatusType; limit?: number; offset?: number }
-  ): Promise<RewardsListResponse> {
-    return this.request<RewardsListResponse>("GET", `/api/referral/rewards/${walletAddress}`, {
-      params: options
-    });
-  }
-
-  async getReferralPayouts(
-    walletAddress: string,
-    options?: { status?: PayoutStatusType; limit?: number; offset?: number }
-  ): Promise<PayoutsListResponse> {
-    return this.request<PayoutsListResponse>("GET", `/api/referral/payouts/${walletAddress}`, {
-      params: options
-    });
-  }
-
-  async assignReferral(referralCode: string, referredWallet: string): Promise<AssignReferralResponse> {
-    return this.request<AssignReferralResponse>("POST", "/api/referral/assign", {
-      body: { referral_code: referralCode, referred_wallet: referredWallet }
     });
   }
 

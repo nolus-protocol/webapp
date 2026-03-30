@@ -27,7 +27,7 @@
           <template v-if="transactions.length > 0 || historyStore.hasPendingTransfers">
             <HistoryTableRowWrapper
               v-for="transaction of txsSkip"
-              :transaction="transaction as any"
+              :transaction="transaction"
               :key="`${transaction.id}`"
             />
             <HistoryTableRowWrapper

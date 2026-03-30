@@ -2,8 +2,6 @@
 //!
 //! Adds appropriate Cache-Control headers based on endpoint type.
 
-#![allow(dead_code)]
-
 use axum::{
     body::Body,
     http::{header, Request, Response},
@@ -22,8 +20,6 @@ pub mod durations {
     pub const VALIDATORS: u32 = 300;
     /// Earn pools - short cache
     pub const EARN_POOLS: u32 = 60;
-    /// Static assets - very long cache
-    pub const STATIC: u32 = 86400;
     /// Default for unspecified endpoints
     pub const DEFAULT: u32 = 30;
 }

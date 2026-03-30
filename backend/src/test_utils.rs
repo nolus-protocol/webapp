@@ -5,7 +5,6 @@
 //! - Common test assertions
 //! - Setup helpers
 
-#![cfg(test)]
 #![allow(dead_code)]
 
 use serde::Serialize;
@@ -292,7 +291,7 @@ pub fn assert_json_array_len(json: &serde_json::Value, expected_len: usize) {
 pub fn assert_valid_number_string(json: &serde_json::Value) {
     let s = json.as_str().expect("Expected string value");
     s.parse::<f64>()
-        .expect(&format!("Expected valid number string, got '{}'", s));
+        .unwrap_or_else(|_| panic!("Expected valid number string, got '{}'", s));
 }
 
 /// Assert that a string is a valid Nolus address

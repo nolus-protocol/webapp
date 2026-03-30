@@ -10,7 +10,6 @@ export { useBalancesStore } from "./balances";
 export { useLeasesStore } from "./leases";
 export { useStakingStore } from "./staking";
 export { useEarnStore } from "./earn";
-export { useReferralsStore } from "./referrals";
 export { useHistoryStore } from "./history";
 export { useStatsStore } from "./stats";
 export { useAnalyticsStore } from "./analytics";
