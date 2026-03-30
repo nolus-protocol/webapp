@@ -52,6 +52,8 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useAnalyticsStore } from "@/common/stores";
 
+const styles = window.getComputedStyle(document.documentElement);
+
 type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
 const data = ref<ChartData[]>([]);
@@ -267,7 +269,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       lineY(chartData, {
         x: "Date",
         y: "Price",
-        stroke: "#3470E2",
+        stroke: styles.getPropertyValue("--color-primary-default"),
         strokeWidth: 2,
         strokeLinecap: "round",
         curve: "catmull-rom",
@@ -276,7 +278,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       lineY(chartData, {
         x: "Date",
         y: "Liquidation",
-        stroke: "#FF5F3A",
+        stroke: styles.getPropertyValue("--color-icon-brand"),
         strokeWidth: 2,
         strokeLinecap: "round",
         strokeDasharray: "6, 4",
@@ -297,6 +299,22 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     .attr("y2", chartHeight - marginBottom)
     .style("display", "none");
 
+  const dotPrice = select(plotChart)
+    .append("circle")
+    .attr("r", 5)
+    .attr("fill", styles.getPropertyValue("--color-primary-default"))
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .style("display", "none");
+
+  const dotLiquidation = select(plotChart)
+    .append("circle")
+    .attr("r", 5)
+    .attr("fill", styles.getPropertyValue("--color-icon-error"))
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .style("display", "none");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [x] = pointer(event, plotChart);
@@ -304,7 +322,23 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       const closestData = getClosestDataPoint(x);
 
       if (closestData) {
-        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+        const xScale = plotChart.scale("x");
+        const yScale = plotChart.scale("y");
+        if (!xScale || !yScale) return;
+        const xPixel = xScale.apply(closestData.Date);
+
+        crosshair.attr("x1", xPixel).attr("x2", xPixel).style("display", null);
+
+        dotPrice.attr("cx", xPixel).attr("cy", yScale.apply(closestData.Price)).style("display", null);
+
+        if (closestData.Liquidation !== null) {
+          dotLiquidation
+            .attr("cx", xPixel)
+            .attr("cy", yScale.apply(Number(closestData.Liquidation)))
+            .style("display", null);
+        } else {
+          dotLiquidation.style("display", "none");
+        }
 
         tooltip.html(
           `<strong>${i18n.t("message.price")}:</strong> ${formatUsd(closestData.Price)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> ${formatUsd(Number(closestData.Liquidation!))}`
@@ -322,6 +356,8 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     })
     .on("mouseleave", () => {
       crosshair.style("display", "none");
+      dotPrice.style("display", "none");
+      dotLiquidation.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }
