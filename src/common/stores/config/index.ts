@@ -538,11 +538,10 @@ export const useConfigStore = defineStore("config", () => {
     return currenciesData.value[key];
   }
 
-  /** Get currency by ticker, preferring an active protocol */
+  /** Get currency by ticker (first match across protocols) */
   function getCurrencyByTicker(ticker: string): CurrencyInfo | undefined {
     const matches = currenciesByTicker.value.get(ticker);
-    if (!matches || matches.length === 0) return undefined;
-    return matches.find((c) => protocols.value[c.protocol]?.is_active) ?? matches[0];
+    return matches?.[0];
   }
 
   /** Get currency by ticker, preferring the network's primary protocol */
