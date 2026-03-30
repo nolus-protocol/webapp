@@ -87,8 +87,8 @@
 import { ref, watch, type Component } from "vue";
 import { type AdvancedCurrencyFieldOption, AdvancedFormControl, SvgIcon } from "web-components";
 import { AnimatePresence, Motion } from "motion-v";
-import DownArrow from "@/common/components/icons/down-arrow.vue";
-import Swap from "@/common/components/icons/swap.vue";
+import DownArrow from "@/common/components/icons/DownArrow.vue";
+import Swap from "@/common/components/icons/Swap.vue";
 import { MultipleCurrencyEventType } from "../types";
 
 enum Emitters {

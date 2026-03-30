@@ -8,7 +8,6 @@ description = "Backend server for Nolus webapp"
 [dependencies]
 # Web framework
 axum = { version = "0.8", features = ["ws", "macros"] }
-axum-extra = { version = "0.10", features = ["typed-header"] }
 tower = { version = "0.5", features = ["full"] }
 tower-http = { version = "0.6", features = ["cors", "compression-gzip", "fs", "trace"] }
 
@@ -27,7 +26,6 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-feature
 urlencoding = "2.1"
 
 # Configuration
-config = "0.14"
 dotenvy = "0.15"
 
 # Logging & tracing
@@ -49,14 +47,8 @@ mini-moka = "0.10"
 dashmap = "6"
 
 # Cryptography (for Intercom JWT, address validation)
-hmac = "0.12"
-sha2 = "0.10"
-hex = "0.4"
 bech32 = "0.11"
 jsonwebtoken = "9"
-
-# Decimal math
-rust_decimal = { version = "1", features = ["serde", "serde-with-str"] }
 
 # Date/time
 chrono = { version = "0.4", features = ["serde"] }
@@ -69,7 +61,6 @@ governor = "0.6"
 
 # Cosmos SDK types (for transaction building)
 cosmrs = { version = "0.16", features = ["cosmwasm"] }
-cosmwasm-std = "2"
 base64 = "0.22"
 prost = "0.12"
 
@@ -81,7 +72,6 @@ lazy_static = "1"
 tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 
 [dev-dependencies]
-tokio-test = "0.4"
 wiremock = "0.6"
 futures = "0.3"
 tempfile = "3.10"

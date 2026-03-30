@@ -122,7 +122,6 @@ const props = defineProps<{
     link?: { url?: string; label: string; tooltip?: TooltipProps; onClick?: () => void };
     button?: { name: string; icon: string; url: string };
   }[];
-  // images?: { alt?: string; class?: string; style?: string; name: string }[];
 }>();
 
 function prevImage() {

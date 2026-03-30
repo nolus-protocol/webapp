@@ -29,6 +29,8 @@ export interface ITransactionData {
   data: IObjectKeys;
 }
 
+export type TransactionEntry = Partial<ITransactionData> & HistoryData;
+
 export type HistoryData = {
   historyData: {
     id?: string;

@@ -315,7 +315,6 @@ watch(
           try {
             tempRoute.value = await getRoute();
           } catch (e: unknown) {
-            console.log(e);
             amountErrorMsg.value = e instanceof Error ? e.message : String(e);
           }
         });

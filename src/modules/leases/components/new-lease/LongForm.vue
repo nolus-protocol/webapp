@@ -489,8 +489,7 @@ async function validateMinMaxValues(): Promise<boolean> {
     }
 
     return isValid;
-  } catch (error) {
-    console.log(error);
+  } catch {
     amountErrorMsg.value = i18n.t("message.integer-out-of-range");
     return false;
   }

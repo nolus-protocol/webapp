@@ -88,10 +88,6 @@
           {
             label: $t('message.swap'),
             icon: NATIVE_NETWORK.icon,
-            // token: {
-            //   balance: formatNumber(amount, selectedAsset?.decimal_digits),
-            //   symbol: selectedAsset?.label
-            // },
             tokenComponent: () =>
               h(
                 'div',

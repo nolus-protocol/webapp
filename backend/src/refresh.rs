@@ -186,7 +186,7 @@ fn spawn_event_refresh<F, T: Clone + Send + 'static>(
             match event_rx.recv().await {
                 Ok(_) => {
                     counter += 1;
-                    if counter % skip_factor != 0 {
+                    if !counter.is_multiple_of(skip_factor) {
                         continue;
                     }
                     f(&state).await;

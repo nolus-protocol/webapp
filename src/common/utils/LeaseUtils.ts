@@ -1,11 +1,6 @@
 import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
-import type { LeaseAttributes } from "../types/LeaseAttributes";
 import { Dec } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
 import { PERCENT, PERMILLE } from "@/config/global";
-import { BackendApi } from "@/common/api";
-import { getCurrencyByTickerForProtocol, getProtocolByContract, getLpnByProtocol } from "./CurrencyLookup";
-import { useConfigStore } from "../stores/config";
 
 export class LeaseUtils {
   public static calculateLiquidation(unit: Dec, price: Dec) {
@@ -22,28 +17,6 @@ export class LeaseUtils {
     return amountForTwoMinuts;
   }
 
-  public static getDebt(data: OpenedLeaseInfo | undefined, protocol: string) {
-    if (data) {
-      const item = getCurrencyByTickerForProtocol(data.principal_due.ticker!, protocol);
-      const amount = new Dec(data.principal_due.amount)
-        .add(new Dec(data.overdue_margin.amount))
-        .add(new Dec(data.overdue_interest.amount))
-        .add(new Dec(data.due_margin.amount))
-        .add(new Dec(data.due_interest.amount))
-        .add(LeaseUtils.additionalInterest(data).roundUpDec());
-
-      const token = CurrencyUtils.convertMinimalDenomToDenom(
-        amount.truncate().toString(),
-        item.ibcData,
-        item!.symbol,
-        Number(item!.decimal_digits)
-      );
-      return token.toDec();
-    }
-
-    return new Dec("0");
-  }
-
   public static additionalInterest(data: OpenedLeaseInfo | null) {
     if (data) {
       const principal_due = new Dec(data.principal_due.amount);
@@ -58,54 +31,4 @@ export class LeaseUtils {
     return new Dec(0);
   }
 
-  public static async getLeaseData(leaseAddress: string): Promise<LeaseAttributes> {
-    const result = await BackendApi.getLeaseOpening(leaseAddress);
-
-    if (!result) {
-      const item = {
-        timestamp: new Date(),
-        downPayment: new Dec(0),
-        leasePositionStable: new Dec(0),
-        price: new Dec(0),
-        downPaymentFee: new Dec(0),
-        lpnPrice: new Dec(0),
-        fee: new Dec(0),
-        pnlAmount: new Dec(0),
-        repayment_value: new Dec(0)
-      };
-
-      return item;
-    }
-
-    const downpaymentTicker = result.lease.LS_cltr_symbol;
-    const contract = getProtocolByContract(result.lease.LS_loan_pool_id);
-    const downPaymentCurrency = getCurrencyByTickerForProtocol(downpaymentTicker, contract);
-    const lpn = getLpnByProtocol(contract);
-    let leasePositionTicker = result.lease.LS_asset_symbol;
-    const l_c = result.lease.LS_asset_symbol;
-
-    const configStore = useConfigStore();
-    if (configStore.isShortPosition(contract)) {
-      leasePositionTicker = lpn.ticker;
-    }
-
-    const leasePositionStable = new Dec(result.lease.LS_loan_amnt_asset, lpn.decimal_digits);
-    const downPayment = new Dec(result.lease.LS_cltr_amnt_stable, Number(downPaymentCurrency!.decimal_digits));
-    const currency = configStore.currenciesData[`${l_c}@${contract}`];
-
-    return {
-      history: result?.history ?? [],
-      pnlAmount: new Dec(result.pnl, currency.decimal_digits),
-      fee: new Dec(result.fee, currency.decimal_digits),
-      downPayment,
-      downpaymentTicker: result.lease.LS_cltr_symbol,
-      leasePositionTicker,
-      leasePositionStable: leasePositionStable,
-      timestamp: new Date(result.lease.LS_timestamp),
-      price: new Dec(result.downpayment_price),
-      lpnPrice: new Dec(result.lpn_price),
-      ls_asset_symbol: result.lease.LS_asset_symbol,
-      repayment_value: new Dec(result.repayment_value)
-    };
-  }
 }
