@@ -62,10 +62,12 @@
           :display-data="displayData"
           :loading="status == TEMPLATES.opening || isInProgress"
         />
+        <LeaseLogWidget
+          v-if="lease?.etl_data"
+          :lease="lease"
+          class="flex-1"
+        />
       </div>
-      <template v-if="lease?.etl_data">
-        <LeaseLogWidget :lease="lease" />
-      </template>
     </div>
     <router-view></router-view>
     <div
