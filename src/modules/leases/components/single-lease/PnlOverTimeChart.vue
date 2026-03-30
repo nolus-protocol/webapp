@@ -33,6 +33,7 @@ import {
   createUsdTickFormat,
   computeMarginLeft,
   computeYTicks,
+  findClosestPoint,
   getChartWidth
 } from "@/common/utils/ChartUtils";
 import type { LeaseInfo } from "@/common/api";
@@ -224,28 +225,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 }
 
 function getClosestDataPoint(cPosition: number) {
-  const plotAreaWidth = chartWidth - marginLeft - marginRight;
-  const adjustedX = cPosition - marginLeft;
-
-  if (data.value.length === 0) return null;
-
-  const maxDate = Math.max(...data.value.map((d) => d.date.getTime()));
-  const minDate = Math.min(...data.value.map((d) => d.date.getTime()));
-  const xScale = plotAreaWidth / (maxDate - minDate || 1);
-
-  const targetDate = adjustedX / xScale + minDate;
-  let closest = data.value[0];
-  let minDiff = Math.abs(targetDate - closest.date.getTime());
-
-  for (const point of data.value) {
-    const diff = Math.abs(targetDate - point.date.getTime());
-    if (diff < minDiff) {
-      closest = point;
-      minDiff = diff;
-    }
-  }
-
-  return closest;
+  return findClosestPoint(data.value, (d) => d.date.getTime(), chartWidth, marginLeft, marginRight, cPosition);
 }
 </script>
 <style lang="scss" scoped>

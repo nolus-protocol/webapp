@@ -40,6 +40,7 @@ import {
   createUsdTickFormat,
   computeMarginLeft,
   computeYTicks,
+  findClosestPoint,
   getChartWidth
 } from "@/common/utils/ChartUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
@@ -363,28 +364,6 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 }
 
 function getClosestDataPoint(cPosition: number) {
-  const plotAreaWidth = chartWidth - marginLeft - marginRight;
-  const adjustedX = cPosition - marginLeft;
-
-  if (data.value.length === 0) return null;
-
-  const maxDate = Math.max(...data.value.map((d) => d.Date.getTime()));
-  const minDate = Math.min(...data.value.map((d) => d.Date.getTime()));
-  const xScale = plotAreaWidth / (maxDate - minDate || 1);
-
-  const targetDate = adjustedX / xScale + minDate;
-
-  let closest = data.value[0];
-  let minDiff = Math.abs(targetDate - closest.Date.getTime());
-
-  for (const point of data.value) {
-    const diff = Math.abs(targetDate - point.Date.getTime());
-    if (diff < minDiff) {
-      closest = point;
-      minDiff = diff;
-    }
-  }
-
-  return closest;
+  return findClosestPoint(data.value, (d) => d.Date.getTime(), chartWidth, marginLeft, marginRight, cPosition);
 }
 </script>

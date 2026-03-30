@@ -30,6 +30,7 @@ import {
   createUsdTickFormat,
   computeMarginLeft,
   computeYTicks,
+  findClosestPoint,
   getChartWidth
 } from "@/common/utils/ChartUtils";
 
@@ -208,32 +209,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 }
 
 function getClosestDataPoint(cPosition: number) {
-  const plotAreaWidth = chartWidth - marginLeft - marginRight;
-  const adjustedX = cPosition - marginLeft;
-
-  if (data_position.value.length === 0) return null;
-
-  // Scale `adjustedX` to match `data` range
-  const maxDate = Math.max(...data_position.value.map((d) => d.date.getTime()));
-  const minDate = Math.min(...data_position.value.map((d) => d.date.getTime()));
-  const xScale = plotAreaWidth / (maxDate - minDate || 1);
-
-  // Convert adjustedX to the corresponding date value
-  const targetDate = adjustedX / xScale + minDate;
-
-  // Find the closest data point
-  let closest = data_position.value[0];
-  let minDiff = Math.abs(targetDate - closest.date.getTime());
-
-  for (const point of data_position.value) {
-    const diff = Math.abs(targetDate - point.date.getTime());
-    if (diff < minDiff) {
-      closest = point;
-      minDiff = diff;
-    }
-  }
-
-  return closest;
+  return findClosestPoint(data_position.value, (d) => d.date.getTime(), chartWidth, marginLeft, marginRight, cPosition);
 }
 
 function processPositionDebtData(response: {
