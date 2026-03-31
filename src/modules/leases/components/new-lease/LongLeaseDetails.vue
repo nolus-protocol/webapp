@@ -33,87 +33,8 @@
         :downPaymentAmount="lease ? downPaymentAmount : '0'"
         :downPaymentAsset="downPaymentAsset"
       />
-      <Transition name="fadeHeight">
-        <div
-          v-if="showDetails"
-          class="flex flex-col gap-y-3 md:flex-row md:flex-wrap"
-        >
-          <BigNumber
-            class="md:flex-[50%]"
-            :label="$t('message.downpayment')"
-            :amount="{
-              microAmount: downPaymentAmount,
-              decimals: downPaymentAsset.decimal_digits,
-              denom: downPaymentAsset.shortName,
-              fontSize: 16
-            }"
-            :secondary="{
-              value: downPaymentStable.toString(),
-              denom: NATIVE_CURRENCY.symbol,
-              decimals: 2
-            }"
-          />
-          <div class="flex flex-col gap-y-3 md:flex-[50%]">
-            <BigNumber
-              class="md:flex-[50%]"
-              :label="$t('message.borrow')"
-              :amount="{
-                microAmount: props.lease?.borrow?.amount ?? '0',
-                denom: lpn.shortName,
-                decimals: lpn.decimal_digits,
-                fontSize: 16
-              }"
-              :secondary="{
-                microAmount: borrowAmount,
-                decimals: asset.decimal_digits,
-                denom: asset.shortName
-              }"
-            />
-            <BigNumber
-              :label="$t('message.impact-and-dex-fees')"
-              :amount="{
-                microAmount: swapFeeAmount.truncate().toString(),
-                decimals: asset.decimal_digits,
-                denom: asset.shortName,
-                fontSize: 16
-              }"
-              :secondary="{
-                value: swapStableFee.toString(),
-                denom: NATIVE_CURRENCY.symbol,
-                decimals: 2
-              }"
-            />
-          </div>
-        </div>
-      </Transition>
-      <Button
-        v-if="showDetails"
-        :label="$t('message.hide-drilldown-details')"
-        severity="secondary"
-        icon="minus"
-        iconPosition="left"
-        size="small"
-        class="w-fit self-end text-icon-default"
-        @click="() => (showDetails = !showDetails)"
-      />
-      <Button
-        v-else
-        :label="$t('message.drilldown-details')"
-        severity="secondary"
-        icon="plus"
-        iconPosition="left"
-        size="small"
-        class="w-fit self-end text-icon-default"
-        @click="() => (showDetails = !showDetails)"
-      />
-      <Transition name="fadeHeight">
-        <hr
-          v-if="showDetails"
-          class="border-border-color"
-        />
-      </Transition>
     </div>
-    <div class="flex flex-col gap-y-3 md:flex-row md:flex-wrap">
+    <div class="grid xl:grid-flow-col xl:grid-rows-2 xl:grid-cols-3 gap-x-7 xl:gap-x-3 gap-y-3">
       <BigNumber
         class="md:flex-[50%]"
         :label="$t('message.lease-interest')"
@@ -133,6 +54,17 @@
               }
             : undefined
         "
+      /> 
+      <BigNumber
+        class="md:flex-[50%]"
+        :label="$t('message.partial-liquidation')"
+        :amount="{
+          value: percentLique,
+          denom: `% ($${calculateLique})`,
+          isDenomPrefix: false,
+          decimals: 0,
+          fontSize: 16
+        }"
       />
       <BigNumber
         class="md:flex-[50%]"
@@ -146,13 +78,46 @@
       />
       <BigNumber
         class="md:flex-[50%]"
-        :label="$t('message.partial-liquidation')"
+        :label="$t('message.downpayment')"
         :amount="{
-          value: percentLique,
-          denom: `% ($${calculateLique})`,
-          isDenomPrefix: false,
-          decimals: 0,
+          microAmount: downPaymentAmount,
+          decimals: downPaymentAsset.decimal_digits,
+          denom: downPaymentAsset.shortName,
           fontSize: 16
+        }"
+        :secondary="{
+          value: downPaymentStable.toString(),
+          denom: NATIVE_CURRENCY.symbol,
+          decimals: 2
+        }"
+      />
+      <BigNumber
+        class="md:flex-[50%]"
+        :label="$t('message.borrow')"
+        :amount="{
+          microAmount: props.lease?.borrow?.amount ?? '0',
+          denom: lpn.shortName,
+          decimals: lpn.decimal_digits,
+          fontSize: 16
+        }"
+        :secondary="{
+          microAmount: borrowAmount,
+          decimals: asset.decimal_digits,
+          denom: asset.shortName
+        }"
+      />
+      <BigNumber
+        :label="$t('message.impact-and-dex-fees')"
+        :amount="{
+          microAmount: swapFeeAmount.truncate().toString(),
+          decimals: asset.decimal_digits,
+          denom: asset.shortName,
+          fontSize: 16
+        }"
+        :secondary="{
+          value: swapStableFee.toString(),
+          denom: NATIVE_CURRENCY.symbol,
+          decimals: 2
         }"
       />
     </div>
@@ -163,7 +128,7 @@
 import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PositionPreviewChart from "./PositionPreviewChart.vue";
-import { Button, SvgIcon } from "web-components";
+import { SvgIcon } from "web-components";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { MONTHS, NATIVE_CURRENCY } from "@/config/global";
 import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
@@ -187,7 +152,6 @@ const props = defineProps<{
 }>();
 const pricesStore = usePricesStore();
 const configStore = useConfigStore();
-const showDetails = ref(false);
 const swapFee = ref(0);
 const swapStableFee = ref(0);
 

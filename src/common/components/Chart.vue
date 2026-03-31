@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative my-4"
+    class="relative mt-4"
     ref="container"
   >
     <slot></slot>
