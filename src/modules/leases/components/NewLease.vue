@@ -1,11 +1,12 @@
 <template>
   <div class="flex flex-1 flex-col justify-between gap-y-2 border-b border-border-color pb-3 lg:flex-row lg:gap-0">
-    <div class="flex items-center">
-      <SvgIcon
-        name="arrow-left"
-        size="l"
-        class="mx-4 cursor-pointer text-icon-default"
+    <div class="flex items-center gap-2">
+      <Button
+        icon="arrow-left"
         @click="goBack"
+        severity="tertiary"
+        size="large"
+        class="cursor-pointer text-icon-default px-4!"
       />
       <div class="flex flex-col">
         <div class="text-24 font-semibold text-typography-default">{{ $t("message.new-lease") }}</div>
@@ -21,7 +22,7 @@
 </template>
 
 <script lang="ts" setup>
-import { SvgIcon } from "web-components";
+import { Button } from "web-components";
 import { RouteNames } from "@/router";
 import { useRoute, useRouter } from "vue-router";
 

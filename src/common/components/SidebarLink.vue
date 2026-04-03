@@ -1,7 +1,7 @@
 <template>
   <RouterLink
     :to="props.to"
-    class="router-link group transition-ease-out relative flex h-12.5 items-center gap-2 px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200 before:border-y before:border-border-default hover:text-typography-link md:before:rounded-full md:before:border-x"
+    class="router-link group transition-ease-out relative flex h-12.5 items-center gap-2 px-4 py-3 text-16 font-semibold text-typography-default transition-colors duration-200 before:border-y before:border-border-default hover:text-typography-link lg:before:rounded-full lg:before:border-x"
   >
     <SidebarIcon :icon="props.icon" />
     <span class="relative">{{ props.content }}</span>
