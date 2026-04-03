@@ -35,10 +35,10 @@ import BigNumber from "@/common/components/BigNumber.vue";
 
 import { Table, type TableColumnProps, TableRow, type TableRowItemProps, Widget } from "web-components";
 import { isMobile } from "@/common/utils";
-import { getProtocols } from "@/common/utils/ConfigService";
 
 import { computed, h } from "vue";
 import { useEarnStore } from "@/common/stores/earn";
+import { useConfigStore } from "@/common/stores/config";
 import { useI18n } from "vue-i18n";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { formatNumber, formatPercent } from "@/common/utils/NumberFormatUtils";
@@ -109,106 +109,27 @@ function buildRow(
   };
 }
 
-const tableRows = computed<TableRowItemProps[]>(() => {
-  const p = getProtocols();
-  return [
-    buildRow(
-      "USDC",
-      i18n.t("message.utilization_sub_osmosis_usdc"),
-      iconOsmosis.value,
-      utilizationLevelOsmosis.value,
-      depositOsmosis.value,
-      p.osmosis_noble
-    ),
-    buildRow(
-      "USDC",
-      i18n.t("message.utilization_sub_neutron_usdc"),
-      iconNeutron.value,
-      utilizationLevelNeutron.value,
-      depositNeutron.value,
-      p.neutron_noble
-    ),
-    buildRow(
-      "SOL",
-      i18n.t("message.utilization_sub_osmosis_sol"),
-      iconAllSol.value,
-      utilizationLevelOsmosisAllSol.value,
-      depositAllSol.value,
-      p.osmosis_osmosis_all_sol
-    ),
-    buildRow(
-      "BTC",
-      i18n.t("message.utilization_sub_osmosis_btc"),
-      iconAllBtc.value,
-      utilizationLevelOsmosisAllBtc.value,
-      depositAllBtc.value,
-      p.osmosis_osmosis_all_btc
-    ),
-    buildRow(
-      "AKT",
-      i18n.t("message.utilization_sub_osmosis_akt"),
-      iconAkt.value,
-      utilizationLevelOsmosisAkt.value,
-      depositAkt.value,
-      p.osmosis_osmosis_akt
-    ),
-    buildRow(
-      "ATOM",
-      i18n.t("message.utilization_sub_osmosis_atom"),
-      iconAtom.value,
-      utilizationLevelOsmosisAtom.value,
-      depositAtom.value,
-      p.osmosis_osmosis_atom
-    )
-  ] as TableRowItemProps[];
-});
-
 const earnStore = useEarnStore();
+const configStore = useConfigStore();
 
 // Compute supplied funds from ETL supplied-funds endpoint
 const suppliedFundsValue = computed(() => {
   return earnStore.suppliedFunds?.amount ?? "0";
 });
 
-// Helper to get pool data by protocol
-function getPoolData(protocolKey: string) {
-  const pool = earnStore.getPool(protocolKey);
-  const etlPool = earnStore.getEtlPool(protocolKey);
+const tableRows = computed<TableRowItemProps[]>(() => {
+  return [...earnStore.pools]
+    .sort((a, b) => b.utilization - a.utilization)
+    .map((pool) => {
+      const currency = configStore.getCurrencyByKey(`${pool.currency}@${pool.protocol}`);
+      const ticker = currency?.shortName ?? pool.currency;
+      const subValue = currency?.name ?? pool.currency;
+      const icon = pool.icon ?? "";
+      const utilization = formatNumber(pool.utilization, 2);
+      const etlPool = earnStore.getEtlPool(pool.protocol);
+      const deposit = etlPool?.deposit_suspension ?? "90";
 
-  // Utilization from earn pool (already 0-100 range from backend)
-  const utilization = pool ? formatNumber(pool.utilization, 2) : "0";
-
-  // Deposit suspension threshold from ETL pools endpoint
-  const depositSuspension = etlPool?.deposit_suspension ?? "90";
-
-  // Icon from pool (comes from network-config.json via backend)
-  const icon = pool?.icon ?? "";
-
-  return { utilization, depositSuspension, icon };
-}
-
-// Computed values for each protocol
-const utilizationLevelNeutron = computed(() => getPoolData(getProtocols().neutron_noble).utilization);
-const depositNeutron = computed(() => getPoolData(getProtocols().neutron_noble).depositSuspension);
-const iconNeutron = computed(() => getPoolData(getProtocols().neutron_noble).icon);
-
-const utilizationLevelOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).utilization);
-const depositOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).depositSuspension);
-const iconOsmosis = computed(() => getPoolData(getProtocols().osmosis_noble).icon);
-
-const utilizationLevelOsmosisAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).utilization);
-const depositAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).depositSuspension);
-const iconAllBtc = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_btc).icon);
-
-const utilizationLevelOsmosisAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).utilization);
-const depositAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).depositSuspension);
-const iconAllSol = computed(() => getPoolData(getProtocols().osmosis_osmosis_all_sol).icon);
-
-const utilizationLevelOsmosisAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).utilization);
-const depositAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).depositSuspension);
-const iconAkt = computed(() => getPoolData(getProtocols().osmosis_osmosis_akt).icon);
-
-const utilizationLevelOsmosisAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).utilization);
-const depositAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).depositSuspension);
-const iconAtom = computed(() => getPoolData(getProtocols().osmosis_osmosis_atom).icon);
+      return buildRow(ticker, subValue, icon, utilization, deposit, pool.protocol);
+    }) as TableRowItemProps[];
+});
 </script>
