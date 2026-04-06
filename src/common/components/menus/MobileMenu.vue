@@ -18,7 +18,7 @@
       :initial="{ x: '-100%' }"
       :animate="{ x: 0 }"
       :exit="{ x: '-100%' }"
-      :transition="{ type: 'spring', stiffness: 300, damping: 30 }"
+      :transition="{ duration: 0.25, ease: 'easeOut' }"
       class="fixed top-0 left-0 z-99999 flex h-full w-3/4 max-w-96 flex-col bg-neutral-bg-1 landscape:overflow-auto"
     >
       <div class="flex w-full flex-1 flex-col gap-4">
