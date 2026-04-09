@@ -234,5 +234,9 @@ function getClosestDataPoint(cPosition: number, width: number) {
 <style lang="scss">
 .position-preview-chart {
   color: var(--color-typography-default);
+
+  text {
+    stroke: none;
+  }
 }
 </style>
