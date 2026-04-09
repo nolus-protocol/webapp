@@ -183,7 +183,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     bg.setAttribute("width", String(maxX - minX + px * 2));
     bg.setAttribute("height", String(maxY - minY + py * 2));
     bg.setAttribute("rx", "6");
-    bg.style.fill = "white";
+    bg.style.fill = "none";
     nextChart.insertBefore(bg, t1);
   });
 
@@ -234,9 +234,5 @@ function getClosestDataPoint(cPosition: number, width: number) {
 <style lang="scss">
 .position-preview-chart {
   color: var(--color-typography-default);
-
-  text {
-    stroke: none;
-  }
 }
 </style>
