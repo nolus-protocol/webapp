@@ -63,8 +63,8 @@
       />
     </div>
 
-    <div class="flex">
-      <div class="flex flex-1 justify-center">
+    <div class="flex flex-col md:flex-row items-end md:items-center justify-between gap-3">
+      <div class="flex flex-1">
         <div class="flex items-center text-sm">
           <span class="m-2 block h-[4px] w-[12px] rounded bg-green-400"></span>{{ $t("message.supplied") }}
         </div>

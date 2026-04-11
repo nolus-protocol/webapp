@@ -9,7 +9,7 @@ use axum::{
 };
 use tower_http::{
     compression::CompressionLayer,
-    cors::{Any, CorsLayer},
+    cors::{AllowOrigin, Any, CorsLayer},
     trace::TraceLayer,
 };
 use tracing::{info, warn};
@@ -223,10 +223,22 @@ async fn shutdown_signal() {
 
 fn create_router(state: Arc<AppState>) -> Router {
     // CORS configuration
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    let cors = match &state.config.server.cors_origins {
+        Some(origins) => {
+            let header_values: Vec<axum::http::HeaderValue> = origins
+                .iter()
+                .filter_map(|o| o.parse().ok())
+                .collect();
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::list(header_values))
+                .allow_methods(Any)
+                .allow_headers(Any)
+        }
+        None => CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers(Any),
+    };
 
     // Rate limiting configuration
     let standard_rate_limit = create_rate_limit_state(standard_rate_limit_config());

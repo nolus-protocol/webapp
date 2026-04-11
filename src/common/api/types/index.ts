@@ -15,7 +15,6 @@ export * from "./leases";
 export * from "./earn";
 export * from "./staking";
 export * from "./swap";
-export * from "./referral";
 export * from "./governance";
 export * from "./webapp";
 export * from "./etl";

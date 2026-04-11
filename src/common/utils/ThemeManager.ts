@@ -10,6 +10,8 @@ import { setCookie } from "./cookieUtils";
 export type Theme = "light" | "dark" | "sync";
 
 const THEME_STORAGE_KEY = "theme_data";
+const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+let syncListener: ((e: MediaQueryListEvent) => void) | null = null;
 
 /**
  * Get the current theme from localStorage
@@ -29,6 +31,23 @@ export function setTheme(theme: Theme): void {
   localStorage.setItem(THEME_STORAGE_KEY, theme);
   setCookie(THEME_STORAGE_KEY, theme);
   applyTheme(theme);
+
+  if (theme === "sync") {
+    if (!syncListener) {
+      syncListener = (_e) => {
+        const currentTheme = getTheme();
+        if (currentTheme === "sync") {
+          applyTheme("sync");
+        }
+      };
+      mediaQuery.addEventListener("change", syncListener);
+    }
+  } else {
+    if (syncListener) {
+      mediaQuery.removeEventListener("change", syncListener);
+      syncListener = null;
+    }
+  }
 }
 
 /**
@@ -62,13 +81,14 @@ export function initTheme(): void {
   applyTheme(theme);
 
   // Listen for system theme changes when using "sync" mode
-  if (theme === "sync") {
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (_e) => {
+  if (theme === "sync" && !syncListener) {
+    syncListener = (_e) => {
       const currentTheme = getTheme();
       if (currentTheme === "sync") {
         applyTheme("sync");
       }
-    });
+    };
+    mediaQuery.addEventListener("change", syncListener);
   }
 }
 

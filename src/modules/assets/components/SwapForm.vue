@@ -88,10 +88,6 @@
           {
             label: $t('message.swap'),
             icon: NATIVE_NETWORK.icon,
-            // token: {
-            //   balance: formatNumber(amount, selectedAsset?.decimal_digits),
-            //   symbol: selectedAsset?.label
-            // },
             tokenComponent: () =>
               h(
                 'div',
@@ -486,8 +482,9 @@ async function onSwap() {
       element.status = SwapStatus.success;
       await balancesStore.fetchBalances();
       historyStore.loadActivities();
-      onClose();
     });
+
+    onClose();
 
     if (wallet.history[id]) {
       wallet.history[id].txHashes = txHashes.value;

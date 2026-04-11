@@ -5,15 +5,15 @@
     size="small"
     icon="history"
     class="text-icon-default"
-    @click="isOpen = !isOpen"
+    :class="popoverRef?.isOpen ? 'active' : ''"
+    @click="popoverRef?.toggle()"
   />
   <TransactionDetails ref="transactionDialogRef" />
   <Popover
-    v-if="isOpen"
+    ref="popoverRef"
     position="bottom-right"
     :parent="popoverParent"
     :title="$t('message.activities')"
-    @close="isOpen = !isOpen"
     class="md:!max-w-[385px]"
   >
     <template #header> </template>
@@ -29,7 +29,7 @@
               :type="transaction.historyData.icon"
               :time="transaction.historyData.timestamp"
               :route="transaction.historyData.route"
-              @click="onActivityClick(transaction as any)"
+              @click="onActivityClick(transaction as TransactionEntry)"
             />
 
             <ActivitiesItem
@@ -40,7 +40,7 @@
               :type="transaction.historyData.icon"
               :time="transaction.historyData.timestamp"
               :route="transaction.historyData.route"
-              @click="onActivityClick(transaction as any)"
+              @click="onActivityClick(transaction as TransactionEntry)"
             />
           </div>
           <div class="flex justify-center rounded-b-xl border-t border-border-color bg-neutral-bg-1 p-3">
@@ -52,7 +52,6 @@
               @click="
                 () => {
                   router.push(`/${RouteNames.HISTORY}`);
-                  isOpen = false;
                 }
               "
             />
@@ -83,18 +82,16 @@ import { Button, Popover } from "web-components";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
 import { useWalletStore } from "@/common/stores/wallet";
-import { type ITransactionData } from "@/modules/history/types";
-import type { HistoryData } from "@/modules/history/types/ITransaction";
+import type { TransactionEntry } from "@/modules/history/types/ITransaction";
 
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
+const popoverRef = ref<InstanceType<typeof Popover> | null>(null);
 const popoverParent = ref();
-const isOpen = ref(false);
 
 const router = useRouter();
 const wallet = useWalletStore();
 
-const onActivityClick = (transaction: ITransactionData & HistoryData) => {
+const onActivityClick = (transaction: TransactionEntry) => {
   transactionDialogRef.value?.show(transaction);
-  isOpen.value = false;
 };
 </script>

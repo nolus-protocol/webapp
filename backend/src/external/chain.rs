@@ -45,15 +45,6 @@ pub struct ChainClient {
     query_semaphore: Arc<Semaphore>,
 }
 
-/// Currency info from Oracle contract
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OracleCurrency {
-    pub ticker: String,
-    pub bank_symbol: String,
-    pub decimal_digits: u8,
-    pub group: String,
-}
-
 /// Price data from Oracle contract
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OraclePrice {
@@ -206,15 +197,6 @@ impl ChainClient {
         Ok(result.data)
     }
 
-    /// Get all currencies from Oracle contract
-    pub async fn get_oracle_currencies(
-        &self,
-        oracle_address: &str,
-    ) -> Result<Vec<OracleCurrency>, AppError> {
-        let query = json!({ "currencies": {} });
-        self.query_contract(oracle_address, query).await
-    }
-
     /// Get all prices from Oracle contract
     pub async fn get_oracle_prices(
         &self,
@@ -266,35 +248,6 @@ impl ChainClient {
         self.query_contract(lpp_address, query).await
     }
 
-    /// Query bank balance for an address
-    pub async fn get_balance(&self, address: &str, denom: &str) -> Result<BankBalance, AppError> {
-        let url = format!(
-            "{}/cosmos/bank/v1beta1/balances/{}/by_denom?denom={}",
-            self.rest_url, address, denom
-        );
-
-        let response = self.chain_get(&url).await?;
-
-        if !response.status().is_success() {
-            return Err(AppError::ChainRpc {
-                chain: "nolus".to_string(),
-                message: format!("HTTP {}", response.status()),
-            });
-        }
-
-        #[derive(Deserialize)]
-        struct BalanceResponse {
-            balance: BankBalance,
-        }
-
-        let result: BalanceResponse = response.json().await.map_err(|e| AppError::ChainRpc {
-            chain: "nolus".to_string(),
-            message: format!("Failed to parse balance: {}", e),
-        })?;
-
-        Ok(result.balance)
-    }
-
     /// Query all bank balances for an address
     pub async fn get_all_balances(&self, address: &str) -> Result<Vec<BankBalance>, AppError> {
         let url = format!("{}/cosmos/bank/v1beta1/balances/{}", self.rest_url, address);
@@ -319,12 +272,6 @@ impl ChainClient {
         })?;
 
         Ok(result.balances)
-    }
-
-    /// Query lease state from lease contract
-    pub async fn get_lease_state(&self, lease_address: &str) -> Result<LeaseState, AppError> {
-        let query = json!({ "state": {} });
-        self.query_contract(lease_address, query).await
     }
 
     /// Get validators by status
@@ -557,16 +504,6 @@ impl ChainClient {
     pub async fn get_lpp_config(&self, lpp_address: &str) -> Result<LppConfig, AppError> {
         // LPP contract expects empty array for parameterless queries
         let query = json!({ "config": [] });
-        self.query_contract(lpp_address, query).await
-    }
-
-    /// Get LPP quote for deposit - returns how many nLPN for given LPN amount
-    pub async fn get_lpp_deposit_quote(
-        &self,
-        lpp_address: &str,
-        amount: &str,
-    ) -> Result<String, AppError> {
-        let query = json!({ "quote_deposit": { "amount": amount } });
         self.query_contract(lpp_address, query).await
     }
 
@@ -944,12 +881,6 @@ pub struct LppBalance {
 pub struct BankBalance {
     pub denom: String,
     pub amount: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LeaseState {
-    #[serde(flatten)]
-    pub state: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1414,7 +1345,7 @@ pub struct TaxDenomPrice {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wiremock::matchers::{method, path};
+    use wiremock::matchers::{method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     async fn setup_mock_server() -> MockServer {
@@ -1485,9 +1416,33 @@ mod tests {
             ]
         });
 
+        // Bonded - returns 1 validator
         Mock::given(method("GET"))
             .and(path("/cosmos/staking/v1beta1/validators"))
+            .and(query_param("status", "BOND_STATUS_BONDED"))
             .respond_with(ResponseTemplate::new(200).set_body_json(&response_body))
+            .mount(&mock_server)
+            .await;
+
+        // Unbonding - returns empty
+        Mock::given(method("GET"))
+            .and(path("/cosmos/staking/v1beta1/validators"))
+            .and(query_param("status", "BOND_STATUS_UNBONDING"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(serde_json::json!({"validators": []})),
+            )
+            .mount(&mock_server)
+            .await;
+
+        // Unbonded - returns empty
+        Mock::given(method("GET"))
+            .and(path("/cosmos/staking/v1beta1/validators"))
+            .and(query_param("status", "BOND_STATUS_UNBONDED"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(serde_json::json!({"validators": []})),
+            )
             .mount(&mock_server)
             .await;
 

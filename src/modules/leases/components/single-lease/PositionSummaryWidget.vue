@@ -155,7 +155,7 @@
               <Tooltip :content="$t('message.stop-loss-price-tooltip')">
                 <SvgIcon
                   name="help"
-                  class="rouded-full"
+                  class="hover:fill-icon-secondary cursor-pointer transition duration-200 ease-in-out"
                   size="s"
                 /> </Tooltip
             ></span>
@@ -195,7 +195,7 @@
               <Tooltip :content="$t('message.take-profit-price-tooltip')">
                 <SvgIcon
                   name="help"
-                  class="rouded-full"
+                  class="hover:fill-icon-secondary cursor-pointer transition duration-200 ease-in-out"
                   size="s"
                 /> </Tooltip
             ></span>

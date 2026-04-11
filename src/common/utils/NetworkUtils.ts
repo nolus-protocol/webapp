@@ -1,11 +1,5 @@
 import { Logger, WalletManager, WalletUtils } from ".";
-import { fetchEndpoints } from "./EndpointService";
 import { ChainConstants } from "@nolus/nolusjs";
-import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { toHex } from "@cosmjs/encoding";
-import { defaultRegistryTypes } from "@cosmjs/stargate";
-import { connectComet, type ReadonlyDateWithNanoseconds, type TxSearchResponse } from "@cosmjs/tendermint-rpc";
-import { decodeTxRaw, type DecodedTxRaw, Registry } from "@cosmjs/proto-signing";
 import { BackendApi } from "@/common/api";
 import type { ValidatorInfo } from "@/common/api/types/staking";
 
@@ -116,85 +110,6 @@ export class NetworkUtils {
     }
   }
 
-  static async searchTx({ sender_per_page = 5, sender_page = 1, load_sender = true } = {}) {
-    const address = WalletManager.getWalletAddress();
-    const registry = new Registry(defaultRegistryTypes);
-    registry.register("/cosmwasm.wasm.v1.MsgExecuteContract", MsgExecuteContract);
-
-    if (address?.length > 0) {
-      const rpc = await getClient();
-      const client = await connectComet(rpc);
-
-      const [sender] = await Promise.allSettled([
-        load_sender
-          ? client.txSearch({
-              query: `message.sender='${address}'`,
-              per_page: sender_per_page,
-              page: sender_page,
-              order_by: "desc"
-            })
-          : false
-      ]);
-      const data = [];
-      let sender_total = 0;
-
-      if (sender.status === "fulfilled" && sender.value) {
-        sender_total = (sender.value as TxSearchResponse).totalCount;
-        for (const item of (sender.value as TxSearchResponse).txs) {
-          const decodedTx: DecodedTxRaw = decodeTxRaw(item.tx);
-          try {
-            const msgs = [];
-            for (const m of decodedTx.body.messages) {
-              msgs.push({
-                typeUrl: m.typeUrl,
-                data: registry.decode(m)
-              });
-            }
-
-            const transactionResult = {
-              id: item.hash ? toHex(item.hash) : "",
-              height: item.height ?? "",
-              msgs,
-              type: "sender",
-              blockDate: null as null | ReadonlyDateWithNanoseconds,
-              memo: decodedTx.body.memo ?? "",
-              log: item.result.log,
-              fee:
-                decodedTx?.authInfo?.fee?.amount.filter((coin) => coin.denom === ChainConstants.COIN_MINIMAL_DENOM) ??
-                null
-            };
-
-            data.push(transactionResult);
-          } catch (error) {
-            Logger.error(error);
-          }
-        }
-      }
-
-      const promises = data.map(async (item) => {
-        try {
-          const block = await client.block(item.height);
-          item.blockDate = block.block.header.time;
-          return item;
-        } catch {
-          return item;
-        }
-      });
-
-      const items = await Promise.all(promises);
-
-      return {
-        data: items,
-        sender_total
-      };
-    }
-
-    return {
-      data: [],
-      sender_total: 0
-    };
-  }
-
   static async loadUnboundingDelegations() {
     if (!WalletUtils.isAuth()) {
       return [];
@@ -232,8 +147,4 @@ export class NetworkUtils {
       return { validator: null };
     }
   }
-}
-
-async function getClient() {
-  return (await fetchEndpoints(ChainConstants.CHAIN_KEY)).rpc;
 }

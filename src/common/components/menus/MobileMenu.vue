@@ -1,59 +1,69 @@
 <template>
-  <transition name="fade">
-    <div
-      v-show="toggleMenuWrapper"
+  <AnimatePresence>
+    <Motion
+      v-if="isOpen"
+      key="backdrop"
+      tag="div"
+      :initial="{ opacity: 0 }"
+      :animate="{ opacity: 1 }"
+      :exit="{ opacity: 0 }"
+      :transition="{ duration: 0.25 }"
       class="fixed top-0 left-0 z-99999 h-full w-full bg-neutral-bg-inverted-1/50"
-      v-on:click.self="close"
+      v-on:click="close"
+    />
+    <Motion
+      v-if="isOpen"
+      key="panel"
+      tag="div"
+      :initial="{ x: '-100%' }"
+      :animate="{ x: 0 }"
+      :exit="{ x: '-100%' }"
+      :transition="{ duration: 0.25, ease: 'easeOut' }"
+      class="fixed top-0 left-0 z-99999 flex h-full w-3/4 max-w-96 flex-col bg-neutral-bg-1 landscape:overflow-auto"
     >
-      <div
-        class="flex h-full max-w-[75%] flex-col bg-neutral-bg-1 transition-transform duration-250 md:max-w-100 landscape:overflow-auto"
-        :class="{ 'translate-x-0': toggleMobileNav, '-translate-x-full': !toggleMobileNav }"
-      >
-        <div class="flex w-full flex-1 flex-col gap-4">
-          <div class="flex items-center justify-between px-4 pt-4">
-            <span class="text-24 font-semibold text-typography-default">{{ $t(`message.menu`) }}</span>
-            <SvgIcon
-              name="close"
-              class="cursor-pointer"
-              @click="close"
-            />
-          </div>
-          <div class="flex flex-col gap-3">
-            <template
-              v-for="item in mainMenuRoutes"
-              :key="item"
-            >
-              <SidebarLink
-                @click="close"
-                :to="routePath(item)"
-                :icon="sidebarIconMap[item] ?? item"
-                :content="$t(`message.${item}`)"
-              />
-            </template>
-          </div>
+      <div class="flex w-full flex-1 flex-col gap-4">
+        <div class="flex items-center justify-between px-4 pt-4">
+          <span class="text-24 font-semibold text-typography-default">{{ $t(`message.menu`) }}</span>
+          <SvgIcon
+            name="close"
+            class="cursor-pointer"
+            @click="close"
+          />
         </div>
-        <div class="flex flex-col gap-1 pb-12">
-          <SidebarLink
-            @click="close"
-            :to="{ name: RouteNames.VOTE }"
-            icon="vote"
-            :content="$t('message.vote')"
-          />
-
-          <SidebarLink
-            @click="close"
-            :to="{ name: RouteNames.STATS }"
-            icon="stats"
-            :content="$t('message.stats')"
-          />
-          <p class="text-upper text-center text-12 text-typography-secondary">
-            #
-            <template v-if="block > 0">{{ block }} v{{ version }}</template>
-          </p>
+        <div class="flex flex-col gap-3">
+          <template
+            v-for="item in mainMenuRoutes"
+            :key="item"
+          >
+            <SidebarLink
+              @click="close"
+              :to="routePath(item)"
+              :icon="sidebarIconMap[item] ?? item"
+              :content="$t(`message.${item}`)"
+            />
+          </template>
         </div>
       </div>
-    </div>
-  </transition>
+      <div class="flex flex-col gap-1 pb-12">
+        <SidebarLink
+          @click="close"
+          :to="{ name: RouteNames.VOTE }"
+          icon="vote"
+          :content="$t('message.vote')"
+        />
+        <SidebarLink
+          @click="close"
+          :to="{ name: RouteNames.STATS }"
+          icon="stats"
+          :content="$t('message.stats')"
+        />
+        <p class="text-upper text-center text-12 text-typography-secondary">
+          #
+          <template v-if="block > 0">{{ block }} v{{ version }}</template>
+        </p>
+      </div>
+    </Motion>
+  </AnimatePresence>
 </template>
 
 <script lang="ts" setup>
@@ -63,28 +73,20 @@ import SidebarLink from "../SidebarLink.vue";
 import { SvgIcon } from "web-components";
 import { sidebarIconMap, mainMenuRoutes, routePath } from "./menuConfig";
 import { useBlockInfo } from "@/common/composables/useBlockInfo";
+import { AnimatePresence, Motion } from "motion-v";
 
-const toggleMobileNav = ref(false);
-const toggleMenuWrapper = ref(false);
+const isOpen = ref(false);
 
 const { block, version } = useBlockInfo();
 
 const open = () => {
   document.body.style.overflow = "hidden";
-  toggleMenuWrapper.value = true;
-
-  setTimeout(() => {
-    toggleMobileNav.value = true;
-  }, 100);
+  isOpen.value = true;
 };
 
 const close = () => {
   document.body.style.overflow = "auto";
-  toggleMobileNav.value = false;
-
-  setTimeout(() => {
-    toggleMenuWrapper.value = false;
-  }, 250);
+  isOpen.value = false;
 };
 
 provide("open", open);
@@ -92,14 +94,3 @@ provide("close", close);
 
 defineExpose({ open, close });
 </script>
-
-<style scoped lang="scss">
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 250ms;
-}
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>

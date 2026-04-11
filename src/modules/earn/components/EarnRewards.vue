@@ -5,9 +5,10 @@
       :icon="{ name: 'list-sparkle' }"
     >
       <Button
-        label="Claim rewards"
+        :label="$t('message.claim-rewards')"
         severity="secondary"
         size="large"
+        :disabled="true"
       />
     </WidgetHeader>
     <div class="flex flex-col gap-y-2">

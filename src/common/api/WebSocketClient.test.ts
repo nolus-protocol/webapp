@@ -29,7 +29,7 @@ class MockWebSocket {
   close(code?: number, reason?: string) {
     this.readyState = MockWebSocket.CLOSED;
     if (this.onclose) {
-      this.onclose(new CloseEvent("close", { code, reason }));
+      this.onclose({ type: "close", code, reason } as CloseEvent);
     }
   }
 

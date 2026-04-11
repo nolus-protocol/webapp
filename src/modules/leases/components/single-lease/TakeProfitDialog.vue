@@ -21,11 +21,7 @@
             @input="handleAmountChange"
             :error-msg="amountErrorMsg"
             placeholder="0"
-            :balanceLabel="
-              $t('message.current-price', {
-                asset: currency?.shortName
-              })
-            "
+            :balanceLabel="`${$t('message.current-price', { asset: currency?.shortName })} ${currentPrice}`"
           >
             <template v-slot:label>
               <div class="flex items-center gap-1">
@@ -180,13 +176,19 @@ const currency = computed(() => {
   return assets.value[selectedCurrency.value];
 });
 
+const currentPrice = computed(() => {
+  if (!lease.value) return "";
+  const asset = getCurrency();
+  if (!asset) return "";
+  return formatPriceUsd(pricesStore.prices[asset.key]?.price ?? 0);
+});
+
 const assets = computed(() => {
   const data = [];
 
   if (lease.value) {
     const asset = getCurrency()!;
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
-    const priceVal = formatPriceUsd(pricesStore.prices[asset.key]?.price ?? 0);
 
     data.push({
       name: asset.name,
@@ -197,13 +199,7 @@ const assets = computed(() => {
       shortName: asset.shortName,
       decimal_digits: asset.decimal_digits!,
       key: asset.key,
-      ticker: asset.ticker,
-      balance: {
-        value: priceVal,
-        ticker: "",
-        customLabel: priceVal,
-        denom: asset.ibcData
-      }
+      ticker: asset.ticker
     });
   }
 

@@ -23,14 +23,6 @@ export class WalletManager {
     localStorage.setItem(this.WALLET_PUBKEY, pubkey);
   }
 
-  public static getPubKey(): string | null {
-    return localStorage.getItem(this.WALLET_PUBKEY);
-  }
-
-  public static setProtocolFilter(filter: string) {
-    localStorage.setItem(this.PROTOCOL_FILTER, filter);
-  }
-
   public static getProtocolFilter(): string {
     const configStore = useConfigStore();
     const item = localStorage.getItem(this.PROTOCOL_FILTER);
@@ -38,10 +30,6 @@ export class WalletManager {
       return item;
     }
     return DefaultProtocolFilter;
-  }
-
-  public static removeWalletConnectMechanism() {
-    localStorage.removeItem(this.WALLET_CONNECT_MECHANISM);
   }
 
   public static getWalletAddress(): string {

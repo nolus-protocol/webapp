@@ -118,8 +118,7 @@ import nlsIcon from "@/assets/icons/networks/nolus.svg?url";
 import TokenAmount from "@/common/components/TokenAmount.vue";
 import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { Button, Dialog, ToastType } from "web-components";
-import type { ITransactionData } from "@/modules/history/types";
-import type { HistoryData } from "@/modules/history/types/ITransaction";
+import type { TransactionEntry } from "@/modules/history/types/ITransaction";
 import { StringUtils } from "@/common/utils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
@@ -130,7 +129,7 @@ import { Alert, AlertType } from "web-components";
 const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const dialog = ref<typeof Dialog | null>(null);
-const data = ref<ITransactionData & HistoryData>();
+const data = ref<TransactionEntry>();
 const i18n = useI18n();
 const wallet = useWalletStore();
 onBeforeUnmount(() => {
@@ -200,7 +199,7 @@ function copyTxRaw() {
 }
 
 defineExpose({
-  show: (item: ITransactionData & HistoryData) => {
+  show: (item: TransactionEntry) => {
     data.value = item;
     dialog?.value?.show();
   }

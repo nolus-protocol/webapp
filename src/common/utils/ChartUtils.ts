@@ -103,6 +103,43 @@ export function createUsdTickFormat(yDomain: [number, number]): (d: number) => s
 }
 
 /**
+ * Find the data point closest to the mouse cursor's x position.
+ * Works with any data type — pass a `getX` extractor that returns a numeric
+ * x-axis value (e.g. `d => d.date.getTime()` or `d => d.date` for numeric axes).
+ */
+export function findClosestPoint<T>(
+  data: T[],
+  getX: (d: T) => number,
+  chartWidth: number,
+  marginLeft: number,
+  marginRight: number,
+  cPosition: number
+): T | null {
+  if (data.length === 0) return null;
+
+  const plotAreaWidth = chartWidth - marginLeft - marginRight;
+  const adjustedX = cPosition - marginLeft;
+
+  const maxX = Math.max(...data.map(getX));
+  const minX = Math.min(...data.map(getX));
+  const xScale = plotAreaWidth / (maxX - minX || 1);
+  const targetX = adjustedX / xScale + minX;
+
+  let closest = data[0];
+  let minDiff = Math.abs(targetX - getX(closest));
+
+  for (const point of data) {
+    const diff = Math.abs(targetX - getX(point));
+    if (diff < minDiff) {
+      closest = point;
+      minDiff = diff;
+    }
+  }
+
+  return closest;
+}
+
+/**
  * Create a plain number tick formatter (no $) based on the axis data range.
  * Same logic as createUsdTickFormat but without currency style.
  */

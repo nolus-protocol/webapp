@@ -12,6 +12,7 @@ import { ref, computed } from "vue";
 import { h } from "vue";
 import { CONFIRM_STEP, type IObjectKeys } from "@/common/types";
 import { HISTORY_ACTIONS } from "@/modules/history/types";
+import type { TransactionEntry } from "@/modules/history/types/ITransaction";
 import { useConfigStore } from "@/common/stores/config";
 import { formatTokenBalance, formatCoinPretty } from "@/common/utils/NumberFormatUtils";
 import { CurrencyUtils } from "@nolus/nolusjs";
@@ -30,13 +31,13 @@ export const useHistoryStore = defineStore("history", () => {
   // ==========================================================================
 
   /** Pending transfers indexed by ID */
-  const pendingTransfers = ref<{ [key: string]: IObjectKeys }>({});
+  const pendingTransfers = ref<{ [key: string]: TransactionEntry }>({});
 
   /** Historical activities from ETL */
-  const activities = ref<{ data: IObjectKeys[]; loaded: boolean }>({ data: [], loaded: false });
+  const activities = ref<{ data: TransactionEntry[]; loaded: boolean }>({ data: [], loaded: false });
 
   /** Full transaction history (paginated) */
-  const transactions = ref<IObjectKeys[]>([]);
+  const transactions = ref<TransactionEntry[]>([]);
   const transactionsLoading = ref(false);
   const transactionsLoaded = ref(false);
 
@@ -133,13 +134,13 @@ export const useHistoryStore = defineStore("history", () => {
 
     pendingTransfers.value[historyData.id] = {
       historyData
-    };
+    } as TransactionEntry;
   }
 
   /**
    * Get a pending transfer by ID
    */
-  function getPendingTransfer(id: string): IObjectKeys | undefined {
+  function getPendingTransfer(id: string): TransactionEntry | undefined {
     return pendingTransfers.value[id];
   }
 
@@ -247,7 +248,7 @@ export const useHistoryStore = defineStore("history", () => {
     limit: number = 50,
     filters: TransactionFilters = {},
     refresh: boolean = false
-  ): Promise<IObjectKeys[]> {
+  ): Promise<TransactionEntry[]> {
     if (!address.value) {
       transactions.value = [];
       return [];
@@ -278,7 +279,7 @@ export const useHistoryStore = defineStore("history", () => {
           route,
           routeDetails
         };
-        return d;
+        return d as unknown as TransactionEntry;
       });
 
       const res = await Promise.all(promises);
@@ -348,7 +349,7 @@ export const useHistoryStore = defineStore("history", () => {
           route,
           routeDetails
         };
-        return d;
+        return d as unknown as TransactionEntry;
       });
 
       const res = await Promise.all(promises);

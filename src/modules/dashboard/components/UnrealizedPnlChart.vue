@@ -30,11 +30,14 @@ import {
   createUsdTickFormat,
   computeMarginLeft,
   computeYTicks,
+  findClosestPoint,
   getChartWidth
 } from "@/common/utils/ChartUtils";
 
 import { useWalletStore, useAnalyticsStore } from "@/common/stores";
 import { ref, watch } from "vue";
+
+const styles = window.getComputedStyle(document.documentElement);
 
 type ChartData = { position?: number; debt?: number; date: Date };
 
@@ -107,7 +110,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       lineY(data_position.value, {
         x: "date",
         y: "position",
-        stroke: "#3470E2",
+        stroke: styles.getPropertyValue("--color-primary-default"),
         strokeWidth: 2,
         strokeLinecap: "round",
         curve: "catmull-rom",
@@ -116,7 +119,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       lineY(data_position.value, {
         x: "date",
         y: "debt",
-        stroke: "#FF5F3A",
+        stroke: styles.getPropertyValue("--color-icon-brand"),
         strokeWidth: 2,
         strokeLinecap: "round",
         strokeDasharray: "6, 4",
@@ -139,13 +142,47 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     .attr("y2", chartHeight - marginBottom)
     .style("display", "none");
 
+  const dotPrice = select(plotChart)
+    .append("circle")
+    .attr("r", 5)
+    .attr("fill", styles.getPropertyValue("--color-primary-default"))
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .style("display", "none");
+
+  const dotLiquidation = select(plotChart)
+    .append("circle")
+    .attr("r", 5)
+    .attr("fill", styles.getPropertyValue("--color-icon-error"))
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .style("display", "none");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [x] = pointer(event, plotChart);
 
       const closestData = getClosestDataPoint(x);
+
       if (closestData) {
-        crosshair.attr("x1", x).attr("x2", x).style("display", null);
+        const xScale = plotChart.scale("x");
+        const yScale = plotChart.scale("y");
+        if (!xScale || !yScale) return;
+        const xPixel = xScale.apply(closestData.date);
+
+        crosshair.attr("x1", xPixel).attr("x2", xPixel).style("display", null);
+
+        if (closestData.position != null) {
+          dotPrice.attr("cx", xPixel).attr("cy", yScale.apply(closestData.position)).style("display", null);
+        } else {
+          dotPrice.style("display", "none");
+        }
+
+        if (closestData.debt != null) {
+          dotLiquidation.attr("cx", xPixel).attr("cy", yScale.apply(closestData.debt)).style("display", null);
+        } else {
+          dotLiquidation.style("display", "none");
+        }
 
         tooltip.html(
           `<strong>${i18n.t("message.value-label")}</strong> ${formatUsd(closestData?.position ?? 0)}
@@ -165,37 +202,14 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     })
     .on("mouseleave", () => {
       crosshair.style("display", "none");
+      dotPrice.style("display", "none");
+      dotLiquidation.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }
 
 function getClosestDataPoint(cPosition: number) {
-  const plotAreaWidth = chartWidth - marginLeft - marginRight;
-  const adjustedX = cPosition - marginLeft;
-
-  if (data_position.value.length === 0) return null;
-
-  // Scale `adjustedX` to match `data` range
-  const maxDate = Math.max(...data_position.value.map((d) => d.date.getTime()));
-  const minDate = Math.min(...data_position.value.map((d) => d.date.getTime()));
-  const xScale = plotAreaWidth / (maxDate - minDate || 1);
-
-  // Convert adjustedX to the corresponding date value
-  const targetDate = adjustedX / xScale + minDate;
-
-  // Find the closest data point
-  let closest = data_position.value[0];
-  let minDiff = Math.abs(targetDate - closest.date.getTime());
-
-  for (const point of data_position.value) {
-    const diff = Math.abs(targetDate - point.date.getTime());
-    if (diff < minDiff) {
-      closest = point;
-      minDiff = diff;
-    }
-  }
-
-  return closest;
+  return findClosestPoint(data_position.value, (d) => d.date.getTime(), chartWidth, marginLeft, marginRight, cPosition);
 }
 
 function processPositionDebtData(response: {

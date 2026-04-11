@@ -113,7 +113,10 @@ async function loadMoreProposals() {
     `${node.api}/cosmos/gov/v1/proposals?pagination.limit=${limit.value}&pagination.key=${pagination.value.next_key}&pagination.reverse=true&pagination.countTotal=true`
   );
 
-  if (!data) return;
+  if (!data) {
+    loading.value = false;
+    return;
+  }
 
   const promises = [];
 

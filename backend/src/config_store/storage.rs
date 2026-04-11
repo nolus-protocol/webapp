@@ -43,20 +43,11 @@ pub struct AuditLogResponse {
     pub limit: usize,
 }
 
-/// Response for listing available locales
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct LocalesListResponse {
-    pub available: Vec<String>,
-    pub default: String,
-}
-
 /// Configuration store that manages all webapp configuration
 #[derive(Debug)]
 pub struct ConfigStore {
     /// Base directory for config files
     config_dir: PathBuf,
-    /// Cached locales (lang -> content)
-    cached_locales: Arc<RwLock<std::collections::HashMap<String, serde_json::Value>>>,
     /// Audit log entries (in-memory, persisted to file)
     audit_log: Arc<RwLock<Vec<AuditLogEntry>>>,
 }
@@ -66,7 +57,6 @@ impl ConfigStore {
     pub fn new<P: AsRef<Path>>(config_dir: P) -> Self {
         Self {
             config_dir: config_dir.as_ref().to_path_buf(),
-            cached_locales: Arc::new(RwLock::new(std::collections::HashMap::new())),
             audit_log: Arc::new(RwLock::new(Vec::new())),
         }
     }
@@ -102,8 +92,6 @@ impl ConfigStore {
 
     /// Invalidate the configuration cache
     pub async fn invalidate_cache(&self) {
-        let mut locales = self.cached_locales.write().await;
-        locales.clear();
         info!("Configuration cache invalidated");
     }
 
@@ -231,92 +219,6 @@ impl ConfigStore {
 
         let mut log = self.audit_log.write().await;
         *log = entries;
-
-        Ok(())
-    }
-
-    // =========================================================================
-    // Locales
-    // =========================================================================
-
-    /// Load a locale by language code
-    pub async fn load_locale(&self, lang: &str) -> Result<serde_json::Value, AppError> {
-        // Check cache first
-        {
-            let cache = self.cached_locales.read().await;
-            if let Some(locale) = cache.get(lang) {
-                return Ok(locale.clone());
-            }
-        }
-
-        // Load from file
-        let path = format!("locales/{}.json", lang);
-        let locale: serde_json::Value = self.load_json_file(&path).await?;
-
-        // Update cache
-        {
-            let mut cache = self.cached_locales.write().await;
-            cache.insert(lang.to_string(), locale.clone());
-        }
-
-        Ok(locale)
-    }
-
-    /// List available locales
-    pub async fn list_locales(&self) -> Result<LocalesListResponse, AppError> {
-        let locales_dir = self.config_dir.join("locales");
-
-        if !locales_dir.exists() {
-            return Ok(LocalesListResponse::default());
-        }
-
-        let mut entries = fs::read_dir(&locales_dir)
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to read locales directory: {}", e)))?;
-
-        let mut available = Vec::new();
-
-        while let Some(entry) = entries
-            .next_entry()
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to read directory entry: {}", e)))?
-        {
-            let path = entry.path();
-            if path.extension().is_some_and(|ext| ext == "json") {
-                if let Some(stem) = path.file_stem() {
-                    let name = stem.to_string_lossy().to_string();
-                    // Skip non-locale files like audit.json, pending.json, languages.json
-                    if name.len() == 2 || name == "active" {
-                        available.push(name);
-                    }
-                }
-            }
-        }
-
-        available.sort();
-
-        Ok(LocalesListResponse {
-            available,
-            default: "en".to_string(),
-        })
-    }
-
-    /// Save a locale
-    pub async fn save_locale(
-        &self,
-        lang: &str,
-        content: &serde_json::Value,
-    ) -> Result<(), AppError> {
-        let path = format!("locales/{}.json", lang);
-        self.save_json_file(&path, content).await?;
-        self.record_audit("update", &format!("locales/{}", lang), None)
-            .await;
-
-        // Invalidate locale cache
-        {
-            let mut cache = self.cached_locales.write().await;
-            cache.remove(lang);
-        }
 
         Ok(())
     }

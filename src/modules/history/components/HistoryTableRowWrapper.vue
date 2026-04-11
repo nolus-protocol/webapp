@@ -7,8 +7,7 @@
 </template>
 
 <script lang="ts" setup>
-import { type ITransactionData } from "../types";
-import type { HistoryData } from "../types/ITransaction";
+import type { TransactionEntry } from "../types/ITransaction";
 
 import { useI18n } from "vue-i18n";
 import { computed, h, ref } from "vue";
@@ -23,7 +22,7 @@ const mobile = isMobile();
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
 
 interface Props {
-  transaction: ITransactionData & HistoryData;
+  transaction: TransactionEntry;
 }
 const props = defineProps<Props>();
 

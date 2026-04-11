@@ -2,19 +2,19 @@
   <Button
     ref="popoverParent"
     class="h-full"
+    :class="popoverRef?.isOpen ? 'active' : ''"
     size="small"
     :label="StringUtils.truncateString(wallet?.wallet?.address ?? '', 8, 4)"
     severity="secondary"
     icon="wallet"
     icon-position="left"
-    @click="isOpen = !isOpen"
+    @click="popoverRef?.toggle()"
   />
   <Popover
-    v-if="isOpen"
+    ref="popoverRef"
     position="bottom-right"
     :show-close="isMobile()"
     :parent="popoverParent"
-    @close="isOpen = !isOpen"
     :title="$t('message.wallets')"
   >
     <template #content>
@@ -88,8 +88,8 @@ import NolusIcon from "@/assets/icons/coins/nls.svg?url";
 import { useWalletStore } from "../stores/wallet";
 import { WalletConnectMechanism } from "../types";
 
+const popoverRef = ref<InstanceType<typeof Popover> | null>(null);
 const popoverParent = ref();
-const isOpen = ref(false);
 const wallet = useWalletStore();
 
 const i18n = useI18n();

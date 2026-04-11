@@ -20,6 +20,7 @@ import {
   createNumberTickFormat,
   computeMarginLeft,
   computeYTicks,
+  findClosestPoint,
   getChartWidth
 } from "@/common/utils/ChartUtils";
 import { PERCENT } from "@/config/global";
@@ -133,28 +134,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 }
 
 function getClosestDataPoint(cPosition: number) {
-  const plotAreaWidth = chartWidth - marginLeft - marginRight;
-  const adjustedX = cPosition - marginLeft;
-
-  if (data.value.length === 0) return null;
-
-  const maxDate = Math.max(...data.value.map((d) => d.date));
-  const minDate = Math.min(...data.value.map((d) => d.date));
-  const xScale = plotAreaWidth / (maxDate - minDate || 1);
-  const targetDate = adjustedX / xScale + minDate;
-
-  let closest = data.value[0];
-  let minDiff = Math.abs(targetDate - closest.date);
-
-  for (const point of data.value) {
-    const diff = Math.abs(targetDate - point.date);
-    if (diff < minDiff) {
-      closest = point;
-      minDiff = diff;
-    }
-  }
-
-  return closest;
+  return findClosestPoint(data.value, (d) => d.date, chartWidth, marginLeft, marginRight, cPosition);
 }
 
 async function loadData() {

@@ -233,6 +233,7 @@
     "toggle-values": "Toggle values",
     "open": "Open",
     "paused": "Paused",
+    "supply-paused-limit": "Supply paused, limit reached",
     "unclaimed-rewards": "Unclaimed earn rewards",
     "active": "Active",
     "jailed": "Jailed",

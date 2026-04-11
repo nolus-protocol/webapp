@@ -1,7 +1,6 @@
 use serde::Deserialize;
 use std::env;
 use thiserror::Error;
-use tracing::warn;
 
 // ============================================================================
 // Configuration Errors
@@ -57,6 +56,9 @@ pub struct AppConfig {
 pub struct ServerConfig {
     pub host: String,
     pub port: u16,
+    /// Optional list of allowed CORS origins. When None, allows any origin.
+    #[serde(default)]
+    pub cors_origins: Option<Vec<String>>,
 }
 
 impl Default for ServerConfig {
@@ -64,6 +66,7 @@ impl Default for ServerConfig {
         Self {
             host: "0.0.0.0".to_string(),
             port: 3000,
+            cors_origins: None,
         }
     }
 }
@@ -227,27 +230,6 @@ impl AppConfig {
         url.starts_with("http://") || url.starts_with("https://")
     }
 
-    /// Validate and log any issues, returning an error if critical issues found
-    pub fn validate_and_log(&self) -> anyhow::Result<()> {
-        let result = self.validate();
-
-        // Log warnings
-        for warning in &result.warnings {
-            warn!("Config warning: {}", warning);
-        }
-
-        // Check for errors
-        if !result.is_ok() {
-            let error_messages: Vec<String> = result.errors.iter().map(|e| e.to_string()).collect();
-            anyhow::bail!(
-                "Configuration validation failed:\n  - {}",
-                error_messages.join("\n  - ")
-            );
-        }
-
-        Ok(())
-    }
-
     /// Helper to get required env var or fail fast
     fn get_required_env(env_var: &str, field_name: &str) -> anyhow::Result<String> {
         match env::var(env_var) {
@@ -302,6 +284,12 @@ impl AppConfig {
                     .unwrap_or_else(|_| "3000".to_string())
                     .parse()
                     .expect("PORT must be a number"),
+                cors_origins: env::var("CORS_ORIGINS").ok().map(|v| {
+                    v.split(',')
+                        .map(|s| s.trim().to_string())
+                        .filter(|s| !s.is_empty())
+                        .collect()
+                }),
             },
             external,
             admin: AdminConfig {

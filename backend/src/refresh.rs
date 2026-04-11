@@ -186,7 +186,7 @@ fn spawn_event_refresh<F, T: Clone + Send + 'static>(
             match event_rx.recv().await {
                 Ok(_) => {
                     counter += 1;
-                    if counter % skip_factor != 0 {
+                    if !counter.is_multiple_of(skip_factor) {
                         continue;
                     }
                     f(&state).await;
@@ -405,6 +405,13 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
         .map(|s| s.as_str())
         .collect();
 
+    // Only include currencies from active protocols (ones with oracle contracts).
+    // This keeps currencies in sync with prices, which only queries active oracles.
+    let active_protocols: Option<std::collections::HashSet<String>> =
+        state.data_cache.protocol_contracts.load().map(|pc| {
+            pc.keys().cloned().collect()
+        });
+
     let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
     let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
     let mut lease_currencies_set: std::collections::HashSet<String> =
@@ -415,6 +422,12 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
         let display = currency_config.currencies.get(&etl_currency.ticker);
 
         for protocol_mapping in etl_currency.protocols {
+            if let Some(ref active) = active_protocols {
+                if !active.contains(protocol_mapping.protocol.as_str()) {
+                    continue;
+                }
+            }
+
             let key = format!("{}@{}", etl_currency.ticker, protocol_mapping.protocol);
             let is_native = protocol_mapping.bank_symbol == "unls";
             let is_lpn = protocol_mapping.group == "lpn";

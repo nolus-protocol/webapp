@@ -1,11 +1,9 @@
 export type { NetworkAddress } from "@/common/types/NetworkAddress";
-export type { Networks, NetworksInfo, Currency } from "@/common/types/Networks";
+export type { Networks } from "@/common/types/Networks";
 export type { Network, NetworkData } from "@/common/types/Network";
 export type { IObjectKeys } from "@/common/types/IObjectKeys";
-export type { ContractInfo, ContractAdminInfo } from "@/common/types/ContractInfo";
-export type { Currecies, ExternalCurrencies, ExternalCurrency } from "@/common/types/Currencies";
+export type { ExternalCurrencies, ExternalCurrency } from "@/common/types/Currencies";
 export type { NetworkConfig, API, ARCHIVE_NODE, Endpoint, Node, Status } from "@/common/types/NetworkConfig";
-export type { LeaseAttributes } from "./LeaseAttributes";
 export type { SkipRouteConfigType } from "./SkipRouteConfigType";
 export type { ProposalsConfigType } from "./ProposalsConfigType";
 export { MultipleCurrencyEventType } from "./MultipleCurrencyEventType";

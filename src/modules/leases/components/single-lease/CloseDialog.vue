@@ -272,7 +272,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
-import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
+import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import {
   formatDecAsUsd,
   formatUsd,
@@ -283,7 +283,7 @@ import {
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
-import { MAX_DECIMALS, minimumLeaseAmount, PERCENT, PERMILLE } from "@/config/global";
+import { MAX_DECIMALS, minimumLeaseAmount, PERCENT } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
@@ -659,20 +659,7 @@ function outStandingDebt() {
     .add(new Dec(lease.value.debt.overdue_margin))
     .add(new Dec(lease.value.debt.overdue_interest))
     .add(new Dec(lease.value.debt.due_margin))
-    .add(new Dec(lease.value.debt.due_interest))
-    .add(additionalInterest().roundUpDec());
-
-  return debt;
-}
-
-function additionalInterest() {
-  if (!lease.value || lease.value.status !== "opened") return new Dec(0);
-
-  const principal_due = new Dec(lease.value.debt.principal);
-  const loanInterest = new Dec(lease.value.interest.loan_rate / PERMILLE).add(
-    new Dec(lease.value.interest.margin_rate / PERCENT)
-  );
-  const debt = LeaseUtils.calculateAditionalDebt(principal_due, loanInterest);
+    .add(new Dec(lease.value.debt.due_interest));
 
   return debt;
 }

@@ -213,8 +213,8 @@ pub async fn get_status(
     let url = format!(
         "{}/v2/tx/status?tx_hash={}&chain_id={}",
         state.skip_client.base_url(),
-        tx_hash,
-        query.chain_id
+        urlencoding::encode(&tx_hash),
+        urlencoding::encode(&query.chain_id)
     );
 
     let response = state.skip_client.get_raw(&url).await?;

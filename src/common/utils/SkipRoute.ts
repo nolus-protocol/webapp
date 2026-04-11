@@ -200,7 +200,7 @@ export class SkipRouter {
     }
   }
 
-  static async fetchStatus(hash: string, chainId: string): Promise<SkipTransactionStatus> {
+  static async fetchStatus(hash: string, chainId: string, retries = 60): Promise<SkipTransactionStatus> {
     const client = await SkipRouter.getClient();
     const status = await client.getTransactionStatus({ chain_id: chainId, tx_hash: hash });
 
@@ -223,8 +223,12 @@ export class SkipRouter {
       }
     }
 
+    if (retries <= 0) {
+      throw new Error(i18n.t("message.tx-state-abandoned"));
+    }
+
     await SkipRouter.wait(800);
-    return SkipRouter.fetchStatus(hash, chainId);
+    return SkipRouter.fetchStatus(hash, chainId, retries - 1);
   }
 
   private static wait(ms: number) {

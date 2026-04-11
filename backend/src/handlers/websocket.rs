@@ -1038,7 +1038,7 @@ pub async fn start_price_update_task(
             match new_block_rx.recv().await {
                 Ok(_) => {
                     counter += 1;
-                    if counter % 2 != 0 {
+                    if !counter.is_multiple_of(2) {
                         continue; // Skip every other block (~6s cadence)
                     }
 

@@ -11,19 +11,18 @@
 <script lang="ts" setup>
 import Chart from "@/common/components/Chart.vue";
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { isMobile } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { CHART_AXIS, createUsdTickFormat, getChartWidth } from "@/common/utils/ChartUtils";
+import { CHART_AXIS, createUsdTickFormat, computeMarginLeftForLabels, getChartWidth } from "@/common/utils/ChartUtils";
 import { getCurrencyByTickerForNetwork } from "@/common/utils/CurrencyLookup";
-import { select, pointer, type Selection } from "d3";
+import { color, select, pointer, type Selection } from "d3";
 import { ref, watch } from "vue";
 import { useConfigStore, useStatsStore } from "@/common/stores";
 
-const mobile = isMobile();
-const chartHeight = 500;
-const marginTop = 20;
+const styles = window.getComputedStyle(document.documentElement);
+const chartHeight = 400;
+const marginTop = 0;
 const marginBottom = 30;
-const marginLeft = mobile ? 55 : 70;
+let marginLeft: number;
 let chartWidth: number;
 
 const chart = ref<typeof Chart>();
@@ -77,6 +76,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   plotContainer.innerHTML = "";
   chartWidth = getChartWidth(plotContainer);
+  marginLeft = computeMarginLeftForLabels(loans.value.map((d) => d.ticker)) + 10;
 
   const loanValues = loans.value.map((d) => d.loan);
   const xDomain: [number, number] = [0, Math.max(...loanValues)];
@@ -104,7 +104,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         x: "loan",
         y: "ticker",
         rx2: 2,
-        fill: "#3470E2",
+        fill: styles.getPropertyValue("--color-primary-default"),
         sort: { y: "x", reverse: true }
       }),
       gridX({})
@@ -114,25 +114,45 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   plotContainer.appendChild(plotChart);
   select(plotChart).selectAll("path").transition().duration(400).attr("opacity", 1);
 
+  const crosshair = select(plotChart)
+    .append("line")
+    .attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.15)
+    .attr("stroke-width", 1)
+    .attr("x1", marginLeft)
+    .attr("x2", chartWidth)
+    .style("display", "none");
+
+  const baseColor = "#3470E2";
+  const hoverColor = color(baseColor)?.brighter(0.4)?.formatHex() ?? baseColor;
+
+  const rects = select(plotChart).select('g[aria-label="bar"]').selectAll("path");
+
   select(plotChart)
     .on("mousemove", (event) => {
       const [_x, y] = pointer(event, plotChart);
-
       const nearestData = getClosestDataPoint(y);
       if (nearestData) {
+        const plotAreaHeight = chartHeight - marginTop - marginBottom;
+        const barHeightPx = plotAreaHeight / loans.value.length;
+        const barIndex = Math.floor((y - marginTop) / barHeightPx);
+        const by = marginTop + (barIndex + 0.5) * barHeightPx;
+        crosshair.attr("y1", by).attr("y2", by).style("display", null);
+
+        rects.style("fill", null);
+        rects.filter((_, i) => i === barIndex).style("fill", hoverColor);
+
         tooltip.html(`<strong>${nearestData.ticker}:</strong> ${formatUsd(nearestData.loan)}`);
-
         const node = tooltip.node()!.getBoundingClientRect();
-        const height = node.height;
-        const width = node.width;
-
         tooltip
           .style("opacity", 1)
-          .style("left", `${event.pageX - width / 2}px`) // Using native event
-          .style("top", `${event.pageY - height - 10}px`); // Using native event
+          .style("left", `${event.pageX - node.width / 2}px`)
+          .style("top", `${event.pageY - node.height - 10}px`);
       }
     })
     .on("mouseleave", () => {
+      rects.style("fill", null);
+      crosshair.style("display", "none");
       tooltip.style("opacity", 0);
     });
 }

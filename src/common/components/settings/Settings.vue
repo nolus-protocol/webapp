@@ -5,14 +5,14 @@
     icon="cogwheel"
     size="small"
     class="text-icon-default"
-    @click="isOpen = !isOpen"
+    :class="popoverRef?.isOpen ? 'active' : ''"
+    @click="popoverRef?.toggle()"
   />
   <Popover
-    v-if="isOpen"
+    ref="popoverRef"
     position="bottom-right"
     :parent="popoverParent"
     :title="$t('message.settings')"
-    @close="isOpen = !isOpen"
     class="md:!max-w-[394px]"
   >
     <template #title-content>
@@ -26,8 +26,6 @@
       />
     </template>
     <template #content>
-      <!-- <AvatarSettings /> -->
-
       <ThemeSettings />
     </template>
   </Popover>
@@ -37,14 +35,13 @@
 import { inject, onMounted, ref } from "vue";
 import { Button, Popover, ToastType } from "web-components";
 
-// import AvatarSettings from "./AvatarSettings.vue";
 import ThemeSettings from "./ThemeSettings.vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { notificationSubscribe, notificationUnsubscribe, getSubscriptionStatus } from "../../../push/lib";
 import { useI18n } from "vue-i18n";
 
+const popoverRef = ref<InstanceType<typeof Popover> | null>(null);
 const popoverParent = ref();
-const isOpen = ref(false);
 const isSubscribed = ref(false);
 const wallet = useWalletStore();
 const i18n = useI18n();

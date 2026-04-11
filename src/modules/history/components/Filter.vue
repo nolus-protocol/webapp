@@ -44,7 +44,7 @@
     </div>
   </div>
   <Popover
-    v-if="isOpen"
+    ref="popoverRef"
     position="bottom-left"
     :parent="popoverParent"
     @close="onClose"
@@ -89,13 +89,13 @@ enum Templates {
 }
 
 const template = ref(Templates.default);
+const popoverRef = ref<InstanceType<typeof Popover> | null>(null);
 const popoverParent = ref();
-const isOpen = ref(false);
 const emitter = defineEmits(["onFilter"]);
 const appliedFilters = ref();
 const i18n = useI18n();
 
-provide("close", onClose);
+provide("applyFilter", applyFilters);
 
 const categoryFilters = computed(() => {
   const categories = ["positions", "transfers", "earn", "staking"];
@@ -118,7 +118,7 @@ const leaseFilters = computed(() => {
 function trigger() {
   template.value = Templates.default;
 
-  isOpen.value = !isOpen.value;
+  popoverRef.value?.show();
 }
 
 function clear() {
@@ -126,12 +126,13 @@ function clear() {
   appliedFilters.value = {};
 }
 
-function onClose(filters: IObjectKeys) {
-  isOpen.value = !isOpen.value;
-  template.value = Templates.default;
+function applyFilters(filters: IObjectKeys) {
   appliedFilters.value = filters;
-  if (filters) {
-    emitter("onFilter", filters);
-  }
+  emitter("onFilter", filters);
+  popoverRef.value?.close();
+}
+
+function onClose() {
+  template.value = Templates.default;
 }
 </script>

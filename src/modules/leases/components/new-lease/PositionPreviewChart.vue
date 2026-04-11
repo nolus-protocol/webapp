@@ -16,7 +16,7 @@ import type { ExternalCurrency } from "@/common/types";
 import { formatNumber, formatDecAsUsd } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_CURRENCY } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
-import { plot, barY, axisX, text, ruleY } from "@observablehq/plot";
+import { plot, barY, axisX, ruleY } from "@observablehq/plot";
 import { computeYTicks } from "@/common/utils/ChartUtils";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -120,16 +120,6 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         insetBottom: 0,
         clip: "frame"
       }),
-      text(responses.value, {
-        x: "name",
-        y: "value",
-        dy: 30,
-        fontSize: 14,
-        text(d) {
-          return `${d.price} \n ${d.ticker}`;
-        },
-        title: (d) => `class-${d.ticker.toLowerCase()}`
-      }),
       ruleY([0])
     ]
   });
@@ -140,6 +130,62 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   } else {
     plotContainer.appendChild(nextChart);
   }
+
+  // Inject labels sized to content: append text first, measure, then insert background
+  type Measurable = { getBBox(): { x: number; y: number; width: number; height: number } };
+  const ns = "http://www.w3.org/2000/svg";
+  const fontSize = 14;
+  const lineHeight = fontSize * 1.4;
+  const px = 12;
+  const py = 6;
+  // barGroups order matches mark order: [data[1]=downpayment, data[0]=borrow]
+  const dataOrder = [responses.value[1], responses.value[0]];
+
+  nextChart.querySelectorAll("[aria-label='bar']").forEach((barGroup, i) => {
+    const rect = barGroup.querySelector("rect");
+    const d = dataOrder[i];
+    if (!rect || !d) return;
+
+    const bx = parseFloat(rect.getAttribute("x") ?? "0");
+    const bw = parseFloat(rect.getAttribute("width") ?? "0");
+    const by = parseFloat(rect.getAttribute("y") ?? "0");
+    const bh = parseFloat(rect.getAttribute("height") ?? "0");
+    const cx = bx + bw / 2;
+    const baseY = by + bh - py - lineHeight;
+
+    const makeText = (content: string, y: number) => {
+      const t = document.createElementNS(ns, "text");
+      t.setAttribute("x", String(cx));
+      t.setAttribute("y", String(y));
+      t.setAttribute("text-anchor", "middle");
+      t.setAttribute("font-size", String(fontSize));
+      t.style.fill = "currentColor";
+      t.textContent = content;
+      nextChart.appendChild(t);
+      return t;
+    };
+
+    const t1 = makeText(d.price, baseY - lineHeight);
+    t1.setAttribute("font-weight", "bold");
+    const t2 = makeText(d.ticker, baseY);
+
+    // Measure after append (forces synchronous reflow)
+    const b1 = (t1 as unknown as Measurable).getBBox();
+    const b2 = (t2 as unknown as Measurable).getBBox();
+    const minX = Math.min(b1.x, b2.x);
+    const maxX = Math.max(b1.x + b1.width, b2.x + b2.width);
+    const minY = Math.min(b1.y, b2.y);
+    const maxY = Math.max(b1.y + b1.height, b2.y + b2.height);
+
+    const bg = document.createElementNS(ns, "rect");
+    bg.setAttribute("x", String(minX - px));
+    bg.setAttribute("y", String(minY - py));
+    bg.setAttribute("width", String(maxX - minX + px * 2));
+    bg.setAttribute("height", String(maxY - minY + py * 2));
+    bg.setAttribute("rx", "6");
+    bg.style.fill = "none";
+    nextChart.insertBefore(bg, t1);
+  });
 
   select(nextChart)
     .on("mousemove", (event) => {
