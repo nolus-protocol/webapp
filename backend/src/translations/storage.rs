@@ -50,7 +50,7 @@ impl TranslationStorage {
     /// Initialize storage, creating directories if needed
     pub async fn init(&self) -> Result<(), AppError> {
         // Create directories
-        let dirs = [self.locales_dir.clone(), self.locales_dir.join("active")];
+        let dirs = [self.locales_dir.clone()];
 
         for dir in &dirs {
             if !dir.exists() {
@@ -147,9 +147,7 @@ impl TranslationStorage {
     // =========================================================================
 
     fn active_path(&self, lang: &str) -> PathBuf {
-        self.locales_dir
-            .join("active")
-            .join(format!("{}.json", lang))
+        self.locales_dir.join(format!("{}.json", lang))
     }
 
     fn pending_path(&self) -> PathBuf {

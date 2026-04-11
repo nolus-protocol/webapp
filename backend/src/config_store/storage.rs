@@ -48,8 +48,6 @@ pub struct AuditLogResponse {
 pub struct ConfigStore {
     /// Base directory for config files
     config_dir: PathBuf,
-    /// Cached locales (lang -> content)
-    cached_locales: Arc<RwLock<std::collections::HashMap<String, serde_json::Value>>>,
     /// Audit log entries (in-memory, persisted to file)
     audit_log: Arc<RwLock<Vec<AuditLogEntry>>>,
 }
@@ -59,7 +57,6 @@ impl ConfigStore {
     pub fn new<P: AsRef<Path>>(config_dir: P) -> Self {
         Self {
             config_dir: config_dir.as_ref().to_path_buf(),
-            cached_locales: Arc::new(RwLock::new(std::collections::HashMap::new())),
             audit_log: Arc::new(RwLock::new(Vec::new())),
         }
     }
@@ -95,8 +92,6 @@ impl ConfigStore {
 
     /// Invalidate the configuration cache
     pub async fn invalidate_cache(&self) {
-        let mut locales = self.cached_locales.write().await;
-        locales.clear();
         info!("Configuration cache invalidated");
     }
 
@@ -224,53 +219,6 @@ impl ConfigStore {
 
         let mut log = self.audit_log.write().await;
         *log = entries;
-
-        Ok(())
-    }
-
-    // =========================================================================
-    // Locales
-    // =========================================================================
-
-    /// Load a locale by language code
-    pub async fn load_locale(&self, lang: &str) -> Result<serde_json::Value, AppError> {
-        // Check cache first
-        {
-            let cache = self.cached_locales.read().await;
-            if let Some(locale) = cache.get(lang) {
-                return Ok(locale.clone());
-            }
-        }
-
-        // Load from file
-        let path = format!("locales/{}.json", lang);
-        let locale: serde_json::Value = self.load_json_file(&path).await?;
-
-        // Update cache
-        {
-            let mut cache = self.cached_locales.write().await;
-            cache.insert(lang.to_string(), locale.clone());
-        }
-
-        Ok(locale)
-    }
-
-    /// Save a locale
-    pub async fn save_locale(
-        &self,
-        lang: &str,
-        content: &serde_json::Value,
-    ) -> Result<(), AppError> {
-        let path = format!("locales/{}.json", lang);
-        self.save_json_file(&path, content).await?;
-        self.record_audit("update", &format!("locales/{}", lang), None)
-            .await;
-
-        // Invalidate locale cache
-        {
-            let mut cache = self.cached_locales.write().await;
-            cache.remove(lang);
-        }
 
         Ok(())
     }
