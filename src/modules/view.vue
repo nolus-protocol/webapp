@@ -2,7 +2,7 @@
   <Header :toggle-mobile-nav="() => mobileMenu?.open()" />
   <Sidebar />
   <MobileMenu ref="mobileMenu" />
-  <div class="custom-scroll flex justify-center p-8 lg:ml-[210px] lg:px-8 lg:pt-9 lg:pb-16">
+  <div class="custom-scroll flex justify-center px-4 py-8 lg:ml-[210px] lg:px-8 lg:pt-9 lg:pb-16">
     <router-view v-slot="{ Component, route }">
       <transition
         appear
