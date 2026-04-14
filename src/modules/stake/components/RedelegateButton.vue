@@ -1,15 +1,21 @@
 <template>
   <div class="flex items-center gap-1">
     <Label
-      :value="loading ? $t('message.redelagate') : $t('message.jailed')"
+      :value="$t('message.jailed')"
       variant="error"
       :tooltip="$t('message.jailed-tooltip')"
     />
-    <SvgIcon
-      @click="delegate"
-      class="cursor-pointer"
-      name="refresh"
-    />
+    <Tooltip
+      position="top"
+      :content="$t('message.redelegate-tooltip')"
+    >
+      <SvgIcon
+        @click="delegate"
+        class="cursor-pointer"
+        :class="{ 'animate-spin': loading }"
+        name="refresh"
+      />
+    </Tooltip>
   </div>
 </template>
 
@@ -21,7 +27,7 @@ import { useStakingStore } from "@/common/stores/staking";
 import { Logger, NetworkUtils, Utils } from "@/common/utils";
 import { NATIVE_ASSET, STAKING } from "@/config/global";
 import { inject, ref } from "vue";
-import { Label, SvgIcon, ToastType } from "web-components";
+import { Label, SvgIcon, Tooltip, ToastType } from "web-components";
 import { coin } from "@cosmjs/stargate";
 import { useI18n } from "vue-i18n";
 import { Decimal } from "@cosmjs/math";
