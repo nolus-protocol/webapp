@@ -108,6 +108,10 @@ async function delegate() {
     });
   } catch (err: unknown) {
     Logger.error(err);
+    onShowToast({
+      type: ToastType.error,
+      message: i18n.t("message.redelegate-error")
+    });
   } finally {
     loading.value = false;
   }
