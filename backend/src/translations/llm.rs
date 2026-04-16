@@ -1,6 +1,7 @@
-//! OpenAI API client for AI-powered translation generation
+//! LLM client for AI-powered translation generation via OpenRouter
 //!
 //! Handles batch translation requests with context and glossary support.
+//! Uses OpenRouter's OpenAI-compatible API to access multiple LLM providers.
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -11,35 +12,37 @@ use super::types::GlossaryConfig;
 use super::validation::extract_placeholders;
 use crate::error::AppError;
 
-/// OpenAI API client for translations
+const OPENROUTER_BASE_URL: &str = "https://openrouter.ai/api/v1";
+
+/// LLM client for translations via OpenRouter
 #[derive(Debug, Clone)]
-pub struct OpenAIClient {
+pub struct LlmClient {
     client: Client,
     api_key: String,
     model: String,
     base_url: String,
 }
 
-/// Configuration for OpenAI client
+/// Configuration for LLM client
 #[derive(Debug, Clone)]
-pub struct OpenAIConfig {
+pub struct LlmConfig {
     pub api_key: String,
     pub model: String,
     pub base_url: Option<String>,
 }
 
-impl Default for OpenAIConfig {
+impl Default for LlmConfig {
     fn default() -> Self {
         Self {
             api_key: String::new(),
-            model: "gpt-4o-mini".to_string(),
+            model: "google/gemini-3-flash-preview".to_string(),
             base_url: None,
         }
     }
 }
 
 // =========================================================================
-// OpenAI API Types
+// Chat Completion API Types (OpenAI-compatible)
 // =========================================================================
 
 #[derive(Debug, Serialize)]
@@ -115,7 +118,7 @@ pub struct BatchTranslationResult {
     pub tokens_used: u32,
 }
 
-/// Expected JSON structure from OpenAI
+/// Expected JSON structure from LLM response
 #[derive(Debug, Deserialize)]
 struct TranslationResponse {
     translations: Vec<TranslationItem>,
@@ -127,16 +130,16 @@ struct TranslationItem {
     translation: String,
 }
 
-impl OpenAIClient {
-    /// Create a new OpenAI client
-    pub fn new(config: OpenAIConfig) -> Self {
+impl LlmClient {
+    /// Create a new LLM client
+    pub fn new(config: LlmConfig) -> Self {
         Self {
             client: Client::new(),
             api_key: config.api_key,
             model: config.model,
             base_url: config
                 .base_url
-                .unwrap_or_else(|| "https://api.openai.com/v1".to_string()),
+                .unwrap_or_else(|| OPENROUTER_BASE_URL.to_string()),
         }
     }
 
@@ -169,7 +172,7 @@ impl OpenAIClient {
 
         if !self.is_configured() {
             return Err(AppError::Internal(
-                "OpenAI API key not configured".to_string(),
+                "OpenRouter API key not configured".to_string(),
             ));
         }
 
@@ -206,27 +209,29 @@ impl OpenAIClient {
             .post(format!("{}/chat/completions", self.base_url))
             .header("Authorization", format!("Bearer {}", self.api_key))
             .header("Content-Type", "application/json")
+            .header("HTTP-Referer", "https://nolus.io")
+            .header("X-Title", "nolus-webapp")
             .json(&request)
             .send()
             .await
             .map_err(|e| AppError::ExternalApi {
-                api: "OpenAI".to_string(),
+                api: "OpenRouter".to_string(),
                 message: format!("Request failed: {}", e),
             })?;
 
         let status = response.status();
         if !status.is_success() {
             let error_text = response.text().await.unwrap_or_default();
-            error!("OpenAI API error: {} - {}", status, error_text);
+            error!("OpenRouter API error: {} - {}", status, error_text);
             return Err(AppError::ExternalApi {
-                api: "OpenAI".to_string(),
+                api: "OpenRouter".to_string(),
                 message: format!("API returned {}: {}", status, error_text),
             });
         }
 
         let completion: ChatCompletionResponse =
             response.json().await.map_err(|e| AppError::ExternalApi {
-                api: "OpenAI".to_string(),
+                api: "OpenRouter".to_string(),
                 message: format!("Failed to parse response: {}", e),
             })?;
 
@@ -237,7 +242,7 @@ impl OpenAIClient {
             .first()
             .map(|c| &c.message.content)
             .ok_or_else(|| AppError::ExternalApi {
-                api: "OpenAI".to_string(),
+                api: "OpenRouter".to_string(),
                 message: "No response content".to_string(),
             })?;
 
@@ -328,7 +333,7 @@ Example:
         prompt
     }
 
-    /// Parse the OpenAI response into translation results
+    /// Parse the LLM response into translation results
     fn parse_translations(
         &self,
         content: &str,
@@ -341,10 +346,10 @@ Example:
 
         // Parse JSON response
         let response: TranslationResponse = serde_json::from_str(content).map_err(|e| {
-            error!("Failed to parse OpenAI response: {}", e);
+            error!("Failed to parse LLM response: {}", e);
             error!("Raw content: {}", content);
             AppError::ExternalApi {
-                api: "OpenAI".to_string(),
+                api: "OpenRouter".to_string(),
                 message: format!("Invalid JSON response: {}", e),
             }
         })?;
@@ -378,7 +383,7 @@ Example:
                     placeholders_valid,
                 });
             } else {
-                warn!("OpenAI returned unexpected key: {}", item.key);
+                warn!("LLM returned unexpected key: {}", item.key);
             }
         }
 
@@ -448,13 +453,13 @@ mod tests {
 
     #[test]
     fn test_client_not_configured() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         assert!(!client.is_configured());
     }
 
     #[test]
     fn test_client_configured() {
-        let client = OpenAIClient::new(OpenAIConfig {
+        let client = LlmClient::new(LlmConfig {
             api_key: "test-key".to_string(),
             model: "gpt-4o-mini".to_string(),
             base_url: None,
@@ -465,7 +470,7 @@ mod tests {
 
     #[test]
     fn test_build_system_prompt_basic() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let prompt = client.build_system_prompt("en", "ru", None, None);
 
         assert!(prompt.contains("English"));
@@ -476,7 +481,7 @@ mod tests {
 
     #[test]
     fn test_build_system_prompt_with_context() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let prompt = client.build_system_prompt(
             "en",
             "fr",
@@ -490,7 +495,7 @@ mod tests {
 
     #[test]
     fn test_build_system_prompt_with_glossary() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let mut glossary = GlossaryConfig::default();
         glossary.terms.insert("Nolus".to_string(), "".to_string());
         glossary
@@ -507,7 +512,7 @@ mod tests {
 
     #[test]
     fn test_build_user_prompt() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let inputs = vec![
             TranslationInput {
                 key: "message.hello".to_string(),
@@ -532,7 +537,7 @@ mod tests {
 
     #[test]
     fn test_parse_translations_success() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let inputs = vec![TranslationInput {
             key: "message.hello".to_string(),
             value: "Hello {name}!".to_string(),
@@ -559,7 +564,7 @@ mod tests {
 
     #[test]
     fn test_parse_translations_missing_placeholder() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let inputs = vec![TranslationInput {
             key: "message.hello".to_string(),
             value: "Hello {name}!".to_string(),
@@ -582,7 +587,7 @@ mod tests {
 
     #[test]
     fn test_parse_translations_missing_key() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let inputs = vec![
             TranslationInput {
                 key: "message.hello".to_string(),
@@ -612,7 +617,7 @@ mod tests {
 
     #[test]
     fn test_parse_translations_invalid_json() {
-        let client = OpenAIClient::new(OpenAIConfig::default());
+        let client = LlmClient::new(LlmConfig::default());
         let inputs = vec![TranslationInput {
             key: "message.hello".to_string(),
             value: "Hello".to_string(),

@@ -4,7 +4,7 @@
 //! and locale file management for the admin interface.
 
 pub mod audit;
-pub mod openai;
+pub mod llm;
 pub mod storage;
 pub mod types;
 pub mod validation;
