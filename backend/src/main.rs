@@ -279,14 +279,16 @@ fn create_router(state: Arc<AppState>) -> Router {
         // Generic passthrough for all other ETL endpoints (allowlist-gated)
         .route("/{path}", get(handlers::etl_proxy::etl_proxy_generic));
 
-    // Read-only API routes (standard rate limit)
-    let read_routes = Router::new()
-        // Health check
+    // Health check routes (no rate limiting - used by monitoring/health checks)
+    let health_routes = Router::new()
         .route("/health", get(handlers::admin::health_check))
         .route(
             "/health/detailed",
             get(handlers::admin::detailed_health_check),
-        )
+        );
+
+    // Read-only API routes (standard rate limit)
+    let read_routes = Router::new()
         // Configuration
         .route("/config", get(handlers::config::get_config))
         .route("/config/protocols", get(handlers::config::get_protocols))
@@ -688,7 +690,7 @@ fn create_router(state: Arc<AppState>) -> Router {
     // Combine all routes
     // API routes take precedence, then static files
     Router::new()
-        .nest("/api", read_routes.merge(write_routes))
+        .nest("/api", health_routes.merge(read_routes).merge(write_routes))
         .nest("/api/etl", etl_routes)
         .nest("/api/admin", admin_routes)
         .nest("/ws", ws_routes)
