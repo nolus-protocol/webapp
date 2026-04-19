@@ -10,6 +10,8 @@
 //!
 //!     UPDATE_OPENAPI_SNAPSHOT=1 cargo test openapi
 
+use std::sync::LazyLock;
+
 use axum::Json;
 use utoipa::OpenApi;
 
@@ -319,9 +321,12 @@ use crate::handlers::{
 )]
 pub struct ApiDoc;
 
+/// Cached OpenAPI document — built once, reused across requests.
+static CACHED_SPEC: LazyLock<utoipa::openapi::OpenApi> = LazyLock::new(ApiDoc::openapi);
+
 /// Serve the OpenAPI document as JSON.
 pub async fn serve_openapi() -> Json<utoipa::openapi::OpenApi> {
-    Json(ApiDoc::openapi())
+    Json(CACHED_SPEC.clone())
 }
 
 #[cfg(test)]
@@ -378,9 +383,14 @@ mod tests {
     fn openapi_spec_has_no_admin_routes() {
         let spec = ApiDoc::openapi();
         let paths: Vec<&String> = spec.paths.paths.keys().collect();
+        // All admin-gated routes are nested under `/api/admin/...` in main.rs,
+        // including `/translations/*`, `/gated/*`, and `/cache/*`. Checking the
+        // prefix is sufficient. Note: `/api/networks/gated` and
+        // `/api/protocols/gated` are PUBLIC read views over the gated data —
+        // they are not admin routes despite the name.
         let admin_paths: Vec<_> = paths
             .iter()
-            .filter(|p| p.starts_with("/api/admin") || p.contains("/gated/"))
+            .filter(|p| p.starts_with("/api/admin"))
             .collect();
 
         assert!(
