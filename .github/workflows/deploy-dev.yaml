@@ -65,6 +65,11 @@ jobs:
             fi
           REMOTE
 
+      - name: Stop backend service (release binary lock)
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
+            sudo systemctl stop $SERVICE"
+
       - name: Deploy bundle via rclone
         run: |
           rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:$DEPLOY_DIR/ \
@@ -75,11 +80,11 @@ jobs:
             --filter "- dist.bak/**" \
             --verbose
 
-      - name: Restart backend + mark binary executable
+      - name: Start backend + mark binary executable
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
             chmod +x $DEPLOY_DIR/nolus-backend && \
-            sudo systemctl restart $SERVICE"
+            sudo systemctl start $SERVICE"
 
       - name: Health probe
         run: |
