@@ -1,0 +1,100 @@
+name: Validate PR
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+
+concurrency:
+  group: pr-validate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend — lint, format, test, build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Unit tests (vitest)
+        run: npm test
+
+      - name: Build (production)
+        env:
+          VITE_BACKEND_URL: https://app.nolus.io
+          VITE_WS_URL: wss://app.nolus.io/ws
+          VITE_APP_URL: https://app.nolus.io
+        run: npm run build
+
+      - name: Validate .well-known JSON files in dist/
+        run: |
+          set -e
+          find dist/.well-known -type f \( -name '*.json' -o -name 'api-catalog' \) -print0 \
+            | while IFS= read -r -d '' f; do
+                echo "checking $f"
+                jq empty "$f"
+              done
+
+      - name: Verify key discovery files ship with the build
+        run: |
+          set -e
+          for p in robots.txt \
+                   .well-known/agent-card.json \
+                   .well-known/mcp/server-card.json \
+                   .well-known/agent-skills/index.json \
+                   .well-known/api-catalog; do
+            if [ ! -s "dist/$p" ]; then
+              echo "FAIL: dist/$p is missing or empty"
+              exit 1
+            fi
+          done
+          echo "OK — all 5 required discovery files present"
+
+  backend:
+    name: Backend — fmt, clippy, test, OpenAPI snapshot
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+
+      - name: Format check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (deny warnings)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Build
+        run: cargo build --all-targets
+
+      - name: Test suite (includes OpenAPI snapshot drift guard)
+        run: cargo test --all-targets
