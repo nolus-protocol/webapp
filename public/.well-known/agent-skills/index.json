@@ -16,7 +16,7 @@
       "type": "mcp",
       "transport": "stdio",
       "package": "@nolus/nolusjs",
-      "card": "https://app.nolus.io/.well-known/mcp.json",
+      "card": "https://app.nolus.io/.well-known/mcp/server-card.json",
       "description": "Nolus.js MCP server — 20+ query tools and 8 transaction builders"
     },
     {
