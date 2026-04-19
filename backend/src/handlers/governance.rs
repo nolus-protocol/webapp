@@ -434,3 +434,124 @@ pub async fn get_network_status(
     let status = state.chain_client.get_network_status().await?;
     Ok(Json(status))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::data_cache::GatedConfigBundle;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route(
+                "/api/governance/hidden-proposals",
+                get(get_hidden_proposals),
+            )
+            .route("/api/governance/proposals", get(get_proposals))
+            .route(
+                "/api/governance/proposals/{proposal_id}/tally",
+                get(get_proposal_tally),
+            )
+            .with_state(state)
+    }
+
+    fn populate_gated(state: &AppState, hidden: Vec<String>) {
+        use crate::config_store::gated_types::{
+            CurrencyDisplayConfig, GatedNetworkConfig, LeaseRulesConfig, SwapSettingsConfig,
+            UiSettingsConfig,
+        };
+        let ui = UiSettingsConfig {
+            hidden_proposals: hidden,
+            ..Default::default()
+        };
+        // Deserialize minimal JSON blobs for the other configs — most have
+        // required fields (`api_url`, the flatten-map fields) that make
+        // direct struct construction noisy.
+        let currency_display: CurrencyDisplayConfig =
+            serde_json::from_str("{}").expect("empty currency display");
+        let network_config: GatedNetworkConfig =
+            serde_json::from_str("{}").expect("empty network config");
+        let lease_rules: LeaseRulesConfig = serde_json::from_str("{}").expect("empty lease rules");
+        let swap_settings: SwapSettingsConfig =
+            serde_json::from_str(r#"{"api_url":"http://stub.invalid/"}"#)
+                .expect("minimal swap settings");
+        state.data_cache.gated_config.store(GatedConfigBundle {
+            currency_display,
+            network_config,
+            lease_rules,
+            swap_settings,
+            ui_settings: ui,
+        });
+    }
+
+    #[tokio::test]
+    async fn governance_hidden_proposals_cold_cache_returns_503() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/hidden-proposals")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn governance_hidden_proposals_returns_list_shape() {
+        let state = test_app_state().await;
+        populate_gated(&state, vec!["42".to_string(), "99".to_string()]);
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/hidden-proposals")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"hidden_ids\""), "body: {body}");
+        assert!(body.contains("\"42\""), "body: {body}");
+        assert!(body.contains("\"99\""), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn governance_proposals_upstream_failure_returns_502() {
+        // stub RPC (127.0.0.1:1 + 1ms timeout) ensures chain_client returns an
+        // error that maps to 502 BAD_GATEWAY via AppError::ChainRpc.
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals?limit=5")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+    }
+
+    #[tokio::test]
+    async fn governance_proposal_tally_upstream_failure_returns_502() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals/1/tally")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+    }
+}

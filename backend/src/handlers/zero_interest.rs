@@ -359,3 +359,75 @@ pub async fn check_campaign_eligibility(
         .await?;
     Ok(Json(eligibility))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::test_app_state;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        routing::{get, post},
+        Router,
+    };
+    use tower::ServiceExt;
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/campaigns/active", get(get_active_campaigns))
+            .route("/api/zero-interest/payments", post(create_payment))
+            .route(
+                "/api/zero-interest/lease/{lease_address}/payments",
+                get(get_lease_payments),
+            )
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn zero_interest_active_campaigns_upstream_failure_returns_502() {
+        // stub zero_interest URL + 1ms timeout → AppError::ExternalApi → 502
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/campaigns/active")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+    }
+
+    #[tokio::test]
+    async fn zero_interest_create_payment_malformed_json_returns_400() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/zero-interest/payments")
+                    .header("content-type", "application/json")
+                    .body(Body::from("{ malformed".to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn zero_interest_lease_payments_upstream_failure_returns_502() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/zero-interest/lease/nolus1lease/payments")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+    }
+}

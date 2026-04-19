@@ -785,3 +785,88 @@ async fn fetch_position_for_monitoring(
         rewards,
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        routing::{get, post},
+        Router,
+    };
+    use tower::ServiceExt;
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/earn/pools", get(get_pools))
+            .route("/api/earn/positions", get(get_positions))
+            .route("/api/earn/deposit", post(deposit))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn earn_pools_cold_cache_returns_503() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/earn/pools")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn earn_positions_missing_address_returns_400() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/earn/positions")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn earn_positions_invalid_address_returns_400() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/earn/positions?address=not-a-bech32-address")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("VALIDATION_FAILED"), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn earn_deposit_cold_cache_returns_503() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/earn/deposit")
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"protocol":"P","amount":"100"}"#.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+}

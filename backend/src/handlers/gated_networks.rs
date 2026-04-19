@@ -275,3 +275,72 @@ pub async fn get_network_pools(
         pools,
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/networks/gated", get(get_networks))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn gated_networks_cold_cache_returns_503() {
+        let app = app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/networks/gated")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn gated_networks_populated_cache_returns_list_shape() {
+        let state = test_app_state().await;
+        state.data_cache.gated_networks.store(NetworksResponse {
+            networks: vec![NetworkResponse {
+                network: "OSMOSIS".to_string(),
+                name: "Osmosis".to_string(),
+                chain_id: "osmosis-1".to_string(),
+                prefix: "osmo".to_string(),
+                rpc: "http://example.invalid/rpc".to_string(),
+                lcd: "http://example.invalid/lcd".to_string(),
+                fallback_rpc: Vec::new(),
+                fallback_lcd: Vec::new(),
+                gas_price: "0.0025".to_string(),
+                explorer: None,
+                icon: None,
+                primary_protocol: None,
+                estimation: None,
+                gas_multiplier: 1.5,
+            }],
+            count: 1,
+        });
+        let app = app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/networks/gated")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"networks\""), "body: {body}");
+        assert!(body.contains("\"count\":1"), "body: {body}");
+        assert!(body.contains("OSMOSIS"), "body: {body}");
+    }
+}

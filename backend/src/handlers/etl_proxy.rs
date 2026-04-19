@@ -413,3 +413,163 @@ async fn proxy_post(client: &Client, url: &str, body: serde_json::Value) -> impl
 // ============================================================================
 // Tests
 // ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        routing::{get, post},
+        Router,
+    };
+    use tower::ServiceExt;
+    use wiremock::matchers::{method, path as wm_path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/etl/{path}", get(etl_proxy_generic))
+            .route("/api/etl/subscribe", post(proxy_subscribe))
+            .route("/api/etl/batch/user-dashboard", get(batch_user_dashboard))
+            .with_state(state)
+    }
+
+    /// Build an AppState where the shared HTTP client has a realistic
+    /// timeout (so etl_proxy wiremock requests actually resolve) and
+    /// etl_api_url points at the given mock URL. Mirrors `test_app_state`
+    /// but substitutes a real-timeout client for the throttled one.
+    async fn state_with_etl_url(etl_url: &str) -> Arc<AppState> {
+        use crate::config_store::ConfigStore;
+        use crate::translations::{
+            llm::{LlmClient, LlmConfig},
+            TranslationStorage,
+        };
+
+        let mut cfg = crate::test_utils::test_config();
+        cfg.external.etl_api_url = etl_url.to_string();
+
+        let http_client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(5))
+            .build()
+            .expect("reqwest client");
+
+        let etl_client = crate::external::etl::EtlClient::new(
+            cfg.external.etl_api_url.clone(),
+            http_client.clone(),
+        );
+        let skip_client = crate::external::skip::SkipClient::new(
+            cfg.external.skip_api_url.clone(),
+            cfg.external.skip_api_key.clone(),
+            http_client.clone(),
+        );
+        let chain_client = crate::external::chain::ChainClient::new(
+            cfg.external.nolus_rest_url.clone(),
+            http_client.clone(),
+        );
+        let referral_client =
+            crate::external::referral::ReferralClient::new(&cfg, http_client.clone());
+        let zero_interest_client =
+            crate::external::zero_interest::ZeroInterestClient::new(&cfg, http_client.clone());
+
+        let config_dir = tempfile::tempdir().expect("tempdir").keep();
+        let config_store = ConfigStore::new(&config_dir);
+        config_store.init().await.expect("ConfigStore init");
+        let translation_dir = tempfile::tempdir().expect("tempdir").keep();
+        let translation_storage = TranslationStorage::new(&translation_dir);
+        translation_storage.init().await.expect("TS init");
+        let llm_client = LlmClient::new(LlmConfig {
+            api_key: String::new(),
+            model: "stub".to_string(),
+            base_url: Some("http://127.0.0.1:1/".to_string()),
+        });
+
+        Arc::new(crate::AppState {
+            config: cfg,
+            etl_client,
+            skip_client,
+            chain_client,
+            referral_client,
+            zero_interest_client,
+            data_cache: crate::data_cache::AppDataCache::new(),
+            ws_manager: crate::handlers::websocket::WebSocketManager::new(16),
+            config_store,
+            translation_storage,
+            llm_client,
+            startup_time: std::time::Instant::now(),
+        })
+    }
+
+    #[tokio::test]
+    async fn etl_proxy_unknown_path_returns_404() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/etl/not-in-allowlist")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("not-in-allowlist"), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn etl_proxy_allowed_path_forwards_and_returns_200() {
+        let mock_server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(wm_path("/api/pools"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(serde_json::json!({"pools":[{"protocol":"P"}]})),
+            )
+            .mount(&mock_server)
+            .await;
+
+        let state = state_with_etl_url(&mock_server.uri()).await;
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/etl/pools")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"pools\""), "body: {body}");
+        assert!(body.contains("\"protocol\":\"P\""), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn etl_proxy_upstream_500_propagates_as_internal_error() {
+        let mock_server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(wm_path("/api/pools"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("<html>boom</html>"))
+            .mount(&mock_server)
+            .await;
+
+        let state = state_with_etl_url(&mock_server.uri()).await;
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/etl/pools")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        // Body is HTML so parse-to-json fails → AppError::Internal → 500
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+}

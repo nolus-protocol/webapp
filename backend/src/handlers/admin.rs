@@ -835,3 +835,111 @@ fn extract_vesting(account: &serde_json::Value) -> (String, bool) {
         None => ("0.000000".to_string(), false),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::admin_auth_middleware;
+    use crate::test_utils::{
+        collect_body_str, test_app_state, test_app_state_with_config, test_config_with_admin,
+    };
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        middleware::from_fn_with_state,
+        routing::{get, post},
+        Router,
+    };
+    use tower::ServiceExt;
+
+    /// Health endpoints are public — no middleware.
+    fn public_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/health", get(health_check))
+            .with_state(state)
+    }
+
+    /// Build an admin-protected router for cache_stats and invalidate_cache.
+    async fn admin_router(enabled: bool, api_key: &str) -> Router {
+        let state = test_app_state_with_config(test_config_with_admin(enabled, api_key)).await;
+        Router::new()
+            .route("/api/admin/cache/stats", get(get_cache_stats))
+            .route("/api/admin/cache/invalidate", post(invalidate_cache))
+            .layer(from_fn_with_state(state.clone(), admin_auth_middleware))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn admin_health_returns_ok_with_version_and_uptime() {
+        let app = public_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/health")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"status\":\"healthy\""), "body: {body}");
+        assert!(body.contains("\"version\""), "body: {body}");
+        assert!(body.contains("\"uptime_seconds\""), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn admin_cache_stats_without_auth_returns_403() {
+        let app = admin_router(false, "").await;
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/admin/cache/stats")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn admin_cache_stats_with_auth_returns_shape() {
+        let app = admin_router(true, "s3cret").await;
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/admin/cache/stats")
+                    .header("Authorization", "Bearer s3cret")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"fields\""), "body: {body}");
+        assert!(body.contains("\"populated_count\""), "body: {body}");
+        assert!(body.contains("\"total_count\""), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn admin_cache_invalidate_with_unknown_cache_type_returns_400() {
+        let app = admin_router(true, "s3cret").await;
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/admin/cache/invalidate")
+                    .header("Authorization", "Bearer s3cret")
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"cache_type":"does-not-exist"}"#.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("Unknown cache field"), "body: {body}");
+    }
+}

@@ -157,3 +157,107 @@ pub async fn get_networks(
     let config = get_config(State(state)).await?;
     Ok(Json(config.0.networks))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/config", get(get_config))
+            .route("/api/config/protocols", get(get_protocols))
+            .route("/api/config/networks", get(get_networks))
+            .with_state(state)
+    }
+
+    fn sample_config() -> AppConfigResponse {
+        AppConfigResponse {
+            protocols: HashMap::new(),
+            networks: vec![NetworkInfo {
+                key: "OSMOSIS".to_string(),
+                name: "Osmosis".to_string(),
+                chain_id: "osmosis-1".to_string(),
+                prefix: "osmo".to_string(),
+                rpc_url: "http://example.invalid".to_string(),
+                rest_url: "http://example.invalid".to_string(),
+                gas_price: "0.0025".to_string(),
+                chain_type: "cosmos".to_string(),
+                native: false,
+                value: "osmosis".to_string(),
+                symbol: "OSMO".to_string(),
+                explorer: None,
+                icon: None,
+                estimation: None,
+                primary_protocol: None,
+                forward: None,
+                gas_multiplier: 1.5,
+            }],
+            native_asset: NativeAssetInfo {
+                ticker: "NLS".to_string(),
+                symbol: "NLS".to_string(),
+                denom: "unls".to_string(),
+                decimal_digits: 6,
+            },
+            contracts: ContractsInfo {
+                admin: "nolus1admin".to_string(),
+                dispatcher: "nolus1dispatcher".to_string(),
+            },
+        }
+    }
+
+    #[tokio::test]
+    async fn config_get_cold_cache_returns_503() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/config")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn config_get_populated_cache_has_expected_top_level_keys() {
+        let state = test_app_state().await;
+        state.data_cache.app_config.store(sample_config());
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/config")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"protocols\""), "body: {body}");
+        assert!(body.contains("\"networks\""), "body: {body}");
+        assert!(body.contains("\"native_asset\""), "body: {body}");
+        assert!(body.contains("\"contracts\""), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn config_unknown_route_returns_404() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/config/does-not-exist")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+}

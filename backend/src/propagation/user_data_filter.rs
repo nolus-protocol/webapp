@@ -396,4 +396,94 @@ mod tests {
         // Ignored currency
         assert!(!ctx.is_balance_visible("DEPRECATED_TOKEN"));
     }
+
+    /// With every network unconfigured, every protocol is suppressed.
+    /// Guards against accidentally leaking data from networks the admin has
+    /// not enabled.
+    #[test]
+    fn test_all_protocols_suppressed_when_no_networks_configured() {
+        let empty_network_config = GatedNetworkConfig {
+            networks: HashMap::new(),
+        };
+        let ctx = UserDataFilterContext::from_config(
+            &mock_etl_protocols(),
+            &mock_currency_config(),
+            &empty_network_config,
+            &mock_lease_rules(),
+        );
+
+        assert!(!ctx.is_protocol_visible("OSMOSIS-OSMOSIS-USDC_NOBLE"));
+        assert!(!ctx.is_protocol_visible("OSMOSIS-OSMOSIS-SHORT"));
+        assert!(!ctx.is_protocol_visible("NEUTRON-ASTROPORT-USDC_NOBLE"));
+        assert!(ctx.configured_protocols.is_empty());
+
+        // Leases and earn positions should also all be hidden.
+        assert!(!ctx.is_lease_visible("OSMOSIS-OSMOSIS-USDC_NOBLE", "ATOM"));
+        assert!(!ctx.is_earn_position_visible("OSMOSIS-OSMOSIS-USDC_NOBLE"));
+
+        // But balances don't depend on protocols — a configured currency
+        // remains visible since it's gated only on currency config + ignore_all.
+        assert!(ctx.is_balance_visible("ATOM"));
+    }
+
+    /// `is_price_visible` only checks the currency config, regardless of
+    /// ignore_all. Ignored currencies should still have prices visible (used
+    /// for historical calculations) — this is a distinct contract from
+    /// `is_balance_visible`.
+    #[test]
+    fn test_price_visible_ignores_ignore_all() {
+        let mut lease_rules = mock_lease_rules();
+        lease_rules
+            .asset_restrictions
+            .ignore_all
+            .push("ATOM".to_string());
+
+        let ctx = UserDataFilterContext::from_config(
+            &mock_etl_protocols(),
+            &mock_currency_config(),
+            &mock_network_config(),
+            &lease_rules,
+        );
+
+        // ATOM in ignore_all → not balance-visible but still price-visible
+        assert!(!ctx.is_balance_visible("ATOM"));
+        assert!(ctx.is_price_visible("ATOM"));
+    }
+
+    /// Inactive protocols in ETL must not be configured, even if network +
+    /// LPN both exist. Guards the `is_active` precondition.
+    #[test]
+    fn test_inactive_etl_protocol_is_not_visible() {
+        let mut etl = mock_etl_protocols();
+        for p in etl.protocols.iter_mut() {
+            p.is_active = false;
+        }
+        let ctx = UserDataFilterContext::from_config(
+            &etl,
+            &mock_currency_config(),
+            &mock_network_config(),
+            &mock_lease_rules(),
+        );
+
+        assert!(!ctx.is_protocol_visible("OSMOSIS-OSMOSIS-USDC_NOBLE"));
+        assert!(ctx.configured_protocols.is_empty());
+    }
+
+    /// With an empty currency config, even a perfectly-configured network
+    /// can't make a protocol visible — LPN requirement fails.
+    #[test]
+    fn test_all_protocols_suppressed_when_no_currencies_configured() {
+        let empty_currency_config = CurrencyDisplayConfig {
+            currencies: HashMap::new(),
+        };
+        let ctx = UserDataFilterContext::from_config(
+            &mock_etl_protocols(),
+            &empty_currency_config,
+            &mock_network_config(),
+            &mock_lease_rules(),
+        );
+
+        assert!(!ctx.is_protocol_visible("OSMOSIS-OSMOSIS-USDC_NOBLE"));
+        assert!(ctx.configured_currencies.is_empty());
+    }
 }

@@ -387,3 +387,68 @@ pub async fn get_network_assets(
         assets,
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/assets", get(get_assets))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn gated_assets_cold_cache_returns_503() {
+        let app = app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/assets")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn gated_assets_populated_cache_returns_list_shape() {
+        let state = test_app_state().await;
+        state.data_cache.gated_assets.store(AssetsResponse {
+            assets: vec![AssetResponse {
+                ticker: "OSMO".to_string(),
+                decimals: 6,
+                icon: "/icons/osmo.svg".to_string(),
+                display_name: "Osmosis".to_string(),
+                short_name: "OSMO".to_string(),
+                color: None,
+                coingecko_id: None,
+                price: Some("1.23".to_string()),
+                networks: vec!["OSMOSIS".to_string()],
+                protocols: vec!["P".to_string()],
+            }],
+            count: 1,
+        });
+        let app = app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/assets")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"assets\""), "body: {body}");
+        assert!(body.contains("\"count\":1"), "body: {body}");
+        assert!(body.contains("OSMO"), "body: {body}");
+    }
+}

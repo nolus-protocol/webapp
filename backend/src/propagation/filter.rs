@@ -324,4 +324,91 @@ mod tests {
         // Only ATOM and USDC_NOBLE belong to this protocol and are configured
         assert_eq!(currencies.len(), 2);
     }
+
+    /// Empty currency config must reject every currency — nothing is
+    /// "configured by default." Guards the hidden-by-default contract.
+    #[test]
+    fn test_filter_currencies_empty_config_rejects_all() {
+        let empty_config = CurrencyDisplayConfig {
+            currencies: HashMap::new(),
+        };
+        let currencies = PropagationFilter::filter_currencies_for_protocol(
+            &mock_etl_currencies(),
+            &empty_config,
+            "OSMOSIS-OSMOSIS-USDC_NOBLE",
+        );
+
+        assert!(currencies.is_empty());
+    }
+
+    /// Filter for an unknown protocol name returns an empty list rather than
+    /// falling back to all currencies — the filter is strict.
+    #[test]
+    fn test_filter_currencies_unknown_protocol_rejects_all() {
+        let currencies = PropagationFilter::filter_currencies_for_protocol(
+            &mock_etl_currencies(),
+            &mock_currency_config(),
+            "NOT-A-REAL-PROTOCOL",
+        );
+
+        assert!(currencies.is_empty());
+    }
+
+    /// Inactive currencies in ETL are filtered out even if they have display
+    /// config. Guards against showing deprecated currencies.
+    #[test]
+    fn test_filter_currencies_skips_inactive() {
+        let mut etl = mock_etl_currencies();
+        // Flip ATOM to inactive — only USDC_NOBLE remains for this protocol.
+        if let Some(c) = etl.currencies.iter_mut().find(|c| c.ticker == "ATOM") {
+            c.is_active = false;
+        }
+        let currencies = PropagationFilter::filter_currencies_for_protocol(
+            &etl,
+            &mock_currency_config(),
+            "OSMOSIS-OSMOSIS-USDC_NOBLE",
+        );
+
+        assert_eq!(currencies.len(), 1);
+        assert_eq!(currencies[0].ticker, "USDC_NOBLE");
+    }
+
+    /// `filter_protocols_for_network` narrows the already-configured-protocol
+    /// set by network, case-insensitively (network keys are uppercase
+    /// internally but may arrive lowercase from URLs).
+    #[test]
+    fn test_filter_protocols_for_network_case_insensitive() {
+        let upper = PropagationFilter::filter_protocols_for_network(
+            &mock_etl_protocols(),
+            &mock_currency_config(),
+            &mock_network_config(),
+            "OSMOSIS",
+        );
+        let lower = PropagationFilter::filter_protocols_for_network(
+            &mock_etl_protocols(),
+            &mock_currency_config(),
+            &mock_network_config(),
+            "osmosis",
+        );
+
+        assert_eq!(upper.len(), 1);
+        assert_eq!(lower.len(), 1);
+        assert_eq!(upper[0].name, lower[0].name);
+    }
+
+    /// `filter_currencies_for_network` must only include currencies that
+    /// belong to a protocol *on that specific network*. NEUTRON protocol
+    /// isn't configured, so no currencies should return when querying NEUTRON.
+    #[test]
+    fn test_filter_currencies_for_network_unconfigured_network_empty() {
+        let currencies = PropagationFilter::filter_currencies_for_network(
+            &mock_etl_currencies(),
+            &mock_etl_protocols(),
+            &mock_currency_config(),
+            &mock_network_config(),
+            "NEUTRON",
+        );
+
+        assert!(currencies.is_empty());
+    }
 }

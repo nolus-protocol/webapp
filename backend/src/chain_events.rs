@@ -433,6 +433,221 @@ mod tests {
         assert!(rx.try_recv().is_err());
     }
 
+    /// Malformed JSON from CometBFT must NOT panic — it's silently dropped
+    /// after debug-logging. Guards the task from dying on a single bad frame.
+    #[test]
+    fn test_handle_message_malformed_json() {
+        let channels = EventChannels::new();
+        let mut new_block_rx = channels.new_block.subscribe();
+        let mut contract_rx = channels.contract_exec.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        client.handle_message("{ this is not valid json ");
+        client.handle_message("");
+        client.handle_message("null");
+
+        assert!(new_block_rx.try_recv().is_err());
+        assert!(contract_rx.try_recv().is_err());
+    }
+
+    /// Message with wrong structure (missing `result`/`query`) is silently
+    /// dropped — not every CometBFT frame is an event of interest.
+    #[test]
+    fn test_handle_message_unknown_structure_ignored() {
+        let channels = EventChannels::new();
+        let mut new_block_rx = channels.new_block.subscribe();
+        let mut contract_rx = channels.contract_exec.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        // JSON-RPC error response
+        let err_msg = r#"{"jsonrpc":"2.0","id":"x","error":{"code":-32000,"message":"oops"}}"#;
+        client.handle_message(err_msg);
+
+        // Valid JSON but unknown query
+        let unknown_query = r#"{"result":{"query":"tm.event='ValidatorSetUpdates'","data":{}}}"#;
+        client.handle_message(unknown_query);
+
+        assert!(new_block_rx.try_recv().is_err());
+        assert!(contract_rx.try_recv().is_err());
+    }
+
+    /// NewBlock with missing/malformed height field falls back to 0 rather
+    /// than panicking. `.unwrap_or(0)` is the explicit contract in
+    /// `handle_new_block` — lock it in.
+    #[test]
+    fn test_parse_new_block_missing_height_defaults_to_zero() {
+        let channels = EventChannels::new();
+        let mut rx = channels.new_block.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='NewBlock'",
+                "data": { "value": { "block": {} } }
+            }
+        }"#;
+        client.handle_message(msg);
+        assert_eq!(rx.try_recv().unwrap(), 0);
+    }
+
+    /// Multiple subscribers each receive the same event — broadcast semantics.
+    #[tokio::test]
+    async fn test_multiple_subscribers_receive_new_block() {
+        let channels = EventChannels::new();
+        let mut rx1 = channels.new_block.subscribe();
+        let mut rx2 = channels.new_block.subscribe();
+        let mut rx3 = channels.new_block.subscribe();
+
+        channels.new_block.send(42).unwrap();
+
+        assert_eq!(rx1.recv().await.unwrap(), 42);
+        assert_eq!(rx2.recv().await.unwrap(), 42);
+        assert_eq!(rx3.recv().await.unwrap(), 42);
+    }
+
+    /// `handle_message` dispatches correctly when multiple contract_exec
+    /// subscribers are listening — verifies the routing doesn't swallow
+    /// events when there are several consumers (lease monitor + earn monitor).
+    #[test]
+    fn test_multiple_subscribers_receive_contract_exec_from_message() {
+        let channels = EventChannels::new();
+        let mut rx1 = channels.contract_exec.subscribe();
+        let mut rx2 = channels.contract_exec.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH"] },
+                "data": { "value": { "TxResult": { "result": { "events": [{
+                    "type": "wasm",
+                    "attributes": [
+                        { "key": "_contract_address", "value": "nolus1lpp" },
+                        { "key": "action", "value": "deposit" }
+                    ]
+                }] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
+        let e1 = rx1.try_recv().unwrap();
+        let e2 = rx2.try_recv().unwrap();
+        assert_eq!(e1.contract_address, "nolus1lpp");
+        assert_eq!(e2.contract_address, "nolus1lpp");
+        assert_eq!(e1.tx_hash, "HASH");
+    }
+
+    /// A wasm event with no attributes (empty array or missing key) must not
+    /// emit a ContractExecEvent — `contract_address` stays empty and is
+    /// filtered out before send.
+    #[test]
+    fn test_wasm_event_without_contract_address_not_dispatched() {
+        let channels = EventChannels::new();
+        let mut rx = channels.contract_exec.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH"] },
+                "data": { "value": { "TxResult": { "result": { "events": [{
+                    "type": "wasm",
+                    "attributes": [
+                        { "key": "action", "value": "swap" }
+                    ]
+                }] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// A Tx message with two wasm events in the same transaction yields two
+    /// ContractExecEvents. Ensures events are iterated, not just the first one.
+    #[test]
+    fn test_multiple_wasm_events_in_single_tx() {
+        let channels = EventChannels::new();
+        let mut rx = channels.contract_exec.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH2"] },
+                "data": { "value": { "TxResult": { "result": { "events": [
+                    {"type":"wasm","attributes":[
+                        {"key":"_contract_address","value":"nolus1a"},
+                        {"key":"action","value":"open"}
+                    ]},
+                    {"type":"wasm","attributes":[
+                        {"key":"_contract_address","value":"nolus1b"},
+                        {"key":"action","value":"close"}
+                    ]}
+                ] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
+        let e1 = rx.try_recv().unwrap();
+        let e2 = rx.try_recv().unwrap();
+        assert_eq!(
+            [e1.contract_address.as_str(), e2.contract_address.as_str()],
+            ["nolus1a", "nolus1b"]
+        );
+        assert_eq!(
+            [e1.action.as_deref(), e2.action.as_deref()],
+            [Some("open"), Some("close")]
+        );
+    }
+
+    /// `contract_address` key (no underscore) is also accepted per the
+    /// handler's match arm.
+    #[test]
+    fn test_wasm_accepts_contract_address_without_underscore() {
+        let channels = EventChannels::new();
+        let mut rx = channels.contract_exec.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH3"] },
+                "data": { "value": { "TxResult": { "result": { "events": [{
+                    "type": "wasm",
+                    "attributes": [
+                        { "key": "contract_address", "value": "nolus1oracle2" }
+                    ]
+                }] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
+        let event = rx.try_recv().unwrap();
+        assert_eq!(event.contract_address, "nolus1oracle2");
+    }
+
     #[test]
     fn test_non_wasm_events_ignored() {
         let channels = EventChannels::new();
