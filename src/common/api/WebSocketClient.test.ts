@@ -74,12 +74,12 @@ describe("WebSocketClientImpl", () => {
       CONNECTING: 0,
       OPEN: 1,
       CLOSING: 2,
-      CLOSED: 3,
+      CLOSED: 3
     });
 
     client = new WebSocketClientImpl({
       url: "ws://test:3000/ws",
-      reconnectInterval: 1000,
+      reconnectInterval: 1000
     });
   });
 
@@ -217,7 +217,7 @@ describe("WebSocketClientImpl", () => {
 
       mockWs.simulateMessage({
         type: "price_update",
-        prices: { NLS: { price: "0.15", timestamp: 123 } },
+        prices: { NLS: { price: "0.15", timestamp: 123 } }
       });
 
       expect(callback).toHaveBeenCalledWith({ NLS: { price: "0.15", timestamp: 123 } });
@@ -230,7 +230,7 @@ describe("WebSocketClientImpl", () => {
       mockWs.simulateMessage({
         type: "balance_update",
         address: "addr1",
-        balances: { unls: "1000000" },
+        balances: { unls: "1000000" }
       });
 
       expect(callback).toHaveBeenCalledWith("addr1", { unls: "1000000" });
@@ -243,12 +243,12 @@ describe("WebSocketClientImpl", () => {
       const lease = {
         address: "lease1",
         owner: "owner1",
-        status: { type: "opened" },
+        status: { type: "opened" }
       };
 
       mockWs.simulateMessage({
         type: "lease_update",
-        lease,
+        lease
       });
 
       expect(callback).toHaveBeenCalledWith(lease);
@@ -261,7 +261,7 @@ describe("WebSocketClientImpl", () => {
       mockWs.simulateMessage({
         type: "tx_status",
         tx_hash: "tx1",
-        status: "success",
+        status: "success"
       });
 
       expect(callback).toHaveBeenCalledWith("tx1", "success", undefined);
@@ -273,7 +273,7 @@ describe("WebSocketClientImpl", () => {
       // Should not throw
       mockWs.simulateMessage({
         type: "subscribed",
-        topic: "prices",
+        topic: "prices"
       });
 
       expect(client.getConnectionState()).toBe("connected");
@@ -285,7 +285,7 @@ describe("WebSocketClientImpl", () => {
       mockWs.simulateMessage({
         type: "error",
         message: "Test error",
-        topic: "prices",
+        topic: "prices"
       });
 
       expect(consoleSpy).toHaveBeenCalled();
@@ -321,10 +321,12 @@ describe("WebSocketClientImpl", () => {
       mockWs.simulateOpen();
 
       // Should have resubscribed
-      expect(mockWs.sentMessages.some(m => {
-        const msg = JSON.parse(m);
-        return msg.type === "subscribe" && msg.topic === "prices";
-      })).toBe(true);
+      expect(
+        mockWs.sentMessages.some((m) => {
+          const msg = JSON.parse(m);
+          return msg.type === "subscribe" && msg.topic === "prices";
+        })
+      ).toBe(true);
     });
   });
 
