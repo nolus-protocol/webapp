@@ -498,4 +498,222 @@ mod tests {
 
         assert_eq!(state.limiters.read().await.len(), 1);
     }
+
+    // ---------------------------------------------------------------------
+    // extract_client_ip direct tests
+    //
+    // These exercise the module-private `extract_client_ip` helper. They
+    // document the current "trust headers first, fall back to ConnectInfo"
+    // policy. See `extract_client_ip_trusts_xff_unconditionally_intentional`
+    // below for the security rationale.
+    // ---------------------------------------------------------------------
+
+    use axum::http::Request as HttpRequest;
+
+    fn req_with_headers(headers: &[(&str, &str)]) -> HttpRequest<()> {
+        let mut builder = HttpRequest::builder().uri("/");
+        for (k, v) in headers {
+            builder = builder.header(*k, *v);
+        }
+        builder
+            .body(())
+            .expect("request builder cannot fail with valid headers")
+    }
+
+    #[test]
+    fn extract_client_ip_returns_xff_first_ip_when_header_present() {
+        let req = req_with_headers(&[("x-forwarded-for", "1.2.3.4, 5.6.7.8")]);
+        let ip = extract_client_ip(&req, None);
+        assert_eq!(ip, Some(Ipv4Addr::new(1, 2, 3, 4).into()));
+    }
+
+    #[test]
+    fn extract_client_ip_returns_x_real_ip_when_only_that_header_present() {
+        let req = req_with_headers(&[("x-real-ip", "10.0.0.1")]);
+        let ip = extract_client_ip(&req, None);
+        assert_eq!(ip, Some(Ipv4Addr::new(10, 0, 0, 1).into()));
+    }
+
+    #[test]
+    fn extract_client_ip_prefers_xff_over_x_real_ip() {
+        let req = req_with_headers(&[("x-forwarded-for", "1.2.3.4"), ("x-real-ip", "9.9.9.9")]);
+        let ip = extract_client_ip(&req, None);
+        assert_eq!(ip, Some(Ipv4Addr::new(1, 2, 3, 4).into()));
+    }
+
+    #[test]
+    fn extract_client_ip_returns_connect_info_when_no_headers() {
+        let req = req_with_headers(&[]);
+        let addr: SocketAddr = "127.0.0.1:8080"
+            .parse()
+            .expect("hard-coded socket addr parses");
+        let ci = ConnectInfo(addr);
+        let ip = extract_client_ip(&req, Some(&ci));
+        assert_eq!(ip, Some(Ipv4Addr::new(127, 0, 0, 1).into()));
+    }
+
+    #[test]
+    fn extract_client_ip_returns_none_when_no_headers_and_no_connect_info() {
+        let req = req_with_headers(&[]);
+        assert_eq!(extract_client_ip(&req, None), None);
+    }
+
+    #[test]
+    fn extract_client_ip_rejects_malformed_xff_and_falls_back_to_x_real_ip() {
+        // NOTE: this documents a known quirk in the current implementation —
+        // a malformed XFF *first hop* falls through to X-Real-IP only because
+        // the XFF branch uses `.next()` + parse; if the *first* IP fails to
+        // parse the entire header is abandoned. That happens to give us the
+        // X-Real-IP fallback. Test asserts the observable behavior.
+        let req = req_with_headers(&[("x-forwarded-for", "not-an-ip"), ("x-real-ip", "1.2.3.4")]);
+        let ip = extract_client_ip(&req, None);
+        assert_eq!(ip, Some(Ipv4Addr::new(1, 2, 3, 4).into()));
+    }
+
+    #[test]
+    fn extract_client_ip_trims_whitespace_in_xff_chain() {
+        let req = req_with_headers(&[("x-forwarded-for", "  1.2.3.4  , 5.6.7.8  ")]);
+        let ip = extract_client_ip(&req, None);
+        assert_eq!(ip, Some(Ipv4Addr::new(1, 2, 3, 4).into()));
+    }
+
+    /// Documents intentional behavior: `X-Forwarded-For` is trusted unconditionally
+    /// for rate-limit bookkeeping. This is NOT a security boundary — IP-based rate
+    /// limiting is a blunt control applied uniformly to all connections. Nginx +
+    /// authentication + CORS are the real security boundaries.
+    ///
+    /// If you're considering changing this to fail-closed without headers, first
+    /// wire ConnectInfo through the router at main.rs::create_router (currently
+    /// hardcoded `None`), otherwise you'll reject all requests.
+    #[test]
+    fn extract_client_ip_trusts_xff_unconditionally_intentional() {
+        // An attacker-controlled XFF value is returned verbatim. That's fine
+        // here: the rate limiter treats the claimed IP as a bucket key; a
+        // user who forges XFF only moves themselves between buckets and does
+        // not gain any privileged access.
+        let req = req_with_headers(&[("x-forwarded-for", "192.168.100.100")]);
+        let ip = extract_client_ip(&req, None);
+        assert_eq!(ip, Some(Ipv4Addr::new(192, 168, 100, 100).into()));
+    }
+
+    // ---------------------------------------------------------------------
+    // rate_limit_middleware end-to-end tests
+    // ---------------------------------------------------------------------
+
+    use axum::body::Body;
+    use axum::middleware as axum_middleware;
+    use axum::routing::get;
+    use axum::Router;
+    use tower::ServiceExt;
+
+    fn handler_router(state: Arc<RateLimitState>) -> Router {
+        Router::new()
+            .route("/", get(|| async { "ok" }))
+            .layer(axum_middleware::from_fn(move |req, next| {
+                let state = state.clone();
+                async move { rate_limit_middleware(state, None, req, next).await }
+            }))
+    }
+
+    fn request_from(ip: &str) -> axum::http::Request<Body> {
+        axum::http::Request::builder()
+            .uri("/")
+            .header("x-forwarded-for", ip)
+            .body(Body::empty())
+            .expect("request builder cannot fail with valid header")
+    }
+
+    #[tokio::test]
+    async fn rate_limit_middleware_accepts_request_with_valid_xff() {
+        let state = create_rate_limit_state(RateLimitConfig {
+            requests_per_second: 10,
+            burst_size: 20,
+            enabled: true,
+            whitelist: vec![],
+        });
+        let app = handler_router(state);
+
+        let resp = app
+            .oneshot(request_from("1.2.3.4"))
+            .await
+            .expect("service oneshot");
+        assert_eq!(resp.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn rate_limit_middleware_rejects_with_429_when_no_ip_extractable() {
+        let state = create_rate_limit_state(RateLimitConfig {
+            requests_per_second: 10,
+            burst_size: 20,
+            enabled: true,
+            whitelist: vec![],
+        });
+        let app = handler_router(state);
+
+        let req = axum::http::Request::builder()
+            .uri("/")
+            .body(Body::empty())
+            .expect("request builder cannot fail");
+        let resp = app.oneshot(req).await.expect("service oneshot");
+        assert_eq!(resp.status(), StatusCode::TOO_MANY_REQUESTS);
+    }
+
+    #[tokio::test]
+    async fn rate_limit_middleware_rejects_with_429_when_rate_exceeded() {
+        let state = create_rate_limit_state(RateLimitConfig {
+            requests_per_second: 1,
+            burst_size: 1,
+            enabled: true,
+            whitelist: vec![],
+        });
+        let app = handler_router(state);
+
+        // First request: allowed by burst.
+        let r1 = app
+            .clone()
+            .oneshot(request_from("7.7.7.7"))
+            .await
+            .expect("oneshot 1");
+        assert_eq!(r1.status(), StatusCode::OK);
+
+        // Second request: burst exhausted, governor refuses immediately.
+        let r2 = app
+            .clone()
+            .oneshot(request_from("7.7.7.7"))
+            .await
+            .expect("oneshot 2");
+        assert_eq!(r2.status(), StatusCode::TOO_MANY_REQUESTS);
+
+        // Third request: still limited.
+        let r3 = app
+            .oneshot(request_from("7.7.7.7"))
+            .await
+            .expect("oneshot 3");
+        assert_eq!(r3.status(), StatusCode::TOO_MANY_REQUESTS);
+    }
+
+    #[tokio::test]
+    async fn rate_limit_middleware_allows_whitelisted_ip_past_limit() {
+        let whitelisted: IpAddr = Ipv4Addr::new(1, 2, 3, 4).into();
+        let state = create_rate_limit_state(RateLimitConfig {
+            requests_per_second: 1,
+            burst_size: 1,
+            enabled: true,
+            whitelist: vec![whitelisted],
+        });
+        let app = handler_router(state);
+
+        for i in 0..10 {
+            let resp = app
+                .clone()
+                .oneshot(request_from("1.2.3.4"))
+                .await
+                .expect("oneshot");
+            assert_eq!(
+                resp.status(),
+                StatusCode::OK,
+                "whitelisted request {i} must pass"
+            );
+        }
+    }
 }

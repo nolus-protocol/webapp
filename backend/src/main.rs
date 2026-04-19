@@ -35,7 +35,10 @@ pub mod refresh;
 mod translations;
 mod validation;
 
-use crate::config::AppConfig;
+#[cfg(test)]
+mod test_utils;
+
+use crate::config::{AppConfig, ServerConfig};
 use crate::config_store::ConfigStore;
 use crate::handlers::websocket::WebSocketManager;
 use crate::translations::{
@@ -76,8 +79,24 @@ async fn main() -> anyhow::Result<()> {
         .json()
         .init();
 
-    // Load configuration
+    // Load and validate configuration. Validation enforces invariants like
+    // "admin cannot be enabled without an api_key" — failing here prevents the
+    // admin_auth middleware's 403 from being the only line of defense against
+    // misconfig. We fail fast on errors and log warnings.
     let config = AppConfig::load()?;
+    let validation = config.validate();
+    for warning in &validation.warnings {
+        tracing::warn!("Config warning: {warning}");
+    }
+    if !validation.is_ok() {
+        for err in &validation.errors {
+            tracing::error!("Config error: {err}");
+        }
+        anyhow::bail!(
+            "Configuration validation failed with {} error(s); refusing to start",
+            validation.errors.len()
+        );
+    }
     let addr: SocketAddr = format!("{}:{}", config.server.host, config.server.port)
         .parse()
         .expect("Invalid server address");
@@ -219,22 +238,49 @@ async fn shutdown_signal() {
     }
 }
 
-fn create_router(state: Arc<AppState>) -> Router {
-    // CORS configuration
-    let cors = match &state.config.server.cors_origins {
+/// Build the CORS layer from server config, emitting startup warnings for
+/// common misconfigurations:
+/// - `cors_origins = None`         → allow-all (public API default) + warn
+/// - `cors_origins = Some(vec![])` → block all cross-origin requests + warn
+/// - `cors_origins = Some(list)`   → allow listed origins; warn per malformed entry
+fn build_cors_layer(server: &ServerConfig) -> CorsLayer {
+    match &server.cors_origins {
+        None => {
+            warn!(
+                "CORS_ORIGINS not configured — allowing all origins. \
+                 Set CORS_ORIGINS in production."
+            );
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods(Any)
+                .allow_headers(Any)
+        }
+        Some(origins) if origins.is_empty() => {
+            warn!("CORS_ORIGINS is set but empty — all cross-origin requests will be blocked");
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::list(Vec::<axum::http::HeaderValue>::new()))
+                .allow_methods(Any)
+                .allow_headers(Any)
+        }
         Some(origins) => {
-            let header_values: Vec<axum::http::HeaderValue> =
-                origins.iter().filter_map(|o| o.parse().ok()).collect();
+            let mut header_values: Vec<axum::http::HeaderValue> = Vec::with_capacity(origins.len());
+            for origin in origins {
+                match origin.parse::<axum::http::HeaderValue>() {
+                    Ok(hv) => header_values.push(hv),
+                    Err(_) => warn!("Dropping malformed CORS origin: {origin}"),
+                }
+            }
             CorsLayer::new()
                 .allow_origin(AllowOrigin::list(header_values))
                 .allow_methods(Any)
                 .allow_headers(Any)
         }
-        None => CorsLayer::new()
-            .allow_origin(Any)
-            .allow_methods(Any)
-            .allow_headers(Any),
-    };
+    }
+}
+
+fn create_router(state: Arc<AppState>) -> Router {
+    // CORS configuration
+    let cors = build_cors_layer(&state.config.server);
 
     // Rate limiting configuration
     let standard_rate_limit = create_rate_limit_state(standard_rate_limit_config());
@@ -706,4 +752,173 @@ fn create_router(state: Arc<AppState>) -> Router {
         .layer(CompressionLayer::new())
         .layer(cors)
         .with_state(state)
+}
+
+#[cfg(test)]
+mod cors_tests {
+    //! Tests for `build_cors_layer`.
+    //!
+    //! These tests mount the built `CorsLayer` on a minimal router and fire
+    //! real HTTP requests via `tower::ServiceExt::oneshot`. They assert on
+    //! the `Access-Control-Allow-Origin` response header set by the layer —
+    //! which is the contract visible to clients.
+    //!
+    //! The startup warnings themselves are plain `tracing::warn!` calls and
+    //! are validated by inspection of `build_cors_layer` (no log-capture
+    //! infrastructure is worth wiring up for one-line tracing statements).
+    use super::*;
+    use crate::config::ServerConfig;
+    use axum::body::Body;
+    use axum::http::{header, HeaderValue, Method, Request, StatusCode};
+    use axum::routing::get;
+    use tower::ServiceExt;
+
+    fn server_config_with(cors: Option<Vec<String>>) -> ServerConfig {
+        ServerConfig {
+            host: "127.0.0.1".to_string(),
+            port: 0,
+            cors_origins: cors,
+        }
+    }
+
+    fn router_with_cors(server: &ServerConfig) -> Router {
+        Router::new()
+            .route("/", get(|| async { "ok" }))
+            .layer(build_cors_layer(server))
+    }
+
+    fn preflight(origin: &str, method: &str) -> Request<Body> {
+        Request::builder()
+            .method(Method::OPTIONS)
+            .uri("/")
+            .header(header::ORIGIN, origin)
+            .header(header::ACCESS_CONTROL_REQUEST_METHOD, method)
+            .body(Body::empty())
+            .expect("build preflight request")
+    }
+
+    fn simple_get(origin: &str) -> Request<Body> {
+        Request::builder()
+            .method(Method::GET)
+            .uri("/")
+            .header(header::ORIGIN, origin)
+            .body(Body::empty())
+            .expect("build simple GET")
+    }
+
+    #[tokio::test]
+    async fn cors_layer_allows_listed_origin_in_response_headers() {
+        let server = server_config_with(Some(vec!["https://app.nolus.io".to_string()]));
+        let app = router_with_cors(&server);
+
+        let resp = app
+            .oneshot(simple_get("https://app.nolus.io"))
+            .await
+            .expect("service oneshot");
+
+        assert_eq!(resp.status(), StatusCode::OK);
+        let allow_origin = resp
+            .headers()
+            .get(header::ACCESS_CONTROL_ALLOW_ORIGIN)
+            .expect("allow-origin header present for listed origin");
+        assert_eq!(
+            allow_origin,
+            &HeaderValue::from_static("https://app.nolus.io")
+        );
+    }
+
+    #[tokio::test]
+    async fn cors_layer_rejects_unlisted_origin() {
+        let server = server_config_with(Some(vec!["https://app.nolus.io".to_string()]));
+        let app = router_with_cors(&server);
+
+        let resp = app
+            .oneshot(simple_get("https://evil.com"))
+            .await
+            .expect("service oneshot");
+
+        // tower-http CorsLayer strategy: for unlisted origins, no
+        // Access-Control-Allow-Origin header is emitted, so the browser's
+        // same-origin policy rejects the response.
+        let allow_origin = resp.headers().get(header::ACCESS_CONTROL_ALLOW_ORIGIN);
+        assert_ne!(
+            allow_origin,
+            Some(&HeaderValue::from_static("https://evil.com")),
+            "evil.com must not appear in allow-origin header"
+        );
+    }
+
+    #[tokio::test]
+    async fn cors_layer_handles_preflight_options_request() {
+        let server = server_config_with(Some(vec!["https://app.nolus.io".to_string()]));
+        let app = router_with_cors(&server);
+
+        let resp = app
+            .oneshot(preflight("https://app.nolus.io", "POST"))
+            .await
+            .expect("service oneshot");
+
+        // tower-http returns 200 OK for preflight by default.
+        assert!(
+            resp.status() == StatusCode::OK || resp.status() == StatusCode::NO_CONTENT,
+            "preflight should be 200 or 204, got {}",
+            resp.status()
+        );
+        assert!(
+            resp.headers()
+                .contains_key(header::ACCESS_CONTROL_ALLOW_METHODS),
+            "preflight response must include Access-Control-Allow-Methods"
+        );
+    }
+
+    /// Documents the allow-all default: when `CORS_ORIGINS` is unset, every
+    /// origin is allowed. This is the intended default for a public Nolus
+    /// API, and a production warning (`tracing::warn!`) fires at startup to
+    /// nudge operators to lock it down.
+    #[tokio::test]
+    async fn cors_layer_allows_any_when_unconfigured_documented() {
+        let server = server_config_with(None);
+        let app = router_with_cors(&server);
+
+        let resp = app
+            .oneshot(simple_get("https://literally-anywhere.example"))
+            .await
+            .expect("service oneshot");
+
+        assert_eq!(resp.status(), StatusCode::OK);
+        let allow_origin = resp
+            .headers()
+            .get(header::ACCESS_CONTROL_ALLOW_ORIGIN)
+            .expect("allow-origin present when cors_origins=None");
+        // `Any` serializes to the wildcard "*".
+        assert_eq!(allow_origin, &HeaderValue::from_static("*"));
+    }
+
+    /// Documents F7: `CORS_ORIGINS=""` (empty vec) blocks every
+    /// cross-origin request. The startup warning in `build_cors_layer`
+    /// surfaces this to operators; the HTTP-level assertion here confirms
+    /// the layer actually emits no allow-origin header for any caller.
+    #[tokio::test]
+    async fn cors_layer_empty_vec_blocks_cross_origin_requests() {
+        let server = server_config_with(Some(vec![]));
+        let app = router_with_cors(&server);
+
+        for origin in [
+            "https://app.nolus.io",
+            "https://evil.com",
+            "http://localhost:5173",
+        ] {
+            let resp = app
+                .clone()
+                .oneshot(simple_get(origin))
+                .await
+                .expect("service oneshot");
+
+            let allow_origin = resp.headers().get(header::ACCESS_CONTROL_ALLOW_ORIGIN);
+            assert!(
+                allow_origin.is_none(),
+                "origin {origin} must not be allowed when cors_origins is empty, got {allow_origin:?}"
+            );
+        }
+    }
 }

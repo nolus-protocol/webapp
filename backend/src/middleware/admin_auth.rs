@@ -10,7 +10,7 @@ use axum::{
     response::{IntoResponse, Response},
 };
 use std::sync::Arc;
-use tracing::warn;
+use tracing::{error, warn};
 
 use crate::AppState;
 
@@ -64,12 +64,22 @@ pub async fn admin_auth_middleware(
         .into_response();
     }
 
-    // Check if API key is configured
+    // Check if API key is configured.
+    // If admin is enabled but the key is empty, return the same 403 response
+    // as the fully-disabled branch so attackers cannot distinguish the two
+    // cases (no "Admin API key not configured" disclosure). Log loudly for
+    // ops — this is a deploy-time misconfiguration that should be fixed.
+    // `AppConfig::validate()` is expected to reject this at startup, so
+    // reaching this branch in production indicates validation was bypassed.
     if state.config.admin.api_key.is_empty() {
-        warn!("Admin API access attempted but no API key is configured");
+        error!(
+            "Admin API is enabled but ADMIN_API_KEY is empty. \
+             Service will reject all admin requests with 403. \
+             Check deploy environment variables."
+        );
         return AdminAuthError {
-            status: StatusCode::INTERNAL_SERVER_ERROR,
-            message: "Admin API key not configured",
+            status: StatusCode::FORBIDDEN,
+            message: "Admin API is disabled",
         }
         .into_response();
     }
@@ -219,5 +229,185 @@ mod tests {
         };
         let response = error.into_response();
         assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    }
+
+    // ========================================================================
+    // Middleware integration tests — exercise every branch of
+    // `admin_auth_middleware` end-to-end through an axum Router.
+    // ========================================================================
+
+    use crate::test_utils::{collect_body_str, test_app_state_with_config, test_config_with_admin};
+    use axum::{
+        body::Body,
+        http::{HeaderValue, Request},
+        middleware::from_fn_with_state,
+        routing::get,
+        Router,
+    };
+    use tower::ServiceExt;
+
+    /// Build a minimal router with a single protected route, wired through
+    /// `admin_auth_middleware` with the provided admin config. Returns a
+    /// fully-constructed `Router<()>` ready for `oneshot`.
+    async fn protected_router(enabled: bool, api_key: &str) -> Router {
+        let state = test_app_state_with_config(test_config_with_admin(enabled, api_key)).await;
+        Router::new()
+            .route("/protected", get(|| async { "ok" }))
+            .layer(from_fn_with_state(state.clone(), admin_auth_middleware))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_rejects_when_admin_disabled_with_403() {
+        let app = protected_router(false, "").await;
+        let req = Request::builder()
+            .uri("/protected")
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("Admin API is disabled"),
+            "body should use disabled message, got: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_rejects_empty_api_key_with_403_not_500_f4_regression() {
+        // F4 regression: previously returned 500 + "Admin API key not configured",
+        // leaking the fact that admin was enabled but misconfigured. Must now
+        // return the same 403 + "Admin API is disabled" as the disabled branch.
+        let app = protected_router(true, "").await;
+        let req = Request::builder()
+            .uri("/protected")
+            .header("Authorization", "Bearer anything")
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        assert_eq!(
+            resp.status(),
+            StatusCode::FORBIDDEN,
+            "must return 403, not 500 — see F4"
+        );
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("Admin API is disabled"),
+            "must surface disabled-style message, got: {body}"
+        );
+        assert!(
+            !body.contains("not configured"),
+            "must NOT disclose misconfiguration, got: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_rejects_missing_authorization_header_with_401() {
+        let app = protected_router(true, "correct-key").await;
+        let req = Request::builder()
+            .uri("/protected")
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("Missing Authorization header"),
+            "body: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_rejects_non_utf8_authorization_header_with_401() {
+        let app = protected_router(true, "correct-key").await;
+        // HeaderValue with non-ASCII/non-UTF8 bytes fails `to_str()`.
+        let bad = HeaderValue::from_bytes(&[0xff, 0xfe, 0xfd]).expect("valid header bytes");
+        let req = Request::builder()
+            .uri("/protected")
+            .header("Authorization", bad)
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("Invalid Authorization header encoding"),
+            "body: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_rejects_wrong_format_header_with_401() {
+        let app = protected_router(true, "correct-key").await;
+        let req = Request::builder()
+            .uri("/protected")
+            .header("Authorization", "Basic xyz")
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("Invalid Authorization header format"),
+            "body: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_rejects_wrong_token_with_401() {
+        let app = protected_router(true, "correct").await;
+        let req = Request::builder()
+            .uri("/protected")
+            .header("Authorization", "Bearer wrong")
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("Invalid API key"), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_allows_correct_bearer_token_with_200() {
+        let app = protected_router(true, "correct").await;
+        let req = Request::builder()
+            .uri("/protected")
+            .header("Authorization", "Bearer correct")
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert_eq!(body, "ok");
+    }
+
+    #[tokio::test]
+    async fn admin_auth_middleware_does_not_disclose_misconfig_in_response_body_f4() {
+        // Hardened assertion: even with a seemingly-plausible auth header,
+        // the empty-api-key branch must not hint at the misconfiguration.
+        let app = protected_router(true, "").await;
+        let req = Request::builder()
+            .uri("/protected")
+            .header("Authorization", "Bearer some-token")
+            .body(Body::empty())
+            .expect("valid request");
+
+        let resp = app.oneshot(req).await.expect("router call");
+        let body = collect_body_str(resp).await.to_lowercase();
+        assert!(
+            !body.contains("not configured"),
+            "body must not disclose misconfig ('not configured'), got: {body}"
+        );
+        assert!(
+            !body.contains("api_key"),
+            "body must not mention api_key internals, got: {body}"
+        );
     }
 }
