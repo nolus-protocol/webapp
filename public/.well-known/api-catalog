@@ -1,0 +1,33 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://app.nolus.io/",
+      "service-desc": [
+        {
+          "href": "https://app.nolus.io/api/openapi.json",
+          "type": "application/json",
+          "title": "Nolus Protocol Webapp API (OpenAPI 3.1)"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://nolus.io/",
+          "type": "text/html",
+          "title": "Nolus Protocol — product overview and whitepaper"
+        }
+      ],
+      "status": [
+        {
+          "href": "https://app.nolus.io/api/health",
+          "type": "application/json",
+          "title": "Liveness probe"
+        },
+        {
+          "href": "https://app.nolus.io/api/health/detailed",
+          "type": "application/json",
+          "title": "Readiness probe with per-service health"
+        }
+      ]
+    }
+  ]
+}
