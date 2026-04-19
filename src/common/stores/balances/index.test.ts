@@ -3,7 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
   if (typeof window !== "undefined" && !window.matchMedia) {
-     
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",
@@ -19,7 +18,6 @@ vi.hoisted(() => {
 
 const hoisted = vi.hoisted(() => {
   const captured: {
-     
     onBalances: ((addr: string, balances: any) => void) | null;
     unsubscribe: ReturnType<typeof vi.fn>;
   } = { onBalances: null, unsubscribe: vi.fn() };
@@ -27,13 +25,10 @@ const hoisted = vi.hoisted(() => {
   const BackendApi = {
     getBalances: vi.fn()
   };
-  const subscribeBalances = vi.fn(
-     
-    (_addr: string, cb: (addr: string, balances: any) => void) => {
-      captured.onBalances = cb;
-      return captured.unsubscribe;
-    }
-  );
+  const subscribeBalances = vi.fn((_addr: string, cb: (addr: string, balances: any) => void) => {
+    captured.onBalances = cb;
+    return captured.unsubscribe;
+  });
 
   return { captured, BackendApi, subscribeBalances };
 });
@@ -52,7 +47,7 @@ const configState = {
   isValidNetworkFilter: vi.fn((_f: string) => true),
   getAssetTickersForNetwork: vi.fn((_f: string) => [] as string[]),
   getActiveProtocolsForNetwork: vi.fn((_f: string) => [] as string[]),
-   
+
   getCurrencyByDenom: vi.fn((_d: string) => undefined as any)
 };
 vi.mock("@/common/stores/config", () => ({
@@ -256,7 +251,7 @@ describe("useBalancesStore", () => {
     expect(store.hasBalance("missing")).toBe(false);
 
     const zeroBalance = mkBalance({ denom: "uzero", amount: "0" });
-     
+
     (store.balances as any).push(zeroBalance);
     expect(store.hasBalance("uzero")).toBe(false);
   });
@@ -331,7 +326,6 @@ describe("useBalancesStore", () => {
     const store = useBalancesStore();
     await store.setAddress("nolus1x");
 
-     
     captured.onBalances!("nolus1x", "not an array" as any);
     expect(store.balances).toEqual([]);
   });

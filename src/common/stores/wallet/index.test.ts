@@ -6,7 +6,6 @@ import { setActivePinia, createPinia } from "pinia";
 // Use vi.hoisted so the stub runs BEFORE the store import below is executed.
 vi.hoisted(() => {
   if (typeof window !== "undefined" && !window.matchMedia) {
-     
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",
