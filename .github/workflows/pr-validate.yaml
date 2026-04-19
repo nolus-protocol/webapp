@@ -42,6 +42,32 @@ jobs:
           VITE_APP_URL: https://app.nolus.io
         run: npm run build
 
+      - name: WebMCP scope guard — no tx-signing reachable + agent-card commitment intact
+        run: |
+          set -e
+          # Policy: src/common/webmcp/ must never reach a signing surface.
+          # If this grep matches, the WebMCP module imports something that can sign
+          # or broadcast a transaction. Reject the PR.
+          # Test files (*.test.ts) are excluded — their docblocks legitimately name the
+          # forbidden tokens to document the policy; they cannot themselves move funds.
+          if grep -rE --include='*.ts' --include='*.vue' --exclude='*.test.ts' --exclude='*.spec.ts' \
+                  '\b(signTx|signDirect|signAndBroadcast|broadcastTx|simulate[A-Za-z]*Tx|NolusWalletFactory)\b|@/networks/(cosm|evm|sol)/.*Wallet|wallet\.(sign|broadcast)' \
+                  src/common/webmcp/ 2>/dev/null; then
+            echo "FAIL: src/common/webmcp/ references a signing/broadcast surface — policy violation."
+            echo "      WebMCP scope is connect + read + navigate only. See src/common/webmcp/tools.ts docblock."
+            exit 1
+          fi
+
+          # The agent-card publicly commits that WebMCP never exposes tx signing.
+          # If a PR weakens the commitment, fail loudly.
+          if ! grep -q "never will be" public/.well-known/agent-card.json; then
+            echo "FAIL: public/.well-known/agent-card.json no longer contains the 'never will be'"
+            echo "      commitment that WebMCP exposes no tx-signing tools."
+            exit 1
+          fi
+
+          echo "OK — WebMCP scope guard passed."
+
       - name: Validate .well-known JSON files in dist/
         run: |
           set -e

@@ -1,6 +1,6 @@
 {
   "name": "Nolus Webapp — Agent Skills",
-  "description": "Machine-readable index of agent-callable skills on app.nolus.io. The REST API is the primary surface; 85 documented endpoints live in the OpenAPI spec. The Nolus.js MCP server wraps these as tools for AI assistants.",
+  "description": "Machine-readable index of agent-callable skills on app.nolus.io. The REST API is the primary general-purpose surface (85 endpoints in the OpenAPI spec). The @nolus/nolusjs stdio MCP server is the FULL trading instrument for local/desktop agents (queries + tx builders). In-page WebMCP is VIEW + CONNECT + NAVIGATE only — for browser-resident agents inspecting the user's live session and driving the UI; never signs transactions. Pick the source that matches where the agent runs and what action it needs.",
   "version": "1.0.0",
   "provider": {
     "organization": "Nolus Protocol",
@@ -10,19 +10,26 @@
     {
       "type": "openapi",
       "url": "https://app.nolus.io/api/openapi.json",
-      "description": "OpenAPI 3.1 spec — the authoritative machine-readable contract for all public endpoints"
+      "description": "OpenAPI 3.1 spec — the authoritative machine-readable contract for all public endpoints. General-purpose; address-parameterized."
     },
     {
       "type": "mcp",
       "transport": "stdio",
       "package": "@nolus/nolusjs",
       "card": "https://app.nolus.io/.well-known/mcp/server-card.json",
-      "description": "Nolus.js MCP server — 20+ query tools and 8 transaction builders"
+      "description": "Nolus.js MCP server — the real trading instrument. 20+ query tools and 8 transaction builders (open lease, repay, deposit LPP, withdraw, stake, vote, transfer). Runs locally in the user's agent (Claude Desktop, Cursor, etc.). Use for programmatic trading actions."
+    },
+    {
+      "type": "webmcp",
+      "transport": "in-page",
+      "url": "https://app.nolus.io/",
+      "card": "https://app.nolus.io/.well-known/agent-card.json",
+      "description": "In-page WebMCP via navigator.modelContext on app.nolus.io. View + connect + navigate only — auto-binds to the user's connected wallet. Never signs or broadcasts transactions. Use for browser-resident agents inspecting live in-page state; for tx execution, hand off to the @nolus/nolusjs MCP server or the dApp's UI flow."
     },
     {
       "type": "websocket",
       "url": "wss://app.nolus.io/ws",
-      "description": "Real-time price and position updates"
+      "description": "Real-time price and position updates. Subscribe alongside any of the above sources."
     }
   ],
   "skills": [

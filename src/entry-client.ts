@@ -15,6 +15,7 @@ import { fetchEndpoints } from "./common/utils/EndpointService";
 import { initTheme } from "./common/utils/ThemeManager";
 import { useConnectionStore } from "./common/stores/connection";
 import { useWalletStore } from "./common/stores/wallet";
+import { initWebMcp } from "./common/webmcp";
 
 const { app, router } = createApp();
 
@@ -56,6 +57,9 @@ async function bootstrap() {
     },
     { immediate: true }
   );
+
+  // Expose in-page tools to WebMCP-capable browsers (no-op elsewhere).
+  initWebMcp(router);
 }
 
 router
