@@ -83,7 +83,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const plotChart = rectY(
     loans.value,
     // @ts-expect-error -- Observable Plot binX typing mismatch with rectY options
-    binX({ y: "sum" }, { x: "date", y: "amount", fill: styles.getPropertyValue("--color-icon-success"), thresholds: timeMonth })
+    binX(
+      { y: "sum" },
+      { x: "date", y: "amount", fill: styles.getPropertyValue("--color-icon-success"), thresholds: timeMonth }
+    )
   ).plot({
     style: { fontSize: CHART_AXIS.fontSize },
     width: chartWidth,
@@ -128,7 +131,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         const barWidth = (chartWidth - marginLeft - marginRight) / loans.value.length;
         const barIndex = Math.floor((x - marginLeft) / barWidth);
         rects.attr("fill", baseColor);
-        const barEl = rects.filter((_, i) => i === barIndex).attr("fill", hoverColor).node() as Element | null;
+        const barEl = rects
+          .filter((_, i) => i === barIndex)
+          .attr("fill", hoverColor)
+          .node() as Element | null;
         if (barEl) {
           const bx = +barEl.getAttribute("x")! + +barEl.getAttribute("width")! / 2;
           crosshair.attr("x1", bx).attr("x2", bx).style("display", null);

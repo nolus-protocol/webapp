@@ -34,7 +34,7 @@
         :downPaymentAsset="downPaymentAsset"
       />
     </div>
-    <div class="grid xl:grid-flow-col xl:grid-rows-2 xl:grid-cols-3 gap-x-7 xl:gap-x-3 gap-y-3">
+    <div class="grid gap-x-7 gap-y-3 xl:grid-flow-col xl:grid-cols-3 xl:grid-rows-2 xl:gap-x-3">
       <BigNumber
         class="md:flex-[50%]"
         :label="$t('message.lease-interest')"
@@ -54,7 +54,7 @@
               }
             : undefined
         "
-      /> 
+      />
       <BigNumber
         class="md:flex-[50%]"
         :label="$t('message.partial-liquidation')"

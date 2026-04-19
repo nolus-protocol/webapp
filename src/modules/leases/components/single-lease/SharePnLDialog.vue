@@ -141,9 +141,10 @@ const currentPrice = () => {
     }
   }
 
-  const ticker = positionType === "Short"
-    ? (leaseData.debt?.ticker ?? leaseData.amount.ticker)
-    : (leaseData.etl_data?.lease_position_ticker ?? leaseData.amount.ticker);
+  const ticker =
+    positionType === "Short"
+      ? (leaseData.debt?.ticker ?? leaseData.amount.ticker)
+      : (leaseData.etl_data?.lease_position_ticker ?? leaseData.amount.ticker);
 
   return formatNumber(
     pricesStore.prices[`${ticker}@${leaseData.protocol}`]?.price ?? "0",

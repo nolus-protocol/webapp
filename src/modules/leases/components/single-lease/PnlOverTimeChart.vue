@@ -66,7 +66,6 @@ const chart = ref<typeof Chart>();
 const props = defineProps<{ lease?: LeaseInfo | null }>();
 const analyticsStore = useAnalyticsStore();
 
-
 async function setData() {
   if (props.lease?.address) {
     await analyticsStore.fetchPnlOverTime(props.lease.address, chartTimeRange.value.days);
@@ -141,8 +140,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     const plotBottom = range ? Math.max(...range) : chartHeight - marginBottom;
     const plotTop = range ? Math.min(...range) : 20;
     const zeroY = yScale.apply(0);
-    const fraction =
-      zeroY >= plotBottom ? 1 : zeroY <= plotTop ? 0 : (zeroY - plotTop) / (plotBottom - plotTop);
+    const fraction = zeroY >= plotBottom ? 1 : zeroY <= plotTop ? 0 : (zeroY - plotTop) / (plotBottom - plotTop);
 
     const ns = "http://www.w3.org/2000/svg";
     const defs = document.createElementNS(ns, "defs");

@@ -137,8 +137,8 @@ async fn main() -> anyhow::Result<()> {
 
     // Initialize LLM client for translations (via OpenRouter)
     let llm_api_key = std::env::var("OPENROUTER_API_KEY").unwrap_or_default();
-    let llm_model =
-        std::env::var("OPENROUTER_MODEL").unwrap_or_else(|_| "google/gemini-3-flash-preview".to_string());
+    let llm_model = std::env::var("OPENROUTER_MODEL")
+        .unwrap_or_else(|_| "google/gemini-3-flash-preview".to_string());
     let llm_client = LlmClient::new(LlmConfig {
         api_key: llm_api_key,
         model: llm_model,
@@ -226,10 +226,8 @@ fn create_router(state: Arc<AppState>) -> Router {
     // CORS configuration
     let cors = match &state.config.server.cors_origins {
         Some(origins) => {
-            let header_values: Vec<axum::http::HeaderValue> = origins
-                .iter()
-                .filter_map(|o| o.parse().ok())
-                .collect();
+            let header_values: Vec<axum::http::HeaderValue> =
+                origins.iter().filter_map(|o| o.parse().ok()).collect();
             CorsLayer::new()
                 .allow_origin(AllowOrigin::list(header_values))
                 .allow_methods(Any)

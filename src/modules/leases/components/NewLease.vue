@@ -6,7 +6,7 @@
         @click="goBack"
         severity="tertiary"
         size="large"
-        class="cursor-pointer text-icon-default px-4!"
+        class="cursor-pointer px-4! text-icon-default"
       />
       <div class="flex flex-col">
         <div class="text-24 font-semibold text-typography-default">{{ $t("message.new-lease") }}</div>
