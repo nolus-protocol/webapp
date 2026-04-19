@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     name: Build and deploy
@@ -12,6 +16,9 @@ jobs:
 
     env:
       PATH: /root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      DEPLOY_DIR: /opt/deploy/builds/app-dev
+      SERVICE: webapp-dev
+      HEALTH_PORT: "5050"
 
     steps:
       - uses: actions/checkout@v4
@@ -42,18 +49,86 @@ jobs:
           cp -r dist/ deploy-bundle/
           cp backend/target/release/nolus-backend deploy-bundle/
 
-      - name: Deploy via rclone
+      - name: Backup live binary + dist on deploy host
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
-            rm -f /opt/deploy/builds/app-dev/nolus-backend"
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
+            set -uo pipefail
+            cd $DEPLOY_DIR 2>/dev/null || { echo "::warning::deploy dir $DEPLOY_DIR missing — first deploy, nothing to back up"; exit 0; }
+            if [ -f nolus-backend ]; then
+              cp -p nolus-backend nolus-backend.bak
+              echo "backed up nolus-backend (\$(stat -c %y nolus-backend.bak))"
+            fi
+            if [ -d dist ]; then
+              rm -rf dist.bak
+              cp -a dist dist.bak
+              echo "backed up dist/"
+            fi
+          REMOTE
 
-          rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:/opt/deploy/builds/app-dev/ \
+      - name: Deploy bundle via rclone
+        run: |
+          rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:$DEPLOY_DIR/ \
             --filter "- .env" \
             --filter "- config/" \
+            --filter "- config/**" \
+            --filter "- nolus-backend.bak" \
+            --filter "- dist.bak/**" \
             --verbose
 
-      - name: Restart backend
+      - name: Restart backend + mark binary executable
         run: |
           ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
-            chmod +x /opt/deploy/builds/app-dev/nolus-backend && \
-            sudo systemctl restart webapp-dev"
+            chmod +x $DEPLOY_DIR/nolus-backend && \
+            sudo systemctl restart $SERVICE"
+
+      - name: Health probe
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
+            set -u
+            url="http://127.0.0.1:$HEALTH_PORT/api/health"
+            echo "probing \$url"
+            for i in 1 2 3 4 5 6 7 8 9 10; do
+              if curl -fsS --max-time 5 -o /dev/null "\$url"; then
+                echo "::notice::$SERVICE healthy at \$url (attempt \$i)"
+                exit 0
+              fi
+              echo "attempt \$i: not ready yet"
+              sleep 3
+            done
+            echo "::error::$SERVICE failed health check at \$url after 10 attempts (~30s)"
+            systemctl is-active $SERVICE || true
+            exit 1
+          REMOTE
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
+            set -u
+            cd $DEPLOY_DIR 2>/dev/null || { echo "::error::deploy dir missing, cannot roll back"; exit 1; }
+            if [ ! -f nolus-backend.bak ] && [ ! -d dist.bak ]; then
+              echo "::error::no backups at $DEPLOY_DIR — manual intervention required"
+              exit 1
+            fi
+            echo "::warning::rolling $SERVICE back to previous artifacts"
+            if [ -f nolus-backend.bak ]; then
+              cp -p nolus-backend.bak nolus-backend
+              chmod +x nolus-backend
+              echo "restored nolus-backend"
+            fi
+            if [ -d dist.bak ]; then
+              rsync -a --delete dist.bak/ dist/
+              echo "restored dist/"
+            fi
+            sudo systemctl restart $SERVICE
+            url="http://127.0.0.1:$HEALTH_PORT/api/health"
+            for i in 1 2 3 4 5 6; do
+              if curl -fsS --max-time 5 -o /dev/null "\$url"; then
+                echo "::notice::$SERVICE rollback verified at \$url (attempt \$i)"
+                exit 0
+              fi
+              sleep 3
+            done
+            echo "::error::$SERVICE rollback restart FAILED — service is down, manual intervention required"
+            exit 1
+          REMOTE
