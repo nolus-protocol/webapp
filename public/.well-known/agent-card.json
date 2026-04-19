@@ -1,7 +1,7 @@
 {
   "name": "Nolus Webapp Backend",
   "version": "1.0.0",
-  "description": "Public REST API for the Nolus Protocol webapp (app.nolus.io). Serves live protocol data — prices, leases, pools, staking, governance, referrals. Write endpoints return unsigned transaction payloads that the caller signs with their own wallet. The authoritative machine-readable contract is the OpenAPI 3.1 document at /api/openapi.json.",
+  "description": "Public REST API for the Nolus Protocol webapp (app.nolus.io). Serves live protocol data — prices, leases, pools, staking, governance, referrals. Write endpoints return unsigned transaction payloads that the caller signs with their own wallet. The authoritative machine-readable contract is the OpenAPI 3.1 document at /api/openapi.json.\n\nAGENT ROUTING — pick the right surface for the task:\n• REST + WebSocket (this card): general-purpose, address-parameterized queries; pre-built unsigned tx payloads for any caller.\n• @nolus/nolusjs stdio MCP (https://github.com/nolus-protocol/nolus.js#mcp-server): the FULL trading instrument. Runs locally in your agent (Claude Desktop, Cursor, etc.). Includes tx-builder tools (open lease, repay, deposit LPP, withdraw, stake, vote) that produce unsigned txs for the user's wallet. Use this when the agent runs outside the browser or when the user wants programmatic trading actions.\n• In-page WebMCP (in supportedInterfaces below): VIEW + CONNECT + NAVIGATE ONLY, runs inside the user's browser tab on app.nolus.io. Tools auto-bind to the already-connected wallet (no address parameter). Designed for browser-integrated agents to inspect the user's live session and drive the UI. Does NOT sign or broadcast transactions and never will — signing remains the wallet popup's responsibility. For tx execution, hand off to @nolus/nolusjs MCP or to the dApp's UI flow.",
   "url": "https://app.nolus.io/",
   "provider": {
     "organization": "Nolus Protocol",
@@ -21,6 +21,12 @@
       "transport": "wss",
       "protocol": "websocket",
       "description": "Real-time price and position updates"
+    },
+    {
+      "url": "https://app.nolus.io/",
+      "transport": "in-page",
+      "protocol": "webmcp",
+      "description": "In-page WebMCP tools — wallet-scoped reads (balances, leases, earn, staking), wallet connect, and UI navigation, registered via navigator.modelContext.registerTool. Tools auto-bind to the user's connected wallet — no address parameter required. SCOPE: connect, read, and navigate only. Transaction signing is intentionally NOT exposed via WebMCP and never will be — txs go through the explicit user-driven UI flow with the wallet popup as the consent surface. See https://webmachinelearning.github.io/webmcp/."
     }
   ],
   "capabilities": {
@@ -59,6 +65,18 @@
       "name": "Real-time updates via WebSocket",
       "description": "Subscribe at wss://app.nolus.io/ws for live price and position updates.",
       "tags": ["defi", "websocket", "realtime"]
+    },
+    {
+      "id": "in-page-webmcp-tools",
+      "name": "In-page WebMCP tools",
+      "description": "Browser-side tools registered via navigator.modelContext on app.nolus.io. Wallet-scoped reads (get_balances, get_open_leases, get_earn_positions, get_staking_delegations) auto-bind to the connected wallet — no address argument needed. Plus get_connected_wallet, get_prices, connect_wallet (opens the wallet extension popup, never signs), and navigate(route) for driving the UI. SCOPE: connect, read, navigate only — transaction signing is NOT exposed and never will be. WHEN TO USE: pick WebMCP when the agent runs in the user's browser and you want to inspect their live in-page session or drive the UI. For TRADING ACTIONS (open/close lease, deposit, repay, stake, vote) use the @nolus/nolusjs stdio MCP server — it's the real trading instrument. WebMCP is the view + UI driver, nolus.js MCP is the trading instrument; they are complements, not substitutes.",
+      "tags": ["defi", "webmcp", "browser", "wallet-scoped", "read-only-and-navigation"],
+      "examples": [
+        "Connect my Keplr wallet",
+        "What is my current LTV across open leases?",
+        "Take me to the earn page",
+        "How much NLS am I currently staking and what are my pending rewards?"
+      ]
     }
   ]
 }
