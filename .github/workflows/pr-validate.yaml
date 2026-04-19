@@ -32,8 +32,16 @@ jobs:
       - name: Format check
         run: npm run format:check
 
-      - name: Unit tests (vitest)
-        run: npm test
+      - name: Unit tests (vitest) with coverage
+        run: npm run test:coverage
+
+      - name: Upload frontend coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: coverage/
+          retention-days: 7
 
       - name: Build (production)
         env:
@@ -123,3 +131,18 @@ jobs:
 
       - name: Test suite (includes OpenAPI snapshot drift guard)
         run: cargo test --all-targets
+
+      - name: Install tarpaulin
+        run: cargo install cargo-tarpaulin --version 0.35.2 --locked
+
+      - name: Backend coverage (tarpaulin)
+        continue-on-error: true
+        run: cargo tarpaulin --out Xml --out Html --output-dir target/tarpaulin --workspace --timeout 300 --skip-clean
+
+      - name: Upload backend coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/target/tarpaulin/
+          retention-days: 7
