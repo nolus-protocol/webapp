@@ -31,14 +31,12 @@ interface FakeOfflineSigner {
 
 // We create a "fake" NolusWallet by Object-shape casting; we only touch the
 // properties/methods the override reads.
-function buildFakeWallet(
-  opts: {
-    simulate?: { gasInfo: { gasUsed: bigint | number } };
-    signerSequence?: number;
-    offlineSigner?: FakeOfflineSigner;
-    pubKey?: Uint8Array;
-  } = {}
-): NolusWallet & Record<string, unknown> {
+function buildFakeWallet(opts: {
+  simulate?: { gasInfo: { gasUsed: bigint | number } };
+  signerSequence?: number;
+  offlineSigner?: FakeOfflineSigner;
+  pubKey?: Uint8Array;
+} = {}): NolusWallet & Record<string, unknown> {
   const defaultPub = new Uint8Array(33);
   defaultPub[0] = 0x02;
   for (let i = 1; i < 33; i++) defaultPub[i] = i;
@@ -104,7 +102,9 @@ describe("NolusWalletOverride", () => {
       currentFeeConfig = null;
       const w = buildFakeWallet();
       applyNolusWalletOverrides(w);
-      await expect((w.gasPrices as () => Promise<unknown>)()).rejects.toThrow(/Gas fee config not available/);
+      await expect((w.gasPrices as () => Promise<unknown>)()).rejects.toThrow(
+        /Gas fee config not available/
+      );
     });
   });
 
@@ -135,7 +135,9 @@ describe("NolusWalletOverride", () => {
       applyNolusWalletOverrides(w);
       currentFeeConfig = null; // drop config before call
       const fn = w.simulateTx as Override<"simulateTx">;
-      await expect(fn({} as never, "/cosmos.bank.v1beta1.MsgSend")).rejects.toThrow(/Gas fee config not available/);
+      await expect(fn({} as never, "/cosmos.bank.v1beta1.MsgSend")).rejects.toThrow(
+        /Gas fee config not available/
+      );
     });
 
     it("uses default memo of empty string when not provided", async () => {
@@ -216,9 +218,9 @@ describe("NolusWalletOverride", () => {
       const w = buildFakeWallet();
       applyNolusWalletOverrides(w);
       const fn = (w as unknown as { getGasInfo: (...args: unknown[]) => Promise<unknown> }).getGasInfo;
-      await expect(fn([{ msg: {}, msgTypeUrl: "/x" }], "", { type: "t", value: "v" }, 0)).rejects.toThrow(
-        /Gas fee config not available/
-      );
+      await expect(
+        fn([{ msg: {}, msgTypeUrl: "/x" }], "", { type: "t", value: "v" }, 0)
+      ).rejects.toThrow(/Gas fee config not available/);
     });
 
     it("rounds fractional gas values (0.5 rounds to nearest)", async () => {

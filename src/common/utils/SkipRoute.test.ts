@@ -287,7 +287,11 @@ describe("SkipRouter.submitRoute / transaction()", () => {
       source_asset_chain_id: "c1",
       dest_asset_chain_id: "c2"
     };
-    await SkipRouter.submitRoute(route as unknown as Parameters<typeof SkipRouter.submitRoute>[0], {}, vi.fn());
+    await SkipRouter.submitRoute(
+      route as unknown as Parameters<typeof SkipRouter.submitRoute>[0],
+      {},
+      vi.fn()
+    );
     const req = (BackendApi.getSkipMessages as ReturnType<typeof vi.fn>).mock.calls[0][0];
     expect(req.amount_in).toBe("IN");
     expect(req.amount_out).toBe("OUT");
@@ -453,7 +457,11 @@ describe("SkipRouter.submitRoute / transaction()", () => {
       dest_asset_chain_id: "c2"
     };
     const cb = vi.fn();
-    await SkipRouter.submitRoute(route as unknown as Parameters<typeof SkipRouter.submitRoute>[0], {}, cb);
+    await SkipRouter.submitRoute(
+      route as unknown as Parameters<typeof SkipRouter.submitRoute>[0],
+      {},
+      cb
+    );
     expect(cb).not.toHaveBeenCalled();
   });
 });

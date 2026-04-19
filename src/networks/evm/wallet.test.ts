@@ -104,7 +104,10 @@ describe("MetaMaskWallet", () => {
     stubEthereum(provider);
 
     const mm = new MetaMaskWallet();
-    const { bech32Addr, ethAddress, pubkeyAny } = await mm.connectCustom({ rpc: "r", api: "a" } as API, networkStub());
+    const { bech32Addr, ethAddress, pubkeyAny } = await mm.connectCustom(
+      { rpc: "r", api: "a" } as API,
+      networkStub()
+    );
     expect(bech32Addr).toMatch(/^nolus1[a-z0-9]+$/);
     expect(ethAddress).toBe(testWallet.address);
     expect(pubkeyAny).toBeInstanceOf(Uint8Array);

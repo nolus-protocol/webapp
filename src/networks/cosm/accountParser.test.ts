@@ -131,6 +131,8 @@ describe("accountFromAny", () => {
   it("throws when a wrapped account is missing its inner baseAccount", () => {
     // ModuleAccount without baseAccount trips the assert() call
     const bytes = ModuleAccount.encode(ModuleAccount.fromPartial({ name: "empty" })).finish();
-    expect(() => accountFromAny({ typeUrl: "/cosmos.auth.v1beta1.ModuleAccount", value: bytes })).toThrow();
+    expect(() =>
+      accountFromAny({ typeUrl: "/cosmos.auth.v1beta1.ModuleAccount", value: bytes })
+    ).toThrow();
   });
 });
