@@ -155,16 +155,12 @@ describe("BackendApi", () => {
       const api = new BackendApiClient();
       expect(api.onRateLimited).toBeNull();
 
-      fetchMock.mockResolvedValueOnce(
-        jsonResponse({ error: { code: "rate_limited", message: "slow down" } }, 429)
-      );
+      fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "rate_limited", message: "slow down" } }, 429));
       await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
 
       // Verify behavior: should throw with status 429 and code from body,
       // without attempting to call an undefined callback.
-      fetchMock.mockResolvedValueOnce(
-        jsonResponse({ error: { code: "rate_limited", message: "slow down" } }, 429)
-      );
+      fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "rate_limited", message: "slow down" } }, 429));
       await expect(api.getEarnStats()).rejects.toMatchObject({
         status: 429,
         code: "rate_limited"
