@@ -12,8 +12,24 @@ use tracing::debug;
 use crate::error::AppError;
 use crate::AppState;
 
-/// GET /api/locales/:lang
-/// Returns locale translations for the specified language
+/// Get locale translations
+///
+/// Returns the i18n translation blob for the requested language code. The
+/// response is an opaque JSON object keyed by translation keys — shape is not
+/// fixed in this spec.
+#[utoipa::path(
+    get,
+    path = "/api/locales/{lang}",
+    tag = "locales",
+    params(
+        ("lang" = String, Path, description = "Language code (e.g. `en`, `de`, `es`). Max 5 chars, alphanumeric + hyphen."),
+    ),
+    responses(
+        (status = 200, description = "Locale JSON blob (opaque object)", content_type = "application/json", body = Object),
+        (status = 400, description = "Invalid language code", body = crate::error::ErrorResponse),
+        (status = 404, description = "Language not available", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_locale(
     State(state): State<Arc<AppState>>,
     Path(lang): Path<String>,

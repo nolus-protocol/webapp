@@ -3,6 +3,7 @@
 //! This module contains types that are used by multiple handlers to avoid duplication.
 
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::config_store::gated_types::CurrencyDisplay;
 use crate::external::etl::EtlProtocolContracts;
@@ -11,7 +12,7 @@ use crate::external::etl::EtlProtocolContracts;
 ///
 /// This is the canonical type for protocol contracts in handler responses.
 /// All fields are optional because not all protocols have all contract types.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, ToSchema)]
 pub struct ProtocolContracts {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub leaser: Option<String>,
@@ -53,7 +54,7 @@ impl From<&EtlProtocolContracts> for ProtocolContracts {
 ///
 /// This is the canonical type for currency display info across all handlers.
 /// The `color` field is optional and will be omitted from JSON if None.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CurrencyDisplayInfo {
     pub ticker: String,
     pub icon: String,

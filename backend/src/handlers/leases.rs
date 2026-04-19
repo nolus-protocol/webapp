@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 use tracing::{debug, error, warn};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::chain::{AmountSpec, ClosingLeaseInfo, LeaseStatusResponse, OpenedLeaseInfo};
@@ -28,14 +29,14 @@ use crate::AppState;
 // Request/Response Types
 // ============================================================================
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct LeasesResponse {
     pub leases: Vec<LeaseInfo>,
     pub total_collateral_usd: String,
     pub total_debt_usd: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseInfo {
     pub address: String,
     pub protocol: String,
@@ -69,7 +70,7 @@ pub struct LeaseInfo {
     pub etl_data: Option<LeaseEtlData>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum LeaseStatusType {
     Opening,
@@ -80,14 +81,14 @@ pub enum LeaseStatusType {
     Liquidated,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseAssetInfo {
     pub ticker: String,
     pub amount: String,
     pub amount_usd: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseDebtInfo {
     pub ticker: String,
     pub principal: String,
@@ -99,7 +100,7 @@ pub struct LeaseDebtInfo {
     pub total_usd: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseInterestInfo {
     /// Loan interest rate (permille)
     pub loan_rate: u32,
@@ -109,7 +110,7 @@ pub struct LeaseInterestInfo {
     pub annual_rate_percent: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeasePnlInfo {
     pub amount: String,
     pub percent: String,
@@ -117,7 +118,7 @@ pub struct LeasePnlInfo {
     pub pnl_positive: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseClosePolicy {
     /// Stop loss threshold (permille)
     pub stop_loss: Option<u32>,
@@ -125,7 +126,7 @@ pub struct LeaseClosePolicy {
     pub take_profit: Option<u32>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum LeaseInProgress {
     /// Lease is opening
@@ -146,7 +147,7 @@ pub enum LeaseInProgress {
     SlippageProtection {},
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseOpeningStateInfo {
     /// Currency being leased
     pub currency: String,
@@ -158,7 +159,7 @@ pub struct LeaseOpeningStateInfo {
     pub loan_interest_rate: u32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseEtlData {
     /// Downpayment amount (LS_cltr_amnt_stable: asset_micro_units × price)
     pub downpayment_amount: Option<String>,
@@ -180,7 +181,7 @@ pub struct LeaseEtlData {
     pub history: Option<Vec<LeaseHistoryEntry>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct LeaseQuoteRequest {
     pub protocol: String,
     pub downpayment_ticker: String,
@@ -189,7 +190,7 @@ pub struct LeaseQuoteRequest {
     pub max_ltd: Option<u32>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LeaseQuoteResponse {
     pub borrow_ticker: String,
     pub borrow_amount: String,
@@ -197,7 +198,7 @@ pub struct LeaseQuoteResponse {
     pub estimated_liquidation_price: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct OpenLeaseRequest {
     pub protocol: String,
     pub downpayment_ticker: String,
@@ -206,29 +207,31 @@ pub struct OpenLeaseRequest {
     pub max_ltd: Option<u32>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct LeaseTransactionResponse {
+    /// Cosmos SDK transaction messages (opaque `MsgExecuteContract` payloads)
+    #[schema(value_type = Vec<Object>)]
     pub messages: Vec<serde_json::Value>,
     pub memo: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct RepayLeaseRequest {
     pub lease_address: String,
     pub amount: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct CloseLeaseRequest {
     pub lease_address: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct MarketCloseRequest {
     pub lease_address: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseHistoryEntry {
     pub tx_hash: Option<String>,
     pub action: String,
@@ -242,7 +245,7 @@ pub struct LeaseHistoryEntry {
 // ============================================================================
 
 /// Response for lease configuration per protocol
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct LeaseConfigResponse {
     pub protocol: String,
     pub downpayment_ranges:
@@ -251,9 +254,23 @@ pub struct LeaseConfigResponse {
     pub min_transaction: AmountSpec,
 }
 
-/// GET /api/leases/config/:protocol
-/// Returns lease validation configuration for a specific protocol.
-/// Reads from background-refreshed cache.
+/// Get lease configuration for a protocol
+///
+/// Returns downpayment ranges and minimum asset/transaction amounts used to
+/// validate lease-open requests. Served from background-refreshed cache.
+#[utoipa::path(
+    get,
+    path = "/api/leases/config/{protocol}",
+    tag = "leases",
+    params(
+        ("protocol" = String, Path, description = "Protocol name (e.g. `osmosis-osmosis-usdc`)"),
+    ),
+    responses(
+        (status = 200, description = "Lease configuration for the protocol", body = LeaseConfigResponse),
+        (status = 404, description = "Protocol not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_lease_config(
     State(state): State<Arc<AppState>>,
     Path(protocol): Path<String>,
@@ -286,12 +303,22 @@ const INTEREST_DECIMALS: u32 = 7;
 // Handlers
 // ============================================================================
 
-/// GET /api/leases?owner=...&protocol=...
-/// Returns all leases for an owner across all or a specific protocol
+/// List leases for an owner
 ///
-/// Leases are filtered based on gated configuration:
-/// - Only leases from configured protocols are returned
-/// - Asset restrictions (ignore_all, ignore_long, ignore_short) are applied
+/// Returns all leases for a given Nolus owner address, optionally filtered to a
+/// single protocol. Leases from non-configured protocols and assets blocked by
+/// gated restrictions (`ignore_all`, `ignore_long`, `ignore_short`) are omitted.
+#[utoipa::path(
+    get,
+    path = "/api/leases",
+    tag = "leases",
+    params(AddressWithProtocolQuery),
+    responses(
+        (status = 200, description = "Lease list with aggregated totals", body = LeasesResponse),
+        (status = 400, description = "Invalid address", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_leases(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressWithProtocolQuery>,
@@ -438,10 +465,26 @@ pub async fn get_leases(
     }))
 }
 
-/// GET /api/leases/:address?protocol=...
-/// Returns details for a specific lease.
-/// Protocol is required — the backend cannot infer it from the lease address alone,
-/// and defaulting to a Long protocol produces wrong data for Short positions.
+/// Get a single lease
+///
+/// Returns full details for the specified lease. The `protocol` query parameter
+/// is required — the backend cannot infer it from the address alone and a wrong
+/// default would produce incorrect data for Short positions.
+#[utoipa::path(
+    get,
+    path = "/api/leases/{address}",
+    tag = "leases",
+    params(
+        ("address" = String, Path, description = "Lease contract address"),
+        OptionalProtocolQuery,
+    ),
+    responses(
+        (status = 200, description = "Lease details", body = LeaseInfo),
+        (status = 400, description = "Missing or invalid protocol query parameter", body = crate::error::ErrorResponse),
+        (status = 404, description = "Lease not found", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_lease(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -484,8 +527,22 @@ fn enrich_history_action(action: &str, additional: Option<&str>) -> String {
     action.to_string()
 }
 
-/// GET /api/leases/:address/history
-/// Returns transaction history for a lease
+/// Get lease transaction history
+///
+/// Returns the on-chain action history (open, repay, close, liquidation) for a
+/// lease, sourced from the ETL indexer. Returns an empty list if no history is
+/// available.
+#[utoipa::path(
+    get,
+    path = "/api/leases/{address}/history",
+    tag = "leases",
+    params(
+        ("address" = String, Path, description = "Lease contract address"),
+    ),
+    responses(
+        (status = 200, description = "Lease history entries", body = Vec<LeaseHistoryEntry>),
+    ),
+)]
 pub async fn get_lease_history(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -525,8 +582,22 @@ pub async fn get_lease_history(
     Ok(Json(history))
 }
 
-/// POST /api/leases/quote
-/// Get a quote for opening a lease
+/// Quote a prospective lease
+///
+/// Queries the Leaser contract for the borrow amount and annual interest rate
+/// that would result from opening a lease with the given downpayment.
+#[utoipa::path(
+    post,
+    path = "/api/leases/quote",
+    tag = "leases",
+    request_body = LeaseQuoteRequest,
+    responses(
+        (status = 200, description = "Quote for the prospective lease", body = LeaseQuoteResponse),
+        (status = 400, description = "Invalid request", body = crate::error::ErrorResponse),
+        (status = 404, description = "Protocol not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_lease_quote(
     State(state): State<Arc<AppState>>,
     Json(request): Json<LeaseQuoteRequest>,
@@ -566,8 +637,22 @@ pub async fn get_lease_quote(
     }))
 }
 
-/// POST /api/leases/open
-/// Build transaction messages to open a new lease
+/// Build an open-lease transaction
+///
+/// Returns unsigned `MsgExecuteContract` messages that the frontend wallet will
+/// complete (sender, IBC denom) and sign to open a new lease.
+#[utoipa::path(
+    post,
+    path = "/api/leases/open",
+    tag = "leases",
+    request_body = OpenLeaseRequest,
+    responses(
+        (status = 200, description = "Unsigned transaction messages", body = LeaseTransactionResponse),
+        (status = 400, description = "Invalid request", body = crate::error::ErrorResponse),
+        (status = 404, description = "Protocol not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn open_lease(
     State(state): State<Arc<AppState>>,
     Json(request): Json<OpenLeaseRequest>,
@@ -613,8 +698,20 @@ pub async fn open_lease(
     }))
 }
 
-/// POST /api/leases/repay
-/// Build transaction messages to repay a lease
+/// Build a repay-lease transaction
+///
+/// Returns unsigned `MsgExecuteContract` messages to repay the specified amount
+/// toward an existing lease.
+#[utoipa::path(
+    post,
+    path = "/api/leases/repay",
+    tag = "leases",
+    request_body = RepayLeaseRequest,
+    responses(
+        (status = 200, description = "Unsigned transaction messages", body = LeaseTransactionResponse),
+        (status = 400, description = "Invalid request", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn repay_lease(
     State(_state): State<Arc<AppState>>,
     Json(request): Json<RepayLeaseRequest>,
@@ -645,8 +742,20 @@ pub async fn repay_lease(
     }))
 }
 
-/// POST /api/leases/close
-/// Build transaction messages to close a lease (full repay)
+/// Build a close-lease transaction
+///
+/// Returns unsigned `MsgExecuteContract` messages to fully close the specified
+/// lease position (full close of collateral).
+#[utoipa::path(
+    post,
+    path = "/api/leases/close",
+    tag = "leases",
+    request_body = CloseLeaseRequest,
+    responses(
+        (status = 200, description = "Unsigned transaction messages", body = LeaseTransactionResponse),
+        (status = 400, description = "Invalid request", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn close_lease(
     State(_state): State<Arc<AppState>>,
     Json(request): Json<CloseLeaseRequest>,
@@ -676,8 +785,20 @@ pub async fn close_lease(
     }))
 }
 
-/// POST /api/leases/market-close
-/// Build transaction messages for market close (sell collateral to repay)
+/// Build a market-close transaction
+///
+/// Returns unsigned `MsgExecuteContract` messages that market-close the lease
+/// by selling collateral to repay the outstanding debt.
+#[utoipa::path(
+    post,
+    path = "/api/leases/market-close",
+    tag = "leases",
+    request_body = MarketCloseRequest,
+    responses(
+        (status = 200, description = "Unsigned transaction messages", body = LeaseTransactionResponse),
+        (status = 400, description = "Invalid request", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn market_close_lease(
     State(_state): State<Arc<AppState>>,
     Json(request): Json<MarketCloseRequest>,
@@ -1176,7 +1297,10 @@ fn calculate_pnl(
         .as_deref()
         .and_then(|cltr_ticker| {
             let cltr_key = format!("{}@{}", cltr_ticker, protocol);
-            currencies.currencies.get(&cltr_key).map(|c| c.decimal_digits as i32)
+            currencies
+                .currencies
+                .get(&cltr_key)
+                .map(|c| c.decimal_digits as i32)
         })
         .unwrap_or(lpn_decimals);
 

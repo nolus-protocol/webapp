@@ -172,7 +172,7 @@ fn default_due_projection_secs() -> u64 {
 }
 
 /// Downpayment range for an asset
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct DownpaymentRange {
     /// Minimum downpayment value in USD
     pub min: f64,

@@ -5,6 +5,7 @@ use axum::{
 };
 use serde::Serialize;
 use thiserror::Error;
+use utoipa::ToSchema;
 
 /// Application error types
 #[derive(Debug, Error)]
@@ -45,19 +46,25 @@ pub enum AppError {
 }
 
 /// Error response body
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ErrorResponse {
     pub error: ErrorBody,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ErrorBody {
+    /// Machine-readable error code (e.g. `VALIDATION_FAILED`, `NOT_FOUND`).
     pub code: String,
+    /// Human-readable message.
     pub message: String,
+    /// Field name that failed validation (when applicable).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub field: Option<String>,
+    /// Additional structured details about the error.
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(value_type = Object)]
     pub details: Option<serde_json::Value>,
+    /// Number of seconds the client should wait before retrying (rate-limit responses).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub retry_after: Option<u64>,
 }

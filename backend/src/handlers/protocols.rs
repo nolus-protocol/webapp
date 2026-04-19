@@ -6,6 +6,7 @@ use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::etl::EtlProtocol;
@@ -13,7 +14,7 @@ use crate::handlers::common_types::ProtocolContracts;
 use crate::AppState;
 
 /// Protocol information from ETL
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Protocol {
     pub name: String,
     pub network: Option<String>,
@@ -42,7 +43,7 @@ impl From<EtlProtocol> for Protocol {
 }
 
 /// Response for /api/protocols endpoint
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProtocolsResponse {
     pub protocols: HashMap<String, Protocol>,
     pub count: u32,
@@ -50,9 +51,19 @@ pub struct ProtocolsResponse {
     pub deprecated_count: u32,
 }
 
-/// GET /api/protocols
-/// Returns all protocols (active and deprecated)
-/// Reads from background-refreshed app_config cache and converts to protocol view.
+/// List all protocols
+///
+/// Returns the registry of Nolus DeFi sub-protocols (active and deprecated)
+/// with contract addresses and lease/LPN metadata.
+#[utoipa::path(
+    get,
+    path = "/api/protocols",
+    tag = "protocols",
+    responses(
+        (status = 200, description = "Protocol registry with counts", body = ProtocolsResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
@@ -96,8 +107,18 @@ pub async fn get_protocols(
     }))
 }
 
-/// GET /api/protocols/active
-/// Returns only active protocols
+/// List active protocols
+///
+/// Returns only protocols where `is_active` is `true`.
+#[utoipa::path(
+    get,
+    path = "/api/protocols/active",
+    tag = "protocols",
+    responses(
+        (status = 200, description = "Map of active protocols keyed by name", body = HashMap<String, Protocol>),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_active_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<HashMap<String, Protocol>>, AppError> {

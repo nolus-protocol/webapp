@@ -17,6 +17,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, warn};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::query_types::AddressQuery;
@@ -26,7 +27,7 @@ use crate::AppState;
 // Request/Response Types
 // ============================================================================
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Validator {
     pub operator_address: String,
     pub moniker: String,
@@ -44,7 +45,7 @@ pub struct Validator {
     pub jailed: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ValidatorStatus {
     Bonded,
@@ -52,7 +53,7 @@ pub enum ValidatorStatus {
     Unbonded,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct StakingPosition {
     pub validator_address: String,
     pub validator_moniker: Option<String>,
@@ -60,20 +61,21 @@ pub struct StakingPosition {
     pub balance: BalanceInfo,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[schema(as = staking::BalanceInfo)]
 pub struct BalanceInfo {
     pub denom: String,
     pub amount: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UnbondingPosition {
     pub validator_address: String,
     pub validator_moniker: Option<String>,
     pub entries: Vec<UnbondingEntry>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct UnbondingEntry {
     pub creation_height: String,
     pub completion_time: String,
@@ -81,7 +83,7 @@ pub struct UnbondingEntry {
     pub balance: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct StakingPositionsResponse {
     pub delegations: Vec<StakingPosition>,
     pub unbonding: Vec<UnbondingPosition>,
@@ -90,27 +92,27 @@ pub struct StakingPositionsResponse {
     pub total_rewards: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ValidatorReward {
     pub validator_address: String,
     pub rewards: Vec<BalanceInfo>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct DelegateRequest {
     pub validator_address: String,
     pub amount: String,
     pub denom: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct UndelegateRequest {
     pub validator_address: String,
     pub amount: String,
     pub denom: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct RedelegateRequest {
     pub src_validator_address: String,
     pub dst_validator_address: String,
@@ -118,18 +120,20 @@ pub struct RedelegateRequest {
     pub denom: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct ClaimRewardsRequest {
     pub validator_addresses: Vec<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct StakingTransactionResponse {
+    /// Unsigned Cosmos SDK messages for client-side signing
+    #[schema(value_type = Vec<Object>)]
     pub messages: Vec<serde_json::Value>,
     pub memo: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct StakingParams {
     pub unbonding_time: String,
     pub max_validators: u32,
@@ -142,9 +146,19 @@ pub struct StakingParams {
 // Handlers
 // ============================================================================
 
-/// GET /api/staking/validators
-/// Returns list of all bonded validators
-/// Reads from background-refreshed cache (zero latency).
+/// List all validators
+///
+/// Returns the validator set (bonded and non-bonded), served from a
+/// background-refreshed cache for zero latency.
+#[utoipa::path(
+    get,
+    path = "/api/staking/validators",
+    tag = "staking",
+    responses(
+        (status = 200, description = "List of validators", body = Vec<Validator>),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_validators(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<Validator>>, AppError> {
@@ -156,8 +170,22 @@ pub async fn get_validators(
     Ok(Json(validators))
 }
 
-/// GET /api/staking/validators/:address
-/// Returns details for a specific validator
+/// Get a single validator
+///
+/// Looks up a validator by its operator address (`nolusvaloper1...`).
+#[utoipa::path(
+    get,
+    path = "/api/staking/validators/{address}",
+    tag = "staking",
+    params(
+        ("address" = String, Path, description = "Validator operator address (`nolusvaloper1...`)"),
+    ),
+    responses(
+        (status = 200, description = "Validator details", body = Validator),
+        (status = 404, description = "Validator not found", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_validator(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -180,8 +208,20 @@ pub async fn get_validator(
     Ok(Json(validator))
 }
 
-/// GET /api/staking/positions?delegator=...
-/// Returns all staking positions for a delegator
+/// Get staking positions for a delegator
+///
+/// Returns all delegations, unbonding entries, and pending rewards for a
+/// delegator address, with aggregated totals.
+#[utoipa::path(
+    get,
+    path = "/api/staking/positions",
+    tag = "staking",
+    params(AddressQuery),
+    responses(
+        (status = 200, description = "Staking positions", body = StakingPositionsResponse),
+        (status = 400, description = "Invalid address", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_positions(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressQuery>,
@@ -312,8 +352,18 @@ pub async fn get_positions(
     }))
 }
 
-/// GET /api/staking/params
-/// Returns staking parameters
+/// Get staking parameters
+///
+/// Returns the chain's staking module parameters (unbonding time, max
+/// validators, bond denom, etc.).
+#[utoipa::path(
+    get,
+    path = "/api/staking/params",
+    tag = "staking",
+    responses(
+        (status = 200, description = "Staking parameters", body = StakingParams),
+    ),
+)]
 pub async fn get_staking_params(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<StakingParams>, AppError> {
@@ -330,8 +380,19 @@ pub async fn get_staking_params(
     }))
 }
 
-/// POST /api/staking/delegate
-/// Build transaction messages to delegate
+/// Build a delegate transaction
+///
+/// Returns an unsigned `MsgDelegate` for client-side signing. The delegator
+/// address is filled in by the frontend before broadcast.
+#[utoipa::path(
+    post,
+    path = "/api/staking/delegate",
+    tag = "staking",
+    request_body = DelegateRequest,
+    responses(
+        (status = 200, description = "Unsigned delegate transaction", body = StakingTransactionResponse),
+    ),
+)]
 pub async fn delegate(
     State(_state): State<Arc<AppState>>,
     Json(request): Json<DelegateRequest>,
@@ -357,8 +418,18 @@ pub async fn delegate(
     }))
 }
 
-/// POST /api/staking/undelegate
-/// Build transaction messages to undelegate
+/// Build an undelegate transaction
+///
+/// Returns an unsigned `MsgUndelegate` for client-side signing.
+#[utoipa::path(
+    post,
+    path = "/api/staking/undelegate",
+    tag = "staking",
+    request_body = UndelegateRequest,
+    responses(
+        (status = 200, description = "Unsigned undelegate transaction", body = StakingTransactionResponse),
+    ),
+)]
 pub async fn undelegate(
     State(_state): State<Arc<AppState>>,
     Json(request): Json<UndelegateRequest>,
@@ -384,8 +455,18 @@ pub async fn undelegate(
     }))
 }
 
-/// POST /api/staking/redelegate
-/// Build transaction messages to redelegate
+/// Build a redelegate transaction
+///
+/// Returns an unsigned `MsgBeginRedelegate` for moving stake between validators.
+#[utoipa::path(
+    post,
+    path = "/api/staking/redelegate",
+    tag = "staking",
+    request_body = RedelegateRequest,
+    responses(
+        (status = 200, description = "Unsigned redelegate transaction", body = StakingTransactionResponse),
+    ),
+)]
 pub async fn redelegate(
     State(_state): State<Arc<AppState>>,
     Json(request): Json<RedelegateRequest>,
@@ -412,8 +493,19 @@ pub async fn redelegate(
     }))
 }
 
-/// POST /api/staking/claim-rewards
-/// Build transaction messages to claim staking rewards
+/// Build a claim-rewards transaction
+///
+/// Returns unsigned `MsgWithdrawDelegatorReward` messages, one per validator
+/// address supplied.
+#[utoipa::path(
+    post,
+    path = "/api/staking/claim-rewards",
+    tag = "staking",
+    request_body = ClaimRewardsRequest,
+    responses(
+        (status = 200, description = "Unsigned claim-rewards transaction", body = StakingTransactionResponse),
+    ),
+)]
 pub async fn claim_rewards(
     State(_state): State<Arc<AppState>>,
     Json(request): Json<ClaimRewardsRequest>,

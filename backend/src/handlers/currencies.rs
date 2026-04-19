@@ -10,13 +10,14 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::{debug, warn};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::query_types::AddressQuery;
 use crate::AppState;
 
 /// Currency information with all details needed by frontend
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CurrencyInfo {
     pub key: String,
     pub ticker: String,
@@ -40,7 +41,7 @@ pub struct CurrencyInfo {
 }
 
 /// Full currencies response for frontend
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CurrenciesResponse {
     /// All currencies indexed by key (TICKER@PROTOCOL)
     pub currencies: HashMap<String, CurrencyInfo>,
@@ -52,26 +53,26 @@ pub struct CurrenciesResponse {
     pub map: HashMap<String, String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PricesResponse {
     pub prices: HashMap<String, PriceInfo>,
     pub updated_at: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PriceInfo {
     pub key: String,
     pub symbol: String,
     pub price_usd: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct BalancesResponse {
     pub balances: Vec<BalanceInfo>,
     pub total_value_usd: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct BalanceInfo {
     pub key: String,
     pub symbol: String,
@@ -81,9 +82,19 @@ pub struct BalanceInfo {
     pub decimal_digits: u8,
 }
 
-/// GET /api/currencies
-/// Returns full currencies data for frontend including metadata from gated config
-/// Reads from background-refreshed cache (zero latency).
+/// List all currencies
+///
+/// Returns supported currencies with metadata, LPNs, lease-able tickers, and
+/// alias map. Served from cache.
+#[utoipa::path(
+    get,
+    path = "/api/currencies",
+    tag = "currencies",
+    responses(
+        (status = 200, description = "Currencies catalog", body = CurrenciesResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_currencies(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<CurrenciesResponse>, AppError> {
@@ -95,8 +106,21 @@ pub async fn get_currencies(
     Ok(Json(response))
 }
 
-/// GET /api/currencies/:key
-/// Returns details for a specific currency
+/// Get a single currency
+///
+/// Looks up a currency by key (`TICKER@PROTOCOL`) or plain ticker.
+#[utoipa::path(
+    get,
+    path = "/api/currencies/{key}",
+    tag = "currencies",
+    params(
+        ("key" = String, Path, description = "Currency key (`TICKER@PROTOCOL`) or plain ticker"),
+    ),
+    responses(
+        (status = 200, description = "Currency info", body = CurrencyInfo),
+        (status = 404, description = "Currency not found", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_currency(
     State(state): State<Arc<AppState>>,
     Path(key): Path<String>,
@@ -120,9 +144,19 @@ pub async fn get_currency(
     })
 }
 
-/// GET /api/prices
-/// Returns current prices for all currencies from Oracle contracts
-/// Reads from background-refreshed cache (zero latency).
+/// Get current oracle prices
+///
+/// Returns current USD prices for all supported currencies, aggregated from
+/// on-chain Oracle contracts.
+#[utoipa::path(
+    get,
+    path = "/api/prices",
+    tag = "prices",
+    responses(
+        (status = 200, description = "Oracle prices", body = PricesResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_prices(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<PricesResponse>, AppError> {
@@ -131,12 +165,22 @@ pub async fn get_prices(
     Ok(Json(response))
 }
 
-/// GET /api/balances?address=...
-/// Returns balances for a wallet address
+/// Get wallet balances
 ///
-/// Balances are filtered based on gated configuration:
-/// - Only balances for configured currencies are returned
-/// - Currencies in ignore_all are excluded
+/// Returns visible balances (configured, non-ignored currencies) for a Nolus
+/// wallet address along with aggregated USD value. Requires a `nolus1`-prefixed
+/// bech32 address.
+#[utoipa::path(
+    get,
+    path = "/api/balances",
+    tag = "balances",
+    params(AddressQuery),
+    responses(
+        (status = 200, description = "Wallet balances", body = BalancesResponse),
+        (status = 400, description = "Invalid address", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_balances(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressQuery>,

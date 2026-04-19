@@ -10,6 +10,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::{debug, warn};
+use utoipa::{IntoParams, ToSchema};
 
 use crate::{error::AppError, external::chain, AppState};
 
@@ -18,13 +19,23 @@ use crate::{error::AppError, external::chain, AppState};
 // ============================================================================
 
 /// Response for hidden proposals endpoint
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct HiddenProposalsResponse {
     pub hidden_ids: Vec<String>,
 }
 
-/// GET /api/governance/hidden-proposals
-/// Returns list of proposal IDs that should be hidden in the UI
+/// Get hidden proposal IDs
+///
+/// Returns proposal IDs that should be hidden in the UI (curated via gated config).
+#[utoipa::path(
+    get,
+    path = "/api/governance/hidden-proposals",
+    tag = "governance",
+    responses(
+        (status = 200, description = "List of hidden proposal IDs", body = HiddenProposalsResponse),
+        (status = 503, description = "Gated config cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_hidden_proposals(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<HiddenProposalsResponse>, AppError> {
@@ -44,14 +55,16 @@ pub async fn get_hidden_proposals(
 // ============================================================================
 
 /// Query params for proposals
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct ProposalsQuery {
+    /// Maximum number of proposals to return (defaults to 10).
     pub limit: Option<u32>,
+    /// Voter address — when supplied, each voting-period proposal is annotated with `voted`.
     pub voter: Option<String>,
 }
 
 /// Proposal response with tally and vote info
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProposalResponse {
     pub id: String,
     pub status: String,
@@ -62,6 +75,8 @@ pub struct ProposalResponse {
     pub voting_end_time: Option<String>,
     pub title: Option<String>,
     pub summary: Option<String>,
+    /// Raw governance messages attached to this proposal (shape depends on proposal type).
+    #[schema(value_type = Vec<Object>)]
     pub messages: Vec<serde_json::Value>,
     pub metadata: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -71,19 +86,33 @@ pub struct ProposalResponse {
 }
 
 /// Proposals list response
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ProposalsListResponse {
     pub proposals: Vec<ProposalResponse>,
     pub pagination: PaginationInfo,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PaginationInfo {
     pub total: String,
     pub next_key: Option<String>,
 }
 
-/// Get governance proposals
+/// List governance proposals
+///
+/// Returns governance proposals in reverse-chronological order. For proposals
+/// in the voting period, the live tally is fetched; if `voter` is supplied,
+/// each such proposal is annotated with whether that address has voted.
+#[utoipa::path(
+    get,
+    path = "/api/governance/proposals",
+    tag = "governance",
+    params(ProposalsQuery),
+    responses(
+        (status = 200, description = "Paginated list of proposals", body = ProposalsListResponse),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_proposals(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProposalsQuery>,
@@ -159,6 +188,20 @@ pub async fn get_proposals(
 }
 
 /// Get proposal tally
+///
+/// Returns the current (live) tally for a proposal.
+#[utoipa::path(
+    get,
+    path = "/api/governance/proposals/{proposal_id}/tally",
+    tag = "governance",
+    params(
+        ("proposal_id" = String, Path, description = "Governance proposal ID"),
+    ),
+    responses(
+        (status = 200, description = "Tally for the given proposal", body = chain::TallyResponse),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_proposal_tally(
     State(state): State<Arc<AppState>>,
     Path(proposal_id): Path<String>,
@@ -168,7 +211,23 @@ pub async fn get_proposal_tally(
     Ok(Json(tally))
 }
 
-/// Get vote for a proposal
+/// Get a voter's vote for a proposal
+///
+/// Returns the vote cast by `voter` on `proposal_id`, or `null` if the voter
+/// has not voted on this proposal.
+#[utoipa::path(
+    get,
+    path = "/api/governance/proposals/{proposal_id}/votes/{voter}",
+    tag = "governance",
+    params(
+        ("proposal_id" = String, Path, description = "Governance proposal ID"),
+        ("voter" = String, Path, description = "Voter bech32 address"),
+    ),
+    responses(
+        (status = 200, description = "Vote (nullable if voter has not voted)", body = Option<chain::VoteResponse>),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_proposal_vote(
     State(state): State<Arc<AppState>>,
     Path((proposal_id, voter)): Path<(String, String)>,
@@ -181,7 +240,18 @@ pub async fn get_proposal_vote(
     Ok(Json(vote))
 }
 
-/// Get tallying params
+/// Get governance tallying params
+///
+/// Returns quorum / threshold / veto-threshold parameters used to decide proposals.
+#[utoipa::path(
+    get,
+    path = "/api/governance/params/tallying",
+    tag = "governance",
+    responses(
+        (status = 200, description = "Tallying parameters", body = chain::TallyingParamsResponse),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_tallying_params(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<chain::TallyingParamsResponse>, AppError> {
@@ -191,6 +261,17 @@ pub async fn get_tallying_params(
 }
 
 /// Get staking pool (bonded tokens)
+///
+/// Returns the total bonded / not-bonded token supply — used to compute quorum and APR.
+#[utoipa::path(
+    get,
+    path = "/api/governance/staking-pool",
+    tag = "governance",
+    responses(
+        (status = 200, description = "Staking pool", body = chain::StakingPoolResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_staking_pool(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<chain::StakingPoolResponse>, AppError> {
@@ -203,14 +284,26 @@ pub async fn get_staking_pool(
 }
 
 /// APR response
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AprResponse {
     pub annual_inflation: String,
     pub bonded_tokens: String,
     pub apr: f64,
 }
 
-/// Get APR (combines inflation and staking pool)
+/// Get APR
+///
+/// Combines annual inflation and staking-pool bonded tokens so the frontend can
+/// render a staking APR figure.
+#[utoipa::path(
+    get,
+    path = "/api/governance/apr",
+    tag = "governance",
+    responses(
+        (status = 200, description = "APR inputs", body = AprResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_apr(State(state): State<Arc<AppState>>) -> Result<Json<AprResponse>, AppError> {
     debug!("Fetching APR");
 
@@ -235,7 +328,22 @@ pub async fn get_apr(State(state): State<Arc<AppState>>) -> Result<Json<AprRespo
     }))
 }
 
-/// Get account info (for vesting)
+/// Get account info
+///
+/// Returns the raw auth account object for an address, used to detect vesting
+/// accounts and derive spendable balances.
+#[utoipa::path(
+    get,
+    path = "/api/governance/accounts/{address}",
+    tag = "governance",
+    params(
+        ("address" = String, Path, description = "Nolus bech32 address"),
+    ),
+    responses(
+        (status = 200, description = "Account (shape depends on account type)", body = chain::AccountResponse),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_account(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -246,6 +354,21 @@ pub async fn get_account(
 }
 
 /// Get denom metadata
+///
+/// Returns bank-module metadata (units, display, description) for a denom, or
+/// `null` if the chain has no metadata registered for it.
+#[utoipa::path(
+    get,
+    path = "/api/governance/denoms/{denom}",
+    tag = "governance",
+    params(
+        ("denom" = String, Path, description = "Bank denom (e.g. `unls`, `ibc/...`)"),
+    ),
+    responses(
+        (status = 200, description = "Denom metadata (nullable)", body = Option<chain::DenomMetadata>),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_denom_metadata(
     State(state): State<Arc<AppState>>,
     Path(denom): Path<String>,
@@ -256,13 +379,25 @@ pub async fn get_denom_metadata(
 }
 
 /// Node info response
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct NodeInfoResponse {
     pub version: String,
     pub network: String,
 }
 
-/// Get node info (version, network)
+/// Get node info
+///
+/// Returns the chain software version and network identifier reported by the
+/// node's ABCI info endpoint.
+#[utoipa::path(
+    get,
+    path = "/api/node/info",
+    tag = "node",
+    responses(
+        (status = 200, description = "Node info", body = NodeInfoResponse),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_node_info(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<NodeInfoResponse>, AppError> {
@@ -272,7 +407,7 @@ pub async fn get_node_info(
 }
 
 /// Network status response
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct NetworkStatusResponse {
     pub network: String,
     pub latest_block_height: String,
@@ -281,6 +416,17 @@ pub struct NetworkStatusResponse {
 }
 
 /// Get network status
+///
+/// Returns latest block height/time and sync state for the Nolus RPC node.
+#[utoipa::path(
+    get,
+    path = "/api/node/status",
+    tag = "node",
+    responses(
+        (status = 200, description = "Network status", body = NetworkStatusResponse),
+        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_network_status(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<NetworkStatusResponse>, AppError> {

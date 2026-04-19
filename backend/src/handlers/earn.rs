@@ -15,6 +15,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::{debug, warn};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::query_types::AddressQuery;
@@ -24,7 +25,7 @@ use crate::AppState;
 // Request/Response Types
 // ============================================================================
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct EarnPool {
     /// Protocol name (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE")
     pub protocol: String,
@@ -49,7 +50,7 @@ pub struct EarnPool {
     pub icon: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct EarnPosition {
     /// Protocol name
     pub protocol: String,
@@ -69,32 +70,34 @@ pub struct EarnPosition {
     pub current_apy: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct EarnPositionsResponse {
     pub positions: Vec<EarnPosition>,
     pub total_deposited_usd: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct DepositRequest {
     pub protocol: String,
     pub amount: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct WithdrawRequest {
     pub protocol: String,
     /// Amount in nLPN to withdraw (receipt tokens)
     pub amount: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct EarnTransactionResponse {
+    /// Unsigned CosmWasm execute messages for client-side signing
+    #[schema(value_type = Vec<Object>)]
     pub messages: Vec<serde_json::Value>,
     pub memo: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct EarnStats {
     /// Total value locked across all pools (USD)
     pub total_value_locked: String,
@@ -116,9 +119,20 @@ const INTEREST_DECIMALS: u32 = 7;
 // Handlers
 // ============================================================================
 
-/// GET /api/earn/pools
-/// Returns all earn pools with current APY and utilization
-/// Reads from background-refreshed cache. Pools are filtered by gated configuration.
+/// List all earn pools
+///
+/// Returns every configured earn pool with current APY, utilization, available
+/// liquidity, and remaining deposit capacity. Served from a background-refreshed
+/// cache and filtered by gated configuration.
+#[utoipa::path(
+    get,
+    path = "/api/earn/pools",
+    tag = "earn",
+    responses(
+        (status = 200, description = "List of earn pools", body = Vec<EarnPool>),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_pools(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<EarnPool>>, AppError> {
@@ -156,10 +170,23 @@ pub async fn get_pools(
     Ok(Json(filtered_pools))
 }
 
-/// GET /api/earn/pools/:protocol
-/// Returns details for a specific pool
+/// Get a single earn pool
 ///
-/// Returns 404 if protocol is not configured in gated config
+/// Returns details for a specific pool identified by protocol key. Returns 404
+/// if the protocol is not configured in gated config.
+#[utoipa::path(
+    get,
+    path = "/api/earn/pools/{pool_id}",
+    tag = "earn",
+    params(
+        ("pool_id" = String, Path, description = "Protocol key (e.g. `OSMOSIS-OSMOSIS-USDC_NOBLE`)"),
+    ),
+    responses(
+        (status = 200, description = "Earn pool details", body = EarnPool),
+        (status = 404, description = "Pool not found", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_pool(
     State(state): State<Arc<AppState>>,
     Path(protocol): Path<String>,
@@ -190,10 +217,21 @@ pub async fn get_pool(
         .map(Json)
 }
 
-/// GET /api/earn/positions?owner=...
-/// Returns all earn positions for an owner
+/// Get earn positions for an owner
 ///
-/// Positions are filtered based on gated configuration - only configured protocols are returned
+/// Returns all earn positions across configured pools for the given address,
+/// plus aggregated total in USD. Unconfigured protocols are filtered out.
+#[utoipa::path(
+    get,
+    path = "/api/earn/positions",
+    tag = "earn",
+    params(AddressQuery),
+    responses(
+        (status = 200, description = "Earn positions", body = EarnPositionsResponse),
+        (status = 400, description = "Invalid address", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_positions(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AddressQuery>,
@@ -277,8 +315,21 @@ pub async fn get_positions(
     }))
 }
 
-/// POST /api/earn/deposit
-/// Build transaction messages to deposit into a pool
+/// Build a deposit transaction
+///
+/// Returns unsigned CosmWasm execute messages to deposit funds into an earn
+/// pool. The client fills in the sender address and denom before signing.
+#[utoipa::path(
+    post,
+    path = "/api/earn/deposit",
+    tag = "earn",
+    request_body = DepositRequest,
+    responses(
+        (status = 200, description = "Unsigned deposit transaction", body = EarnTransactionResponse),
+        (status = 404, description = "Protocol not found", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn deposit(
     State(state): State<Arc<AppState>>,
     Json(request): Json<DepositRequest>,
@@ -321,8 +372,21 @@ pub async fn deposit(
     }))
 }
 
-/// POST /api/earn/withdraw
-/// Build transaction messages to withdraw from a pool
+/// Build a withdraw transaction
+///
+/// Returns unsigned CosmWasm execute messages to burn nLPN receipt tokens and
+/// withdraw the underlying LPN value from an earn pool.
+#[utoipa::path(
+    post,
+    path = "/api/earn/withdraw",
+    tag = "earn",
+    request_body = WithdrawRequest,
+    responses(
+        (status = 200, description = "Unsigned withdraw transaction", body = EarnTransactionResponse),
+        (status = 404, description = "Protocol not found", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn withdraw(
     State(state): State<Arc<AppState>>,
     Json(request): Json<WithdrawRequest>,
@@ -364,9 +428,19 @@ pub async fn withdraw(
     }))
 }
 
-/// GET /api/earn/stats
-/// Returns overall earn statistics
-/// Uses ETL for TVL and pool data, only dispatcher rewards from on-chain
+/// Get overall earn statistics
+///
+/// Returns aggregated earn metrics: total value locked, active pool count,
+/// average APY, and the dispatcher rewards rate. TVL and pool data come from
+/// ETL; the dispatcher rewards rate comes from on-chain (optional).
+#[utoipa::path(
+    get,
+    path = "/api/earn/stats",
+    tag = "earn",
+    responses(
+        (status = 200, description = "Earn statistics", body = EarnStats),
+    ),
+)]
 pub async fn get_earn_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<EarnStats>, AppError> {

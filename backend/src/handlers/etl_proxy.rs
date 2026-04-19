@@ -18,6 +18,7 @@ use lazy_static::lazy_static;
 use reqwest::Client;
 use serde::Deserialize;
 use tracing::{debug, warn};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::AppState;
@@ -68,8 +69,24 @@ lazy_static! {
     ]);
 }
 
-/// Generic ETL proxy handler — forwards GET requests to ETL API for allowed paths.
-/// Query parameters are passed through as-is.
+/// Generic ETL passthrough
+///
+/// Forwards GET requests to the upstream ETL API for a fixed allowlist of
+/// paths. Query parameters are passed through verbatim. Response is an opaque
+/// ETL API passthrough — shape is not fixed in this spec.
+#[utoipa::path(
+    get,
+    path = "/api/etl/{path}",
+    tag = "etl",
+    params(
+        ("path" = String, Path, description = "Target ETL endpoint (allowlisted server-side)"),
+    ),
+    responses(
+        (status = 200, description = "Opaque ETL API passthrough", content_type = "application/json", body = Object),
+        (status = 404, description = "ETL endpoint not in allowlist", body = crate::error::ErrorResponse),
+        (status = 502, description = "Upstream ETL call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn etl_proxy_generic(
     State(state): State<Arc<AppState>>,
     Path(path): Path<String>,
@@ -120,7 +137,20 @@ pub async fn etl_proxy_generic(
 // POST Proxy Handler
 // ============================================================================
 
-/// Proxy handler for /subscribe endpoint (push notifications)
+/// Subscribe to push notifications
+///
+/// Opaque passthrough to the ETL `/subscribe` endpoint. Request and response
+/// bodies are opaque JSON — shapes are not fixed in this spec.
+#[utoipa::path(
+    post,
+    path = "/api/etl/subscribe",
+    tag = "etl",
+    request_body(content_type = "application/json", content = Object, description = "Opaque ETL subscribe payload"),
+    responses(
+        (status = 200, description = "Opaque ETL API passthrough", content_type = "application/json", body = Object),
+        (status = 502, description = "Upstream ETL call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn proxy_subscribe(
     State(state): State<Arc<AppState>>,
     Json(body): Json<serde_json::Value>,
@@ -135,17 +165,33 @@ pub async fn proxy_subscribe(
 // ============================================================================
 
 /// Batch response for stats overview page (raw JSON passthrough)
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, ToSchema)]
 pub struct StatsOverviewBatch {
+    #[schema(value_type = Object, nullable = true)]
     pub tvl: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub tx_volume: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub buyback_total: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub realized_pnl_stats: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub revenue: Option<serde_json::Value>,
 }
 
-/// Batch handler for stats overview
-/// Reads from background-refreshed cache (zero latency).
+/// Stats overview batch
+///
+/// Aggregates several ETL stats endpoints into one response, served from
+/// background-refreshed cache. Each field is an opaque ETL passthrough.
+#[utoipa::path(
+    get,
+    path = "/api/etl/batch/stats-overview",
+    tag = "etl",
+    responses(
+        (status = 200, description = "Batch of opaque ETL passthroughs", body = StatsOverviewBatch),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn batch_stats_overview(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<StatsOverviewBatch>, crate::error::AppError> {
@@ -158,14 +204,27 @@ pub async fn batch_stats_overview(
 }
 
 /// Batch response for loans stats (raw JSON passthrough)
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, ToSchema)]
 pub struct LoansStatsBatch {
+    #[schema(value_type = Object, nullable = true)]
     pub open_position_value: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub open_interest: Option<serde_json::Value>,
 }
 
-/// Batch handler for loans stats
-/// Reads from background-refreshed cache (zero latency).
+/// Loans stats batch
+///
+/// Aggregates loan stats endpoints into one response, served from
+/// background-refreshed cache. Each field is an opaque ETL passthrough.
+#[utoipa::path(
+    get,
+    path = "/api/etl/batch/loans-stats",
+    tag = "etl",
+    responses(
+        (status = 200, description = "Batch of opaque ETL passthroughs", body = LoansStatsBatch),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn batch_loans_stats(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<LoansStatsBatch>, crate::error::AppError> {
@@ -178,14 +237,32 @@ pub async fn batch_loans_stats(
 }
 
 /// Batch response for user dashboard data (raw JSON passthrough)
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, ToSchema)]
 pub struct UserDashboardBatch {
+    #[schema(value_type = Object, nullable = true)]
     pub earnings: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub realized_pnl: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub position_debt_value: Option<serde_json::Value>,
 }
 
-/// Batch handler for user dashboard
+/// User dashboard batch
+///
+/// Aggregates earnings, realized PnL, and position debt for an address in
+/// parallel. Each field is an opaque ETL passthrough.
+#[utoipa::path(
+    get,
+    path = "/api/etl/batch/user-dashboard",
+    tag = "etl",
+    params(
+        ("address" = String, Query, description = "Nolus bech32 address"),
+    ),
+    responses(
+        (status = 200, description = "Batch of opaque ETL passthroughs", body = UserDashboardBatch),
+        (status = 502, description = "Upstream ETL call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn batch_user_dashboard(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProxyQuery>,
@@ -218,13 +295,30 @@ pub async fn batch_user_dashboard(
 }
 
 /// Batch response for user history page (raw JSON passthrough)
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, ToSchema)]
 pub struct UserHistoryBatch {
+    #[schema(value_type = Object, nullable = true)]
     pub history_stats: Option<serde_json::Value>,
+    #[schema(value_type = Object, nullable = true)]
     pub realized_pnl_data: Option<serde_json::Value>,
 }
 
-/// Batch handler for user history
+/// User history batch
+///
+/// Aggregates history stats and realized PnL data for an address in parallel.
+/// Each field is an opaque ETL passthrough.
+#[utoipa::path(
+    get,
+    path = "/api/etl/batch/user-history",
+    tag = "etl",
+    params(
+        ("address" = String, Query, description = "Nolus bech32 address"),
+    ),
+    responses(
+        (status = 200, description = "Batch of opaque ETL passthroughs", body = UserHistoryBatch),
+        (status = 502, description = "Upstream ETL call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn batch_user_history(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProxyQuery>,

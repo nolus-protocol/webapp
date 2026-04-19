@@ -6,6 +6,7 @@ use axum::{extract::State, Json};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::etl::EtlProtocol;
@@ -13,7 +14,7 @@ use crate::handlers::common_types::ProtocolContracts;
 use crate::AppState;
 
 /// Full application config response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AppConfigResponse {
     pub protocols: HashMap<String, ProtocolInfo>,
     pub networks: Vec<NetworkInfo>,
@@ -22,7 +23,7 @@ pub struct AppConfigResponse {
 }
 
 /// Protocol information including contract addresses
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProtocolInfo {
     pub name: String,
     pub network: Option<String>,
@@ -50,7 +51,7 @@ impl From<EtlProtocol> for ProtocolInfo {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct NetworkInfo {
     pub key: String,
     pub name: String,
@@ -81,7 +82,7 @@ pub struct NetworkInfo {
     pub gas_multiplier: f64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct NativeAssetInfo {
     pub ticker: String,
     pub symbol: String,
@@ -89,15 +90,25 @@ pub struct NativeAssetInfo {
     pub decimal_digits: u8,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ContractsInfo {
     pub admin: String,
     pub dispatcher: String,
 }
 
-/// GET /api/config
-/// Returns full application configuration including protocols, networks, and contracts
-/// Reads from background-refreshed cache (zero latency).
+/// Get full application configuration
+///
+/// Returns protocols, networks, the native asset, and top-level contracts in a
+/// single payload. Served from a background-refreshed cache (zero latency).
+#[utoipa::path(
+    get,
+    path = "/api/config",
+    tag = "config",
+    responses(
+        (status = 200, description = "Application configuration", body = AppConfigResponse),
+        (status = 503, description = "Config cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<AppConfigResponse>, AppError> {
@@ -109,8 +120,18 @@ pub async fn get_config(
     Ok(Json(response))
 }
 
-/// GET /api/config/protocols
-/// Returns only protocol information
+/// Get configured protocols
+///
+/// Returns the protocols section of the application configuration.
+#[utoipa::path(
+    get,
+    path = "/api/config/protocols",
+    tag = "config",
+    responses(
+        (status = 200, description = "Protocol map keyed by protocol name", body = HashMap<String, ProtocolInfo>),
+        (status = 503, description = "Config cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<HashMap<String, ProtocolInfo>>, AppError> {
@@ -118,8 +139,18 @@ pub async fn get_protocols(
     Ok(Json(config.0.protocols))
 }
 
-/// GET /api/config/networks
-/// Returns network configuration
+/// Get configured networks
+///
+/// Returns the networks section of the application configuration.
+#[utoipa::path(
+    get,
+    path = "/api/config/networks",
+    tag = "config",
+    responses(
+        (status = 200, description = "List of configured networks", body = Vec<NetworkInfo>),
+        (status = 503, description = "Config cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_networks(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<NetworkInfo>>, AppError> {
