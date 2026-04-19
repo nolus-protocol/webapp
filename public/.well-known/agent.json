@@ -1,0 +1,49 @@
+{
+  "name": "Nolus Webapp Backend",
+  "description": "Public REST API for the Nolus Protocol webapp (app.nolus.io). Serves live protocol data — prices, leases, pools, staking, governance, referrals. Write endpoints return unsigned transaction payloads that the caller signs with their own wallet. For programmatic invocation, see the OpenAPI document at /api/openapi.json.",
+  "url": "https://app.nolus.io/",
+  "provider": {
+    "organization": "Nolus Protocol",
+    "url": "https://nolus.io/"
+  },
+  "version": "1.0.0",
+  "documentationUrl": "https://app.nolus.io/api/openapi.json",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "read-protocol-data",
+      "name": "Read live protocol data",
+      "description": "Fetch prices, currencies, protocols, leases, earn positions, staking data, governance proposals, fees, and more via /api/* REST endpoints. 85 documented paths in the OpenAPI spec.",
+      "tags": ["defi", "rest-api", "read-only"],
+      "examples": [
+        "What is the current APR on Nolus?",
+        "What assets does Nolus support?",
+        "What are the active leverage leases for address nolus1abc...?",
+        "Which liquidity pools are open?"
+      ]
+    },
+    {
+      "id": "build-unsigned-transactions",
+      "name": "Build unsigned transactions",
+      "description": "POST endpoints under /api/leases/*, /api/earn/*, /api/staking/*, etc. return unsigned Cosmos transaction messages for the user's wallet to sign. The backend never holds keys.",
+      "tags": ["defi", "rest-api", "transactions"],
+      "examples": [
+        "Build a quote for opening a leveraged lease",
+        "Prepare a deposit into the earn pool",
+        "Stake NLS to validator nolusvaloper1..."
+      ]
+    },
+    {
+      "id": "realtime-updates",
+      "name": "Real-time updates via WebSocket",
+      "description": "Subscribe at wss://app.nolus.io/ws for live price and position updates.",
+      "tags": ["defi", "websocket", "realtime"]
+    }
+  ]
+}
