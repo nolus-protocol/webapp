@@ -41,11 +41,6 @@ CLAUDE.md
 backend/target/
 backend/.env
 
-# Test artifacts
-src/test/
-*.test.ts
-vitest.config.ts
-
 # Environment files (local)
 .env
 .env.local
