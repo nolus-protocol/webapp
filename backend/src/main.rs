@@ -287,6 +287,11 @@ fn create_router(state: Arc<AppState>) -> Router {
             get(handlers::admin::detailed_health_check),
         );
 
+    // OpenAPI spec routes (no rate limiting - static spec, unauthenticated)
+    // Admin endpoints are intentionally omitted from the spec.
+    let openapi_routes =
+        Router::new().route("/openapi.json", get(handlers::openapi::serve_openapi));
+
     // Read-only API routes (standard rate limit)
     let read_routes = Router::new()
         // Configuration
@@ -690,7 +695,13 @@ fn create_router(state: Arc<AppState>) -> Router {
     // Combine all routes
     // API routes take precedence, then static files
     Router::new()
-        .nest("/api", health_routes.merge(read_routes).merge(write_routes))
+        .nest(
+            "/api",
+            health_routes
+                .merge(openapi_routes)
+                .merge(read_routes)
+                .merge(write_routes),
+        )
         .nest("/api/etl", etl_routes)
         .nest("/api/admin", admin_routes)
         .nest("/ws", ws_routes)

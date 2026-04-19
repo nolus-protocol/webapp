@@ -1,0 +1,463 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Nolus Protocol Webapp API",
+    "description": "Public REST API backing app.nolus.io. Read endpoints are cached and free to call; write endpoints return unsigned transaction payloads for client-side signing.",
+    "contact": {
+      "name": "Nolus Protocol",
+      "url": "https://nolus.io/"
+    },
+    "license": {
+      "name": "Apache-2.0"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://app.nolus.io",
+      "description": "Production"
+    },
+    {
+      "url": "https://app-dev.nolus.io",
+      "description": "Staging"
+    }
+  ],
+  "paths": {
+    "/api/config": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get full application configuration",
+        "description": "Returns protocols, networks, the native asset, and top-level contracts in a\nsingle payload. Served from a background-refreshed cache (zero latency).",
+        "operationId": "get_config",
+        "responses": {
+          "200": {
+            "description": "Application configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppConfigResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Config cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config/networks": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get configured networks",
+        "description": "Returns the networks section of the application configuration.",
+        "operationId": "get_networks",
+        "responses": {
+          "200": {
+            "description": "List of configured networks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NetworkInfo"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Config cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/config/protocols": {
+      "get": {
+        "tags": [
+          "config"
+        ],
+        "summary": "Get configured protocols",
+        "description": "Returns the protocols section of the application configuration.",
+        "operationId": "get_protocols",
+        "responses": {
+          "200": {
+            "description": "Protocol map keyed by protocol name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/ProtocolInfo"
+                  },
+                  "propertyNames": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Config cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AppConfigResponse": {
+        "type": "object",
+        "description": "Full application config response",
+        "required": [
+          "protocols",
+          "networks",
+          "native_asset",
+          "contracts"
+        ],
+        "properties": {
+          "protocols": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ProtocolInfo"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "networks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NetworkInfo"
+            }
+          },
+          "native_asset": {
+            "$ref": "#/components/schemas/NativeAssetInfo"
+          },
+          "contracts": {
+            "$ref": "#/components/schemas/ContractsInfo"
+          }
+        }
+      },
+      "ContractsInfo": {
+        "type": "object",
+        "required": [
+          "admin",
+          "dispatcher"
+        ],
+        "properties": {
+          "admin": {
+            "type": "string"
+          },
+          "dispatcher": {
+            "type": "string"
+          }
+        }
+      },
+      "CurrencyDisplayInfo": {
+        "type": "object",
+        "description": "Currency display information for API responses\n\nThis is the canonical type for currency display info across all handlers.\nThe `color` field is optional and will be omitted from JSON if None.",
+        "required": [
+          "ticker",
+          "icon",
+          "displayName",
+          "shortName"
+        ],
+        "properties": {
+          "ticker": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "shortName": {
+            "type": "string"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ErrorBody": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code (e.g. `VALIDATION_FAILED`, `NOT_FOUND`)."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable message."
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Field name that failed validation (when applicable)."
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional structured details about the error."
+          },
+          "retry_after": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "description": "Number of seconds the client should wait before retrying (rate-limit responses).",
+            "minimum": 0
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Error response body",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "NativeAssetInfo": {
+        "type": "object",
+        "required": [
+          "ticker",
+          "symbol",
+          "denom",
+          "decimal_digits"
+        ],
+        "properties": {
+          "ticker": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "denom": {
+            "type": "string"
+          },
+          "decimal_digits": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "NetworkInfo": {
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "chain_id",
+          "prefix",
+          "rpc_url",
+          "rest_url",
+          "gas_price",
+          "chain_type",
+          "native",
+          "value",
+          "symbol",
+          "gas_multiplier"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "chain_id": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": "string"
+          },
+          "rpc_url": {
+            "type": "string"
+          },
+          "rest_url": {
+            "type": "string"
+          },
+          "gas_price": {
+            "type": "string"
+          },
+          "chain_type": {
+            "type": "string",
+            "description": "Chain type (e.g., \"cosmos\", \"evm\")"
+          },
+          "native": {
+            "type": "boolean",
+            "description": "Whether this is the native (Nolus) network"
+          },
+          "value": {
+            "type": "string",
+            "description": "Lowercase identifier (e.g., \"osmosis\", \"neutron\")"
+          },
+          "symbol": {
+            "type": "string",
+            "description": "Network ticker symbol (e.g., \"OSMO\", \"NTRN\")"
+          },
+          "explorer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "estimation": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "primary_protocol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "forward": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "gas_multiplier": {
+            "type": "number",
+            "format": "double",
+            "description": "Gas multiplier for fee estimation"
+          }
+        }
+      },
+      "ProtocolContracts": {
+        "type": "object",
+        "description": "Protocol contract addresses used in API responses\n\nThis is the canonical type for protocol contracts in handler responses.\nAll fields are optional because not all protocols have all contract types.",
+        "properties": {
+          "leaser": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lpp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "oracle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "profit": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reserve": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ProtocolInfo": {
+        "type": "object",
+        "description": "Protocol information including contract addresses",
+        "required": [
+          "name",
+          "lpn",
+          "position_type",
+          "contracts",
+          "is_active"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "network": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dex": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lpn": {
+            "type": "string"
+          },
+          "position_type": {
+            "type": "string"
+          },
+          "contracts": {
+            "$ref": "#/components/schemas/ProtocolContracts"
+          },
+          "is_active": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "config",
+      "description": "Application configuration (protocols, networks, contracts)"
+    }
+  ]
+}
