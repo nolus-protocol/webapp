@@ -125,10 +125,7 @@ describe("SolanaWallet", () => {
     stubSolflare(provider);
     const sol = new SolanaWallet();
     await expect(
-      sol.connectCustom(
-        { rpc: "r", api: "a" } as unknown as Parameters<typeof sol.connectCustom>[0],
-        networkStub()
-      )
+      sol.connectCustom({ rpc: "r", api: "a" } as unknown as Parameters<typeof sol.connectCustom>[0], networkStub())
     ).rejects.toThrow(/Connection failed/);
   });
 
@@ -137,10 +134,7 @@ describe("SolanaWallet", () => {
     stubSolflare(provider);
     const sol = new SolanaWallet();
     await expect(
-      sol.connectCustom(
-        { rpc: "r", api: "a" } as unknown as Parameters<typeof sol.connectCustom>[0],
-        networkStub()
-      )
+      sol.connectCustom({ rpc: "r", api: "a" } as unknown as Parameters<typeof sol.connectCustom>[0], networkStub())
     ).rejects.toThrow(/Connection failed/);
   });
 
