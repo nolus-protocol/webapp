@@ -12,7 +12,7 @@ use axum::Json;
 use utoipa::OpenApi;
 
 use crate::error::{ErrorBody, ErrorResponse};
-use crate::handlers::{common_types, config};
+use crate::handlers::{common_types, config, currencies, fees, locales, protocols};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -31,6 +31,14 @@ use crate::handlers::{common_types, config};
         config::get_config,
         config::get_protocols,
         config::get_networks,
+        currencies::get_currencies,
+        currencies::get_currency,
+        currencies::get_prices,
+        currencies::get_balances,
+        protocols::get_protocols,
+        protocols::get_active_protocols,
+        locales::get_locale,
+        fees::get_gas_fee_config,
     ),
     components(schemas(
         ErrorResponse,
@@ -42,9 +50,24 @@ use crate::handlers::{common_types, config};
         config::ContractsInfo,
         common_types::ProtocolContracts,
         common_types::CurrencyDisplayInfo,
+        currencies::CurrencyInfo,
+        currencies::CurrenciesResponse,
+        currencies::PricesResponse,
+        currencies::PriceInfo,
+        currencies::BalancesResponse,
+        currencies::BalanceInfo,
+        protocols::Protocol,
+        protocols::ProtocolsResponse,
+        fees::GasFeeConfigResponse,
     )),
     tags(
         (name = "config", description = "Application configuration (protocols, networks, contracts)"),
+        (name = "currencies", description = "Supported currencies catalog"),
+        (name = "prices", description = "Oracle price feeds"),
+        (name = "balances", description = "Wallet balances"),
+        (name = "protocols", description = "Nolus DeFi sub-protocol registry"),
+        (name = "locales", description = "Translation blobs for the frontend"),
+        (name = "fees", description = "Gas fee configuration"),
     ),
 )]
 pub struct ApiDoc;

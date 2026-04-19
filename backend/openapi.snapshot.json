@@ -23,6 +23,59 @@
     }
   ],
   "paths": {
+    "/api/balances": {
+      "get": {
+        "tags": [
+          "balances"
+        ],
+        "summary": "Get wallet balances",
+        "description": "Returns visible balances (configured, non-ignored currencies) for a Nolus\nwallet address along with aggregated USD value. Requires a `nolus1`-prefixed\nbech32 address.",
+        "operationId": "get_balances",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "description": "The wallet address (accepts \"address\", \"owner\", or \"delegator\")",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wallet balances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalancesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/config": {
       "get": {
         "tags": [
@@ -127,6 +180,268 @@
           }
         }
       }
+    },
+    "/api/currencies": {
+      "get": {
+        "tags": [
+          "currencies"
+        ],
+        "summary": "List all currencies",
+        "description": "Returns supported currencies with metadata, LPNs, lease-able tickers, and\nalias map. Served from cache.",
+        "operationId": "get_currencies",
+        "responses": {
+          "200": {
+            "description": "Currencies catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrenciesResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/currencies/{key}": {
+      "get": {
+        "tags": [
+          "currencies"
+        ],
+        "summary": "Get a single currency",
+        "description": "Looks up a currency by key (`TICKER@PROTOCOL`) or plain ticker.",
+        "operationId": "get_currency",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "description": "Currency key (`TICKER@PROTOCOL`) or plain ticker",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Currency info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrencyInfo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Currency not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/fees/gas-config": {
+      "get": {
+        "tags": [
+          "fees"
+        ],
+        "summary": "Get gas fee configuration",
+        "description": "Returns accepted fee denoms with their minimum gas prices plus the gas\nestimate multiplier used by the app.",
+        "operationId": "get_gas_fee_config",
+        "responses": {
+          "200": {
+            "description": "Gas fee configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GasFeeConfigResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/locales/{lang}": {
+      "get": {
+        "tags": [
+          "locales"
+        ],
+        "summary": "Get locale translations",
+        "description": "Returns the i18n translation blob for the requested language code. The\nresponse is an opaque JSON object keyed by translation keys — shape is not\nfixed in this spec.",
+        "operationId": "get_locale",
+        "parameters": [
+          {
+            "name": "lang",
+            "in": "path",
+            "description": "Language code (e.g. `en`, `de`, `es`). Max 5 chars, alphanumeric + hyphen.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Locale JSON blob (opaque object)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid language code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Language not available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/prices": {
+      "get": {
+        "tags": [
+          "prices"
+        ],
+        "summary": "Get current oracle prices",
+        "description": "Returns current USD prices for all supported currencies, aggregated from\non-chain Oracle contracts.",
+        "operationId": "get_prices",
+        "responses": {
+          "200": {
+            "description": "Oracle prices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricesResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/protocols": {
+      "get": {
+        "tags": [
+          "protocols"
+        ],
+        "summary": "List all protocols",
+        "description": "Returns the registry of Nolus DeFi sub-protocols (active and deprecated)\nwith contract addresses and lease/LPN metadata.",
+        "operationId": "get_protocols",
+        "responses": {
+          "200": {
+            "description": "Protocol registry with counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtocolsResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/protocols/active": {
+      "get": {
+        "tags": [
+          "protocols"
+        ],
+        "summary": "List active protocols",
+        "description": "Returns only protocols where `is_active` is `true`.",
+        "operationId": "get_active_protocols",
+        "responses": {
+          "200": {
+            "description": "Map of active protocols keyed by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/Protocol"
+                  },
+                  "propertyNames": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Cache not yet populated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -164,6 +479,57 @@
           }
         }
       },
+      "BalanceInfo": {
+        "type": "object",
+        "required": [
+          "key",
+          "symbol",
+          "denom",
+          "amount",
+          "amount_usd",
+          "decimal_digits"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "denom": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "amount_usd": {
+            "type": "string"
+          },
+          "decimal_digits": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "BalancesResponse": {
+        "type": "object",
+        "required": [
+          "balances",
+          "total_value_usd"
+        ],
+        "properties": {
+          "balances": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BalanceInfo"
+            }
+          },
+          "total_value_usd": {
+            "type": "string"
+          }
+        }
+      },
       "ContractsInfo": {
         "type": "object",
         "required": [
@@ -176,6 +542,52 @@
           },
           "dispatcher": {
             "type": "string"
+          }
+        }
+      },
+      "CurrenciesResponse": {
+        "type": "object",
+        "description": "Full currencies response for frontend",
+        "required": [
+          "currencies",
+          "lpn",
+          "lease_currencies",
+          "map"
+        ],
+        "properties": {
+          "currencies": {
+            "type": "object",
+            "description": "All currencies indexed by key (TICKER@PROTOCOL)",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/CurrencyInfo"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "lpn": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurrencyInfo"
+            },
+            "description": "LPN currencies (one per protocol)"
+          },
+          "lease_currencies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Lease-able currency tickers"
+          },
+          "map": {
+            "type": "object",
+            "description": "Currency key mappings (aliases)",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
           }
         }
       },
@@ -206,6 +618,79 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "CurrencyInfo": {
+        "type": "object",
+        "description": "Currency information with all details needed by frontend",
+        "required": [
+          "key",
+          "ticker",
+          "symbol",
+          "name",
+          "short_name",
+          "decimal_digits",
+          "bank_symbol",
+          "dex_symbol",
+          "icon",
+          "native",
+          "protocol",
+          "group",
+          "is_active"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "ticker": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "short_name": {
+            "type": "string"
+          },
+          "decimal_digits": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "bank_symbol": {
+            "type": "string",
+            "description": "IBC denom on Nolus chain"
+          },
+          "dex_symbol": {
+            "type": "string",
+            "description": "IBC denom on DEX network"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "native": {
+            "type": "boolean"
+          },
+          "coingecko_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Protocol this currency belongs to"
+          },
+          "group": {
+            "type": "string",
+            "description": "Currency group (lease, lpn, native, payment_only)"
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Whether currency is currently active"
           }
         }
       },
@@ -255,6 +740,31 @@
         "properties": {
           "error": {
             "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "GasFeeConfigResponse": {
+        "type": "object",
+        "description": "Gas fee configuration served to the frontend.\nReplaces the direct ABCI query to `/nolus.tax.v2.Query/Params` from the browser.",
+        "required": [
+          "gas_prices",
+          "gas_multiplier"
+        ],
+        "properties": {
+          "gas_prices": {
+            "type": "object",
+            "description": "Map of denom -> min gas price (e.g., \"ibc/...\" -> \"0.003\")",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "gas_multiplier": {
+            "type": "number",
+            "format": "double",
+            "description": "Gas estimate multiplier (e.g., 3.5)"
           }
         }
       },
@@ -376,6 +886,86 @@
           }
         }
       },
+      "PriceInfo": {
+        "type": "object",
+        "required": [
+          "key",
+          "symbol",
+          "price_usd"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "price_usd": {
+            "type": "string"
+          }
+        }
+      },
+      "PricesResponse": {
+        "type": "object",
+        "required": [
+          "prices",
+          "updated_at"
+        ],
+        "properties": {
+          "prices": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PriceInfo"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      },
+      "Protocol": {
+        "type": "object",
+        "description": "Protocol information from ETL",
+        "required": [
+          "name",
+          "position_type",
+          "lpn",
+          "is_active",
+          "contracts"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "network": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dex": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "position_type": {
+            "type": "string"
+          },
+          "lpn": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "contracts": {
+            "$ref": "#/components/schemas/ProtocolContracts"
+          }
+        }
+      },
       "ProtocolContracts": {
         "type": "object",
         "description": "Protocol contract addresses used in API responses\n\nThis is the canonical type for protocol contracts in handler responses.\nAll fields are optional because not all protocols have all contract types.",
@@ -451,6 +1041,42 @@
             "type": "boolean"
           }
         }
+      },
+      "ProtocolsResponse": {
+        "type": "object",
+        "description": "Response for /api/protocols endpoint",
+        "required": [
+          "protocols",
+          "count",
+          "active_count",
+          "deprecated_count"
+        ],
+        "properties": {
+          "protocols": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Protocol"
+            },
+            "propertyNames": {
+              "type": "string"
+            }
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "active_count": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "deprecated_count": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
       }
     }
   },
@@ -458,6 +1084,30 @@
     {
       "name": "config",
       "description": "Application configuration (protocols, networks, contracts)"
+    },
+    {
+      "name": "currencies",
+      "description": "Supported currencies catalog"
+    },
+    {
+      "name": "prices",
+      "description": "Oracle price feeds"
+    },
+    {
+      "name": "balances",
+      "description": "Wallet balances"
+    },
+    {
+      "name": "protocols",
+      "description": "Nolus DeFi sub-protocol registry"
+    },
+    {
+      "name": "locales",
+      "description": "Translation blobs for the frontend"
+    },
+    {
+      "name": "fees",
+      "description": "Gas fee configuration"
     }
   ]
 }
