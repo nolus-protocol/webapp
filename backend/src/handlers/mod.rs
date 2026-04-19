@@ -12,6 +12,7 @@ pub mod gated_protocols;
 pub mod governance;
 pub mod leases;
 pub mod locales;
+pub mod openapi;
 pub mod protocols;
 pub mod referral;
 pub mod spa;

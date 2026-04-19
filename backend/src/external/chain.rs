@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tokio::sync::Semaphore;
 use tracing::{debug, error, warn};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 
@@ -1011,7 +1012,7 @@ pub struct LiabilitySpec {
     pub recalc_time: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct AmountSpec {
     pub amount: String,
     pub ticker: String,
@@ -1213,7 +1214,7 @@ pub struct Proposal {
     pub voted: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct TallyResult {
     pub yes_count: String,
     pub abstain_count: String,
@@ -1221,53 +1222,53 @@ pub struct TallyResult {
     pub no_with_veto_count: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct TallyResponse {
     pub tally: TallyResult,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct VoteResponse {
     pub vote: Vote,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Vote {
     pub proposal_id: String,
     pub voter: String,
     pub options: Vec<VoteOption>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct VoteOption {
     pub option: String,
     pub weight: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct TallyingParamsResponse {
     pub params: TallyingParams,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct TallyingParams {
     pub quorum: String,
     pub threshold: String,
     pub veto_threshold: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct StakingPoolResponse {
     pub pool: StakingPool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct StakingPool {
     pub not_bonded_tokens: String,
     pub bonded_tokens: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AnnualInflationResponse {
     pub annual_inflation: String,
 }
@@ -1286,12 +1287,14 @@ pub struct StakingParamsRaw {
     pub min_commission_rate: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AccountResponse {
+    /// Raw account object returned by the chain (shape depends on account type: base, vesting, module).
+    #[schema(value_type = Object)]
     pub account: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct DenomMetadata {
     pub description: String,
     pub denom_units: Vec<DenomUnit>,
@@ -1301,7 +1304,7 @@ pub struct DenomMetadata {
     pub symbol: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct DenomUnit {
     pub denom: String,
     pub exponent: u32,
@@ -1429,8 +1432,7 @@ mod tests {
             .and(path("/cosmos/staking/v1beta1/validators"))
             .and(query_param("status", "BOND_STATUS_UNBONDING"))
             .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(serde_json::json!({"validators": []})),
+                ResponseTemplate::new(200).set_body_json(serde_json::json!({"validators": []})),
             )
             .mount(&mock_server)
             .await;
@@ -1440,8 +1442,7 @@ mod tests {
             .and(path("/cosmos/staking/v1beta1/validators"))
             .and(query_param("status", "BOND_STATUS_UNBONDED"))
             .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_json(serde_json::json!({"validators": []})),
+                ResponseTemplate::new(200).set_body_json(serde_json::json!({"validators": []})),
             )
             .mount(&mock_server)
             .await;

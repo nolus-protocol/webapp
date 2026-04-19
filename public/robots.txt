@@ -1,0 +1,9 @@
+User-agent: *
+Content-Signal: search=no, ai-input=no, ai-train=no
+Disallow: /
+Allow: /.well-known/
+
+# The Nolus webapp is a wallet-gated DeFi interface — there is nothing
+# indexable to render without user interaction. Agents should instead
+# consume the REST API (https://app.nolus.io/api/openapi.json) or
+# the Nolus.js MCP server.

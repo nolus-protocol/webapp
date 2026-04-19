@@ -42,7 +42,7 @@ use crate::config::AppConfig;
 use crate::config_store::ConfigStore;
 use crate::handlers::websocket::WebSocketManager;
 use crate::translations::{
-    openai::{OpenAIClient, OpenAIConfig},
+    llm::{LlmClient, LlmConfig},
     TranslationStorage,
 };
 
@@ -59,8 +59,8 @@ pub struct AppState {
     pub config_store: ConfigStore,
     /// Translation storage for locale management
     pub translation_storage: TranslationStorage,
-    /// OpenAI client for AI-powered translations
-    pub openai_client: OpenAIClient,
+    /// LLM client for AI-powered translations (via OpenRouter)
+    pub llm_client: LlmClient,
     /// Server startup time for uptime tracking
     pub startup_time: Instant,
 }
@@ -135,12 +135,13 @@ async fn main() -> anyhow::Result<()> {
     let translation_storage = TranslationStorage::new(config_path);
     translation_storage.init().await?;
 
-    // Initialize OpenAI client for translations
-    let openai_api_key = std::env::var("OPENAI_API_KEY").unwrap_or_default();
-    let openai_model = std::env::var("OPENAI_MODEL").unwrap_or_else(|_| "gpt-4o-mini".to_string());
-    let openai_client = OpenAIClient::new(OpenAIConfig {
-        api_key: openai_api_key,
-        model: openai_model,
+    // Initialize LLM client for translations (via OpenRouter)
+    let llm_api_key = std::env::var("OPENROUTER_API_KEY").unwrap_or_default();
+    let llm_model =
+        std::env::var("OPENROUTER_MODEL").unwrap_or_else(|_| "google/gemini-3-flash-preview".to_string());
+    let llm_client = LlmClient::new(LlmConfig {
+        api_key: llm_api_key,
+        model: llm_model,
         base_url: None,
     });
 
@@ -156,7 +157,7 @@ async fn main() -> anyhow::Result<()> {
         ws_manager,
         config_store,
         translation_storage,
-        openai_client,
+        llm_client,
         startup_time: Instant::now(),
     });
 
@@ -278,14 +279,21 @@ fn create_router(state: Arc<AppState>) -> Router {
         // Generic passthrough for all other ETL endpoints (allowlist-gated)
         .route("/{path}", get(handlers::etl_proxy::etl_proxy_generic));
 
-    // Read-only API routes (standard rate limit)
-    let read_routes = Router::new()
-        // Health check
+    // Health check routes (no rate limiting - used by monitoring/health checks)
+    let health_routes = Router::new()
         .route("/health", get(handlers::admin::health_check))
         .route(
             "/health/detailed",
             get(handlers::admin::detailed_health_check),
-        )
+        );
+
+    // OpenAPI spec routes (no rate limiting - static spec, unauthenticated)
+    // Admin endpoints are intentionally omitted from the spec.
+    let openapi_routes =
+        Router::new().route("/openapi.json", get(handlers::openapi::serve_openapi));
+
+    // Read-only API routes (standard rate limit)
+    let read_routes = Router::new()
         // Configuration
         .route("/config", get(handlers::config::get_config))
         .route("/config/protocols", get(handlers::config::get_protocols))
@@ -687,7 +695,13 @@ fn create_router(state: Arc<AppState>) -> Router {
     // Combine all routes
     // API routes take precedence, then static files
     Router::new()
-        .nest("/api", read_routes.merge(write_routes))
+        .nest(
+            "/api",
+            health_routes
+                .merge(openapi_routes)
+                .merge(read_routes)
+                .merge(write_routes),
+        )
         .nest("/api/etl", etl_routes)
         .nest("/api/admin", admin_routes)
         .nest("/ws", ws_routes)

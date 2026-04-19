@@ -10,6 +10,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::handlers::common_types::{CurrencyDisplayInfo, ProtocolContracts};
@@ -17,7 +18,7 @@ use crate::propagation::PropagationFilter;
 use crate::AppState;
 
 /// Protocol response with merged data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProtocolResponse {
     /// Protocol name (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE")
     pub protocol: String,
@@ -36,14 +37,14 @@ pub struct ProtocolResponse {
 }
 
 /// Response for all protocols
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProtocolsResponse {
     pub protocols: Vec<ProtocolResponse>,
     pub count: usize,
 }
 
 /// Currency with protocol-specific info and price
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProtocolCurrencyResponse {
     pub ticker: String,
     pub decimals: u8,
@@ -66,16 +67,26 @@ pub struct ProtocolCurrencyResponse {
 }
 
 /// Response for protocol currencies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProtocolCurrenciesResponse {
     pub protocol: String,
     pub currencies: Vec<ProtocolCurrencyResponse>,
     pub count: usize,
 }
 
-/// GET /api/protocols
-/// Returns all configured protocols
-/// Reads from background-refreshed cache (zero latency).
+/// List gated protocols
+///
+/// Returns all protocols that pass the gated propagation filter (configured
+/// network, LPN, and currencies). Served from a background-refreshed cache.
+#[utoipa::path(
+    get,
+    path = "/api/protocols/gated",
+    tag = "protocols",
+    responses(
+        (status = 200, description = "Gated protocol list", body = ProtocolsResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_protocols(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ProtocolsResponse>, AppError> {
@@ -87,12 +98,24 @@ pub async fn get_protocols(
     Ok(Json(response))
 }
 
-/// GET /api/protocols/:protocol/currencies
-/// Returns currencies for a specific protocol with protocol-specific prices
+/// List protocol currencies
 ///
-/// Currencies are filtered based on:
-/// - Currency display configuration (must have icon and displayName)
-/// - Lease rules asset restrictions (ignore_all, ignore_long, ignore_short)
+/// Returns currencies available on a given protocol with protocol-specific
+/// Oracle prices. Filtered by currency display config and lease-rules asset
+/// restrictions (`ignore_all`, `ignore_long`, `ignore_short`).
+#[utoipa::path(
+    get,
+    path = "/api/protocols/{protocol}/currencies",
+    tag = "protocols",
+    params(
+        ("protocol" = String, Path, description = "Protocol name (e.g., `OSMOSIS-OSMOSIS-USDC_NOBLE`)"),
+    ),
+    responses(
+        (status = 200, description = "Protocol currencies with prices", body = ProtocolCurrenciesResponse),
+        (status = 404, description = "Protocol not found or not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_protocol_currencies(
     State(state): State<Arc<AppState>>,
     Path(protocol): Path<String>,
@@ -217,8 +240,23 @@ pub async fn get_protocol_currencies(
     }))
 }
 
-/// GET /api/networks/:network/protocols
-/// Returns protocols on a specific network
+/// List protocols on a network
+///
+/// Returns protocols filtered to a specific network and whose LPN currency is
+/// configured for display.
+#[utoipa::path(
+    get,
+    path = "/api/networks/{network}/protocols",
+    tag = "networks",
+    params(
+        ("network" = String, Path, description = "Network key (e.g., `OSMOSIS`, `NEUTRON`)"),
+    ),
+    responses(
+        (status = 200, description = "Protocols on the network", body = ProtocolsResponse),
+        (status = 404, description = "Network not found or not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_network_protocols(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,

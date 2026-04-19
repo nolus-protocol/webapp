@@ -1,0 +1,92 @@
+{
+  "serverInfo": {
+    "name": "Nolus Protocol MCP Server",
+    "version": "1.0.0"
+  },
+  "description": "Model Context Protocol server exposing Nolus Protocol query tools (prices, leases, pools, oracle, wallet balances) and unsigned transaction builders. Distributed as a stdio MCP server via the @nolus/nolusjs npm package — users install and run locally; there is no hosted HTTP endpoint.",
+  "transport": {
+    "type": "stdio",
+    "install": {
+      "registry": "npm",
+      "package": "@nolus/nolusjs",
+      "command": "npx",
+      "args": ["tsx", "node_modules/@nolus/nolusjs/src/mcp/server.ts"]
+    }
+  },
+  "capabilities": {
+    "tools": {
+      "listChanged": false
+    },
+    "resources": {},
+    "prompts": {}
+  },
+  "repository": "https://github.com/nolus-protocol/nolus.js",
+  "documentation": "https://github.com/nolus-protocol/nolus.js#mcp-server",
+  "networks": {
+    "mainnet": {
+      "name": "Pirin",
+      "default": true,
+      "envOverrides": [
+        "NOLUS_PIRIN_RPC_URL",
+        "NOLUS_PIRIN_ADMIN_ADDRESS",
+        "NOLUS_PIRIN_CHAIN_ID"
+      ]
+    },
+    "testnet": {
+      "name": "Rila",
+      "envOverrides": [
+        "NOLUS_RILA_RPC_URL",
+        "NOLUS_RILA_ADMIN_ADDRESS",
+        "NOLUS_RILA_CHAIN_ID"
+      ]
+    }
+  },
+  "toolCategories": [
+    {
+      "name": "Queries",
+      "description": "Read-only tools for fetching protocol data",
+      "tools": [
+        "get_protocols",
+        "get_protocol",
+        "get_platform",
+        "get_lease_quote",
+        "get_open_leases",
+        "get_leaser_config",
+        "get_lease_status",
+        "get_lpp_balance",
+        "get_lpp_config",
+        "get_lpp_price",
+        "get_lender_deposit",
+        "get_lender_rewards",
+        "get_deposit_capacity",
+        "get_lpn",
+        "get_oracle_prices",
+        "get_asset_price",
+        "get_currencies",
+        "get_oracle_config",
+        "calculate_rewards",
+        "get_wallet_balance",
+        "get_block_height",
+        "get_chain_id"
+      ]
+    },
+    {
+      "name": "Transaction builders",
+      "description": "Generate unsigned transactions for user wallet signing",
+      "tools": [
+        "prepare_open_lease",
+        "prepare_repay_lease",
+        "prepare_close_lease",
+        "prepare_change_close_policy",
+        "prepare_deposit_lpp",
+        "prepare_withdraw_lpp",
+        "prepare_claim_lpp_rewards",
+        "prepare_transfer_tokens"
+      ]
+    }
+  ],
+  "restApiAlternative": {
+    "description": "For agents that prefer REST over stdio MCP, the same data is available via the webapp backend.",
+    "openapi": "https://app.nolus.io/api/openapi.json"
+  }
+}

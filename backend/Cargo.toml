@@ -71,6 +71,9 @@ lazy_static = "1"
 # WebSocket client for CometBFT event subscriptions
 tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 
+# OpenAPI spec generation
+utoipa = { version = "5", features = ["axum_extras", "chrono", "preserve_order"] }
+
 [dev-dependencies]
 wiremock = "0.6"
 futures = "0.3"

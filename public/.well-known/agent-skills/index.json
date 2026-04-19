@@ -1,0 +1,142 @@
+{
+  "name": "Nolus Webapp — Agent Skills",
+  "description": "Machine-readable index of agent-callable skills on app.nolus.io. The REST API is the primary surface; 85 documented endpoints live in the OpenAPI spec. The Nolus.js MCP server wraps these as tools for AI assistants.",
+  "version": "1.0.0",
+  "provider": {
+    "organization": "Nolus Protocol",
+    "url": "https://nolus.io/"
+  },
+  "sources": [
+    {
+      "type": "openapi",
+      "url": "https://app.nolus.io/api/openapi.json",
+      "description": "OpenAPI 3.1 spec — the authoritative machine-readable contract for all public endpoints"
+    },
+    {
+      "type": "mcp",
+      "transport": "stdio",
+      "package": "@nolus/nolusjs",
+      "card": "https://app.nolus.io/.well-known/mcp/server-card.json",
+      "description": "Nolus.js MCP server — 20+ query tools and 8 transaction builders"
+    },
+    {
+      "type": "websocket",
+      "url": "wss://app.nolus.io/ws",
+      "description": "Real-time price and position updates"
+    }
+  ],
+  "skills": [
+    {
+      "id": "fetch-prices",
+      "name": "Fetch oracle prices",
+      "description": "Get current USD prices for supported assets from Oracle contracts",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/prices" },
+      "tags": ["read", "prices"]
+    },
+    {
+      "id": "fetch-currencies",
+      "name": "List currencies",
+      "description": "Supported currencies with metadata (tickers, denoms, decimals, icons)",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/currencies" },
+      "tags": ["read", "currencies"]
+    },
+    {
+      "id": "fetch-protocols",
+      "name": "List DeFi sub-protocols",
+      "description": "Available Nolus sub-protocols and their contract addresses",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/protocols" },
+      "tags": ["read", "protocols"]
+    },
+    {
+      "id": "fetch-leases",
+      "name": "Get leverage leases for a wallet",
+      "description": "Fetch active leverage leases and aggregated collateral/debt for a Nolus address",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/leases?address={bech32_address}" },
+      "tags": ["read", "leases", "wallet-scoped"]
+    },
+    {
+      "id": "fetch-lease-quote",
+      "name": "Quote a lease opening",
+      "description": "Preview what a new leverage position would look like given a downpayment and target currency",
+      "endpoint": { "method": "POST", "url": "https://app.nolus.io/api/leases/quote" },
+      "tags": ["read", "leases", "quote"]
+    },
+    {
+      "id": "open-lease",
+      "name": "Build lease-open transaction",
+      "description": "Generate unsigned transaction messages to open a leveraged lease. The caller signs with their own wallet.",
+      "endpoint": { "method": "POST", "url": "https://app.nolus.io/api/leases/open" },
+      "tags": ["write", "leases", "unsigned-tx"]
+    },
+    {
+      "id": "fetch-earn-pools",
+      "name": "List liquidity pools",
+      "description": "LP pool metadata and yields",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/earn/pools" },
+      "tags": ["read", "earn"]
+    },
+    {
+      "id": "fetch-earn-positions",
+      "name": "Get LP positions for a wallet",
+      "description": "Active liquidity-pool deposits for a Nolus address",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/earn/positions?address={bech32_address}" },
+      "tags": ["read", "earn", "wallet-scoped"]
+    },
+    {
+      "id": "fetch-earn-stats",
+      "name": "Get earn statistics",
+      "description": "Aggregated earn/LP statistics across the protocol",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/earn/stats" },
+      "tags": ["read", "earn", "stats"]
+    },
+    {
+      "id": "fetch-staking-apr",
+      "name": "Get staking APR",
+      "description": "Current NLS staking annual percentage rate",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/governance/apr" },
+      "tags": ["read", "staking", "governance"]
+    },
+    {
+      "id": "fetch-validators",
+      "name": "List validators",
+      "description": "Nolus chain validators with voting power, commission, status",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/staking/validators" },
+      "tags": ["read", "staking", "validators"]
+    },
+    {
+      "id": "fetch-staking-positions",
+      "name": "Get staking delegations for a wallet",
+      "description": "Active delegations, unbonding entries, and rewards for an address",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/staking/positions?address={bech32_address}" },
+      "tags": ["read", "staking", "wallet-scoped"]
+    },
+    {
+      "id": "fetch-proposals",
+      "name": "List governance proposals",
+      "description": "On-chain governance proposals with status and vote tallies",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/governance/proposals" },
+      "tags": ["read", "governance"]
+    },
+    {
+      "id": "fetch-balances",
+      "name": "Get wallet balances",
+      "description": "Token balances for a Nolus wallet address, filtered against the gated currency catalog, with USD value aggregation",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/balances?address={bech32_address}" },
+      "tags": ["read", "balances", "wallet-scoped"]
+    },
+    {
+      "id": "fetch-fees",
+      "name": "Get gas fee configuration",
+      "description": "Accepted fee denoms, minimum gas prices, and the gas estimate multiplier",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/fees/gas-config" },
+      "tags": ["read", "fees"]
+    },
+    {
+      "id": "fetch-networks",
+      "name": "List supported networks",
+      "description": "Cosmos and EVM networks supported by the app with RPC/REST endpoints",
+      "endpoint": { "method": "GET", "url": "https://app.nolus.io/api/config/networks" },
+      "tags": ["read", "networks"]
+    }
+  ]
+}

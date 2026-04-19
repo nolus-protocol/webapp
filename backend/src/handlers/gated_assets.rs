@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tracing::debug;
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::handlers::currencies::PriceInfo;
@@ -19,7 +20,7 @@ use crate::propagation::PropagationFilter;
 use crate::AppState;
 
 /// Single asset with display info and price
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AssetResponse {
     pub ticker: String,
     pub decimals: u8,
@@ -42,14 +43,14 @@ pub struct AssetResponse {
 }
 
 /// Response for all assets
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AssetsResponse {
     pub assets: Vec<AssetResponse>,
     pub count: usize,
 }
 
 /// Response for single asset with full details
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct AssetDetailResponse {
     pub ticker: String,
     pub decimals: u8,
@@ -72,7 +73,7 @@ pub struct AssetDetailResponse {
 }
 
 /// Asset details specific to a protocol
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ProtocolAssetDetail {
     pub protocol: String,
     pub network: String,
@@ -87,9 +88,19 @@ pub struct ProtocolAssetDetail {
     pub price: Option<String>,
 }
 
-/// GET /api/assets
-/// Returns deduplicated assets with display prices from primary protocol's Oracle
-/// Reads from background-refreshed cache (zero latency).
+/// List deduplicated assets
+///
+/// Returns deduplicated assets with display prices from each primary protocol's
+/// Oracle. Served from a background-refreshed cache (zero latency).
+#[utoipa::path(
+    get,
+    path = "/api/assets",
+    tag = "assets",
+    responses(
+        (status = 200, description = "Asset catalog", body = AssetsResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_assets(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<AssetsResponse>, AppError> {
@@ -130,8 +141,23 @@ pub fn get_price_for_asset(
     None
 }
 
-/// GET /api/assets/:ticker
-/// Returns single asset with full details including protocol-specific info
+/// Get a single asset
+///
+/// Returns a single asset with full details including per-protocol info and
+/// Oracle prices.
+#[utoipa::path(
+    get,
+    path = "/api/assets/{ticker}",
+    tag = "assets",
+    params(
+        ("ticker" = String, Path, description = "Asset ticker (e.g., `ATOM`, `OSMO`)"),
+    ),
+    responses(
+        (status = 200, description = "Asset detail", body = AssetDetailResponse),
+        (status = 404, description = "Asset not found or not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_asset(
     State(state): State<Arc<AppState>>,
     Path(ticker): Path<String>,
@@ -235,8 +261,23 @@ pub async fn get_asset(
     Ok(Json(response))
 }
 
-/// GET /api/networks/:network/assets
-/// Returns assets available on a specific network
+/// List assets on a network
+///
+/// Returns assets available on a specific network, with prices taken from the
+/// network's primary protocol when configured, else any available protocol.
+#[utoipa::path(
+    get,
+    path = "/api/networks/{network}/assets",
+    tag = "networks",
+    params(
+        ("network" = String, Path, description = "Network key (e.g., `OSMOSIS`, `NEUTRON`)"),
+    ),
+    responses(
+        (status = 200, description = "Asset catalog for the network", body = AssetsResponse),
+        (status = 404, description = "Network not found or not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_network_assets(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,

@@ -22,7 +22,7 @@ use uuid::Uuid;
 
 use crate::error::AppError;
 use crate::translations::audit::AuditAction;
-use crate::translations::openai::{OpenAIClient, TranslationInput};
+use crate::translations::llm::{LlmClient, TranslationInput};
 use crate::translations::{
     extract_placeholders, MissingKey, PendingStatus, PendingTranslation, TranslationSource,
     TranslationStorage,
@@ -182,11 +182,12 @@ pub async fn generate_translations(
     Json(request): Json<GenerateQuery>,
 ) -> Result<impl IntoResponse, AppError> {
     let storage = get_translation_storage(&state)?;
-    let openai = get_openai_client(&state)?;
+    let llm = get_llm_client(&state)?;
 
-    if !openai.is_configured() {
+    if !llm.is_configured() {
         return Err(AppError::Internal(
-            "OpenAI API key not configured. Set OPENAI_API_KEY environment variable.".to_string(),
+            "OpenRouter API key not configured. Set OPENROUTER_API_KEY environment variable."
+                .to_string(),
         ));
     }
 
@@ -232,7 +233,7 @@ pub async fn generate_translations(
     let glossary = load_glossary(&state).await;
 
     // Generate translations
-    let result = openai
+    let result = llm
         .translate_batch("en", &lang, &inputs, context.as_deref(), glossary.as_ref())
         .await?;
 
@@ -254,7 +255,7 @@ pub async fn generate_translations(
             edited_value: None,
             rejection_reason: None,
             source: TranslationSource::AiGenerated,
-            ai_model: Some(openai.model().to_string()),
+            ai_model: Some(llm.model().to_string()),
             batch_id: Some(batch_id.clone()),
         });
     }
@@ -265,7 +266,7 @@ pub async fn generate_translations(
     // Record in audit log
     storage
         .audit_log()
-        .record_generate(None, &lang, total_keys, &batch_id, openai.model())
+        .record_generate(None, &lang, total_keys, &batch_id, llm.model())
         .await;
 
     info!(
@@ -564,9 +565,9 @@ fn get_translation_storage(state: &AppState) -> Result<&TranslationStorage, AppE
     Ok(&state.translation_storage)
 }
 
-/// Get OpenAI client from app state
-fn get_openai_client(state: &AppState) -> Result<&OpenAIClient, AppError> {
-    Ok(&state.openai_client)
+/// Get LLM client from app state
+fn get_llm_client(state: &AppState) -> Result<&LlmClient, AppError> {
+    Ok(&state.llm_client)
 }
 
 /// Load translation context from config file

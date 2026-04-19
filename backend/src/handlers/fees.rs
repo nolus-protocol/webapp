@@ -8,6 +8,7 @@ use axum::Json;
 use serde::Serialize;
 use std::collections::HashMap;
 use std::sync::Arc;
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::AppState;
@@ -18,7 +19,7 @@ use crate::AppState;
 
 /// Gas fee configuration served to the frontend.
 /// Replaces the direct ABCI query to `/nolus.tax.v2.Query/Params` from the browser.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, ToSchema)]
 pub struct GasFeeConfigResponse {
     /// Map of denom -> min gas price (e.g., "ibc/..." -> "0.003")
     pub gas_prices: HashMap<String, String>,
@@ -30,10 +31,19 @@ pub struct GasFeeConfigResponse {
 // Handlers
 // ============================================================================
 
-/// GET /api/fees/gas-config
+/// Get gas fee configuration
 ///
-/// Returns cached gas fee configuration including accepted fee denoms
-/// with their minimum gas prices, and the gas multiplier.
+/// Returns accepted fee denoms with their minimum gas prices plus the gas
+/// estimate multiplier used by the app.
+#[utoipa::path(
+    get,
+    path = "/api/fees/gas-config",
+    tag = "fees",
+    responses(
+        (status = 200, description = "Gas fee configuration", body = GasFeeConfigResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_gas_fee_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<GasFeeConfigResponse>, AppError> {

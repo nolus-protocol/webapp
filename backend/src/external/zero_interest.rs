@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::config::AppConfig;
 use crate::error::AppError;
@@ -71,7 +72,7 @@ pub struct ZeroInterestPaymentResponse {
 // ============================================================================
 
 /// Zero-interest campaign information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ZeroInterestCampaign {
     pub id: i64,
     pub name: String,
@@ -94,7 +95,7 @@ pub struct ZeroInterestCampaign {
 }
 
 /// Response for active campaigns endpoint
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ActiveCampaignsResponse {
     /// List of active campaigns
     pub campaigns: Vec<ZeroInterestCampaign>,
@@ -110,7 +111,7 @@ pub struct ActiveCampaignsResponse {
 }
 
 /// Response for eligibility check
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CampaignEligibilityResponse {
     pub eligible: bool,
     #[serde(default)]
@@ -118,7 +119,7 @@ pub struct CampaignEligibilityResponse {
     pub reason: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct CampaignMatch {
     pub id: i64,
     pub name: String,
