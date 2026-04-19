@@ -75,9 +75,10 @@ tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 utoipa = { version = "5", features = ["axum_extras", "chrono", "preserve_order"] }
 
 [dev-dependencies]
-wiremock = "0.6"
 futures = "0.3"
+http-body-util = "0.1"
 tempfile = "3.10"
+wiremock = "0.6"
 
 [profile.release]
 lto = true

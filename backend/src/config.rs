@@ -466,6 +466,71 @@ mod tests {
         assert!(result.warnings.len() >= 4);
     }
 
+    // ========================================================================
+    // F4 startup-validation coverage: verify every admin.enabled/api_key
+    // combination. The reject case (`test_validate_admin_enabled_no_key`
+    // above) covers the existing `AdminEnabledNoKey` error; the three tests
+    // below add the positive/compatible cases so all four branches of the
+    // (enabled × api_key) matrix are exercised.
+    // ========================================================================
+
+    #[test]
+    fn validate_rejects_admin_enabled_without_api_key() {
+        let mut config = create_test_config();
+        config.admin.enabled = true;
+        config.admin.api_key = String::new();
+        let result = config.validate();
+        assert!(!result.is_ok(), "must reject enabled + empty key");
+        assert!(
+            result
+                .errors
+                .iter()
+                .any(|e| matches!(e, ConfigError::AdminEnabledNoKey)),
+            "must surface AdminEnabledNoKey"
+        );
+    }
+
+    #[test]
+    fn validate_accepts_admin_enabled_with_api_key() {
+        let mut config = create_test_config();
+        config.admin.enabled = true;
+        config.admin.api_key = "secret".to_string();
+        let result = config.validate();
+        assert!(
+            result.is_ok(),
+            "enabled + non-empty key must validate, errors: {:?}",
+            result.errors
+        );
+        assert!(
+            !result
+                .errors
+                .iter()
+                .any(|e| matches!(e, ConfigError::AdminEnabledNoKey)),
+            "must NOT flag AdminEnabledNoKey"
+        );
+    }
+
+    #[test]
+    fn validate_accepts_admin_disabled_without_api_key() {
+        // Disabled + empty key is the default production state — must pass.
+        let mut config = create_test_config();
+        config.admin.enabled = false;
+        config.admin.api_key = String::new();
+        let result = config.validate();
+        assert!(
+            result.is_ok(),
+            "disabled + empty key must validate, errors: {:?}",
+            result.errors
+        );
+        assert!(
+            !result
+                .errors
+                .iter()
+                .any(|e| matches!(e, ConfigError::AdminEnabledNoKey)),
+            "must NOT flag AdminEnabledNoKey"
+        );
+    }
+
     #[test]
     fn test_validation_result_methods() {
         let empty = ValidationResult {
