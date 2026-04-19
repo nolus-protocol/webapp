@@ -3,7 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
   if (typeof window !== "undefined" && !window.matchMedia) {
-     
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",
@@ -19,7 +18,6 @@ vi.hoisted(() => {
 
 const hoisted = vi.hoisted(() => {
   const captured: {
-     
     onEarn: ((addr: string, positions: any[], totalUsd: string) => void) | null;
     unsubscribe: ReturnType<typeof vi.fn>;
   } = { onEarn: null, unsubscribe: vi.fn() };
@@ -35,7 +33,7 @@ const hoisted = vi.hoisted(() => {
   const subscribeEarn = vi.fn(
     (
       _addr: string,
-       
+
       cb: (addr: string, positions: any[], totalUsd: string) => void
     ) => {
       captured.onEarn = cb;

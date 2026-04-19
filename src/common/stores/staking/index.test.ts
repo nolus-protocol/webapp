@@ -4,7 +4,6 @@ import { setActivePinia, createPinia } from "pinia";
 // ThemeManager needs window.matchMedia at module import time.
 vi.hoisted(() => {
   if (typeof window !== "undefined" && !window.matchMedia) {
-     
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",
@@ -20,7 +19,6 @@ vi.hoisted(() => {
 
 const hoisted = vi.hoisted(() => {
   const captured: {
-     
     onStaking: ((addr: string, response: any) => void) | null;
     unsubscribe: ReturnType<typeof vi.fn>;
   } = {
@@ -34,13 +32,10 @@ const hoisted = vi.hoisted(() => {
     getStakingParams: vi.fn()
   };
 
-  const subscribeStaking = vi.fn(
-     
-    (addr: string, cb: (a: string, resp: any) => void) => {
-      captured.onStaking = cb;
-      return captured.unsubscribe;
-    }
-  );
+  const subscribeStaking = vi.fn((addr: string, cb: (a: string, resp: any) => void) => {
+    captured.onStaking = cb;
+    return captured.unsubscribe;
+  });
 
   return { captured, BackendApi, subscribeStaking };
 });
@@ -249,7 +244,7 @@ describe("useStakingStore", () => {
       status,
       jailed
     });
-     
+
     (store.validators as any).push(mk("v1", "bonded", false), mk("v2", "bonded", true), mk("v3", "unbonded", false));
 
     expect(store.activeValidators.map((v) => v.operator_address)).toEqual(["v1"]);
@@ -257,7 +252,7 @@ describe("useStakingStore", () => {
 
   it("totalDelegatedAmount sums parsed balance amounts", () => {
     const store = useStakingStore();
-     
+
     (store.delegations as any).push(
       { validator_address: "v1", shares: "0", balance: { denom: "unls", amount: "100.5" } },
       { validator_address: "v2", shares: "0", balance: { denom: "unls", amount: "50.25" } }
@@ -267,7 +262,7 @@ describe("useStakingStore", () => {
 
   it("totalRewardsAmount sums nested reward amounts", () => {
     const store = useStakingStore();
-     
+
     (store.rewards as any).push(
       {
         validator_address: "v1",
@@ -296,17 +291,17 @@ describe("useStakingStore", () => {
       status: "bonded" as const,
       jailed: false
     };
-     
+
     (store.validators as any).push(v);
-     
+
     (store.delegations as any).push({
       validator_address: "v1",
       shares: "1",
       balance: { denom: "unls", amount: "100" }
     });
-     
+
     (store.unbonding as any).push({ validator_address: "v1", entries: [] });
-     
+
     (store.rewards as any).push({ validator_address: "v1", rewards: [] });
 
     expect(store.getValidator("v1")).toEqual(v);
@@ -322,7 +317,7 @@ describe("useStakingStore", () => {
   it("hasPositions is true when any delegation or unbonding present", () => {
     const store = useStakingStore();
     expect(store.hasPositions).toBe(false);
-     
+
     (store.unbonding as any).push({ validator_address: "v1", entries: [] });
     expect(store.hasPositions).toBe(true);
   });

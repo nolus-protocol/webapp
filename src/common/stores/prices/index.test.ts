@@ -5,7 +5,6 @@ import { setActivePinia, createPinia } from "pinia";
 // reads it at module init time and jsdom doesn't provide it.
 vi.hoisted(() => {
   if (typeof window !== "undefined" && !window.matchMedia) {
-     
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",

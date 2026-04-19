@@ -3,7 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
   if (typeof window !== "undefined" && !window.matchMedia) {
-     
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",
@@ -19,7 +18,6 @@ vi.hoisted(() => {
 
 const hoisted = vi.hoisted(() => {
   const captured: {
-     
     onLeases: ((lease: any) => void) | null;
     unsubscribe: ReturnType<typeof vi.fn>;
   } = { onLeases: null, unsubscribe: vi.fn() };
@@ -31,13 +29,10 @@ const hoisted = vi.hoisted(() => {
     getLeaseQuote: vi.fn()
   };
 
-  const subscribeLeases = vi.fn(
-     
-    (_addr: string, cb: (lease: any) => void) => {
-      captured.onLeases = cb;
-      return captured.unsubscribe;
-    }
-  );
+  const subscribeLeases = vi.fn((_addr: string, cb: (lease: any) => void) => {
+    captured.onLeases = cb;
+    return captured.unsubscribe;
+  });
 
   return { captured, BackendApi, subscribeLeases };
 });
@@ -58,10 +53,7 @@ vi.mock("@/common/stores/prices", () => ({
 }));
 
 const configState = {
-  currenciesData: {} as Record<
-    string,
-    { key: string; decimal_digits: number; ticker?: string; protocol?: string }
-  >,
+  currenciesData: {} as Record<string, { key: string; decimal_digits: number; ticker?: string; protocol?: string }>,
   getPositionType: vi.fn((_p: string) => "Long" as "Long" | "Short")
 };
 vi.mock("@/common/stores/config", () => ({
@@ -142,7 +134,7 @@ type LeaseRec = {
     total: string;
   };
   interest: { loan_rate: number; margin_rate: number; annual_rate_percent: number };
-   
+
   in_progress?: any;
 };
 
@@ -201,7 +193,7 @@ describe("useLeasesStore", () => {
 
   it("hasLeases and leaseCount react to leases", () => {
     const store = useLeasesStore();
-     
+
     (store.leases as any).push(mkLease({}));
     expect(store.hasLeases).toBe(true);
     expect(store.leaseCount).toBe(1);
@@ -209,7 +201,7 @@ describe("useLeasesStore", () => {
 
   it("openLeases and closedLeases filter by status", () => {
     const store = useLeasesStore();
-     
+
     (store.leases as any).push(
       mkLease({ address: "o1", status: "opened" }),
       mkLease({ address: "o2", status: "opening" }),
@@ -232,7 +224,7 @@ describe("useLeasesStore", () => {
     expect(store.getLease("missing")).toBeUndefined();
 
     // Now mutate leases array to empty and ensure leaseDetails cache still hits.
-     
+
     (store.leases as any).splice(0, store.leases.length);
     expect(store.getLease("l1")?.address).toBe("l1");
   });

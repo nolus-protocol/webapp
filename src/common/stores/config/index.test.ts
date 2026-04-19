@@ -21,7 +21,7 @@ import { useConfigStore } from "./index";
 
 // Minimal typed-any accessor to the mocked BackendApi members.
 // Using `as any` is acceptable in test code to access vi.fn() helpers.
- 
+
 const api = BackendApi as unknown as Record<string, ReturnType<typeof vi.fn>>;
 
 beforeEach(() => {

@@ -3,7 +3,6 @@ import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
   if (typeof window !== "undefined" && !window.matchMedia) {
-     
     (window as any).matchMedia = () => ({
       matches: false,
       media: "",
