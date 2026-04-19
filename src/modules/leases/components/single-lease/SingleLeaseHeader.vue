@@ -8,7 +8,7 @@
         @click="goBack"
         severity="tertiary"
         size="large"
-        class="cursor-pointer text-icon-default px-4!"
+        class="cursor-pointer px-4! text-icon-default"
       />
       <div class="flex flex-1 flex-col">
         <div class="flex items-center justify-between">

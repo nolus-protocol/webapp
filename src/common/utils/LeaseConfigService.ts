@@ -20,7 +20,9 @@ const leaseConfigCache: Record<string, Promise<LeaseConfigResponse>> = {};
 async function getLeaseConfig(protocol: string): Promise<LeaseConfigResponse> {
   if (!leaseConfigCache[protocol]) {
     const promise = BackendApi.getLeaseConfig(protocol);
-    promise.catch(() => { delete leaseConfigCache[protocol]; });
+    promise.catch(() => {
+      delete leaseConfigCache[protocol];
+    });
     leaseConfigCache[protocol] = promise;
   }
   return leaseConfigCache[protocol];

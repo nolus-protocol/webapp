@@ -407,10 +407,11 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
 
     // Only include currencies from active protocols (ones with oracle contracts).
     // This keeps currencies in sync with prices, which only queries active oracles.
-    let active_protocols: Option<std::collections::HashSet<String>> =
-        state.data_cache.protocol_contracts.load().map(|pc| {
-            pc.keys().cloned().collect()
-        });
+    let active_protocols: Option<std::collections::HashSet<String>> = state
+        .data_cache
+        .protocol_contracts
+        .load()
+        .map(|pc| pc.keys().cloned().collect());
 
     let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
     let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();

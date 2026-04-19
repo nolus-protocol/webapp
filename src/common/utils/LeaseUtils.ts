@@ -30,5 +30,4 @@ export class LeaseUtils {
 
     return new Dec(0);
   }
-
 }

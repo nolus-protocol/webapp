@@ -28,9 +28,7 @@
           })
       "
     />
-    <div
-      class="flex justify-end border-t border-b border-border-color px-6 py-4"
-    >
+    <div class="flex justify-end border-t border-b border-border-color px-6 py-4">
       <div class="flex flex-[3] flex-col gap-3 text-right text-16 font-normal text-typography-secondary">
         <p class="flex gap-1 self-end">{{ $t("message.price-impact") }}:</p>
         <p class="flex gap-1 self-end">
@@ -38,7 +36,7 @@
           <span class="w-[18px]"> </span>
         </p>
       </div>
-      <div 
+      <div
         class="ml-2 flex flex-[1] flex-col justify-between gap-2 text-right text-16 font-semibold text-typography-default"
       >
         <template v-if="loading">
@@ -214,7 +212,11 @@ const assets = computed(() => {
       icon: currency.icon,
       ibcData: currency.ibcData,
       decimal_digits: currency.decimal_digits,
-      balance: { value: value.isZero() ? "0" : value.toString(currency.decimal_digits).replace(/\.?0+$/, ""), customLabel: `${balance} ${currency.shortName}`, ticker: currency.shortName },
+      balance: {
+        value: value.isZero() ? "0" : value.toString(currency.decimal_digits).replace(/\.?0+$/, ""),
+        customLabel: `${balance} ${currency.shortName}`,
+        ticker: currency.shortName
+      },
       stable,
       price: formatDecAsUsd(stable)
     });

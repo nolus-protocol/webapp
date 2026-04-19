@@ -16,7 +16,7 @@
     :itemsHeadline="itemsHeadline"
     :item-template="itemTemplate"
     :valueOnly="firstInputValue"
-    :inputClass="errorInsufficientBalance? 'text-typography-error' : undefined"
+    :inputClass="errorInsufficientBalance ? 'text-typography-error' : undefined"
     searchable
   />
   <div class="relative">
@@ -57,7 +57,7 @@
     :itemsHeadline="itemsHeadline"
     :item-template="itemTemplate"
     :valueOnly="secondInputValue"
-    :inputClass="errorInsufficientBalance? 'text-typography-error' : undefined"
+    :inputClass="errorInsufficientBalance ? 'text-typography-error' : undefined"
     searchable
   />
   <AnimatePresence>
@@ -67,9 +67,13 @@
       :animate="{ opacity: 1, y: 0, overflow: 'hidden', transition: { type: 'spring', stiffness: 400, damping: 20 } }"
       :exit="{ opacity: 0, y: 4, overflow: 'hidden', transition: { type: 'spring', stiffness: 400, damping: 40 } }"
       tag="div"
-      class="px-6 py-4 text-14 text-typography-error flex items-center gap-1"
+      class="flex items-center gap-1 px-6 py-4 text-14 text-typography-error"
     >
-      <SvgIcon size="s" name="warning" class="fill-typography-error" />
+      <SvgIcon
+        size="s"
+        name="warning"
+        class="fill-typography-error"
+      />
       <AnimatePresence mode="wait">
         <Motion
           :key="errorMsg"
@@ -77,7 +81,8 @@
           :animate="{ opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 20 } }"
           :exit="{ opacity: 0, y: 4, transition: { type: 'spring', stiffness: 400, damping: 40 } }"
           tag="span"
-        >{{ errorMsg }}</Motion>
+          >{{ errorMsg }}</Motion
+        >
       </AnimatePresence>
     </Motion>
   </AnimatePresence>

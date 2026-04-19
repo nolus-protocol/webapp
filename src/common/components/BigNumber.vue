@@ -9,13 +9,13 @@
         v-if="labelTooltip"
         :position="labelTooltip.position || 'top'"
         :content="labelTooltip.content"
-        >
-          <SvgIcon
-            name="help"
-            class="hover:fill-icon-secondary cursor-pointer transition duration-200 ease-in-out"
-            size="m"
-          />
-        </Tooltip>
+      >
+        <SvgIcon
+          name="help"
+          class="cursor-pointer transition duration-200 ease-in-out hover:fill-icon-secondary"
+          size="m"
+        />
+      </Tooltip>
     </div>
     <div class="flex items-center gap-2">
       <template v-if="!loading">
