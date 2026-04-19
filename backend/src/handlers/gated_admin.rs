@@ -629,3 +629,81 @@ pub async fn remove_hidden_proposal(
         "hidden_proposals": config.hidden_proposals
     })))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::admin_auth_middleware;
+    use crate::test_utils::{test_app_state_with_config, test_config_with_admin};
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        middleware::from_fn_with_state,
+        routing::get,
+        Router,
+    };
+    use tower::ServiceExt;
+
+    async fn protected_router(enabled: bool, api_key: &str) -> Router {
+        let state = test_app_state_with_config(test_config_with_admin(enabled, api_key)).await;
+        Router::new()
+            .route("/api/admin/gated/currencies", get(list_currencies))
+            .route("/api/admin/gated/networks", get(list_networks))
+            .route("/api/admin/gated/ui-settings", get(get_ui_settings))
+            .layer(from_fn_with_state(state.clone(), admin_auth_middleware))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn gated_admin_without_auth_returns_403() {
+        let app = protected_router(false, "").await;
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/admin/gated/currencies")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn gated_admin_currencies_with_auth_falls_through_to_upstream_502() {
+        // With auth OK, the handler calls etl_client.fetch_currencies() —
+        // which times out against stub URL → 502 AppError::ExternalApi.
+        // This proves the middleware passed through and the handler wired up.
+        let app = protected_router(true, "s3cret").await;
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/admin/gated/currencies")
+                    .header("Authorization", "Bearer s3cret")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+    }
+
+    #[tokio::test]
+    async fn gated_admin_ui_settings_without_file_returns_404() {
+        // UI settings path reads config_store. The tempdir ConfigStore is
+        // initialized but no JSON file exists yet → load_ui_settings() errors,
+        // which maps to 404. This pins the "missing config file" behavior.
+        let app = protected_router(true, "s3cret").await;
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/admin/gated/ui-settings")
+                    .header("Authorization", "Bearer s3cret")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+    }
+}

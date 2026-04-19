@@ -131,3 +131,98 @@ pub async fn get_active_protocols(
         .collect();
     Ok(Json(active))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::handlers::common_types::ProtocolContracts;
+    use crate::handlers::config::{
+        AppConfigResponse, ContractsInfo, NativeAssetInfo, ProtocolInfo,
+    };
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/protocols", get(get_protocols))
+            .route("/api/protocols/active", get(get_active_protocols))
+            .with_state(state)
+    }
+
+    fn sample_protocol(name: &str, is_active: bool) -> ProtocolInfo {
+        ProtocolInfo {
+            name: name.to_string(),
+            network: Some("OSMOSIS".to_string()),
+            dex: Some("Osmosis".to_string()),
+            lpn: "USDC_NOBLE".to_string(),
+            position_type: "long".to_string(),
+            contracts: ProtocolContracts::default(),
+            is_active,
+        }
+    }
+
+    fn populate_cache(state: &AppState) {
+        let mut protocols = HashMap::new();
+        protocols.insert("P-ACTIVE".to_string(), sample_protocol("P-ACTIVE", true));
+        protocols.insert("P-OLD".to_string(), sample_protocol("P-OLD", false));
+        state.data_cache.app_config.store(AppConfigResponse {
+            protocols,
+            networks: Vec::new(),
+            native_asset: NativeAssetInfo {
+                ticker: "NLS".to_string(),
+                symbol: "NLS".to_string(),
+                denom: "unls".to_string(),
+                decimal_digits: 6,
+            },
+            contracts: ContractsInfo {
+                admin: "nolus1admin".to_string(),
+                dispatcher: "nolus1dispatcher".to_string(),
+            },
+        });
+    }
+
+    #[tokio::test]
+    async fn protocols_list_returns_expected_counts() {
+        let state = test_app_state().await;
+        populate_cache(&state);
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/protocols")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"count\":2"), "body: {body}");
+        assert!(body.contains("\"active_count\":1"), "body: {body}");
+        assert!(body.contains("\"deprecated_count\":1"), "body: {body}");
+        assert!(body.contains("\"protocols\""), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn protocols_active_filters_out_deprecated() {
+        let state = test_app_state().await;
+        populate_cache(&state);
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/protocols/active")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("P-ACTIVE"), "body: {body}");
+        assert!(!body.contains("P-OLD"), "body: {body}");
+    }
+}

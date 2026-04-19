@@ -54,3 +54,72 @@ pub async fn get_gas_fee_config(
 
     Ok(Json(config))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/fees/gas-config", get(get_gas_fee_config))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn fees_gas_config_cold_cache_returns_503() {
+        let state = test_app_state().await;
+        let app = app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/fees/gas-config")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .expect("router call");
+
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("SERVICE_UNAVAILABLE"),
+            "expected SERVICE_UNAVAILABLE code, got: {body}"
+        );
+        assert!(
+            body.contains("Gas fee config"),
+            "expected field name in message, got: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn fees_gas_config_populated_cache_returns_200_with_expected_shape() {
+        let state = test_app_state().await;
+        let mut gas_prices = HashMap::new();
+        gas_prices.insert("unls".to_string(), "0.003".to_string());
+        state.data_cache.gas_fee_config.store(GasFeeConfigResponse {
+            gas_prices,
+            gas_multiplier: 3.5,
+        });
+        let app = app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/fees/gas-config")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .expect("router call");
+
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"gas_prices\""), "body: {body}");
+        assert!(body.contains("\"gas_multiplier\""), "body: {body}");
+        assert!(body.contains("3.5"), "body: {body}");
+    }
+}

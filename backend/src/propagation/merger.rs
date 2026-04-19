@@ -119,4 +119,114 @@ mod tests {
             Some("OSMOSIS-OSMOSIS-USDC_NOBLE".to_string())
         );
     }
+
+    /// Empty network config merges to zero entries — no panic, no defaults
+    /// injected. Guards the contract that `merge_networks` is a pure filter +
+    /// projection.
+    #[test]
+    fn test_merge_networks_empty() {
+        let config = GatedNetworkConfig {
+            networks: HashMap::new(),
+        };
+
+        let merged = PropagationMerger::merge_networks(&config);
+
+        assert!(merged.is_empty());
+    }
+
+    /// Mixed config with one fully-configured and one unconfigured network
+    /// (empty rpc/lcd/gas_price). Only the configured one should pass; the
+    /// other is silently dropped by `is_configured()`.
+    #[test]
+    fn test_merge_networks_skips_unconfigured() {
+        let config = GatedNetworkConfig {
+            networks: HashMap::from([
+                (
+                    "OSMOSIS".to_string(),
+                    NetworkSettings {
+                        name: "Osmosis".to_string(),
+                        chain_id: "osmosis-1".to_string(),
+                        prefix: "osmo".to_string(),
+                        rpc: "https://rpc.osmosis.zone".to_string(),
+                        lcd: "https://lcd.osmosis.zone".to_string(),
+                        fallback_rpc: vec![],
+                        fallback_lcd: vec![],
+                        gas_price: "0.025uosmo".to_string(),
+                        explorer: None,
+                        icon: None,
+                        primary_protocol: None,
+                        estimation: None,
+                        forward: None,
+                        gas_multiplier: 3.5,
+                        swap_venue: None,
+                        pools: HashMap::new(),
+                    },
+                ),
+                (
+                    "NEUTRON".to_string(),
+                    NetworkSettings {
+                        name: "Neutron".to_string(),
+                        chain_id: "neutron-1".to_string(),
+                        prefix: "neutron".to_string(),
+                        rpc: String::new(), // missing → not configured
+                        lcd: String::new(),
+                        fallback_rpc: vec![],
+                        fallback_lcd: vec![],
+                        gas_price: String::new(),
+                        explorer: None,
+                        icon: None,
+                        primary_protocol: None,
+                        estimation: None,
+                        forward: None,
+                        gas_multiplier: 2.5,
+                        swap_venue: None,
+                        pools: HashMap::new(),
+                    },
+                ),
+            ]),
+        };
+
+        let merged = PropagationMerger::merge_networks(&config);
+
+        assert_eq!(merged.len(), 1);
+        assert_eq!(merged[0].network, "OSMOSIS");
+    }
+
+    /// Verify fallback endpoints and pool configs propagate through unchanged.
+    /// Prevents regression if the projection drops fields silently.
+    #[test]
+    fn test_merge_networks_preserves_fallbacks_and_gas_multiplier() {
+        let config = GatedNetworkConfig {
+            networks: HashMap::from([(
+                "OSMOSIS".to_string(),
+                NetworkSettings {
+                    name: "Osmosis".to_string(),
+                    chain_id: "osmosis-1".to_string(),
+                    prefix: "osmo".to_string(),
+                    rpc: "https://rpc.osmosis.zone".to_string(),
+                    lcd: "https://lcd.osmosis.zone".to_string(),
+                    fallback_rpc: vec!["https://rpc-backup.osmosis.zone".to_string()],
+                    fallback_lcd: vec!["https://lcd-backup.osmosis.zone".to_string()],
+                    gas_price: "0.025uosmo".to_string(),
+                    explorer: None,
+                    icon: None,
+                    primary_protocol: None,
+                    estimation: Some(6),
+                    forward: None,
+                    gas_multiplier: 7.25,
+                    swap_venue: None,
+                    pools: HashMap::new(),
+                },
+            )]),
+        };
+
+        let merged = PropagationMerger::merge_networks(&config);
+
+        assert_eq!(merged.len(), 1);
+        assert_eq!(merged[0].fallback_rpc.len(), 1);
+        assert_eq!(merged[0].fallback_lcd.len(), 1);
+        // gas_multiplier is f64 — exact compare is fine here (we wrote 7.25)
+        assert!((merged[0].gas_multiplier - 7.25).abs() < f64::EPSILON);
+        assert_eq!(merged[0].estimation, Some(6));
+    }
 }

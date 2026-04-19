@@ -612,3 +612,113 @@ pub async fn assign(
         }),
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state, test_app_state_with_config};
+    use crate::{
+        config::{AdminConfig, AppConfig, ExternalApiConfig, ProtocolsConfig, ServerConfig},
+        test_utils::test_config,
+    };
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        routing::{get, post},
+        Router,
+    };
+    use tower::ServiceExt;
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/referral/validate/{code}", get(validate_code))
+            .route("/api/referral/referrals/{address}", get(get_referrals))
+            .route("/api/referral/assign", post(assign))
+            .with_state(state)
+    }
+
+    fn config_unconfigured() -> AppConfig {
+        // Blank out referral token so is_fully_configured() returns false.
+        AppConfig {
+            server: ServerConfig {
+                host: "127.0.0.1".to_string(),
+                port: 0,
+                cors_origins: None,
+            },
+            external: ExternalApiConfig {
+                etl_api_url: "http://127.0.0.1:1/".to_string(),
+                skip_api_url: "http://127.0.0.1:1/".to_string(),
+                skip_api_key: None,
+                nolus_rpc_url: "http://127.0.0.1:1/".to_string(),
+                nolus_rest_url: "http://127.0.0.1:1/".to_string(),
+                referral_api_url: "http://127.0.0.1:1/".to_string(),
+                referral_api_token: "".to_string(),
+                zero_interest_api_url: "http://127.0.0.1:1/".to_string(),
+                zero_interest_api_token: "stub".to_string(),
+                intercom_app_id: "stub".to_string(),
+                intercom_secret_key: "stub".to_string(),
+            },
+            admin: AdminConfig {
+                enabled: false,
+                api_key: String::new(),
+            },
+            protocols: ProtocolsConfig::default(),
+        }
+    }
+
+    #[tokio::test]
+    async fn referral_validate_when_service_not_configured_returns_502() {
+        let state = test_app_state_with_config(config_unconfigured()).await;
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/referral/validate/SOMECODE")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("not configured"),
+            "expected unconfigured message, got: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn referral_referrals_upstream_failure_returns_502() {
+        // stub referral URL (127.0.0.1:1 + 1ms timeout) fails → 502
+        let _ = test_config(); // touch helper to confirm import path
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/referral/referrals/nolus1xyz")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+    }
+
+    #[tokio::test]
+    async fn referral_assign_malformed_body_returns_400() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/referral/assign")
+                    .header("content-type", "application/json")
+                    .body(Body::from("{ not json".to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+}

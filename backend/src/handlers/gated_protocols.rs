@@ -326,3 +326,71 @@ pub async fn get_network_protocols(
         protocols,
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/protocols/gated", get(get_protocols))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn gated_protocols_cold_cache_returns_503() {
+        let app = app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/protocols/gated")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn gated_protocols_populated_cache_returns_list_shape() {
+        let state = test_app_state().await;
+        state.data_cache.gated_protocols.store(ProtocolsResponse {
+            protocols: vec![ProtocolResponse {
+                protocol: "P-GATED".to_string(),
+                network: "OSMOSIS".to_string(),
+                dex: "Osmosis".to_string(),
+                position_type: "long".to_string(),
+                lpn: "USDC_NOBLE".to_string(),
+                lpn_display: CurrencyDisplayInfo {
+                    ticker: "USDC_NOBLE".to_string(),
+                    icon: "/icons/usdc.svg".to_string(),
+                    display_name: "USDC".to_string(),
+                    short_name: "USDC".to_string(),
+                    color: None,
+                },
+                contracts: ProtocolContracts::default(),
+            }],
+            count: 1,
+        });
+        let app = app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/protocols/gated")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"protocols\""), "body: {body}");
+        assert!(body.contains("\"count\":1"), "body: {body}");
+        assert!(body.contains("P-GATED"), "body: {body}");
+    }
+}

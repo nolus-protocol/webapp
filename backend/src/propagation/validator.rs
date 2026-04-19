@@ -232,4 +232,135 @@ mod tests {
             PropagationValidator::get_unconfigured_networks(&config, &mock_etl_protocols());
         assert!(unconfigured.is_empty());
     }
+
+    /// Currencies with display config that has empty icon/name (i.e.,
+    /// `is_configured() == false`) should still be reported as unconfigured.
+    /// Guards the definition of "configured" = icon+displayName present.
+    #[test]
+    fn test_get_unconfigured_currencies_with_empty_display_fields() {
+        let config = CurrencyDisplayConfig {
+            currencies: HashMap::from([(
+                "ATOM".to_string(),
+                CurrencyDisplay {
+                    icon: String::new(), // empty → not configured
+                    display_name: "Cosmos".to_string(),
+                    short_name: None,
+                    color: None,
+                    coingecko_id: None,
+                },
+            )]),
+        };
+
+        let unconfigured =
+            PropagationValidator::get_unconfigured_currencies(&config, &mock_etl_currencies());
+        assert!(unconfigured.contains(&"ATOM".to_string()));
+        assert!(unconfigured.contains(&"OSMO".to_string()));
+        assert_eq!(unconfigured.len(), 2);
+    }
+
+    /// Inactive ETL currencies must NOT appear as unconfigured — operator
+    /// shouldn't be nagged about deprecated tickers.
+    #[test]
+    fn test_get_unconfigured_currencies_ignores_inactive() {
+        let mut etl = mock_etl_currencies();
+        if let Some(c) = etl.currencies.iter_mut().find(|c| c.ticker == "OSMO") {
+            c.is_active = false;
+        }
+        let config = CurrencyDisplayConfig {
+            currencies: HashMap::new(),
+        };
+        let unconfigured = PropagationValidator::get_unconfigured_currencies(&config, &etl);
+        assert_eq!(unconfigured, vec!["ATOM".to_string()]);
+    }
+
+    /// A protocol whose network exists in config but whose LPN currency
+    /// (USDC_NOBLE) is missing is "unready" — surfaces partial config state.
+    #[test]
+    fn test_get_unready_protocols_missing_lpn() {
+        let currency_config = CurrencyDisplayConfig {
+            currencies: HashMap::new(), // USDC_NOBLE absent
+        };
+        let network_config = GatedNetworkConfig {
+            networks: HashMap::from([(
+                "OSMOSIS".to_string(),
+                NetworkSettings {
+                    name: "Osmosis".to_string(),
+                    chain_id: "osmosis-1".to_string(),
+                    prefix: "osmo".to_string(),
+                    rpc: "https://rpc.osmosis.zone".to_string(),
+                    lcd: "https://lcd.osmosis.zone".to_string(),
+                    fallback_rpc: vec![],
+                    fallback_lcd: vec![],
+                    gas_price: "0.025uosmo".to_string(),
+                    explorer: None,
+                    icon: None,
+                    primary_protocol: None,
+                    estimation: None,
+                    forward: None,
+                    gas_multiplier: 3.5,
+                    swap_venue: None,
+                    pools: HashMap::new(),
+                },
+            )]),
+        };
+
+        let unready = PropagationValidator::get_unready_protocols(
+            &currency_config,
+            &network_config,
+            &mock_etl_protocols(),
+            &mock_etl_currencies(),
+        );
+        assert_eq!(unready, vec!["OSMOSIS-OSMOSIS-USDC_NOBLE".to_string()]);
+    }
+
+    /// A fully-configured setup (network + LPN + all currencies) should have
+    /// zero unready protocols — the happy path.
+    #[test]
+    fn test_get_unready_protocols_all_ready() {
+        let currency_config = CurrencyDisplayConfig {
+            currencies: HashMap::from([(
+                "USDC_NOBLE".to_string(),
+                CurrencyDisplay {
+                    icon: "/icons/usdc.svg".to_string(),
+                    display_name: "Noble USDC".to_string(),
+                    short_name: None,
+                    color: None,
+                    coingecko_id: None,
+                },
+            )]),
+        };
+        let network_config = GatedNetworkConfig {
+            networks: HashMap::from([(
+                "OSMOSIS".to_string(),
+                NetworkSettings {
+                    name: "Osmosis".to_string(),
+                    chain_id: "osmosis-1".to_string(),
+                    prefix: "osmo".to_string(),
+                    rpc: "https://rpc.osmosis.zone".to_string(),
+                    lcd: "https://lcd.osmosis.zone".to_string(),
+                    fallback_rpc: vec![],
+                    fallback_lcd: vec![],
+                    gas_price: "0.025uosmo".to_string(),
+                    explorer: None,
+                    icon: None,
+                    primary_protocol: None,
+                    estimation: None,
+                    forward: None,
+                    gas_multiplier: 3.5,
+                    swap_venue: None,
+                    pools: HashMap::new(),
+                },
+            )]),
+        };
+        // mock_etl_currencies returns currencies with empty `protocols` vecs;
+        // the "all currencies used by protocol" check iterates that empty set,
+        // so there are no unmet requirements — the protocol is ready.
+        let unready = PropagationValidator::get_unready_protocols(
+            &currency_config,
+            &network_config,
+            &mock_etl_protocols(),
+            &mock_etl_currencies(),
+        );
+        assert!(unready.is_empty());
+    }
 }

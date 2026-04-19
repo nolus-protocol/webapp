@@ -50,3 +50,68 @@ pub async fn get_locale(
 
     Ok(Json(locale))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{body::Body, http::Request, http::StatusCode, routing::get, Router};
+    use tower::ServiceExt;
+
+    fn app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/locales/{lang}", get(get_locale))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn locales_invalid_too_long_returns_400() {
+        let app = app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/locales/toolong")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("Invalid language code"), "body: {body}");
+    }
+
+    #[tokio::test]
+    async fn locales_invalid_characters_returns_400() {
+        let app = app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/locales/en_US")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn locales_valid_but_missing_returns_error() {
+        // With no translations loaded, a valid lang code falls through to
+        // translation_storage — which will error when not initialized with
+        // data. This exercises the success-path plumbing up to the storage
+        // lookup; we just assert it's not a 400.
+        let app = app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/locales/en")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_ne!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+}

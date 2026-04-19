@@ -393,3 +393,100 @@ pub async fn get_swap_config(
 
     Ok(Json(result))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_utils::{collect_body_str, test_app_state};
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+        routing::{get, post},
+        Router,
+    };
+    use tower::ServiceExt;
+
+    fn build_app(state: Arc<AppState>) -> Router {
+        Router::new()
+            .route("/api/swap/route", post(get_route))
+            .route("/api/swap/messages", post(get_messages))
+            .route("/api/swap/status/{tx_hash}", get(get_status))
+            .route("/api/swap/config", get(get_swap_config))
+            .with_state(state)
+    }
+
+    #[tokio::test]
+    async fn swap_route_cold_gated_returns_503() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/swap/route")
+                    .header("content-type", "application/json")
+                    .body(Body::from(
+                        serde_json::json!({
+                            "source_asset_denom": "a",
+                            "source_asset_chain_id": "x",
+                            "dest_asset_denom": "b",
+                            "dest_asset_chain_id": "y"
+                        })
+                        .to_string(),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn swap_messages_malformed_json_returns_400() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/swap/messages")
+                    .header("content-type", "application/json")
+                    .body(Body::from("not-valid-json".to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn swap_status_upstream_failure_returns_502() {
+        // stub Skip base (127.0.0.1:1 + 1ms timeout) fails fast → 502
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/swap/status/ABCDEF?chain_id=osmosis-1")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+    }
+
+    #[tokio::test]
+    async fn swap_config_cold_cache_returns_503() {
+        let app = build_app(test_app_state().await);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/swap/config")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::SERVICE_UNAVAILABLE);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("Swap config"), "body: {body}");
+    }
+}
