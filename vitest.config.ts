@@ -25,13 +25,13 @@ export default mergeConfig(
           "src/config/global/**"
         ],
         thresholds: {
-          // Phase 3 global floors — set just below current actuals (15.71% / 89.84% / 64.21% / 15.71%)
-          // to catch regressions without fighting routine changes. Phases 4+ ratchet these up
-          // as more source surface gets covered.
-          lines: 14,
+          // Phase 4 global floors — actuals now ~20.95/89.8/71.71/20.95 after
+          // wallet + signing tests landed. Keep floors just below actuals to
+          // catch regressions; ratchet up as more surface is covered.
+          lines: 20,
           branches: 88,
-          functions: 63,
-          statements: 14,
+          functions: 70,
+          statements: 20,
           // Per-file floors for Phase 1 target files (utils + api)
           "src/common/utils/LeaseCalculator.ts": {
             lines: 85,
@@ -143,6 +143,82 @@ export default mergeConfig(
             branches: 70,
             functions: 55,
             statements: 70
+          },
+          // Per-file floors for Phase 4 wallet + signing target files.
+          // Pure logic files — very high bar.
+          "src/networks/cosm/encode.ts": {
+            lines: 95,
+            branches: 90,
+            functions: 100,
+            statements: 95
+          },
+          "src/networks/cosm/accountParser.ts": {
+            lines: 100,
+            branches: 100,
+            functions: 100,
+            statements: 100
+          },
+          "src/networks/utilities.ts": {
+            lines: 95,
+            branches: 75,
+            functions: 100,
+            statements: 95
+          },
+          "src/networks/evm/sign.ts": {
+            lines: 100,
+            branches: 90,
+            functions: 100,
+            statements: 100
+          },
+          "src/common/composables/useAsyncOperation.ts": {
+            lines: 95,
+            branches: 85,
+            functions: 100,
+            statements: 95
+          },
+          // Wallet classes — high bar.
+          "src/networks/cosm/Wallet.ts": {
+            lines: 95,
+            branches: 85,
+            functions: 95,
+            statements: 95
+          },
+          "src/networks/cosm/NolusWalletOverride.ts": {
+            lines: 95,
+            branches: 85,
+            functions: 95,
+            statements: 95
+          },
+          "src/networks/sol/wallet.ts": {
+            lines: 95,
+            branches: 85,
+            functions: 95,
+            statements: 95
+          },
+          "src/networks/evm/wallet.ts": {
+            lines: 95,
+            branches: 75,
+            functions: 95,
+            statements: 95
+          },
+          "src/networks/cosm/WalletFactory.ts": {
+            lines: 95,
+            branches: 90,
+            functions: 95,
+            statements: 95
+          },
+          // BaseWallet — complex, inherits from SigningCosmWasmClient.
+          "src/networks/cosm/BaseWallet.ts": {
+            lines: 70,
+            branches: 60,
+            functions: 85,
+            statements: 70
+          },
+          "src/common/utils/SkipRoute.ts": {
+            lines: 75,
+            branches: 85,
+            functions: 65,
+            statements: 75
           }
         }
       }
