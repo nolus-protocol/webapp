@@ -265,7 +265,7 @@ async fn check_etl_health(state: &AppState, timeout_duration: Duration) -> Servi
         return ServiceStatus::not_configured();
     }
 
-    let check_url = format!("{}/pools", url);
+    let check_url = format!("{}/api/pools", url);
     debug!("Health check: ETL API at {}", check_url);
 
     let start = std::time::Instant::now();
@@ -398,7 +398,11 @@ async fn check_referral_health(state: &AppState, timeout_duration: Duration) -> 
         return ServiceStatus::not_configured();
     }
 
-    // Try to validate a dummy code (will return 404 but confirms connectivity)
+    // Try to validate a dummy code. The Referral API auth-walls every path,
+    // so an unauthenticated probe returns 401 when the service is reachable.
+    // Accept 200/401/404 all as "reachable" — the health check is only verifying
+    // connectivity, not authentication. Real requests from handlers go through
+    // ReferralClient which adds the Bearer token.
     let check_url = format!("{}/api/referrals/validate/HEALTH_CHECK", url);
     debug!("Health check: Referral API at {}", check_url);
 
@@ -411,12 +415,16 @@ async fn check_referral_health(state: &AppState, timeout_duration: Duration) -> 
     {
         Ok(Ok(response)) => {
             let latency = start.elapsed().as_millis() as u64;
-            // 404 is expected for invalid code, 200 means API is working
-            if response.status().is_success() || response.status() == reqwest::StatusCode::NOT_FOUND
+            let status = response.status();
+            // 200 = working, 404 = invalid code (expected for dummy), 401 = needs
+            // auth (API is reachable). All three confirm connectivity.
+            if status.is_success()
+                || status == reqwest::StatusCode::NOT_FOUND
+                || status == reqwest::StatusCode::UNAUTHORIZED
             {
                 ServiceStatus::healthy(latency)
             } else {
-                ServiceStatus::unhealthy(format!("HTTP {}", response.status()))
+                ServiceStatus::unhealthy(format!("HTTP {}", status))
             }
         }
         Ok(Err(e)) => {
