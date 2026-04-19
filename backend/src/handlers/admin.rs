@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::time::{timeout, Duration};
 use tracing::{debug, warn};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::AppState;
@@ -12,7 +13,7 @@ use crate::AppState;
 // ============================================================================
 
 /// Basic health response (for quick checks)
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct HealthResponse {
     pub status: String,
     pub version: String,
@@ -20,7 +21,7 @@ pub struct HealthResponse {
 }
 
 /// Detailed health response with service checks
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct DetailedHealthResponse {
     pub status: String,
     pub version: String,
@@ -30,7 +31,7 @@ pub struct DetailedHealthResponse {
 }
 
 /// Health status of external services
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ServiceHealth {
     pub etl_api: ServiceStatus,
     pub nolus_rpc: ServiceStatus,
@@ -41,7 +42,7 @@ pub struct ServiceHealth {
 }
 
 /// Health status of a single service
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ServiceStatus {
     pub status: String,
     pub configured: bool,
@@ -90,7 +91,7 @@ impl ServiceStatus {
 }
 
 /// Cache health information
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CacheHealth {
     pub status: String,
     pub total_entries: u64,
@@ -121,7 +122,7 @@ pub struct InvalidateCacheRequest {
 
 /// Request for Intercom JWT token generation
 /// Only wallet address and type are needed — all portfolio data is fetched server-side
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct IntercomTokenRequest {
     pub wallet: String,
     pub wallet_type: String,
@@ -129,13 +130,23 @@ pub struct IntercomTokenRequest {
 
 /// Response containing JWT token for Intercom
 /// Matches beacon's API response: { token: "..." }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct IntercomTokenResponse {
     pub token: String,
 }
 
-/// GET /api/health
-/// Basic health check endpoint (public, fast)
+/// Basic health check
+///
+/// Returns status, version and uptime. Fast, in-process — does not touch any
+/// external services.
+#[utoipa::path(
+    get,
+    path = "/api/health",
+    tag = "health",
+    responses(
+        (status = 200, description = "Service is up", body = HealthResponse),
+    ),
+)]
 pub async fn health_check(State(state): State<Arc<AppState>>) -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "healthy".to_string(),
@@ -144,9 +155,20 @@ pub async fn health_check(State(state): State<Arc<AppState>>) -> Json<HealthResp
     })
 }
 
-/// GET /api/health/detailed
-/// Detailed health check with service connectivity verification (public)
-/// This endpoint performs actual connectivity checks to external services.
+/// Detailed health check
+///
+/// Performs live connectivity checks to upstream services (ETL, Nolus RPC/REST,
+/// Skip, referral, zero-interest) in parallel and reports cache-warm status.
+/// Slower than `/api/health` — intended for monitoring rather than load
+/// balancer probes.
+#[utoipa::path(
+    get,
+    path = "/api/health/detailed",
+    tag = "health",
+    responses(
+        (status = 200, description = "Detailed health snapshot", body = DetailedHealthResponse),
+    ),
+)]
 pub async fn detailed_health_check(
     State(state): State<Arc<AppState>>,
 ) -> Json<DetailedHealthResponse> {
@@ -577,9 +599,23 @@ pub async fn invalidate_cache(
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// POST /api/intercom/hash
-/// Generate Intercom JWT token with all portfolio data computed server-side.
-/// The frontend only sends wallet address and type — everything else is fetched here.
+/// Generate Intercom JWT
+///
+/// Generates an Intercom-compatible JWT for the given wallet address. All
+/// portfolio attributes (balance, leases, earn, staking, vesting) are fetched
+/// server-side and embedded in the token — the client only supplies the
+/// wallet address and type.
+#[utoipa::path(
+    post,
+    path = "/api/intercom/hash",
+    tag = "intercom",
+    request_body = IntercomTokenRequest,
+    responses(
+        (status = 200, description = "Signed Intercom JWT", body = IntercomTokenResponse),
+        (status = 400, description = "Invalid wallet address", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn intercom_hash(
     State(state): State<Arc<AppState>>,
     Json(request): Json<IntercomTokenRequest>,

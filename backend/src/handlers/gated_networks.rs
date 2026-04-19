@@ -9,13 +9,14 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::handlers::common_types::CurrencyDisplayInfo;
 use crate::AppState;
 
 /// Network response with config data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct NetworkResponse {
     /// Network key (e.g., "OSMOSIS")
     pub network: String,
@@ -54,14 +55,14 @@ pub struct NetworkResponse {
 }
 
 /// Response for all networks
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct NetworksResponse {
     pub networks: Vec<NetworkResponse>,
     pub count: usize,
 }
 
 /// Pool info for LPP
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct PoolResponse {
     /// Protocol name
     pub protocol: String,
@@ -95,16 +96,26 @@ pub struct PoolResponse {
 }
 
 /// Response for network pools
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct NetworkPoolsResponse {
     pub network: String,
     pub pools: Vec<PoolResponse>,
     pub count: usize,
 }
 
-/// GET /api/networks
-/// Returns all configured networks
-/// Reads from background-refreshed cache (zero latency).
+/// List gated networks
+///
+/// Returns all networks that pass the gated propagation filter (fully
+/// configured RPC/LCD/gas). Served from a background-refreshed cache.
+#[utoipa::path(
+    get,
+    path = "/api/networks/gated",
+    tag = "networks",
+    responses(
+        (status = 200, description = "Gated network list", body = NetworksResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_networks(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<NetworksResponse>, AppError> {
@@ -116,8 +127,23 @@ pub async fn get_networks(
     Ok(Json(response))
 }
 
-/// GET /api/networks/:network
-/// Returns a single network's configuration
+/// Get a single network
+///
+/// Returns a single network's configuration (endpoints, prefix, gas,
+/// explorer, primary protocol).
+#[utoipa::path(
+    get,
+    path = "/api/networks/{network}/info",
+    tag = "networks",
+    params(
+        ("network" = String, Path, description = "Network key (e.g., `OSMOSIS`, `NEUTRON`)"),
+    ),
+    responses(
+        (status = 200, description = "Network configuration", body = NetworkResponse),
+        (status = 404, description = "Network not found or not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_network(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,
@@ -155,8 +181,23 @@ pub async fn get_network(
     }))
 }
 
-/// GET /api/networks/:network/pools
-/// Returns LPP pools on a specific network
+/// List LPP pools on a network
+///
+/// Returns LPP (Liquidity Pool) info for all configured protocols on the given
+/// network, with APR, utilization, and supply/borrow totals from ETL.
+#[utoipa::path(
+    get,
+    path = "/api/networks/{network}/pools",
+    tag = "networks",
+    params(
+        ("network" = String, Path, description = "Network key (e.g., `OSMOSIS`, `NEUTRON`)"),
+    ),
+    responses(
+        (status = 200, description = "Pool list for the network", body = NetworkPoolsResponse),
+        (status = 404, description = "Network not found or not configured", body = crate::error::ErrorResponse),
+        (status = 503, description = "Cache not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_network_pools(
     State(state): State<Arc<AppState>>,
     Path(network): Path<String>,

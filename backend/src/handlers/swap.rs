@@ -12,9 +12,10 @@ use axum::{
     extract::{Path, Query, State},
     Json,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::debug;
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::base_client::ExternalApiClient;
@@ -26,7 +27,7 @@ use crate::AppState;
 // ============================================================================
 
 /// Slim route request from frontend — backend injects all Skip config
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct RouteRequest {
     pub source_asset_denom: String,
     pub source_asset_chain_id: String,
@@ -38,8 +39,22 @@ pub struct RouteRequest {
     pub network: Option<String>,
 }
 
-/// POST /api/swap/route
-/// Enriches slim request with gated config, calls Skip API
+/// Get Skip swap route
+///
+/// Enriches the slim request with gated swap config (affiliates, venues,
+/// bridges) and forwards to Skip API. Response is an opaque Skip API
+/// passthrough — shape is not fixed in this spec.
+#[utoipa::path(
+    post,
+    path = "/api/swap/route",
+    tag = "swap",
+    request_body = RouteRequest,
+    responses(
+        (status = 200, description = "Opaque Skip API passthrough", content_type = "application/json", body = Object),
+        (status = 503, description = "Gated config not yet populated", body = crate::error::ErrorResponse),
+        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_route(
     State(state): State<Arc<AppState>>,
     Json(request): Json<RouteRequest>,
@@ -102,13 +117,14 @@ pub async fn get_route(
     }
 
     let url = format!("{}/v2/fungible/route", state.skip_client.base_url());
-    let response = state
-        .skip_client
-        .post_raw(&url, &body)
-        .await
-        .map_err(|e| AppError::SwapRouteFailed {
-            message: e.to_string(),
-        })?;
+    let response =
+        state
+            .skip_client
+            .post_raw(&url, &body)
+            .await
+            .map_err(|e| AppError::SwapRouteFailed {
+                message: e.to_string(),
+            })?;
     Ok(Json(response))
 }
 
@@ -117,7 +133,7 @@ pub async fn get_route(
 // ============================================================================
 
 /// Slim messages request from frontend — backend injects slippage, timeout, affiliates
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct MessagesRequest {
     pub source_asset_denom: String,
     pub source_asset_chain_id: String,
@@ -125,12 +141,27 @@ pub struct MessagesRequest {
     pub dest_asset_chain_id: String,
     pub amount_in: String,
     pub amount_out: String,
+    /// Route operations from Skip `/route`. Opaque — passed through verbatim.
     pub operations: Vec<serde_json::Value>,
     pub address_list: Vec<String>,
 }
 
-/// POST /api/swap/messages
-/// Enriches slim request with slippage, timeout, affiliates from gated config
+/// Get Skip swap messages
+///
+/// Enriches the slim request with slippage, timeout, and affiliates from
+/// gated config, then forwards to Skip API. Response is an opaque Skip API
+/// passthrough — shape is not fixed in this spec.
+#[utoipa::path(
+    post,
+    path = "/api/swap/messages",
+    tag = "swap",
+    request_body = MessagesRequest,
+    responses(
+        (status = 200, description = "Opaque Skip API passthrough", content_type = "application/json", body = Object),
+        (status = 503, description = "Gated config not yet populated", body = crate::error::ErrorResponse),
+        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_messages(
     State(state): State<Arc<AppState>>,
     Json(request): Json<MessagesRequest>,
@@ -202,7 +233,23 @@ pub async fn get_messages(
 // Status, Chains, Track, Config Handlers
 // ============================================================================
 
-/// GET /api/swap/status/:tx_hash
+/// Get swap status
+///
+/// Forwards to Skip API `/v2/tx/status`. Response is an opaque Skip API
+/// passthrough — shape is not fixed in this spec.
+#[utoipa::path(
+    get,
+    path = "/api/swap/status/{tx_hash}",
+    tag = "swap",
+    params(
+        ("tx_hash" = String, Path, description = "Transaction hash to query status for"),
+        StatusQuery,
+    ),
+    responses(
+        (status = 200, description = "Opaque Skip API passthrough", content_type = "application/json", body = Object),
+        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_status(
     State(state): State<Arc<AppState>>,
     Path(tx_hash): Path<String>,
@@ -221,16 +268,19 @@ pub async fn get_status(
     Ok(Json(response))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::IntoParams)]
 pub struct StatusQuery {
+    /// Chain ID the transaction lives on (e.g. `osmosis-1`)
     pub chain_id: String,
 }
 
-/// GET /api/swap/chains
-#[derive(Debug, Deserialize)]
+/// Query parameters for the chains listing endpoint.
+#[derive(Debug, Deserialize, utoipa::IntoParams)]
 pub struct ChainsQuery {
+    /// Include EVM chains in the response.
     #[serde(default = "default_true")]
     pub include_evm: bool,
+    /// Include SVM chains in the response.
     #[serde(default = "default_true")]
     pub include_svm: bool,
 }
@@ -239,6 +289,20 @@ fn default_true() -> bool {
     true
 }
 
+/// List supported swap chains
+///
+/// Proxies Skip `/v2/info/chains`. Response is an opaque Skip API
+/// passthrough — shape is not fixed in this spec.
+#[utoipa::path(
+    get,
+    path = "/api/swap/chains",
+    tag = "swap",
+    params(ChainsQuery),
+    responses(
+        (status = 200, description = "Opaque Skip API passthrough (list of chains)", content_type = "application/json", body = Vec<Object>),
+        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_chains(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ChainsQuery>,
@@ -256,19 +320,35 @@ pub async fn get_chains(
     Ok(Json(response.chains))
 }
 
-/// POST /api/swap/track
-#[derive(Debug, Deserialize)]
+/// Request to track a swap transaction on Skip.
+#[derive(Debug, Deserialize, Serialize, ToSchema)]
 pub struct TrackRequest {
+    /// Chain ID the transaction was submitted to
     pub chain_id: String,
+    /// Transaction hash to track
     pub tx_hash: String,
 }
 
-#[derive(Debug, serde::Serialize)]
+/// Response from Skip tracking registration.
+#[derive(Debug, Serialize, ToSchema)]
 pub struct TrackResponse {
     pub tx_hash: String,
     pub explorer_link: Option<String>,
 }
 
+/// Track a swap transaction
+///
+/// Registers a transaction with Skip for cross-chain status tracking.
+#[utoipa::path(
+    post,
+    path = "/api/swap/track",
+    tag = "swap",
+    request_body = TrackRequest,
+    responses(
+        (status = 200, description = "Tracking registered", body = TrackResponse),
+        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn track_transaction(
     State(state): State<Arc<AppState>>,
     Json(request): Json<TrackRequest>,
@@ -289,9 +369,20 @@ pub async fn track_transaction(
     }))
 }
 
-/// GET /api/swap/config
-/// Returns UI-only swap configuration (blacklist, defaults, transfers).
-/// Reads from background-refreshed cache (zero latency).
+/// Get swap UI config
+///
+/// Returns UI-only swap configuration (blacklist, defaults, transfers) from
+/// background-refreshed cache. Response is an opaque JSON object — shape is
+/// not fixed in this spec.
+#[utoipa::path(
+    get,
+    path = "/api/swap/config",
+    tag = "swap",
+    responses(
+        (status = 200, description = "Opaque swap UI config", content_type = "application/json", body = Object),
+        (status = 503, description = "Swap config not yet populated", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_swap_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<serde_json::Value>, AppError> {

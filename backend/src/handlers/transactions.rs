@@ -38,10 +38,28 @@ use crate::error::AppError;
 use crate::handlers::etl_proxy::ProxyQuery;
 use crate::AppState;
 
-/// Enriched transaction handler
+/// Enriched transactions
 ///
-/// Fetches raw transactions from ETL, decodes protobuf `value` fields,
-/// and returns transactions with a `data` field containing decoded message fields.
+/// Fetches raw transactions from the ETL `/api/txs` endpoint, filters
+/// user-initiated message types, and inserts a decoded `data` field per
+/// transaction by decoding the protobuf `value`. Each entry is otherwise an
+/// opaque ETL passthrough — shape is not fixed in this spec.
+#[utoipa::path(
+    get,
+    path = "/api/etl/txs",
+    tag = "transactions",
+    params(
+        ("address" = Option<String>, Query, description = "Wallet address to filter by"),
+        ("skip" = Option<u32>, Query, description = "Pagination offset"),
+        ("limit" = Option<u32>, Query, description = "Page size"),
+        ("filter" = Option<String>, Query, description = "Free-form filter passed to ETL"),
+        ("to" = Option<String>, Query, description = "Upper-bound timestamp"),
+    ),
+    responses(
+        (status = 200, description = "List of enriched transactions (opaque entries)", content_type = "application/json", body = Vec<Object>),
+        (status = 502, description = "Upstream ETL call failed", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_enriched_transactions(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProxyQuery>,

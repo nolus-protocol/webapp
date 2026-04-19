@@ -21,6 +21,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tracing::debug;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::error::AppError;
 use crate::external::referral::{PayoutStatus, ReferralStatus, RewardStatus};
@@ -32,7 +33,7 @@ use crate::AppState;
 
 // --- Validation ---
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ValidateCodeResponse {
     pub valid: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,12 +44,12 @@ pub struct ValidateCodeResponse {
 
 // --- Registration ---
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct RegisterRequest {
     pub wallet_address: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RegisterResponse {
     pub wallet_address: String,
     pub referral_code: String,
@@ -59,7 +60,7 @@ pub struct RegisterResponse {
 
 // --- Stats ---
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ReferrerResponse {
     pub wallet_address: String,
     pub referral_code: String,
@@ -68,7 +69,7 @@ pub struct ReferrerResponse {
     pub created_at: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct StatsResponse {
     pub total_referrals: u64,
     pub active_referrals: u64,
@@ -82,7 +83,7 @@ pub struct StatsResponse {
     pub total_bonus_amount_paid: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ReferrerStatsResponse {
     pub referrer: ReferrerResponse,
     pub stats: StatsResponse,
@@ -90,14 +91,17 @@ pub struct ReferrerStatsResponse {
 
 // --- Rewards ---
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct RewardsQuery {
+    /// Optional status filter (`pending`, `included`, `paid`).
     pub status: Option<String>,
+    /// Max number of records.
     pub limit: Option<u64>,
+    /// Pagination offset.
     pub offset: Option<u64>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RewardResponse {
     pub id: i64,
     pub lease_id: String,
@@ -112,7 +116,7 @@ pub struct RewardResponse {
     pub created_at: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct RewardsListResponse {
     pub rewards: Vec<RewardResponse>,
     pub total: u64,
@@ -122,14 +126,17 @@ pub struct RewardsListResponse {
 
 // --- Payouts ---
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct PayoutsQuery {
+    /// Optional status filter (`pending`, `submitted`, `confirmed`, `failed`).
     pub status: Option<String>,
+    /// Max number of records.
     pub limit: Option<u64>,
+    /// Pagination offset.
     pub offset: Option<u64>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PayoutResponse {
     pub id: i64,
     pub total_amount: String,
@@ -140,7 +147,7 @@ pub struct PayoutResponse {
     pub executed_at: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PayoutsListResponse {
     pub payouts: Vec<PayoutResponse>,
     pub total: u64,
@@ -150,14 +157,17 @@ pub struct PayoutsListResponse {
 
 // --- Referrals ---
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct ReferralsQuery {
+    /// Optional status filter (`active`, `inactive`).
     pub status: Option<String>,
+    /// Max number of records.
     pub limit: Option<u64>,
+    /// Pagination offset.
     pub offset: Option<u64>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ReferralResponse {
     pub id: i64,
     pub referred_wallet: String,
@@ -165,7 +175,7 @@ pub struct ReferralResponse {
     pub status: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct ReferralsListResponse {
     pub referrals: Vec<ReferralResponse>,
     pub total: u64,
@@ -175,13 +185,13 @@ pub struct ReferralsListResponse {
 
 // --- Assignment ---
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct AssignRequest {
     pub referral_code: String,
     pub referred_wallet: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct AssignResponse {
     pub id: i64,
     pub referrer_wallet: String,
@@ -225,8 +235,22 @@ fn parse_referral_status(status: &str) -> Option<ReferralStatus> {
 // Handlers
 // ============================================================================
 
-/// GET /api/referral/validate/:code
-/// Validate a referral code (public endpoint)
+/// Validate a referral code
+///
+/// Public endpoint — checks whether `code` is a live referral code and returns
+/// the owning referrer's wallet if so.
+#[utoipa::path(
+    get,
+    path = "/api/referral/validate/{code}",
+    tag = "referral",
+    params(
+        ("code" = String, Path, description = "Referral code to validate"),
+    ),
+    responses(
+        (status = 200, description = "Validation result", body = ValidateCodeResponse),
+        (status = 502, description = "Referral service error or not configured", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn validate_code(
     State(state): State<Arc<AppState>>,
     Path(code): Path<String>,
@@ -249,8 +273,22 @@ pub async fn validate_code(
     }))
 }
 
-/// POST /api/referral/register
 /// Register as a referrer
+///
+/// Registers the supplied wallet as a referrer and returns its referral code.
+/// Responds with `201 Created` for new registrations and `200 OK` when the
+/// wallet is already registered (idempotent).
+#[utoipa::path(
+    post,
+    path = "/api/referral/register",
+    tag = "referral",
+    request_body = RegisterRequest,
+    responses(
+        (status = 201, description = "Referrer created", body = RegisterResponse),
+        (status = 200, description = "Already registered (idempotent)", body = RegisterResponse),
+        (status = 502, description = "Referral service error or not configured", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn register(
     State(state): State<Arc<AppState>>,
     Json(request): Json<RegisterRequest>,
@@ -287,8 +325,23 @@ pub async fn register(
     ))
 }
 
-/// GET /api/referral/stats/:address
 /// Get referrer statistics
+///
+/// Returns aggregated stats (totals, pending rewards, bonuses) for the
+/// referrer identified by `address`.
+#[utoipa::path(
+    get,
+    path = "/api/referral/stats/{address}",
+    tag = "referral",
+    params(
+        ("address" = String, Path, description = "Referrer wallet address"),
+    ),
+    responses(
+        (status = 200, description = "Referrer stats", body = ReferrerStatsResponse),
+        (status = 404, description = "Referrer not found", body = crate::error::ErrorResponse),
+        (status = 502, description = "Referral service error or not configured", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_stats(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -327,8 +380,22 @@ pub async fn get_stats(
     }))
 }
 
-/// GET /api/referral/rewards/:address
 /// Get referrer rewards
+///
+/// Returns paginated rewards earned by the referrer, with optional status filter.
+#[utoipa::path(
+    get,
+    path = "/api/referral/rewards/{address}",
+    tag = "referral",
+    params(
+        ("address" = String, Path, description = "Referrer wallet address"),
+        RewardsQuery,
+    ),
+    responses(
+        (status = 200, description = "Paginated rewards", body = RewardsListResponse),
+        (status = 502, description = "Referral service error or not configured", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_rewards(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -378,8 +445,22 @@ pub async fn get_rewards(
     }))
 }
 
-/// GET /api/referral/payouts/:address
 /// Get referrer payouts
+///
+/// Returns paginated payouts for the referrer, with optional status filter.
+#[utoipa::path(
+    get,
+    path = "/api/referral/payouts/{address}",
+    tag = "referral",
+    params(
+        ("address" = String, Path, description = "Referrer wallet address"),
+        PayoutsQuery,
+    ),
+    responses(
+        (status = 200, description = "Paginated payouts", body = PayoutsListResponse),
+        (status = 502, description = "Referral service error or not configured", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_payouts(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -425,8 +506,22 @@ pub async fn get_payouts(
     }))
 }
 
-/// GET /api/referral/referrals/:address
-/// Get referrals made by a referrer
+/// Get referrals for a referrer
+///
+/// Returns paginated referrals (referred wallets) attached to this referrer.
+#[utoipa::path(
+    get,
+    path = "/api/referral/referrals/{address}",
+    tag = "referral",
+    params(
+        ("address" = String, Path, description = "Referrer wallet address"),
+        ReferralsQuery,
+    ),
+    responses(
+        (status = 200, description = "Paginated referrals", body = ReferralsListResponse),
+        (status = 502, description = "Referral service error or not configured", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_referrals(
     State(state): State<Arc<AppState>>,
     Path(address): Path<String>,
@@ -469,8 +564,22 @@ pub async fn get_referrals(
     }))
 }
 
-/// POST /api/referral/assign
-/// Assign a referral (link referred user to referrer)
+/// Assign a referral
+///
+/// Links `referred_wallet` to the referrer that owns `referral_code`. Fails if
+/// the wallet already has a referrer, the code is unknown, or the wallet is
+/// trying to self-refer.
+#[utoipa::path(
+    post,
+    path = "/api/referral/assign",
+    tag = "referral",
+    request_body = AssignRequest,
+    responses(
+        (status = 201, description = "Referral assigned", body = AssignResponse),
+        (status = 404, description = "Referral code not found", body = crate::error::ErrorResponse),
+        (status = 502, description = "Referral service error or not configured (including already-assigned / self-referral conflicts)", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn assign(
     State(state): State<Arc<AppState>>,
     Json(request): Json<AssignRequest>,

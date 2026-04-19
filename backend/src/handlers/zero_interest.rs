@@ -4,6 +4,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::error::AppError;
 use crate::external::zero_interest::{
@@ -12,7 +13,7 @@ use crate::external::zero_interest::{
 };
 use crate::AppState;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct ZeroInterestConfigResponse {
     pub enabled: bool,
     pub max_payment_amount: String,
@@ -21,7 +22,7 @@ pub struct ZeroInterestConfigResponse {
     pub supported_denoms: Vec<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct EligibilityResponse {
     pub eligible: bool,
     pub reason: Option<String>,
@@ -29,7 +30,7 @@ pub struct EligibilityResponse {
     pub available_slots: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct PaymentResponse {
     pub id: String,
     pub lease_address: String,
@@ -39,7 +40,7 @@ pub struct PaymentResponse {
     pub status: PaymentStatus,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum PaymentStatus {
     Pending,
@@ -59,13 +60,15 @@ impl From<ExternalPaymentStatus> for PaymentStatus {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct EligibilityQuery {
+    /// Lease contract address being checked for zero-interest eligibility.
     pub lease: String,
+    /// Owner wallet address.
     pub owner: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct CreatePaymentRequest {
     pub lease_address: String,
     pub amount: String,
@@ -74,20 +77,30 @@ pub struct CreatePaymentRequest {
     pub signature: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct CreatePaymentResponse {
     pub payment: PaymentResponse,
     pub tx_hash: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, ToSchema)]
 pub struct CancelPaymentRequest {
     pub owner_address: String,
     pub signature: String,
 }
 
-/// GET /api/zero-interest/config
-/// Get zero interest configuration
+/// Get zero-interest configuration
+///
+/// Returns whether the zero-interest feature is enabled, payment bounds, and supported denoms.
+#[utoipa::path(
+    get,
+    path = "/api/zero-interest/config",
+    tag = "zero-interest",
+    responses(
+        (status = 200, description = "Zero-interest configuration", body = ZeroInterestConfigResponse),
+        (status = 502, description = "Upstream zero-interest service error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_config(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ZeroInterestConfigResponse>, AppError> {
@@ -102,8 +115,21 @@ pub async fn get_config(
     }))
 }
 
-/// GET /api/zero-interest/eligibility
-/// Check eligibility for zero interest payment
+/// Check zero-interest eligibility
+///
+/// Checks whether the given lease/owner pair is eligible for a zero-interest
+/// payment and returns the allowed maximum amount.
+#[utoipa::path(
+    get,
+    path = "/api/zero-interest/eligibility",
+    tag = "zero-interest",
+    params(EligibilityQuery),
+    responses(
+        (status = 200, description = "Eligibility result", body = EligibilityResponse),
+        (status = 400, description = "Invalid lease/owner input", body = crate::error::ErrorResponse),
+        (status = 502, description = "Upstream zero-interest service error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn check_eligibility(
     State(state): State<Arc<AppState>>,
     Query(query): Query<EligibilityQuery>,
@@ -121,8 +147,21 @@ pub async fn check_eligibility(
     }))
 }
 
-/// GET /api/zero-interest/payments/:owner
-/// Get all zero interest payments for an owner
+/// Get zero-interest payments by owner
+///
+/// Returns all zero-interest payments (pending or completed) owned by `owner`.
+#[utoipa::path(
+    get,
+    path = "/api/zero-interest/payments/by-owner/{owner}",
+    tag = "zero-interest",
+    params(
+        ("owner" = String, Path, description = "Owner wallet address"),
+    ),
+    responses(
+        (status = 200, description = "Payments owned by address", body = Vec<PaymentResponse>),
+        (status = 502, description = "Upstream zero-interest service error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_payments(
     State(state): State<Arc<AppState>>,
     Path(owner): Path<String>,
@@ -144,8 +183,21 @@ pub async fn get_payments(
     Ok(Json(response))
 }
 
-/// GET /api/zero-interest/lease/:lease_address/payments
-/// Get payments for a specific lease
+/// Get zero-interest payments for a lease
+///
+/// Returns the zero-interest payments recorded against a specific lease.
+#[utoipa::path(
+    get,
+    path = "/api/zero-interest/lease/{lease_address}/payments",
+    tag = "zero-interest",
+    params(
+        ("lease_address" = String, Path, description = "Lease contract address"),
+    ),
+    responses(
+        (status = 200, description = "Payments for lease", body = Vec<PaymentResponse>),
+        (status = 502, description = "Upstream zero-interest service error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_lease_payments(
     State(state): State<Arc<AppState>>,
     Path(lease_address): Path<String>,
@@ -170,8 +222,21 @@ pub async fn get_lease_payments(
     Ok(Json(response))
 }
 
-/// POST /api/zero-interest/payments
-/// Create a new zero interest payment
+/// Create a zero-interest payment
+///
+/// Creates a signed zero-interest payment and submits it for processing. The
+/// owner must sign the request; the backend forwards to the payments manager.
+#[utoipa::path(
+    post,
+    path = "/api/zero-interest/payments",
+    tag = "zero-interest",
+    request_body = CreatePaymentRequest,
+    responses(
+        (status = 200, description = "Payment created", body = CreatePaymentResponse),
+        (status = 400, description = "Invalid payment request", body = crate::error::ErrorResponse),
+        (status = 502, description = "Upstream zero-interest service error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn create_payment(
     State(state): State<Arc<AppState>>,
     Json(request): Json<CreatePaymentRequest>,
@@ -202,8 +267,23 @@ pub async fn create_payment(
     }))
 }
 
-/// DELETE /api/zero-interest/payments/:payment_id
-/// Cancel a pending zero interest payment
+/// Cancel a zero-interest payment
+///
+/// Cancels a pending zero-interest payment. The owner must sign the request.
+#[utoipa::path(
+    delete,
+    path = "/api/zero-interest/payments/{payment_id}",
+    tag = "zero-interest",
+    params(
+        ("payment_id" = String, Path, description = "Zero-interest payment ID"),
+    ),
+    request_body = CancelPaymentRequest,
+    responses(
+        (status = 200, description = "Payment cancelled"),
+        (status = 404, description = "Payment not found", body = crate::error::ErrorResponse),
+        (status = 502, description = "Upstream zero-interest service error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn cancel_payment(
     State(state): State<Arc<AppState>>,
     Path(payment_id): Path<String>,
@@ -221,9 +301,19 @@ pub async fn cancel_payment(
 // Campaign Endpoints
 // ============================================================================
 
-/// GET /api/campaigns/active
-/// Get all currently active zero-interest campaigns
-/// Used by frontend to display campaign eligibility badges
+/// Get active zero-interest campaigns
+///
+/// Returns all currently active zero-interest campaigns. Used by the frontend
+/// to decide which lease/deposit actions to badge as zero-interest.
+#[utoipa::path(
+    get,
+    path = "/api/campaigns/active",
+    tag = "campaigns",
+    responses(
+        (status = 200, description = "Active campaigns", body = ActiveCampaignsResponse),
+        (status = 502, description = "Upstream payments manager error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn get_active_campaigns(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<ActiveCampaignsResponse>, AppError> {
@@ -231,15 +321,30 @@ pub async fn get_active_campaigns(
     Ok(Json(campaigns))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, IntoParams)]
 pub struct CampaignEligibilityQuery {
+    /// Wallet address to check.
     pub wallet: String,
+    /// Optional protocol name (filters matching campaigns).
     pub protocol: Option<String>,
+    /// Optional currency ticker (filters matching campaigns).
     pub currency: Option<String>,
 }
 
-/// GET /api/campaigns/eligibility
-/// Check if a wallet/protocol/currency combination is eligible for zero-interest
+/// Check campaign eligibility
+///
+/// Checks whether a wallet/protocol/currency combination is eligible for any
+/// zero-interest campaign and returns the matching campaigns.
+#[utoipa::path(
+    get,
+    path = "/api/campaigns/eligibility",
+    tag = "campaigns",
+    params(CampaignEligibilityQuery),
+    responses(
+        (status = 200, description = "Eligibility result", body = CampaignEligibilityResponse),
+        (status = 502, description = "Upstream payments manager error", body = crate::error::ErrorResponse),
+    ),
+)]
 pub async fn check_campaign_eligibility(
     State(state): State<Arc<AppState>>,
     Query(query): Query<CampaignEligibilityQuery>,
