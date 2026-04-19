@@ -7,6 +7,7 @@ import { i18n } from "@/i18n";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
 import type { BaseWallet } from "@/networks";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
+import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 
 /** Result of simulateMultiTx — contains the transaction data */
 export interface SkipTxResult {
@@ -239,7 +240,7 @@ export class SkipRouter {
     });
   }
 
-  private static getTx(msg: SkipMsg, msgJSON: Record<string, unknown>) {
+  static getTx(msg: SkipMsg, msgJSON: Record<string, unknown>) {
     switch (msg.msg_type_url) {
       case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
         return MsgTransfer.fromPartial({
@@ -258,6 +259,25 @@ export class SkipRouter {
           fromAddress: msgJSON.from_address,
           toAddress: msgJSON.to_address,
           amount: msgJSON.amount
+        });
+      }
+      case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
+        // Skip API contract: msg is either a base64-encoded JSON blob (string) or a plain JSON object.
+        // Any other type is a malformed response — refuse to construct a partial/empty tx (funds loss risk).
+        const rawMsg = msgJSON.msg;
+        let msgBytes: Uint8Array;
+        if (typeof rawMsg === "string") {
+          msgBytes = new Uint8Array(Buffer.from(rawMsg, "base64"));
+        } else if (rawMsg && typeof rawMsg === "object") {
+          msgBytes = new Uint8Array(Buffer.from(JSON.stringify(rawMsg), "utf-8"));
+        } else {
+          throw new Error(`MsgExecuteContract: unexpected msg type ${typeof rawMsg}`);
+        }
+        return MsgExecuteContract.fromPartial({
+          sender: msgJSON.sender as string,
+          contract: msgJSON.contract as string,
+          msg: msgBytes,
+          funds: (msgJSON.funds ?? []) as { denom: string; amount: string }[]
         });
       }
       default: {

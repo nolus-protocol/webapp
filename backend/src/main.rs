@@ -35,9 +35,6 @@ pub mod refresh;
 mod translations;
 mod validation;
 
-#[cfg(test)]
-mod test_utils;
-
 use crate::config::AppConfig;
 use crate::config_store::ConfigStore;
 use crate::handlers::websocket::WebSocketManager;
