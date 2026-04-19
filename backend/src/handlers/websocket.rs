@@ -477,26 +477,26 @@ impl WebSocketManager {
             // Clean up caches for subscriptions with no remaining subscribers
             for sub in &conn.subscriptions {
                 match sub {
-                    Subscription::Leases { address } => {
+                    Subscription::Leases { address }
                         if !self.has_other_subscriber(
                             |s| matches!(s, Subscription::Leases { address: a } if a == address),
-                        ) {
-                            self.clear_lease_cache(address);
-                        }
+                        ) =>
+                    {
+                        self.clear_lease_cache(address);
                     }
-                    Subscription::Earn { address } => {
+                    Subscription::Earn { address }
                         if !self.has_other_subscriber(
                             |s| matches!(s, Subscription::Earn { address: a } if a == address),
-                        ) {
-                            self.clear_earn_cache(address);
-                        }
+                        ) =>
+                    {
+                        self.clear_earn_cache(address);
                     }
-                    Subscription::SkipTx { tx_hash, .. } => {
+                    Subscription::SkipTx { tx_hash, .. }
                         if !self.has_other_subscriber(|s| {
                             matches!(s, Subscription::SkipTx { tx_hash: h, .. } if h == tx_hash)
-                        }) {
-                            self.skip_tx_states.remove(tx_hash);
-                        }
+                        }) =>
+                    {
+                        self.skip_tx_states.remove(tx_hash);
                     }
                     _ => {}
                 }
