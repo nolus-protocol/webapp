@@ -1283,3 +1283,1479 @@ async fn fetch_json(client: &reqwest::Client, url: &str) -> Result<serde_json::V
         .await
         .map_err(|e| e.to_string())
 }
+
+// ============================================================================
+// Tests
+// ============================================================================
+
+#[cfg(test)]
+#[allow(clippy::too_many_lines)]
+mod tests {
+    use super::*;
+
+    use std::time::Instant;
+
+    use serde_json::json;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    use crate::config::AppConfig;
+    use crate::config_store::gated_types::{
+        AssetRestrictions, CurrencyDisplay, CurrencyDisplayConfig, GatedNetworkConfig,
+        LeaseRulesConfig, NetworkSettings, SmartSwapOptions, SwapSettingsConfig, UiSettingsConfig,
+    };
+    use crate::config_store::ConfigStore;
+    use crate::data_cache::{AppDataCache, ProtocolContractsMap};
+    use crate::external::chain::{
+        AnnualInflationResponse, ProtocolContractsInfo, StakingPool, StakingPoolResponse,
+    };
+    use crate::handlers::config::{
+        AppConfigResponse, ContractsInfo, NativeAssetInfo, ProtocolInfo,
+    };
+    use crate::handlers::currencies::{CurrenciesResponse, CurrencyInfo};
+    use crate::handlers::etl_proxy::{LoansStatsBatch, StatsOverviewBatch};
+    use crate::handlers::fees::GasFeeConfigResponse;
+    use crate::handlers::staking::{Validator, ValidatorStatus};
+    use crate::handlers::websocket::WebSocketManager;
+    use crate::test_utils::test_config;
+    use crate::translations::{
+        llm::{LlmClient, LlmConfig},
+        TranslationStorage,
+    };
+    use crate::AppState;
+
+    // ========================================================================
+    // Test fixtures
+    // ========================================================================
+
+    /// Build an `AppState` whose HTTP client uses realistic timeouts and whose
+    /// ETL + chain URLs point at the supplied wiremock URIs.
+    ///
+    /// This is needed because `test_app_state` uses a 1ms timeout that causes
+    /// every real HTTP call to fail, which is only useful for the
+    /// "all-fails-fast" smoke tests.
+    async fn make_state_with_urls(etl_url: &str, chain_url: &str) -> Arc<AppState> {
+        let mut config: AppConfig = test_config();
+        config.external.etl_api_url = etl_url.to_string();
+        config.external.nolus_rest_url = chain_url.to_string();
+
+        let http_client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(5))
+            .build()
+            .expect("reqwest client builder cannot fail");
+
+        let etl_client = crate::external::etl::EtlClient::new(
+            config.external.etl_api_url.clone(),
+            http_client.clone(),
+        );
+        let skip_client = crate::external::skip::SkipClient::new(
+            config.external.skip_api_url.clone(),
+            config.external.skip_api_key.clone(),
+            http_client.clone(),
+        );
+        let chain_client = crate::external::chain::ChainClient::new(
+            config.external.nolus_rest_url.clone(),
+            http_client.clone(),
+        );
+        let referral_client =
+            crate::external::referral::ReferralClient::new(&config, http_client.clone());
+        let zero_interest_client =
+            crate::external::zero_interest::ZeroInterestClient::new(&config, http_client.clone());
+
+        let config_dir = tempfile::tempdir().expect("config tempdir").keep();
+        let config_store = ConfigStore::new(&config_dir);
+        config_store
+            .init()
+            .await
+            .expect("ConfigStore init must succeed in tests");
+
+        let translation_dir = tempfile::tempdir().expect("translation tempdir").keep();
+        let translation_storage = TranslationStorage::new(&translation_dir);
+        translation_storage
+            .init()
+            .await
+            .expect("TranslationStorage init must succeed in tests");
+
+        let llm_client = LlmClient::new(LlmConfig {
+            api_key: String::new(),
+            model: "stub".to_string(),
+            base_url: Some("http://127.0.0.1:1/".to_string()),
+        });
+
+        Arc::new(AppState {
+            config,
+            etl_client,
+            skip_client,
+            chain_client,
+            referral_client,
+            zero_interest_client,
+            data_cache: AppDataCache::new(),
+            ws_manager: WebSocketManager::new(16),
+            config_store,
+            translation_storage,
+            llm_client,
+            startup_time: Instant::now(),
+        })
+    }
+
+    /// Create a paired (etl, chain) mock server and a state wired to them.
+    async fn state_with_wiremock_etl_and_chain() -> (Arc<AppState>, MockServer, MockServer) {
+        let etl = MockServer::start().await;
+        let chain = MockServer::start().await;
+        let state = make_state_with_urls(&etl.uri(), &chain.uri()).await;
+        (state, etl, chain)
+    }
+
+    /// Build a minimal `GatedConfigBundle` for tests.
+    fn sample_gated_bundle() -> GatedConfigBundle {
+        let mut currencies: HashMap<String, CurrencyDisplay> = HashMap::new();
+        currencies.insert(
+            "USDC".to_string(),
+            CurrencyDisplay {
+                icon: "/icons/usdc.svg".to_string(),
+                display_name: "USD Coin".to_string(),
+                short_name: Some("USDC".to_string()),
+                color: None,
+                coingecko_id: Some("usd-coin".to_string()),
+            },
+        );
+        currencies.insert(
+            "ATOM".to_string(),
+            CurrencyDisplay {
+                icon: "/icons/atom.svg".to_string(),
+                display_name: "Cosmos Hub".to_string(),
+                short_name: Some("ATOM".to_string()),
+                color: None,
+                coingecko_id: Some("cosmos".to_string()),
+            },
+        );
+
+        let mut networks: HashMap<String, NetworkSettings> = HashMap::new();
+        networks.insert(
+            "NOLUS".to_string(),
+            NetworkSettings {
+                name: "Nolus".to_string(),
+                chain_id: "pirin-1".to_string(),
+                prefix: "nolus".to_string(),
+                rpc: "https://rpc.nolus.network".to_string(),
+                lcd: "https://lcd.nolus.network".to_string(),
+                fallback_rpc: vec![],
+                fallback_lcd: vec![],
+                gas_price: "0.0025unls".to_string(),
+                explorer: None,
+                icon: None,
+                primary_protocol: None,
+                estimation: None,
+                forward: None,
+                swap_venue: None,
+                gas_multiplier: 3.5,
+                pools: HashMap::new(),
+            },
+        );
+        networks.insert(
+            "OSMOSIS".to_string(),
+            NetworkSettings {
+                name: "Osmosis".to_string(),
+                chain_id: "osmosis-1".to_string(),
+                prefix: "osmo".to_string(),
+                rpc: "https://rpc.osmosis.zone".to_string(),
+                lcd: "https://lcd.osmosis.zone".to_string(),
+                fallback_rpc: vec![],
+                fallback_lcd: vec![],
+                gas_price: "0.025uosmo".to_string(),
+                explorer: None,
+                icon: None,
+                primary_protocol: None,
+                estimation: None,
+                forward: None,
+                swap_venue: None,
+                gas_multiplier: 2.0,
+                pools: HashMap::new(),
+            },
+        );
+
+        GatedConfigBundle {
+            currency_display: CurrencyDisplayConfig { currencies },
+            network_config: GatedNetworkConfig { networks },
+            lease_rules: LeaseRulesConfig {
+                downpayment_ranges: HashMap::new(),
+                asset_restrictions: AssetRestrictions::default(),
+                due_projection_secs: 400,
+            },
+            swap_settings: SwapSettingsConfig {
+                api_url: "https://api.skip.build".to_string(),
+                blacklist: vec![],
+                slippage: 1,
+                gas_multiplier: 2,
+                fee: 35,
+                fee_address: None,
+                timeout_seconds: "60".to_string(),
+                swap_currencies: HashMap::new(),
+                swap_to_currency: None,
+                go_fast: true,
+                smart_relay: true,
+                allow_multi_tx: true,
+                allow_unsafe: true,
+                bridges: vec!["IBC".to_string()],
+                experimental_features: vec![],
+                smart_swap_options: SmartSwapOptions::default(),
+            },
+            ui_settings: UiSettingsConfig::default(),
+        }
+    }
+
+    fn sentinel_app_config() -> AppConfigResponse {
+        let mut protocols = HashMap::new();
+        protocols.insert(
+            "SENTINEL".to_string(),
+            ProtocolInfo {
+                name: "SENTINEL".to_string(),
+                network: Some("OSMOSIS".to_string()),
+                dex: Some("Osmosis".to_string()),
+                lpn: "USDC".to_string(),
+                position_type: "long".to_string(),
+                contracts: crate::handlers::common_types::ProtocolContracts::default(),
+                is_active: true,
+            },
+        );
+        AppConfigResponse {
+            protocols,
+            networks: Vec::new(),
+            native_asset: NativeAssetInfo {
+                ticker: "NLS".to_string(),
+                symbol: "NLS".to_string(),
+                denom: "unls".to_string(),
+                decimal_digits: 6,
+            },
+            contracts: ContractsInfo {
+                admin: "nolus1admin".to_string(),
+                dispatcher: "nolus1disp".to_string(),
+            },
+        }
+    }
+
+    fn sentinel_currencies() -> CurrenciesResponse {
+        let mut map: HashMap<String, CurrencyInfo> = HashMap::new();
+        map.insert(
+            "SENT@P".to_string(),
+            CurrencyInfo {
+                key: "SENT@P".to_string(),
+                ticker: "SENT".to_string(),
+                symbol: "usent".to_string(),
+                name: "Sentinel".to_string(),
+                short_name: "SENT".to_string(),
+                decimal_digits: 6,
+                bank_symbol: "usent".to_string(),
+                dex_symbol: "usent".to_string(),
+                icon: "/icons/sent.svg".to_string(),
+                native: false,
+                coingecko_id: None,
+                protocol: "P".to_string(),
+                group: "lease".to_string(),
+                is_active: true,
+            },
+        );
+        CurrenciesResponse {
+            currencies: map,
+            lpn: Vec::new(),
+            lease_currencies: Vec::new(),
+            map: HashMap::new(),
+        }
+    }
+
+    fn etl_protocols_json() -> serde_json::Value {
+        json!({
+            "protocols": [
+                {
+                    "name": "OSMOSIS-OSMOSIS-USDC_NOBLE",
+                    "network": "osmosis",
+                    "dex": "\"Osmosis\"",
+                    "position_type": "long",
+                    "lpn_symbol": "USDC",
+                    "is_active": true,
+                    "contracts": {
+                        "leaser": "nolus1leaser",
+                        "lpp": "nolus1lpp",
+                        "oracle": "nolus1oracle",
+                        "profit": "nolus1profit",
+                        "reserve": null
+                    }
+                }
+            ],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        })
+    }
+
+    fn etl_currencies_json_with_usdc() -> serde_json::Value {
+        json!({
+            "currencies": [
+                {
+                    "ticker": "USDC",
+                    "decimal_digits": 6,
+                    "is_active": true,
+                    "protocols": [
+                        {
+                            "protocol": "OSMOSIS-OSMOSIS-USDC_NOBLE",
+                            "group": "lpn",
+                            "bank_symbol": "ibc/USDC-NOLUS",
+                            "dex_symbol": "ibc/USDC-DEX"
+                        }
+                    ]
+                }
+            ],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        })
+    }
+
+    // Helper: build a `GatedConfigBundle` including a specific USDC ignore list entry.
+    fn gated_bundle_with_ignore(tickers: Vec<&str>) -> GatedConfigBundle {
+        let mut b = sample_gated_bundle();
+        b.lease_rules.asset_restrictions.ignore_all =
+            tickers.into_iter().map(|s| s.to_string()).collect();
+        b
+    }
+
+    // =======================================================================
+    // refresh_app_config
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_app_config_populates_cache_on_success() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+
+        refresh_app_config(&state).await;
+
+        let loaded = state
+            .data_cache
+            .app_config
+            .load()
+            .expect("app_config should be populated");
+        assert_eq!(loaded.native_asset.ticker, "NLS");
+        assert!(loaded.protocols.contains_key("OSMOSIS-OSMOSIS-USDC_NOBLE"));
+        assert!(!loaded.networks.is_empty());
+    }
+
+    #[tokio::test]
+    async fn refresh_app_config_keeps_stale_on_etl_error() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+        state.data_cache.app_config.store(sentinel_app_config());
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
+            .mount(&etl)
+            .await;
+
+        refresh_app_config(&state).await;
+
+        let loaded = state.data_cache.app_config.load().expect("stale retained");
+        assert!(loaded.protocols.contains_key("SENTINEL"));
+    }
+
+    #[tokio::test]
+    async fn refresh_app_config_keeps_stale_on_malformed_json() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+        state.data_cache.app_config.store(sentinel_app_config());
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("{not json"))
+            .mount(&etl)
+            .await;
+
+        refresh_app_config(&state).await;
+
+        let loaded = state.data_cache.app_config.load().expect("stale retained");
+        assert!(loaded.protocols.contains_key("SENTINEL"));
+    }
+
+    #[tokio::test]
+    async fn refresh_app_config_noop_when_gated_config_missing() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+
+        refresh_app_config(&state).await;
+
+        assert!(!state.data_cache.app_config.is_populated());
+    }
+
+    // =======================================================================
+    // refresh_gated_config
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_gated_config_populates_bundle_on_success() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        let bundle = sample_gated_bundle();
+
+        state
+            .config_store
+            .save_currency_display(&bundle.currency_display)
+            .await
+            .expect("seed currency_display");
+        state
+            .config_store
+            .save_gated_network_config(&bundle.network_config)
+            .await
+            .expect("seed network_config");
+        state
+            .config_store
+            .save_lease_rules(&bundle.lease_rules)
+            .await
+            .expect("seed lease_rules");
+        state
+            .config_store
+            .save_swap_settings(&bundle.swap_settings)
+            .await
+            .expect("seed swap_settings");
+        state
+            .config_store
+            .save_ui_settings(&bundle.ui_settings)
+            .await
+            .expect("seed ui_settings");
+
+        refresh_gated_config(&state).await;
+
+        assert!(state.data_cache.gated_config.is_populated());
+        let loaded = state.data_cache.gated_config.load().expect("populated");
+        assert!(loaded.currency_display.currencies.contains_key("USDC"));
+        assert!(loaded.network_config.networks.contains_key("NOLUS"));
+    }
+
+    #[tokio::test]
+    async fn refresh_gated_config_keeps_stale_on_disk_error() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        // Seed an in-memory bundle first…
+        state.data_cache.gated_config.store(sample_gated_bundle());
+        // …but never write files to disk, so load_* will fail (NotFound).
+        // A real-world "disk error" covers the same code path that warn!s and
+        // leaves the previous bundle in place.
+        refresh_gated_config(&state).await;
+
+        assert!(state.data_cache.gated_config.is_populated());
+    }
+
+    // =======================================================================
+    // refresh_currencies
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_currencies_populates_on_success() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_currencies_json_with_usdc()))
+            .mount(&etl)
+            .await;
+
+        refresh_currencies(&state).await;
+
+        let loaded = state
+            .data_cache
+            .currencies
+            .load()
+            .expect("currencies populated");
+        assert!(loaded
+            .currencies
+            .contains_key("USDC@OSMOSIS-OSMOSIS-USDC_NOBLE"));
+    }
+
+    #[tokio::test]
+    async fn refresh_currencies_noop_without_gated_config() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_currencies_json_with_usdc()))
+            .mount(&etl)
+            .await;
+
+        refresh_currencies(&state).await;
+
+        assert!(!state.data_cache.currencies.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_currencies_keeps_stale_on_etl_failure() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+        state.data_cache.currencies.store(sentinel_currencies());
+
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(502).set_body_string("upstream exploded"))
+            .mount(&etl)
+            .await;
+
+        refresh_currencies(&state).await;
+
+        let loaded = state.data_cache.currencies.load().expect("stale retained");
+        assert!(loaded.currencies.contains_key("SENT@P"));
+    }
+
+    #[tokio::test]
+    async fn refresh_currencies_filters_ignored_assets() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state
+            .data_cache
+            .gated_config
+            .store(gated_bundle_with_ignore(vec!["STRD"]));
+
+        let body = json!({
+            "currencies": [
+                {
+                    "ticker": "STRD",
+                    "decimal_digits": 6,
+                    "is_active": true,
+                    "protocols": [
+                        {
+                            "protocol": "OSMOSIS-OSMOSIS-USDC_NOBLE",
+                            "group": "lease",
+                            "bank_symbol": "ustrd",
+                            "dex_symbol": "ibc/ustrd"
+                        }
+                    ]
+                }
+            ],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        });
+
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&etl)
+            .await;
+
+        refresh_currencies(&state).await;
+
+        let loaded = state.data_cache.currencies.load().expect("populated");
+        let strd = loaded
+            .currencies
+            .get("STRD@OSMOSIS-OSMOSIS-USDC_NOBLE")
+            .expect("STRD entry must exist");
+        assert!(!strd.is_active, "ignored asset must be marked inactive");
+    }
+
+    #[tokio::test]
+    async fn refresh_currencies_filters_by_active_protocols() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        // Only PROTOCOL_A is active.
+        let mut pc: ProtocolContractsMap = HashMap::new();
+        pc.insert(
+            "PROTOCOL_A".to_string(),
+            ProtocolContractsInfo {
+                oracle: "nolus1oracleA".to_string(),
+                lpp: "nolus1lppA".to_string(),
+                leaser: "nolus1leaserA".to_string(),
+                profit: "nolus1profitA".to_string(),
+                reserve: None,
+            },
+        );
+        state.data_cache.protocol_contracts.store(pc);
+
+        let body = json!({
+            "currencies": [
+                {
+                    "ticker": "ATOM",
+                    "decimal_digits": 6,
+                    "is_active": true,
+                    "protocols": [
+                        {
+                            "protocol": "PROTOCOL_A",
+                            "group": "lease",
+                            "bank_symbol": "ibc/atomA",
+                            "dex_symbol": "ibc/atomA-dex"
+                        },
+                        {
+                            "protocol": "PROTOCOL_B",
+                            "group": "lease",
+                            "bank_symbol": "ibc/atomB",
+                            "dex_symbol": "ibc/atomB-dex"
+                        }
+                    ]
+                }
+            ],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        });
+
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&etl)
+            .await;
+
+        refresh_currencies(&state).await;
+
+        let loaded = state.data_cache.currencies.load().expect("populated");
+        assert!(loaded.currencies.contains_key("ATOM@PROTOCOL_A"));
+        assert!(!loaded.currencies.contains_key("ATOM@PROTOCOL_B"));
+    }
+
+    // =======================================================================
+    // refresh_prices
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_prices_noop_without_app_config() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.currencies.store(sentinel_currencies());
+        refresh_prices(&state).await;
+        assert!(!state.data_cache.prices.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_prices_noop_without_currencies() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.app_config.store(sentinel_app_config());
+        refresh_prices(&state).await;
+        assert!(!state.data_cache.prices.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_prices_skips_protocol_without_oracle() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        // app_config with a protocol that has NO oracle set.
+        let mut cfg = sentinel_app_config();
+        cfg.protocols
+            .get_mut("SENTINEL")
+            .expect("sentinel exists")
+            .contracts
+            .oracle = None;
+        state.data_cache.app_config.store(cfg);
+        state.data_cache.currencies.store(sentinel_currencies());
+
+        refresh_prices(&state).await;
+
+        // The prices cache is still populated (with empty prices), because
+        // refresh_prices always stores the final map — but we expect no entries
+        // for the skipped protocol.
+        let loaded = state
+            .data_cache
+            .prices
+            .load()
+            .expect("prices should still be stored (possibly empty)");
+        assert!(!loaded.prices.keys().any(|k| k.ends_with("@SENTINEL")));
+    }
+
+    // =======================================================================
+    // refresh_pools
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_pools_noop_without_contracts() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        refresh_pools(&state).await;
+        assert!(!state.data_cache.pools.is_populated());
+    }
+
+    // =======================================================================
+    // refresh_validators
+    // =======================================================================
+
+    fn validators_body() -> serde_json::Value {
+        json!({
+            "validators": [
+                {
+                    "operator_address": "nolusvaloper1abc",
+                    "consensus_pubkey": null,
+                    "jailed": false,
+                    "status": "BOND_STATUS_BONDED",
+                    "tokens": "1000000000",
+                    "delegator_shares": "1000000000.000000000000000000",
+                    "description": {
+                        "moniker": "Test Validator",
+                        "identity": null,
+                        "website": null,
+                        "details": null
+                    },
+                    "unbonding_height": "0",
+                    "unbonding_time": "1970-01-01T00:00:00Z",
+                    "commission": {
+                        "commission_rates": {
+                            "rate": "0.100000000000000000",
+                            "max_rate": "0.200000000000000000",
+                            "max_change_rate": "0.010000000000000000"
+                        }
+                    }
+                }
+            ]
+        })
+    }
+
+    #[tokio::test]
+    async fn refresh_validators_populates_on_success() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/staking/v1beta1/validators"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(validators_body()))
+            .mount(&chain)
+            .await;
+
+        refresh_validators(&state).await;
+
+        let loaded = state
+            .data_cache
+            .validators
+            .load()
+            .expect("validators populated");
+        // Three bonded-status queries each return the same validator, so we
+        // expect 3 entries (plan treats this as "all 3 statuses").
+        assert_eq!(loaded.len(), 3);
+        assert!(loaded
+            .iter()
+            .all(|v| matches!(v.status, ValidatorStatus::Bonded)));
+    }
+
+    #[tokio::test]
+    async fn refresh_validators_keeps_stale_on_chain_error() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+        let sentinel = vec![Validator {
+            operator_address: "nolusvaloper1sentinel".to_string(),
+            moniker: "Sentinel".to_string(),
+            identity: None,
+            website: None,
+            details: None,
+            commission_rate: "0.1".to_string(),
+            max_commission_rate: "0.2".to_string(),
+            max_commission_change_rate: "0.01".to_string(),
+            tokens: "1".to_string(),
+            delegator_shares: "1".to_string(),
+            unbonding_height: "0".to_string(),
+            unbonding_time: "1970-01-01T00:00:00Z".to_string(),
+            status: ValidatorStatus::Bonded,
+            jailed: false,
+        }];
+        state.data_cache.validators.store(sentinel);
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/staking/v1beta1/validators"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("chain oops"))
+            .mount(&chain)
+            .await;
+
+        refresh_validators(&state).await;
+
+        let loaded = state.data_cache.validators.load().expect("stale retained");
+        assert_eq!(loaded.len(), 1);
+        assert_eq!(loaded[0].operator_address, "nolusvaloper1sentinel");
+    }
+
+    // =======================================================================
+    // refresh_annual_inflation / refresh_staking_pool
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_annual_inflation_populates_on_success() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/nolus/mint/v1beta1/annual_inflation"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({ "annual_inflation": "0.1234" })),
+            )
+            .mount(&chain)
+            .await;
+
+        refresh_annual_inflation(&state).await;
+
+        let loaded = state.data_cache.annual_inflation.load().expect("populated");
+        assert_eq!(loaded.annual_inflation, "0.1234");
+    }
+
+    #[tokio::test]
+    async fn refresh_annual_inflation_keeps_stale_on_chain_error() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+        state
+            .data_cache
+            .annual_inflation
+            .store(AnnualInflationResponse {
+                annual_inflation: "sentinel".to_string(),
+            });
+
+        Mock::given(method("GET"))
+            .and(path("/nolus/mint/v1beta1/annual_inflation"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&chain)
+            .await;
+
+        refresh_annual_inflation(&state).await;
+
+        let loaded = state
+            .data_cache
+            .annual_inflation
+            .load()
+            .expect("stale retained");
+        assert_eq!(loaded.annual_inflation, "sentinel");
+    }
+
+    #[tokio::test]
+    async fn refresh_staking_pool_populates_on_success() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/staking/v1beta1/pool"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "pool": {
+                    "not_bonded_tokens": "1",
+                    "bonded_tokens": "2"
+                }
+            })))
+            .mount(&chain)
+            .await;
+
+        refresh_staking_pool(&state).await;
+
+        let loaded = state.data_cache.staking_pool.load().expect("populated");
+        assert_eq!(loaded.pool.bonded_tokens, "2");
+    }
+
+    #[tokio::test]
+    async fn refresh_staking_pool_keeps_stale_on_chain_error() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.staking_pool.store(StakingPoolResponse {
+            pool: StakingPool {
+                not_bonded_tokens: "sn".to_string(),
+                bonded_tokens: "sb".to_string(),
+            },
+        });
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/staking/v1beta1/pool"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&chain)
+            .await;
+
+        refresh_staking_pool(&state).await;
+
+        let loaded = state
+            .data_cache
+            .staking_pool
+            .load()
+            .expect("stale retained");
+        assert_eq!(loaded.pool.bonded_tokens, "sb");
+    }
+
+    // =======================================================================
+    // refresh_gas_fee_config
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_gas_fee_config_noop_without_gated_config() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/nolus/tax/v2/params"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "params": {
+                    "fee_rate": 0,
+                    "base_denom": "unls",
+                    "dex_fee_params": [],
+                    "treasury_address": "nolus1treasury"
+                }
+            })))
+            .mount(&chain)
+            .await;
+
+        refresh_gas_fee_config(&state).await;
+        assert!(!state.data_cache.gas_fee_config.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_gas_fee_config_populates_on_success() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        Mock::given(method("GET"))
+            .and(path("/nolus/tax/v2/params"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "params": {
+                    "fee_rate": 10,
+                    "base_denom": "unls",
+                    "dex_fee_params": [
+                        {
+                            "profit_address": "nolus1profit",
+                            "accepted_denoms_min_prices": [
+                                { "denom": "ibc/ABC", "ticker": "ATOM", "min_price": "0.01" }
+                            ]
+                        }
+                    ],
+                    "treasury_address": "nolus1treasury"
+                }
+            })))
+            .mount(&chain)
+            .await;
+
+        refresh_gas_fee_config(&state).await;
+
+        let loaded: GasFeeConfigResponse =
+            state.data_cache.gas_fee_config.load().expect("populated");
+        assert!(loaded.gas_prices.contains_key("unls"));
+        assert!(loaded.gas_prices.contains_key("ibc/ABC"));
+        // Matches gas_multiplier from sample_gated_bundle NOLUS entry.
+        assert!((loaded.gas_multiplier - 3.5).abs() < f64::EPSILON);
+    }
+
+    #[tokio::test]
+    async fn refresh_gas_fee_config_noop_when_nolus_missing_from_network_config() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        // Bundle with NO NOLUS network entry.
+        let mut bundle = sample_gated_bundle();
+        bundle.network_config.networks.remove("NOLUS");
+        state.data_cache.gated_config.store(bundle);
+
+        Mock::given(method("GET"))
+            .and(path("/nolus/tax/v2/params"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "params": {
+                    "fee_rate": 0,
+                    "base_denom": "unls",
+                    "dex_fee_params": [],
+                    "treasury_address": "nolus1treasury"
+                }
+            })))
+            .mount(&chain)
+            .await;
+
+        refresh_gas_fee_config(&state).await;
+        assert!(!state.data_cache.gas_fee_config.is_populated());
+    }
+
+    // =======================================================================
+    // refresh_filter_context
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_filter_context_noop_without_gated_config() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+
+        refresh_filter_context(&state).await;
+        assert!(!state.data_cache.filter_context.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_filter_context_populates_on_success() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+
+        refresh_filter_context(&state).await;
+        assert!(state.data_cache.filter_context.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_filter_context_noop_on_etl_error() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
+            .mount(&etl)
+            .await;
+
+        refresh_filter_context(&state).await;
+        assert!(!state.data_cache.filter_context.is_populated());
+    }
+
+    // =======================================================================
+    // refresh_gated_assets / refresh_gated_protocols / refresh_gated_networks
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_gated_assets_noop_without_gated_config() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        refresh_gated_assets(&state).await;
+        assert!(!state.data_cache.gated_assets.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_gated_assets_noop_without_prices() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_currencies_json_with_usdc()))
+            .mount(&etl)
+            .await;
+
+        refresh_gated_assets(&state).await;
+        assert!(!state.data_cache.gated_assets.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_gated_protocols_noop_without_gated_config() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        refresh_gated_protocols(&state).await;
+        assert!(!state.data_cache.gated_protocols.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_gated_protocols_keeps_stale_on_etl_error() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        // Pre-seed a sentinel gated_protocols cache.
+        state
+            .data_cache
+            .gated_protocols
+            .store(crate::data_cache::GatedProtocolsResponse {
+                count: 42,
+                protocols: Vec::new(),
+            });
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&etl)
+            .await;
+
+        refresh_gated_protocols(&state).await;
+
+        let loaded = state
+            .data_cache
+            .gated_protocols
+            .load()
+            .expect("stale retained");
+        assert_eq!(loaded.count, 42);
+    }
+
+    #[tokio::test]
+    async fn refresh_gated_networks_populates_from_config_only() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        refresh_gated_networks(&state).await;
+
+        assert!(state.data_cache.gated_networks.is_populated());
+    }
+
+    // =======================================================================
+    // refresh_stats_overview / refresh_loans_stats
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_stats_overview_stores_partial_batch_on_mixed_failures() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+
+        // 3 succeed, 2 fail.
+        Mock::given(method("GET"))
+            .and(path("/api/total-value-locked"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({"total_value_locked": "1"})),
+            )
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/total-tx-value"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"total_tx_value": "2"})))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/buyback-total"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"buyback_total": "3"})))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/realized-pnl-stats"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("fail"))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/revenue"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("fail"))
+            .mount(&etl)
+            .await;
+
+        refresh_stats_overview(&state).await;
+
+        let loaded: StatsOverviewBatch = state.data_cache.stats_overview.load().expect("populated");
+        assert!(loaded.tvl.is_some());
+        assert!(loaded.tx_volume.is_some());
+        assert!(loaded.buyback_total.is_some());
+        // The 2 failures produce JSON error payloads (mock returns non-JSON
+        // "fail"); fetch_json treats a non-JSON body as an error and `.ok()`
+        // coerces to None.
+        assert!(loaded.realized_pnl_stats.is_none());
+        assert!(loaded.revenue.is_none());
+    }
+
+    #[tokio::test]
+    async fn refresh_stats_overview_stores_all_none_on_all_failures() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+
+        for p in [
+            "/api/total-value-locked",
+            "/api/total-tx-value",
+            "/api/buyback-total",
+            "/api/realized-pnl-stats",
+            "/api/revenue",
+        ] {
+            Mock::given(method("GET"))
+                .and(path(p))
+                .respond_with(ResponseTemplate::new(500).set_body_string("fail"))
+                .mount(&etl)
+                .await;
+        }
+
+        refresh_stats_overview(&state).await;
+
+        let loaded: StatsOverviewBatch = state.data_cache.stats_overview.load().expect("populated");
+        assert!(loaded.tvl.is_none());
+        assert!(loaded.tx_volume.is_none());
+        assert!(loaded.buyback_total.is_none());
+        assert!(loaded.realized_pnl_stats.is_none());
+        assert!(loaded.revenue.is_none());
+    }
+
+    #[tokio::test]
+    async fn refresh_loans_stats_stores_partial_batch() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+
+        Mock::given(method("GET"))
+            .and(path("/api/open-position-value"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({"value": "1"})))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/open-interest"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("fail"))
+            .mount(&etl)
+            .await;
+
+        refresh_loans_stats(&state).await;
+
+        let loaded: LoansStatsBatch = state.data_cache.loans_stats.load().expect("populated");
+        assert!(loaded.open_position_value.is_some());
+        assert!(loaded.open_interest.is_none());
+    }
+
+    // =======================================================================
+    // refresh_swap_config
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_swap_config_noop_without_gated_config() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        refresh_swap_config(&state).await;
+        assert!(!state.data_cache.swap_config.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_swap_config_keeps_stale_on_protocols_error() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        // Pre-seed swap_config with a sentinel.
+        state
+            .data_cache
+            .swap_config
+            .store(json!({"sentinel": true}));
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_currencies_json_with_usdc()))
+            .mount(&etl)
+            .await;
+
+        refresh_swap_config(&state).await;
+
+        let loaded = state.data_cache.swap_config.load().expect("stale retained");
+        assert_eq!(loaded, json!({"sentinel": true}));
+    }
+
+    #[tokio::test]
+    async fn refresh_swap_config_populates_on_success() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_currencies_json_with_usdc()))
+            .mount(&etl)
+            .await;
+
+        refresh_swap_config(&state).await;
+
+        let loaded = state.data_cache.swap_config.load().expect("populated");
+        let obj = loaded.as_object().expect("object");
+        assert!(obj.contains_key("blacklist"));
+        assert!(obj.contains_key("fee"));
+        assert!(obj.contains_key("swap_to_currency"));
+        assert!(obj.contains_key("transfers"));
+    }
+
+    #[tokio::test]
+    async fn refresh_swap_config_excludes_nolus_from_transfers() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        // Protocols: include a NOLUS-keyed protocol.
+        let protocols_body = json!({
+            "protocols": [
+                {
+                    "name": "NOLUS-PROTO",
+                    "network": "nolus",
+                    "dex": "\"Nolus\"",
+                    "position_type": "long",
+                    "lpn_symbol": "USDC",
+                    "is_active": true,
+                    "contracts": {
+                        "leaser": "nolus1leaserN",
+                        "lpp": "nolus1lppN",
+                        "oracle": "nolus1oracleN",
+                        "profit": "nolus1profitN",
+                        "reserve": null
+                    }
+                }
+            ],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        });
+
+        let currencies_body = json!({
+            "currencies": [
+                {
+                    "ticker": "NLS",
+                    "decimal_digits": 6,
+                    "is_active": true,
+                    "protocols": [
+                        {
+                            "protocol": "NOLUS-PROTO",
+                            "group": "native",
+                            "bank_symbol": "unls",
+                            "dex_symbol": "unls"
+                        }
+                    ]
+                }
+            ],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        });
+
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(protocols_body))
+            .mount(&etl)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(currencies_body))
+            .mount(&etl)
+            .await;
+
+        refresh_swap_config(&state).await;
+
+        let loaded = state.data_cache.swap_config.load().expect("populated");
+        let transfers = loaded
+            .as_object()
+            .and_then(|o| o.get("transfers"))
+            .and_then(|t| t.as_object())
+            .expect("transfers object");
+        assert!(!transfers.contains_key("NOLUS"));
+    }
+
+    // =======================================================================
+    // refresh_lease_configs
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_lease_configs_noop_without_gated_config() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        refresh_lease_configs(&state).await;
+        assert!(!state.data_cache.lease_configs.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_lease_configs_noop_without_protocol_contracts() {
+        let (state, _etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+        refresh_lease_configs(&state).await;
+        assert!(!state.data_cache.lease_configs.is_populated());
+    }
+
+    #[tokio::test]
+    async fn refresh_lease_configs_keeps_stale_when_all_chain_calls_fail() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+
+        let mut pc: ProtocolContractsMap = HashMap::new();
+        pc.insert(
+            "P1".to_string(),
+            ProtocolContractsInfo {
+                oracle: "nolus1oracle1".to_string(),
+                lpp: "nolus1lpp1".to_string(),
+                leaser: "nolus1leaser1".to_string(),
+                profit: "nolus1profit1".to_string(),
+                reserve: None,
+            },
+        );
+        state.data_cache.protocol_contracts.store(pc);
+
+        // Pre-seed lease_configs with a sentinel.
+        let mut sentinel = HashMap::new();
+        sentinel.insert(
+            "SENT".to_string(),
+            crate::handlers::leases::LeaseConfigResponse {
+                protocol: "SENT".to_string(),
+                downpayment_ranges: HashMap::new(),
+                min_asset: crate::external::chain::AmountSpec {
+                    amount: "1".to_string(),
+                    ticker: "USDC".to_string(),
+                },
+                min_transaction: crate::external::chain::AmountSpec {
+                    amount: "1".to_string(),
+                    ticker: "USDC".to_string(),
+                },
+            },
+        );
+        state.data_cache.lease_configs.store(sentinel);
+
+        // All leaser queries 500.
+        Mock::given(method("GET"))
+            .and(path(
+                "/cosmwasm/wasm/v1/contract/nolus1leaser1/smart/eyJjb25maWciOnt9fQ==",
+            ))
+            .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
+            .mount(&chain)
+            .await;
+
+        refresh_lease_configs(&state).await;
+
+        let loaded = state
+            .data_cache
+            .lease_configs
+            .load()
+            .expect("stale retained");
+        assert!(loaded.contains_key("SENT"));
+    }
+
+    // =======================================================================
+    // refresh_protocol_contracts
+    // =======================================================================
+
+    #[tokio::test]
+    async fn refresh_protocol_contracts_keeps_stale_on_admin_fetch_error() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+        let mut pc: ProtocolContractsMap = HashMap::new();
+        pc.insert(
+            "SENT".to_string(),
+            ProtocolContractsInfo {
+                oracle: "nolus1o".to_string(),
+                lpp: "nolus1l".to_string(),
+                leaser: "nolus1le".to_string(),
+                profit: "nolus1p".to_string(),
+                reserve: None,
+            },
+        );
+        state.data_cache.protocol_contracts.store(pc);
+
+        // Any query to admin contract fails.
+        Mock::given(method("GET"))
+            .and(path_regex_match_any_contract())
+            .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
+            .mount(&chain)
+            .await;
+
+        refresh_protocol_contracts(&state).await;
+
+        let loaded = state
+            .data_cache
+            .protocol_contracts
+            .load()
+            .expect("stale retained");
+        assert!(loaded.contains_key("SENT"));
+    }
+
+    /// Helper matcher that matches any `/cosmwasm/wasm/v1/contract/.../smart/...`
+    /// URL. Used to simulate chain-wide 500s without pinning exact query b64.
+    fn path_regex_match_any_contract() -> wiremock::matchers::PathRegexMatcher {
+        wiremock::matchers::path_regex(r"^/cosmwasm/wasm/v1/contract/.+/smart/.+$")
+    }
+
+    // =======================================================================
+    // warm_essential_data / start_all smoke tests
+    // =======================================================================
+
+    #[tokio::test]
+    async fn warm_essential_data_runs_without_panic_on_all_failures() {
+        // Use the default `test_app_state` whose 1ms client fails every call.
+        let state = crate::test_utils::test_app_state().await;
+        warm_essential_data(state.clone()).await;
+
+        // Nothing should be populated — every fetch fast-failed.
+        assert!(!state.data_cache.app_config.is_populated());
+        assert!(!state.data_cache.currencies.is_populated());
+        assert!(!state.data_cache.prices.is_populated());
+        assert!(!state.data_cache.gas_fee_config.is_populated());
+        assert!(!state.data_cache.annual_inflation.is_populated());
+        assert!(!state.data_cache.staking_pool.is_populated());
+    }
+
+    #[tokio::test]
+    async fn start_all_spawns_tasks_without_panic() {
+        let state = crate::test_utils::test_app_state().await;
+        let event_channels = crate::chain_events::EventChannels::new();
+        start_all(state.clone(), &event_channels);
+        // Give the spawned tasks a chance to register with the runtime.
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        // Dropping `state` here (via scope end) is implicit — if any spawned
+        // task held a problematic strong ref, clippy/miri would catch it in CI.
+    }
+}

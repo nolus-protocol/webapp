@@ -456,3 +456,508 @@ pub struct EtlTransaction {
 pub struct EtlTvlResponse {
     pub total_value_locked: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wiremock::matchers::{method, path, query_param, query_param_is_missing};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    fn test_client(url: &str) -> EtlClient {
+        EtlClient::new(url.to_string(), Client::new())
+    }
+
+    fn sample_protocols_json() -> serde_json::Value {
+        serde_json::json!({
+            "protocols": [{
+                "name": "OSMOSIS",
+                "network": "osmosis",
+                "dex": "OSMOSIS",
+                "position_type": "long",
+                "lpn_symbol": "USDC",
+                "is_active": true,
+                "contracts": {
+                    "leaser": "nolus1leaser",
+                    "lpp": "nolus1lpp",
+                    "oracle": "nolus1oracle",
+                    "profit": "nolus1profit",
+                    "reserve": null
+                }
+            }],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        })
+    }
+
+    fn sample_currencies_json() -> serde_json::Value {
+        serde_json::json!({
+            "currencies": [{
+                "ticker": "USDC",
+                "decimal_digits": 6,
+                "is_active": true,
+                "protocols": [{
+                    "protocol": "OSMOSIS",
+                    "group": "lpn",
+                    "bank_symbol": "ibc/ABC",
+                    "dex_symbol": "uusdc"
+                }]
+            }],
+            "count": 1,
+            "active_count": 1,
+            "deprecated_count": 0
+        })
+    }
+
+    fn assert_etl_error(err: &AppError) {
+        match err {
+            AppError::ExternalApi { api, .. } => assert_eq!(api, "ETL"),
+            other => panic!("expected ExternalApi error, got {:?}", other),
+        }
+    }
+
+    // ---- Constructor tests (70-72) ----
+
+    #[test]
+    fn etl_new_appends_api_prefix_when_missing() {
+        let c = EtlClient::new("http://x.com".to_string(), Client::new());
+        assert_eq!(c.base_url, "http://x.com/api");
+    }
+
+    #[test]
+    fn etl_new_keeps_api_prefix_when_present() {
+        let c = EtlClient::new("http://x.com/api".to_string(), Client::new());
+        assert_eq!(c.base_url, "http://x.com/api");
+    }
+
+    #[test]
+    fn etl_new_strips_trailing_slash_before_appending() {
+        let c = EtlClient::new("http://x.com/".to_string(), Client::new());
+        assert_eq!(c.base_url, "http://x.com/api");
+    }
+
+    // ---- fetch_protocols (73-77) ----
+
+    #[tokio::test]
+    async fn etl_fetch_protocols_success() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(sample_protocols_json()))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let resp = client.fetch_protocols().await.unwrap();
+        assert_eq!(resp.count, 1);
+        assert_eq!(resp.protocols.len(), 1);
+        assert_eq!(resp.protocols[0].name, "OSMOSIS");
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_protocols_malformed_json_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("{invalid"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_protocols().await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_protocols_http_500_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("bad"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_protocols().await.unwrap_err();
+        match err {
+            AppError::ExternalApi { api, message } => {
+                assert_eq!(api, "ETL");
+                assert!(message.contains("HTTP 500"), "msg: {}", message);
+            }
+            other => panic!("expected ExternalApi, got {:?}", other),
+        }
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_protocols_http_404_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(404).set_body_string("nope"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_protocols().await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_protocols_missing_required_field_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(serde_json::json!({ "protocols": [] })),
+            )
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_protocols().await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    // ---- fetch_currencies (78-80) ----
+
+    #[tokio::test]
+    async fn etl_fetch_currencies_success() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(sample_currencies_json()))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let resp = client.fetch_currencies().await.unwrap();
+        assert_eq!(resp.count, 1);
+        assert_eq!(resp.currencies[0].ticker, "USDC");
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_currencies_malformed_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("{bad"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_currencies().await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_currencies_http_500_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/currencies"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("srv err"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_currencies().await.unwrap_err();
+        match err {
+            AppError::ExternalApi { api, message } => {
+                assert_eq!(api, "ETL");
+                assert!(message.contains("HTTP 500"));
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    // ---- fetch_pools (81-83) ----
+
+    #[tokio::test]
+    async fn etl_fetch_pools_unwraps_protocols_field() {
+        let server = MockServer::start().await;
+        let body = serde_json::json!({
+            "protocols": [
+                { "protocol": "OSMOSIS", "earn_apr": "0.1", "utilization": "0.5",
+                  "supplied": "100", "borrowed": "50", "borrow_apr": "0.2",
+                  "deposit_suspension": null }
+            ],
+            "optimal": "0.5"
+        });
+        Mock::given(method("GET"))
+            .and(path("/api/pools"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let pools = client.fetch_pools().await.unwrap();
+        assert_eq!(pools.len(), 1);
+        assert_eq!(pools[0].protocol, "OSMOSIS");
+        assert_eq!(pools[0].apr.as_deref(), Some("0.1"));
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_pools_http_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/pools"))
+            .respond_with(ResponseTemplate::new(502).set_body_string("upstream"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_pools().await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_pools_malformed() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/pools"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("nope"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_pools().await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    // ---- fetch_lease_opening (84-85) ----
+
+    #[tokio::test]
+    async fn etl_fetch_lease_opening_builds_query_param() {
+        let server = MockServer::start().await;
+        let body = serde_json::json!({
+            "lease": {},
+            "downpayment_price": "1.0",
+            "lpn_price": null,
+            "pnl": "10",
+            "fee": "0.1",
+            "repayment_value": "90"
+        });
+        Mock::given(method("GET"))
+            .and(path("/api/ls-opening"))
+            .and(query_param("lease", "nolus1abc"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let resp = client.fetch_lease_opening("nolus1abc").await.unwrap();
+        assert_eq!(resp.downpayment_price.as_deref(), Some("1.0"));
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_lease_opening_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/ls-opening"))
+            .respond_with(ResponseTemplate::new(500))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_lease_opening("nolus1abc").await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    // ---- fetch_pnl_over_time (86) ----
+
+    #[tokio::test]
+    async fn etl_fetch_pnl_over_time_builds_query() {
+        let server = MockServer::start().await;
+        let body = serde_json::json!([
+            { "date": "2026-01-01", "amount": "100" },
+            { "date": "2026-01-02", "amount": "150" }
+        ]);
+        Mock::given(method("GET"))
+            .and(path("/api/pnl-over-time"))
+            .and(query_param("address", "nolus1user"))
+            .and(query_param("interval", "day"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let pnl = client
+            .fetch_pnl_over_time("nolus1user", "day")
+            .await
+            .unwrap();
+        assert_eq!(pnl.len(), 2);
+        assert_eq!(pnl[0].amount, "100");
+    }
+
+    // ---- fetch_realized_pnl (87) ----
+
+    #[tokio::test]
+    async fn etl_fetch_realized_pnl_skip_limit_passed_in_query() {
+        let server = MockServer::start().await;
+        let body = serde_json::json!({
+            "data": [
+                { "lease_address": "nolus1lease", "pnl": "42",
+                  "pnl_percent": "5", "closed_at": "2026-01-01" }
+            ],
+            "total": 1
+        });
+        Mock::given(method("GET"))
+            .and(path("/api/ls-loan-closing"))
+            .and(query_param("address", "nolus1user"))
+            .and(query_param("skip", "5"))
+            .and(query_param("limit", "10"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let resp = client
+            .fetch_realized_pnl("nolus1user", 5, 10)
+            .await
+            .unwrap();
+        assert_eq!(resp.total, Some(1));
+        assert_eq!(resp.data.len(), 1);
+    }
+
+    // ---- search_leases (88-89) ----
+
+    #[tokio::test]
+    async fn etl_search_leases_omits_none_search_param() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/leases-search"))
+            .and(query_param("address", "nolus1user"))
+            .and(query_param("skip", "0"))
+            .and(query_param("limit", "20"))
+            .and(query_param_is_missing("search"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!([])))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let leases = client
+            .search_leases("nolus1user", 0, 20, None)
+            .await
+            .unwrap();
+        assert!(leases.is_empty());
+    }
+
+    #[tokio::test]
+    async fn etl_search_leases_includes_search_when_some() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/leases-search"))
+            .and(query_param("search", "foo"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(serde_json::json!(["nolus1a", "nolus1b"])),
+            )
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let leases = client
+            .search_leases("nolus1user", 0, 20, Some("foo"))
+            .await
+            .unwrap();
+        assert_eq!(leases.len(), 2);
+    }
+
+    // ---- fetch_transactions (90-91) ----
+
+    #[tokio::test]
+    async fn etl_fetch_transactions_query_params() {
+        let server = MockServer::start().await;
+        let body = serde_json::json!({
+            "data": [
+                { "hash": "HASH1", "height": 100, "timestamp": "t", "type": "send", "data": null }
+            ],
+            "total": 1
+        });
+        Mock::given(method("GET"))
+            .and(path("/api/txs"))
+            .and(query_param("address", "nolus1user"))
+            .and(query_param("skip", "0"))
+            .and(query_param("limit", "50"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let resp = client
+            .fetch_transactions("nolus1user", 0, 50)
+            .await
+            .unwrap();
+        assert_eq!(resp.data.len(), 1);
+        assert_eq!(resp.data[0].hash, "HASH1");
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_transactions_malformed_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/txs"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("not-json"))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client
+            .fetch_transactions("nolus1user", 0, 50)
+            .await
+            .unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    // ---- fetch_tvl (92-93) ----
+
+    #[tokio::test]
+    async fn etl_fetch_tvl_success() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/total-value-locked"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(serde_json::json!({ "total_value_locked": "123456" })),
+            )
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let tvl = client.fetch_tvl().await.unwrap();
+        assert_eq!(tvl.total_value_locked, "123456");
+    }
+
+    #[tokio::test]
+    async fn etl_fetch_tvl_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/total-value-locked"))
+            .respond_with(ResponseTemplate::new(503))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let err = client.fetch_tvl().await.unwrap_err();
+        assert_etl_error(&err);
+    }
+
+    // ---- fetch_price_history (94) ----
+
+    #[tokio::test]
+    async fn etl_price_history_interval_query() {
+        let server = MockServer::start().await;
+        let body = serde_json::json!([
+            { "ticker": "USDC", "amount": "1.0" }
+        ]);
+        Mock::given(method("GET"))
+            .and(path("/api/prices"))
+            .and(query_param("interval", "60"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(body))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri());
+        let prices = client.fetch_price_history(60).await.unwrap();
+        assert_eq!(prices.len(), 1);
+        assert_eq!(prices[0].ticker, "USDC");
+    }
+}

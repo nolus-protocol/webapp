@@ -276,3 +276,283 @@ pub struct CacheStatusSummary {
     pub lease_configs: CacheFieldStatus,
     pub gas_fee_config: CacheFieldStatus,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::time::Duration;
+
+    #[derive(Clone, Debug, PartialEq)]
+    struct TestVal {
+        n: u32,
+        tag: String,
+    }
+
+    impl TestVal {
+        fn new(n: u32, tag: &str) -> Self {
+            Self {
+                n,
+                tag: tag.to_string(),
+            }
+        }
+    }
+
+    // ========================================================================
+    // Cached<T> tests
+    // ========================================================================
+
+    #[tokio::test]
+    async fn cached_load_returns_none_on_cold_cache() {
+        let cache: Cached<TestVal> = Cached::new();
+        assert!(cache.load().is_none());
+        assert!(!cache.is_populated());
+        assert!(cache.age_secs().is_none());
+    }
+
+    #[tokio::test]
+    async fn cached_store_then_load_returns_value() {
+        let cache: Cached<TestVal> = Cached::new();
+        let val = TestVal::new(1, "a");
+        cache.store(val.clone());
+        assert_eq!(cache.load(), Some(val));
+    }
+
+    #[tokio::test]
+    async fn cached_store_overwrites_previous_value() {
+        let cache: Cached<TestVal> = Cached::new();
+        let a = TestVal::new(1, "first");
+        let b = TestVal::new(2, "second");
+        cache.store(a);
+        cache.store(b.clone());
+        assert_eq!(cache.load(), Some(b));
+    }
+
+    #[tokio::test]
+    async fn cached_is_populated_after_store() {
+        let cache: Cached<TestVal> = Cached::new();
+        cache.store(TestVal::new(7, "x"));
+        assert!(cache.is_populated());
+    }
+
+    #[tokio::test]
+    async fn cached_age_secs_returns_elapsed() {
+        let cache: Cached<TestVal> = Cached::new();
+        cache.store(TestVal::new(42, "aged"));
+        tokio::time::sleep(Duration::from_millis(1_100)).await;
+        let age = cache.age_secs().expect("age_secs must be Some after store");
+        assert!(age >= 1, "expected age >= 1, got {}", age);
+    }
+
+    #[tokio::test]
+    async fn cached_age_secs_none_when_empty() {
+        let cache: Cached<TestVal> = Cached::new();
+        assert!(cache.age_secs().is_none());
+    }
+
+    #[tokio::test]
+    async fn cached_load_or_unavailable_ok_when_populated() {
+        let cache: Cached<TestVal> = Cached::new();
+        let val = TestVal::new(9, "ok");
+        cache.store(val.clone());
+        let got = cache.load_or_unavailable("MyCache").expect("must be Ok");
+        assert_eq!(got, val);
+    }
+
+    #[tokio::test]
+    async fn cached_load_or_unavailable_err_when_empty() {
+        let cache: Cached<TestVal> = Cached::new();
+        let err = cache
+            .load_or_unavailable("MyCache")
+            .expect_err("must be Err on empty");
+        match err {
+            AppError::ServiceUnavailable { message } => {
+                assert!(
+                    message.contains("MyCache"),
+                    "message should contain the supplied name, got: {}",
+                    message
+                );
+            }
+            other => panic!("expected ServiceUnavailable, got {:?}", other),
+        }
+    }
+
+    #[tokio::test]
+    async fn cached_concurrent_readers_and_one_writer() {
+        let cache: Arc<Cached<TestVal>> = Arc::new(Cached::new());
+        // Seed initial value so readers don't have to handle None.
+        cache.store(TestVal::new(0, "seed"));
+
+        let saw_panic = Arc::new(AtomicBool::new(false));
+        let mut handles: Vec<tokio::task::JoinHandle<()>> = Vec::new();
+
+        for _ in 0..8 {
+            let cache = cache.clone();
+            let saw_panic = saw_panic.clone();
+            handles.push(tokio::spawn(async move {
+                for _ in 0..100 {
+                    // Touch both getters to exercise arc-swap under contention.
+                    let _ = cache.load();
+                    let _ = cache.is_populated();
+                    if std::thread::panicking() {
+                        saw_panic.store(true, Ordering::SeqCst);
+                    }
+                    tokio::task::yield_now().await;
+                }
+            }));
+        }
+
+        let writer_cache = cache.clone();
+        let writer = tokio::spawn(async move {
+            for i in 1..=50 {
+                writer_cache.store(TestVal::new(i, "w"));
+                tokio::task::yield_now().await;
+            }
+        });
+
+        writer.await.expect("writer panicked");
+        for handle in handles {
+            handle.await.expect("reader panicked");
+        }
+
+        assert!(!saw_panic.load(Ordering::SeqCst));
+        let final_val = cache.load().expect("cache must be populated");
+        assert_eq!(final_val, TestVal::new(50, "w"));
+    }
+
+    #[tokio::test]
+    async fn cached_default_trait_matches_new() {
+        let cache: Cached<TestVal> = Cached::default();
+        assert!(!cache.is_populated());
+        assert!(cache.load().is_none());
+        assert!(cache.age_secs().is_none());
+    }
+
+    // ========================================================================
+    // AppDataCache tests
+    // ========================================================================
+
+    #[tokio::test]
+    async fn app_data_cache_new_all_empty() {
+        let cache = AppDataCache::new();
+        assert!(!cache.app_config.is_populated());
+        assert!(!cache.protocol_contracts.is_populated());
+        assert!(!cache.currencies.is_populated());
+        assert!(!cache.prices.is_populated());
+        assert!(!cache.gated_config.is_populated());
+        assert!(!cache.filter_context.is_populated());
+        assert!(!cache.pools.is_populated());
+        assert!(!cache.validators.is_populated());
+        assert!(!cache.annual_inflation.is_populated());
+        assert!(!cache.staking_pool.is_populated());
+        assert!(!cache.gated_assets.is_populated());
+        assert!(!cache.gated_protocols.is_populated());
+        assert!(!cache.gated_networks.is_populated());
+        assert!(!cache.stats_overview.is_populated());
+        assert!(!cache.loans_stats.is_populated());
+        assert!(!cache.swap_config.is_populated());
+        assert!(!cache.lease_configs.is_populated());
+        assert!(!cache.gas_fee_config.is_populated());
+    }
+
+    #[tokio::test]
+    async fn app_data_cache_default_equivalent_to_new() {
+        let cache = AppDataCache::default();
+        let summary = cache.status_summary();
+        // Default must produce the exact same "all empty" shape as ::new()
+        assert!(!summary.app_config.populated);
+        assert!(!summary.prices.populated);
+        assert!(!summary.gas_fee_config.populated);
+    }
+
+    #[tokio::test]
+    async fn status_summary_reports_all_fields_empty_initially() {
+        let cache = AppDataCache::new();
+        let summary = cache.status_summary();
+
+        let rows = [
+            ("app_config", &summary.app_config),
+            ("protocol_contracts", &summary.protocol_contracts),
+            ("currencies", &summary.currencies),
+            ("prices", &summary.prices),
+            ("gated_config", &summary.gated_config),
+            ("filter_context", &summary.filter_context),
+            ("pools", &summary.pools),
+            ("validators", &summary.validators),
+            ("annual_inflation", &summary.annual_inflation),
+            ("staking_pool", &summary.staking_pool),
+            ("gated_assets", &summary.gated_assets),
+            ("gated_protocols", &summary.gated_protocols),
+            ("gated_networks", &summary.gated_networks),
+            ("stats_overview", &summary.stats_overview),
+            ("loans_stats", &summary.loans_stats),
+            ("swap_config", &summary.swap_config),
+            ("lease_configs", &summary.lease_configs),
+            ("gas_fee_config", &summary.gas_fee_config),
+        ];
+
+        for (expected_name, status) in rows {
+            assert_eq!(status.name, expected_name, "field name mismatch");
+            assert!(
+                !status.populated,
+                "expected {} to be unpopulated",
+                expected_name
+            );
+            assert!(
+                status.age_secs.is_none(),
+                "expected {} age_secs to be None",
+                expected_name
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn status_summary_reports_populated_fields_after_store() {
+        let cache = AppDataCache::new();
+
+        // Populate app_config with a minimal valid response.
+        cache
+            .app_config
+            .store(crate::handlers::config::AppConfigResponse {
+                protocols: std::collections::HashMap::new(),
+                networks: Vec::new(),
+                native_asset: crate::handlers::config::NativeAssetInfo {
+                    ticker: "NLS".into(),
+                    symbol: "NLS".into(),
+                    denom: "unls".into(),
+                    decimal_digits: 6,
+                },
+                contracts: crate::handlers::config::ContractsInfo {
+                    admin: "nolus1admin".into(),
+                    dispatcher: "nolus1disp".into(),
+                },
+            });
+
+        // Populate prices.
+        cache
+            .prices
+            .store(crate::handlers::currencies::PricesResponse {
+                prices: std::collections::HashMap::new(),
+                updated_at: "2026-01-01T00:00:00Z".into(),
+            });
+
+        let summary = cache.status_summary();
+        assert!(summary.app_config.populated);
+        assert!(summary.prices.populated);
+        assert!(!summary.currencies.populated);
+        assert!(!summary.gas_fee_config.populated);
+        assert_eq!(summary.app_config.name, "app_config");
+        assert_eq!(summary.prices.name, "prices");
+    }
+
+    #[tokio::test]
+    async fn status_summary_serializes_to_json() {
+        let cache = AppDataCache::new();
+        let summary = cache.status_summary();
+        let json = serde_json::to_string(&summary).expect("Serialize must succeed");
+        // Spot check that the shape is there.
+        assert!(json.contains("\"app_config\""));
+        assert!(json.contains("\"populated\""));
+        assert!(json.contains("\"age_secs\""));
+    }
+}

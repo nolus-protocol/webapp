@@ -524,3 +524,517 @@ impl ReferralsQuery {
 // ============================================================================
 // Tests
 // ============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wiremock::matchers::{body_partial_json, header, method, path, query_param};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    fn make_config(url: &str, token: &str) -> AppConfig {
+        let mut cfg = crate::test_utils::test_config();
+        cfg.external.referral_api_url = url.to_string();
+        cfg.external.referral_api_token = token.to_string();
+        cfg
+    }
+
+    fn make_client(url: &str, token: &str) -> ReferralClient {
+        let cfg = make_config(url, token);
+        ReferralClient::new(&cfg, Client::new())
+    }
+
+    fn assert_referral_error(err: &AppError) {
+        match err {
+            AppError::ExternalApi { api, .. } => assert_eq!(api, "Referral"),
+            other => panic!("expected ExternalApi Referral error, got {:?}", other),
+        }
+    }
+
+    // ---- 107-109: is_fully_configured ----
+
+    #[test]
+    fn referral_is_fully_configured_true_when_both_set() {
+        let client = make_client("http://host", "token");
+        assert!(client.is_fully_configured());
+    }
+
+    #[test]
+    fn referral_is_fully_configured_false_when_url_empty() {
+        let client = make_client("", "token");
+        assert!(!client.is_fully_configured());
+    }
+
+    #[test]
+    fn referral_is_fully_configured_false_when_token_empty() {
+        let client = make_client("http://host", "");
+        assert!(!client.is_fully_configured());
+    }
+
+    // ---- 110: validate_code success ----
+
+    #[tokio::test]
+    async fn referral_validate_code_success() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrals/validate/ABC123"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "valid": true,
+                    "referral_code": "ABC123",
+                    "referrer_wallet": "nolus1abc"
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let resp = client.validate_code("ABC123").await.unwrap();
+        assert!(resp.valid);
+        assert_eq!(resp.referral_code.as_deref(), Some("ABC123"));
+        assert_eq!(resp.referrer_wallet.as_deref(), Some("nolus1abc"));
+    }
+
+    // ---- 111: missing data + error message ----
+
+    #[tokio::test]
+    async fn referral_validate_code_extracts_none_on_missing_data() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrals/validate/XYZ"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": null,
+                "error": "bad code"
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.validate_code("XYZ").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { api, message } => {
+                assert_eq!(api, "Referral");
+                assert_eq!(message, "bad code");
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    // ---- 112: bearer token header ----
+
+    #[tokio::test]
+    async fn referral_bearer_token_attached_on_authenticated_calls() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/stats"))
+            .and(header("authorization", "Bearer tkn"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "referrer": {
+                        "wallet_address": "nolus1abc",
+                        "referral_code": "ABC",
+                        "tier": "general",
+                        "status": "active",
+                        "created_at": "2026-01-01"
+                    },
+                    "stats": {
+                        "total_referrals": 0,
+                        "active_referrals": 0,
+                        "total_rewards_earned": "0",
+                        "total_rewards_paid": "0",
+                        "pending_rewards": "0",
+                        "rewards_denom": "unls",
+                        "bonus_rewards_earned": 0,
+                        "bonus_rewards_paid": 0,
+                        "total_bonus_amount_earned": "0",
+                        "total_bonus_amount_paid": "0"
+                    }
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let resp = client.get_referrer_stats("nolus1abc").await.unwrap();
+        assert_eq!(resp.referrer.wallet_address, "nolus1abc");
+    }
+
+    // ---- 113: 401 error ----
+
+    #[tokio::test]
+    async fn referral_401_returns_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/stats"))
+            .respond_with(ResponseTemplate::new(401).set_body_string("unauthorized"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.get_referrer_stats("nolus1abc").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { api, message } => {
+                assert_eq!(api, "Referral");
+                assert!(message.contains("HTTP 401"), "msg: {}", message);
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    // ---- 114: register_referrer POST body ----
+
+    #[tokio::test]
+    async fn referral_register_referrer_posts_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrers/register"))
+            .and(body_partial_json(
+                serde_json::json!({ "wallet_address": "nolus1abc" }),
+            ))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "wallet_address": "nolus1abc",
+                    "referral_code": "NEW123",
+                    "tier": "general",
+                    "created_at": "2026-01-01",
+                    "already_registered": false
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let resp = client.register_referrer("nolus1abc").await.unwrap();
+        assert_eq!(resp.referral_code, "NEW123");
+    }
+
+    // ---- 115-116: get_referrer_stats ----
+
+    #[tokio::test]
+    async fn referral_get_referrer_stats_success() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/stats"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "referrer": {
+                        "wallet_address": "nolus1abc",
+                        "referral_code": "CDE",
+                        "tier": "premium",
+                        "status": "active",
+                        "created_at": "2026-01-01"
+                    },
+                    "stats": {
+                        "total_referrals": 5,
+                        "active_referrals": 3,
+                        "total_rewards_earned": "100",
+                        "total_rewards_paid": "50",
+                        "pending_rewards": "50",
+                        "rewards_denom": "unls",
+                        "bonus_rewards_earned": 0,
+                        "bonus_rewards_paid": 0,
+                        "total_bonus_amount_earned": "0",
+                        "total_bonus_amount_paid": "0"
+                    }
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let resp = client.get_referrer_stats("nolus1abc").await.unwrap();
+        assert_eq!(resp.stats.total_referrals, 5);
+    }
+
+    #[tokio::test]
+    async fn referral_get_referrer_stats_malformed_json() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/stats"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("{bad"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.get_referrer_stats("nolus1abc").await.unwrap_err();
+        assert_referral_error(&err);
+    }
+
+    // ---- 117-118: get_referrals query params ----
+
+    #[tokio::test]
+    async fn referral_get_referrals_with_query_params() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/referrals"))
+            .and(query_param("status", "active"))
+            .and(query_param("limit", "10"))
+            .and(query_param("offset", "20"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "referrals": [],
+                    "total": 0,
+                    "limit": 10,
+                    "offset": 20
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let query = ReferralsQuery {
+            status: Some(ReferralStatus::Active),
+            limit: Some(10),
+            offset: Some(20),
+        };
+        let resp = client.get_referrals("nolus1abc", query).await.unwrap();
+        assert_eq!(resp.limit, 10);
+    }
+
+    #[tokio::test]
+    async fn referral_get_referrals_without_query_params() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/referrals"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "referrals": [],
+                    "total": 0,
+                    "limit": 0,
+                    "offset": 0
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let resp = client
+            .get_referrals("nolus1abc", ReferralsQuery::default())
+            .await
+            .unwrap();
+        assert_eq!(resp.total, 0);
+
+        let received = server.received_requests().await.unwrap();
+        assert_eq!(received.len(), 1);
+        assert!(
+            received[0].url.query().is_none_or(str::is_empty),
+            "URL should have no query string, got: {:?}",
+            received[0].url.query()
+        );
+    }
+
+    // ---- 119: assign_referral success ----
+
+    #[tokio::test]
+    async fn referral_assign_referral_success() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrals/assign"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "id": 1,
+                    "referrer_wallet": "nolus1ref",
+                    "referred_wallet": "nolus1new",
+                    "referral_code": "CODE",
+                    "assigned_at": "2026-01-01"
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let resp = client.assign_referral("CODE", "nolus1new").await.unwrap();
+        assert_eq!(resp.id, 1);
+    }
+
+    // ---- 120-124: assign_referral error mapping ----
+
+    #[tokio::test]
+    async fn referral_assign_referral_409_already_assigned_maps_to_specific_message() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrals/assign"))
+            .respond_with(ResponseTemplate::new(409).set_body_string("wallet already assigned"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.assign_referral("CODE", "nolus1x").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { message, .. } => {
+                assert_eq!(message, "Wallet already has a referrer");
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    #[tokio::test]
+    async fn referral_assign_referral_409_self_referral_maps_to_specific_message() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrals/assign"))
+            .respond_with(ResponseTemplate::new(409).set_body_string("Self-referral not allowed"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.assign_referral("CODE", "nolus1x").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { message, .. } => {
+                assert_eq!(message, "Cannot refer yourself");
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    #[tokio::test]
+    async fn referral_assign_referral_409_already_referrer_maps_to_specific_message() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrals/assign"))
+            .respond_with(ResponseTemplate::new(409).set_body_string("already referrer"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.assign_referral("CODE", "nolus1x").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { message, .. } => {
+                assert_eq!(message, "Wallet is already a referrer");
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    #[tokio::test]
+    async fn referral_assign_referral_404_maps_to_code_not_found() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrals/assign"))
+            .respond_with(ResponseTemplate::new(404).set_body_string("nope"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.assign_referral("CODE", "nolus1x").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { message, .. } => {
+                assert_eq!(message, "Referral code not found");
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    #[tokio::test]
+    async fn referral_assign_referral_other_error_uses_generic_message() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrals/assign"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("oops"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.assign_referral("CODE", "nolus1x").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { message, .. } => {
+                assert!(
+                    message.contains("API error: 500") && message.contains("oops"),
+                    "msg: {}",
+                    message
+                );
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    // ---- 125: malformed success body ----
+
+    #[tokio::test]
+    async fn referral_assign_referral_malformed_success_body() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/referrals/assign"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("{bad json"))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let err = client.assign_referral("CODE", "nolus1x").await.unwrap_err();
+        match err {
+            AppError::ExternalApi { message, .. } => {
+                assert!(
+                    message.contains("Failed to parse response"),
+                    "msg: {}",
+                    message
+                );
+            }
+            other => panic!("got {:?}", other),
+        }
+    }
+
+    // ---- 126-127: rewards/payouts query params ----
+
+    #[tokio::test]
+    async fn referral_get_referrer_rewards_applies_query_params() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/rewards"))
+            .and(query_param("status", "pending"))
+            .and(query_param("limit", "5"))
+            .and(query_param("offset", "0"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "rewards": [],
+                    "total": 0,
+                    "limit": 5,
+                    "offset": 0
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let query = RewardsQuery {
+            status: Some(RewardStatus::Pending),
+            limit: Some(5),
+            offset: Some(0),
+        };
+        let resp = client
+            .get_referrer_rewards("nolus1abc", query)
+            .await
+            .unwrap();
+        assert_eq!(resp.limit, 5);
+    }
+
+    #[tokio::test]
+    async fn referral_get_referrer_payouts_applies_query_params() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/api/referrers/nolus1abc/payouts"))
+            .and(query_param("status", "confirmed"))
+            .and(query_param("limit", "3"))
+            .and(query_param("offset", "7"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "data": {
+                    "payouts": [],
+                    "total": 0,
+                    "limit": 3,
+                    "offset": 7
+                }
+            })))
+            .mount(&server)
+            .await;
+
+        let client = make_client(&server.uri(), "tkn");
+        let query = PayoutsQuery {
+            status: Some(PayoutStatus::Confirmed),
+            limit: Some(3),
+            offset: Some(7),
+        };
+        let resp = client
+            .get_referrer_payouts("nolus1abc", query)
+            .await
+            .unwrap();
+        assert_eq!(resp.offset, 7);
+    }
+}
