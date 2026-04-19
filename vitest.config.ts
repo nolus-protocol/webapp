@@ -25,13 +25,16 @@ export default mergeConfig(
           "src/config/global/**"
         ],
         thresholds: {
-          // Phase 4 global floors — actuals now ~20.95/89.8/71.71/20.95 after
-          // wallet + signing tests landed. Keep floors just below actuals to
-          // catch regressions; ratchet up as more surface is covered.
-          lines: 20,
-          branches: 88,
+          // Phase 6 global floors — actuals now ~27.24/86.46/71.16/27.24 after
+          // Vue component smoke tests + router tests landed. Lines/statements
+          // jumped from ~20 to ~27 (more surface covered); branches dipped
+          // because large untested .vue files drag branch % down. Keep floors
+          // just below actuals to catch regressions; ratchet up as more
+          // surface is covered.
+          lines: 27,
+          branches: 86,
           functions: 70,
-          statements: 20,
+          statements: 27,
           // Per-file floors for Phase 1 target files (utils + api)
           "src/common/utils/LeaseCalculator.ts": {
             lines: 85,
@@ -218,6 +221,58 @@ export default mergeConfig(
             lines: 75,
             branches: 85,
             functions: 65,
+            statements: 75
+          },
+          // Per-file floors for Phase 6 Vue component + router smoke tests.
+          // Components are large and heavily store-dependent — smoke tests
+          // cover render, validation, submit path; deeper branches are
+          // intentionally out of scope. Floors sit just below current actuals.
+          "src/modules/stake/components/RedelegateButton.vue": {
+            lines: 80,
+            branches: 85,
+            functions: 95,
+            statements: 80
+          },
+          "src/modules/stake/components/DelegateForm.vue": {
+            lines: 80,
+            branches: 65,
+            functions: 95,
+            statements: 80
+          },
+          "src/modules/stake/components/UndelegateForm.vue": {
+            lines: 90,
+            branches: 70,
+            functions: 95,
+            statements: 90
+          },
+          "src/modules/vote/components/VoteDialog.vue": {
+            lines: 90,
+            branches: 85,
+            functions: 75,
+            statements: 90
+          },
+          "src/modules/leases/components/NewLease.vue": {
+            lines: 95,
+            branches: 95,
+            functions: 95,
+            statements: 95
+          },
+          "src/modules/leases/components/single-lease/CloseDialog.vue": {
+            lines: 55,
+            branches: 50,
+            functions: 45,
+            statements: 55
+          },
+          "src/modules/leases/components/single-lease/RepayDialog.vue": {
+            lines: 45,
+            branches: 60,
+            functions: 30,
+            statements: 45
+          },
+          "src/router/index.ts": {
+            lines: 75,
+            branches: 70,
+            functions: 70,
             statements: 75
           }
         }
