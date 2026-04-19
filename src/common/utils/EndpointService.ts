@@ -26,7 +26,9 @@ export async function fetchEndpoints(network: string): Promise<API> {
 
   // Fetch and cache
   const endpointPromise = fetchCosmosEndpoint(network);
-  endpointPromise.catch(() => { delete endpointCache[network]; });
+  endpointPromise.catch(() => {
+    delete endpointCache[network];
+  });
   endpointCache[network] = endpointPromise;
 
   return endpointPromise;

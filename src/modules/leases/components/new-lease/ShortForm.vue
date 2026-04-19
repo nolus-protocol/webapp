@@ -2,7 +2,7 @@
   <div
     class="flex w-full flex-1 flex-col self-start rounded-xl border border-border-default bg-neutral-bg-2 shadow-larger"
   >
-    <div class="flex rounded-tl-xl rounded-tr-xl bg-border-default gap-px">
+    <div class="flex gap-px rounded-tl-xl rounded-tr-xl bg-border-default">
       <Radio
         v-for="(tab, index) in tabs"
         :key="index"
@@ -10,7 +10,7 @@
         ref="radioRefs"
         :class="[
           {
-            'bg-neutral-bg-2 border-transparent': activeTabIdx === index,
+            'border-transparent bg-neutral-bg-2': activeTabIdx === index,
             'border-border-default': activeTabIdx !== index,
             'bg-neutral-bg-2': activeTabIdx === index,
             'rounded-tl-xl': index === 0,

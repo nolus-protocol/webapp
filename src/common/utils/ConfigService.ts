@@ -22,7 +22,9 @@ let proposalsConfigCache: Promise<ProposalsConfigType> | null = null;
 export async function getSkipRouteConfig(): Promise<SkipRouteConfigType> {
   if (!skipRouteConfigCache) {
     const promise = fetchSkipRouteConfig();
-    promise.catch(() => { skipRouteConfigCache = null; });
+    promise.catch(() => {
+      skipRouteConfigCache = null;
+    });
     skipRouteConfigCache = promise;
   }
   return skipRouteConfigCache;
@@ -34,7 +36,9 @@ export async function getSkipRouteConfig(): Promise<SkipRouteConfigType> {
 export async function getProposalsConfig(): Promise<ProposalsConfigType> {
   if (!proposalsConfigCache) {
     const promise = fetchProposalsConfig();
-    promise.catch(() => { proposalsConfigCache = null; });
+    promise.catch(() => {
+      proposalsConfigCache = null;
+    });
     proposalsConfigCache = promise;
   }
   return proposalsConfigCache;
