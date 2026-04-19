@@ -25,14 +25,14 @@ export default mergeConfig(
           "src/config/global/**"
         ],
         thresholds: {
-          // Phase 1 global floors — set just below current actuals (5.43% / 87.15% / 79.41% / 5.43%)
-          // to catch regressions without fighting routine changes. Phases 2+ ratchet these up
+          // Phase 3 global floors — set just below current actuals (15.71% / 89.84% / 64.21% / 15.71%)
+          // to catch regressions without fighting routine changes. Phases 4+ ratchet these up
           // as more source surface gets covered.
-          lines: 5,
-          branches: 80,
-          functions: 70,
-          statements: 5,
-          // Per-file floors for the Phase 1 target files
+          lines: 14,
+          branches: 88,
+          functions: 63,
+          statements: 14,
+          // Per-file floors for Phase 1 target files (utils + api)
           "src/common/utils/LeaseCalculator.ts": {
             lines: 85,
             branches: 80,
@@ -74,6 +74,75 @@ export default mergeConfig(
             branches: 70,
             functions: 90,
             statements: 75
+          },
+          // Per-file floors for Phase 3 Pinia stores.
+          // Small/medium stores — at or near 100%.
+          "src/common/stores/connection/index.ts": {
+            lines: 95,
+            branches: 95,
+            functions: 95,
+            statements: 95
+          },
+          "src/common/stores/wallet/index.ts": {
+            lines: 95,
+            branches: 95,
+            functions: 95,
+            statements: 95
+          },
+          "src/common/stores/prices/index.ts": {
+            lines: 95,
+            branches: 95,
+            functions: 95,
+            statements: 95
+          },
+          "src/common/stores/staking/index.ts": {
+            lines: 95,
+            branches: 85,
+            functions: 95,
+            statements: 95
+          },
+          "src/common/stores/earn/index.ts": {
+            lines: 95,
+            branches: 85,
+            functions: 95,
+            statements: 95
+          },
+          "src/common/stores/balances/index.ts": {
+            lines: 90,
+            branches: 90,
+            functions: 95,
+            statements: 90
+          },
+          "src/common/stores/leases/index.ts": {
+            lines: 80,
+            branches: 80,
+            functions: 70,
+            statements: 80
+          },
+          // Large stores — intentionally lower floors; breadth-over-depth.
+          "src/common/stores/config/index.ts": {
+            lines: 65,
+            branches: 80,
+            functions: 35,
+            statements: 65
+          },
+          "src/common/stores/history/index.ts": {
+            lines: 85,
+            branches: 85,
+            functions: 85,
+            statements: 85
+          },
+          "src/common/stores/stats/index.ts": {
+            lines: 80,
+            branches: 85,
+            functions: 60,
+            statements: 80
+          },
+          "src/common/stores/analytics/index.ts": {
+            lines: 70,
+            branches: 70,
+            functions: 55,
+            statements: 70
           }
         }
       }
