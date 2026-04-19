@@ -141,9 +141,7 @@ describe("WalletFactory", () => {
   describe("authenticateKeplr", () => {
     it("throws when Keplr is not installed", async () => {
       walletUtilsMock.getKeplr.mockResolvedValue(undefined);
-      await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(
-        /Keplr wallet is not installed/
-      );
+      await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(/Keplr wallet is not installed/);
     });
 
     it("throws when Keplr lacks experimentalSuggestChain", async () => {
@@ -151,9 +149,7 @@ describe("WalletFactory", () => {
         getOfflineSignerAuto: vi.fn(),
         experimentalSuggestChain: undefined
       });
-      await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(
-        /version is not latest/
-      );
+      await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(/version is not latest/);
     });
 
     it("wraps network fetch failures with 'Failed to fetch suggest chain.'", async () => {
@@ -163,9 +159,7 @@ describe("WalletFactory", () => {
         enable: vi.fn()
       });
 
-      await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(
-        /Failed to fetch suggest chain/
-      );
+      await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(/Failed to fetch suggest chain/);
     });
 
     it("happy path: suggestChain + enable + builds a BaseWallet with the right args", async () => {
@@ -205,9 +199,7 @@ describe("WalletFactory", () => {
   describe("authenticateLeap", () => {
     it("throws when Leap is not installed (label reflects leap)", async () => {
       walletUtilsMock.getLeap.mockResolvedValue(undefined);
-      await expect(authenticateLeap(fakeWallet(), fakeNetwork())).rejects.toThrow(
-        /Leap wallet is not installed/
-      );
+      await expect(authenticateLeap(fakeWallet(), fakeNetwork())).rejects.toThrow(/Leap wallet is not installed/);
     });
 
     it("happy path builds a BaseWallet", async () => {

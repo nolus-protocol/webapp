@@ -19,51 +19,45 @@ vi.hoisted(() => {
 
 // Mock the heavy parent class before importing. We track calls to super()
 // constructor args via `superCtorArgs`.
-const {
-  superCtorArgs,
-  superSendTokens,
-  superGetSequence,
-  superGetChainId,
-  withExtensionsMock,
-  encodeMock
-} = vi.hoisted(() => ({
-  superCtorArgs: vi.fn(),
-  superSendTokens: vi.fn(),
-  superGetSequence: vi.fn(),
-  superGetChainId: vi.fn(),
-  withExtensionsMock: vi.fn(),
-  encodeMock: vi.fn((_obj: unknown) => new Uint8Array([1, 2, 3, 4]))
-}));
+const { superCtorArgs, superSendTokens, superGetSequence, superGetChainId, withExtensionsMock, encodeMock } =
+  vi.hoisted(() => ({
+    superCtorArgs: vi.fn(),
+    superSendTokens: vi.fn(),
+    superGetSequence: vi.fn(),
+    superGetChainId: vi.fn(),
+    withExtensionsMock: vi.fn(),
+    encodeMock: vi.fn((_obj: unknown) => new Uint8Array([1, 2, 3, 4]))
+  }));
 
 vi.mock("@cosmjs/cosmwasm-stargate", async (orig) => {
   const actual: Record<string, unknown> = await (orig as () => Promise<Record<string, unknown>>)();
   return {
     ...actual,
     SigningCosmWasmClient: class {
-    registry = { encode: encodeMock, encodeAsAny: (msg: unknown) => ({ encoded: msg }) };
-    aminoTypes = {
-      toAmino: (m: { value: unknown }) => ({ type: "amino-msg", value: m.value }),
-      fromAmino: (m: { value: unknown }) => ({ typeUrl: "/x", value: m.value })
-    };
-    constructor(...args: unknown[]) {
-      superCtorArgs(...args);
-    }
-    async sendTokens(...args: unknown[]) {
-      return superSendTokens(...args);
-    }
-    async getSequence(...args: unknown[]) {
-      return superGetSequence(...args);
-    }
-    async getChainId(...args: unknown[]) {
-      return superGetChainId(...args);
-    }
-    forceGetQueryClient() {
-      return {
-        tx: {
-          simulate: vi.fn().mockResolvedValue({ gasInfo: { gasUsed: 100000n } })
-        }
+      registry = { encode: encodeMock, encodeAsAny: (msg: unknown) => ({ encoded: msg }) };
+      aminoTypes = {
+        toAmino: (m: { value: unknown }) => ({ type: "amino-msg", value: m.value }),
+        fromAmino: (m: { value: unknown }) => ({ typeUrl: "/x", value: m.value })
       };
-    }
+      constructor(...args: unknown[]) {
+        superCtorArgs(...args);
+      }
+      async sendTokens(...args: unknown[]) {
+        return superSendTokens(...args);
+      }
+      async getSequence(...args: unknown[]) {
+        return superGetSequence(...args);
+      }
+      async getChainId(...args: unknown[]) {
+        return superGetChainId(...args);
+      }
+      forceGetQueryClient() {
+        return {
+          tx: {
+            simulate: vi.fn().mockResolvedValue({ gasInfo: { gasUsed: 100000n } })
+          }
+        };
+      }
     }
   };
 });
@@ -227,9 +221,11 @@ describe("BaseWallet", () => {
       const bw = buildBaseWallet(directSigner as unknown as OfflineSigner);
       await bw.useAccount();
       // For getAccount in sequence() - patched via queryClientBase auth
-      const queryAuth = (bw as unknown as {
-        queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
-      }).queryClientBase.auth;
+      const queryAuth = (
+        bw as unknown as {
+          queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
+        }
+      ).queryClientBase.auth;
       queryAuth.account.mockResolvedValue({
         typeUrl: "/cosmos.auth.v1beta1.BaseAccount",
         value: new Uint8Array()
@@ -238,12 +234,7 @@ describe("BaseWallet", () => {
       const bwAny = bw as unknown as { getAccount: (a: string) => Promise<unknown> };
       bwAny.getAccount = vi.fn().mockResolvedValue({ sequence: 0, accountNumber: 1 });
 
-      const out = await bw.simulateBankTransferTx(
-        "nolus1to",
-        [{ denom: "unls", amount: "100" }],
-        1.2,
-        "0.025unls"
-      );
+      const out = await bw.simulateBankTransferTx("nolus1to", [{ denom: "unls", amount: "100" }], 1.2, "0.025unls");
       expect(out).toHaveProperty("txHash");
       expect(out).toHaveProperty("txBytes");
       expect(out).toHaveProperty("usedFee");
@@ -277,27 +268,33 @@ describe("BaseWallet", () => {
   describe("getAccount", () => {
     it("returns null when the rpc error is 'NotFound'", async () => {
       const bw = buildBaseWallet();
-      const queryAuth = (bw as unknown as {
-        queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
-      }).queryClientBase.auth;
+      const queryAuth = (
+        bw as unknown as {
+          queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
+        }
+      ).queryClientBase.auth;
       queryAuth.account.mockRejectedValue(new Error("rpc error: code = NotFound"));
       await expect(bw.getAccount("nolus1addr")).resolves.toBeNull();
     });
 
     it("rethrows non-NotFound errors", async () => {
       const bw = buildBaseWallet();
-      const queryAuth = (bw as unknown as {
-        queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
-      }).queryClientBase.auth;
+      const queryAuth = (
+        bw as unknown as {
+          queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
+        }
+      ).queryClientBase.auth;
       queryAuth.account.mockRejectedValue(new Error("internal boom"));
       await expect(bw.getAccount("nolus1addr")).rejects.toThrow(/internal boom/);
     });
 
     it("returns null for a missing account (undefined response)", async () => {
       const bw = buildBaseWallet();
-      const queryAuth = (bw as unknown as {
-        queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
-      }).queryClientBase.auth;
+      const queryAuth = (
+        bw as unknown as {
+          queryClientBase: { auth: { account: ReturnType<typeof vi.fn> } };
+        }
+      ).queryClientBase.auth;
       queryAuth.account.mockResolvedValue(undefined);
       await expect(bw.getAccount("nolus1addr")).resolves.toBeNull();
     });
@@ -319,7 +316,7 @@ describe("BaseWallet", () => {
         "memo"
       );
       expect(txRaw).toBeDefined();
-      expect((signer.signAmino as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+      expect(signer.signAmino as ReturnType<typeof vi.fn>).toHaveBeenCalledTimes(1);
     });
 
     it("uses the DIRECT path when signer implements signDirect", async () => {
@@ -335,20 +332,18 @@ describe("BaseWallet", () => {
         { amount: [{ denom: "unls", amount: "1" }], gas: "100000" },
         "memo"
       );
-      expect((signer.signDirect as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
+      expect(signer.signDirect as ReturnType<typeof vi.fn>).toHaveBeenCalledTimes(1);
     });
 
     it("uses explicitSignerData when provided (skipping getSequence/getChainId)", async () => {
       const signer = fakeDirectSigner();
       const bw = buildBaseWallet(signer as unknown as OfflineSigner);
       await bw.useAccount();
-      await bw.sign(
-        "nolus1addr",
-        [{ typeUrl: "/x", value: {} }],
-        { amount: [], gas: "1" },
-        "",
-        { accountNumber: 42, sequence: 99, chainId: "custom-chain" }
-      );
+      await bw.sign("nolus1addr", [{ typeUrl: "/x", value: {} }], { amount: [], gas: "1" }, "", {
+        accountNumber: 42,
+        sequence: 99,
+        chainId: "custom-chain"
+      });
       // getSequence / getChainId not called
       expect(superGetSequence).not.toHaveBeenCalled();
       expect(superGetChainId).not.toHaveBeenCalled();
