@@ -1,21 +1,27 @@
 {
-  "name": "Nolus Protocol MCP Server",
-  "description": "Model Context Protocol server exposing Nolus Protocol query tools (prices, leases, pools, oracle, wallet balances) and unsigned transaction builders. Distributed as a stdio MCP server via the @nolus/nolusjs npm package — users install and run locally.",
-  "version": "1.0.0",
-  "transport": "stdio",
-  "repository": "https://github.com/nolus-protocol/nolus.js",
-  "documentation": "https://github.com/nolus-protocol/nolus.js#mcp-server",
-  "install": {
-    "registry": "npm",
-    "package": "@nolus/nolusjs",
-    "command": "npx",
-    "args": ["tsx", "node_modules/@nolus/nolusjs/src/mcp/server.ts"]
+  "serverInfo": {
+    "name": "Nolus Protocol MCP Server",
+    "version": "1.0.0"
+  },
+  "description": "Model Context Protocol server exposing Nolus Protocol query tools (prices, leases, pools, oracle, wallet balances) and unsigned transaction builders. Distributed as a stdio MCP server via the @nolus/nolusjs npm package — users install and run locally; there is no hosted HTTP endpoint.",
+  "transport": {
+    "type": "stdio",
+    "install": {
+      "registry": "npm",
+      "package": "@nolus/nolusjs",
+      "command": "npx",
+      "args": ["tsx", "node_modules/@nolus/nolusjs/src/mcp/server.ts"]
+    }
   },
   "capabilities": {
-    "tools": true,
-    "resources": false,
-    "prompts": false
+    "tools": {
+      "listChanged": false
+    },
+    "resources": {},
+    "prompts": {}
   },
+  "repository": "https://github.com/nolus-protocol/nolus.js",
+  "documentation": "https://github.com/nolus-protocol/nolus.js#mcp-server",
   "networks": {
     "mainnet": {
       "name": "Pirin",

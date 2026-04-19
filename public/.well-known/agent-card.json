@@ -1,13 +1,28 @@
 {
   "name": "Nolus Webapp Backend",
-  "description": "Public REST API for the Nolus Protocol webapp (app.nolus.io). Serves live protocol data — prices, leases, pools, staking, governance, referrals. Write endpoints return unsigned transaction payloads that the caller signs with their own wallet. For programmatic invocation, see the OpenAPI document at /api/openapi.json.",
+  "version": "1.0.0",
+  "description": "Public REST API for the Nolus Protocol webapp (app.nolus.io). Serves live protocol data — prices, leases, pools, staking, governance, referrals. Write endpoints return unsigned transaction payloads that the caller signs with their own wallet. The authoritative machine-readable contract is the OpenAPI 3.1 document at /api/openapi.json.",
   "url": "https://app.nolus.io/",
   "provider": {
     "organization": "Nolus Protocol",
     "url": "https://nolus.io/"
   },
-  "version": "1.0.0",
   "documentationUrl": "https://app.nolus.io/api/openapi.json",
+  "supportedInterfaces": [
+    {
+      "url": "https://app.nolus.io/api/",
+      "transport": "https",
+      "protocol": "rest",
+      "description": "REST API (OpenAPI 3.1)",
+      "contentType": "application/json"
+    },
+    {
+      "url": "wss://app.nolus.io/ws",
+      "transport": "wss",
+      "protocol": "websocket",
+      "description": "Real-time price and position updates"
+    }
+  ],
   "capabilities": {
     "streaming": true,
     "pushNotifications": false,
