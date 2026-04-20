@@ -269,6 +269,42 @@ describe("WithdrawForm.vue", () => {
     });
   });
 
+  describe("empty assets guard in validation path — bug #5", () => {
+    beforeEach(() => {
+      hoisted.configRef.getActiveProtocolsForNetwork = vi.fn(() => []);
+    });
+
+    it("onInput → validateInputs does not throw when assets is empty", async () => {
+      const wrapper = factory();
+      const vm = wrapper.vm as unknown as {
+        assets: unknown[];
+        error: string;
+      };
+      expect(vm.assets).toEqual([]);
+      // Typing into the amount input used to crash on `currency.balance.value`
+      // when assets was empty. With the guard, error surfaces as invalid-amount.
+      expect(() => wrapper.find('[data-test="amount"]').setValue("100")).not.toThrow();
+      await nextTick();
+      expect(wrapper.exists()).toBe(true);
+      expect(vm.error).toBe("message.invalid-amount");
+      wrapper.unmount();
+    });
+
+    it("clicking submit with empty assets does not crash and does not broadcast", async () => {
+      const wrapper = factory();
+      const vm = wrapper.vm as unknown as { input: string };
+      vm.input = "50";
+      await nextTick();
+      // onNextClick → validateInputs (bug #5a) → onValidateAmount (bug #5b).
+      // Without the guards, either would throw reading `assets[selected].value`.
+      await expect(wrapper.find('[data-test="submit"]').trigger("click")).resolves.not.toThrow();
+      await new Promise((r) => setTimeout(r, 0));
+      await nextTick();
+      expect(hoisted.broadcastTx).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+  });
+
   describe("missing LPN balance guard in transferAmount — bug #4", () => {
     it("shows an error toast and aborts when matching lpn balance is missing", async () => {
       const toast = vi.fn();

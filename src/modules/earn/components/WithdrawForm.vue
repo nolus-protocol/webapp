@@ -254,8 +254,13 @@ async function onNextClick() {
 }
 
 async function onValidateAmount() {
+  const asset = assets.value[selectedCurrency.value];
+  if (!asset) {
+    error.value = i18n.t("message.invalid-amount");
+    return;
+  }
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
+  const currency = configStore.currenciesData![asset.value];
   const [_currency, protocol] = currency.key.split("@");
   const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
   const data = await lppClient.getLppBalance();
@@ -328,6 +333,10 @@ function onSelect(event: AdvancedCurrencyFieldOption) {
 
 function validateInputs() {
   const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    error.value = i18n.t("message.invalid-amount");
+    return error.value;
+  }
   error.value = validateAmountV2(input.value, currency.balance.value);
   return error.value;
 }

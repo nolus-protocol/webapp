@@ -218,6 +218,7 @@ vi.mock("@/common/components/MultipleCurrencyComponent.vue", () => ({
 }));
 
 import { mount, flushPromises } from "@vue/test-utils";
+import { SkipRouter } from "@/common/utils/SkipRoute";
 import SwapForm from "./SwapForm.vue";
 
 type ShowToastPayload = { type: string; message: string };
@@ -410,6 +411,135 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
         type: "error",
         message: "message.swap-currency-not-available"
       });
+      wrapper.unmount();
+    });
+  });
+
+  // These tests cover the success paths for functions whose `!` non-null
+  // assertions were removed and replaced with local-const narrowing:
+  // updateRoute, updateSwapToRoute, setRoute (via debounced setTimeout),
+  // validateInputs, validateSwapToInputs.
+  describe("success paths after narrowing removed `!` assertions", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      (SkipRouter.getRoute as ReturnType<typeof vi.fn>).mockReset();
+      (SkipRouter.getRoute as ReturnType<typeof vi.fn>).mockResolvedValue({
+        amount_in: "1000000",
+        amount_out: "1000000",
+        swap_price_impact_percent: "0.1",
+        chain_ids: []
+      });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("updateRoute: picks a valid first currency and schedules a route fetch", async () => {
+      const wrapper = factory();
+      await flushPromises();
+
+      // Default init wires up selectedFirstCurrencyOption + selectedSecondCurrencyOption.
+      // Fire a valid 'on-first-change' to drive updateAmount -> updateRoute.
+      const mcc = wrapper.findComponent({ name: "MultipleCurrencyComponent" });
+      mcc.vm.$emit("on-first-change", {
+        input: { value: "5" },
+        currency: { value: "OSMO@OSMOSIS" },
+        type: "select"
+      });
+      await flushPromises();
+
+      // setRoute uses a 600ms debounce via setTimeout. Advance the fake timer.
+      await vi.advanceTimersByTimeAsync(700);
+      await flushPromises();
+
+      expect(SkipRouter.getRoute).toHaveBeenCalled();
+      const args = (SkipRouter.getRoute as ReturnType<typeof vi.fn>).mock.calls[0];
+      // first 2 args are ibcData of the two selected currencies
+      expect(args[0]).toBe("ibc/OSMO");
+      expect(args[1]).toBe("ibc/USDC");
+      // revert flag
+      expect(args[3]).toBe(false);
+      wrapper.unmount();
+    });
+
+    it("updateSwapToRoute: input event on second currency triggers reverted route fetch", async () => {
+      const wrapper = factory();
+      await flushPromises();
+
+      const mcc = wrapper.findComponent({ name: "MultipleCurrencyComponent" });
+      mcc.vm.$emit("on-second-change", {
+        input: { value: "3" },
+        currency: { value: "USDC@OSMOSIS" },
+        type: "input"
+      });
+      await flushPromises();
+
+      await vi.advanceTimersByTimeAsync(700);
+      await flushPromises();
+
+      expect(SkipRouter.getRoute).toHaveBeenCalled();
+      const args = (SkipRouter.getRoute as ReturnType<typeof vi.fn>).mock.calls[0];
+      expect(args[0]).toBe("ibc/OSMO");
+      expect(args[1]).toBe("ibc/USDC");
+      // revert flag is true for updateSwapToRoute path
+      expect(args[3]).toBe(true);
+      wrapper.unmount();
+    });
+
+    it("setRoute: completes without throwing when both refs are defined", async () => {
+      const wrapper = factory();
+      await flushPromises();
+
+      const mcc = wrapper.findComponent({ name: "MultipleCurrencyComponent" });
+      mcc.vm.$emit("on-first-change", {
+        input: { value: "5" },
+        currency: { value: "OSMO@OSMOSIS" },
+        type: "select"
+      });
+      await flushPromises();
+
+      // Drive the debounced setRoute callback to completion.
+      await vi.advanceTimersByTimeAsync(700);
+      await flushPromises();
+
+      // No logged errors on the happy path (apart from any unrelated ones).
+      const loggedSwapRouteError = hoisted.loggerErrorMock.mock.calls.some((c) => String(c[0] ?? "").includes("route"));
+      expect(loggedSwapRouteError).toBe(false);
+      wrapper.unmount();
+    });
+
+    it("validateInputs / validateSwapToInputs: guarded entry returns empty error for valid refs", async () => {
+      const wrapper = factory();
+      await flushPromises();
+
+      // Default validateAmountV2Mock returns "". Emitting the valid events
+      // exercises updateRoute -> validateInputs (success path).
+      const mcc = wrapper.findComponent({ name: "MultipleCurrencyComponent" });
+      mcc.vm.$emit("on-first-change", {
+        input: { value: "5" },
+        currency: { value: "OSMO@OSMOSIS" },
+        type: "select"
+      });
+      await flushPromises();
+      await vi.advanceTimersByTimeAsync(700);
+      await flushPromises();
+
+      // validateAmountV2 was called (proves validateInputs ran past the guard).
+      expect(hoisted.validateAmountV2Mock).toHaveBeenCalled();
+
+      // Now exercise validateSwapToInputs via an 'input' event on the second side.
+      hoisted.validateAmountV2Mock.mockClear();
+      mcc.vm.$emit("on-second-change", {
+        input: { value: "3" },
+        currency: { value: "USDC@OSMOSIS" },
+        type: "input"
+      });
+      await flushPromises();
+      await vi.advanceTimersByTimeAsync(700);
+      await flushPromises();
+
+      expect(hoisted.validateAmountV2Mock).toHaveBeenCalled();
       wrapper.unmount();
     });
   });

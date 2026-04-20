@@ -306,5 +306,41 @@ describe("SupplyForm.vue", () => {
       expect(wrapper.find('[data-test="earn-chart"]').exists()).toBe(false);
       wrapper.unmount();
     });
+
+    it("onInput → validateInputs does not throw when assets is empty — bug #5", async () => {
+      const wrapper = factory();
+      const vm = wrapper.vm as unknown as {
+        assets: unknown[];
+        validateInputs: () => string;
+        error: string;
+      };
+      expect(vm.assets).toEqual([]);
+      // Typing into the amount input triggers onInput → validateInputs.
+      // Without the guard, reading assets.value[selectedCurrency].key / balance.value
+      // throws `Cannot read properties of undefined`.
+      expect(() => wrapper.find('[data-test="amount"]').setValue("100")).not.toThrow();
+      await nextTick();
+      // Surface should still be alive and error should be the generic invalid-amount key.
+      expect(wrapper.exists()).toBe(true);
+      expect(vm.error).toBe("message.invalid-amount");
+      wrapper.unmount();
+    });
+
+    it("calling validateInputs directly with empty assets returns the invalid-amount key — bug #5", () => {
+      const wrapper = factory();
+      const vm = wrapper.vm as unknown as {
+        assets: unknown[];
+        validateInputs: () => string;
+      };
+      expect(vm.assets).toEqual([]);
+      // Should not throw — exercises validateSupply's early-return path AND the
+      // currency.balance.value read in validateInputs.
+      let result = "";
+      expect(() => {
+        result = vm.validateInputs();
+      }).not.toThrow();
+      expect(result).toBe("message.invalid-amount");
+      wrapper.unmount();
+    });
   });
 });

@@ -337,7 +337,10 @@ async function fetchDepositCapacity() {
 
 function validateSupply() {
   const asset = assets.value[selectedCurrency.value];
-  const [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
+  if (!asset) {
+    return "";
+  }
+  const [_, protocol] = asset.key.split("@");
   const max = maxSupply.value[protocol];
 
   if (max.isNegative()) {
@@ -368,6 +371,11 @@ function onSelect(event: AdvancedCurrencyFieldOption) {
 
 function validateInputs() {
   const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    error.value = i18n.t("message.invalid-amount");
+    errorInsufficientBalance.value = false;
+    return error.value;
+  }
 
   const verr = validateSupply();
 
