@@ -45,8 +45,19 @@ describe("reorderCoinsDeep", () => {
     expect(out).toEqual({ wrapper: { amount: "7", denom: "u" } });
   });
 
-  it("coerces missing amount/denom fields to defaults when reordering", () => {
-    const out = reorderCoinsDeep({ denom: "x", amount: undefined }) as Record<string, unknown>;
+  it("throws when a coin-shaped object is missing amount (no silent heal)", () => {
+    // A coin-shaped object with a missing/undefined amount is a programming
+    // error upstream, not a user-safe default. Callers that need zero must
+    // pass "0" explicitly.
+    expect(() => reorderCoinsDeep({ denom: "x", amount: undefined })).toThrow(/amount/i);
+  });
+
+  it("throws when a coin-shaped object is missing denom (no silent heal)", () => {
+    expect(() => reorderCoinsDeep({ denom: undefined, amount: "1" })).toThrow(/denom/i);
+  });
+
+  it("accepts explicit zero amount (caller opted in)", () => {
+    const out = reorderCoinsDeep({ denom: "x", amount: "0" }) as Record<string, unknown>;
     expect(out).toEqual({ amount: "0", denom: "x" });
   });
 

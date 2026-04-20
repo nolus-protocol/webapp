@@ -116,7 +116,7 @@
 
 <script lang="ts" setup>
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
-import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption } from "web-components";
+import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption, ToastType } from "web-components";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -172,6 +172,7 @@ const disabled = ref(false);
 const loadingTx = ref(false);
 const priceImapact = ref(0);
 const onClose = inject("close", () => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const errorInsufficientBalance = computed(() => error.value === i18n.t("message.invalid-balance-big"));
 
@@ -271,10 +272,24 @@ async function onInit() {
     const networkTransfers = config.transfers?.[configStore.protocolFilter]?.currencies ?? [];
     swapCurrencies.value = networkTransfers;
 
-    selectedFirstCurrencyOption.value = assets.value.find(
+    const firstCurrency = assets.value.find(
       (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
-    )!;
-    selectedSecondCurrencyOption.value = assets.value.find((item) => item.ibcData == config.swap_to_currency)!;
+    );
+    const secondCurrency = assets.value.find((item) => item.ibcData == config.swap_to_currency);
+
+    if (!firstCurrency || !secondCurrency) {
+      Logger.error(
+        `Swap config mismatch: first=${firstCurrency?.ibcData ?? "missing"}, second=${secondCurrency?.ibcData ?? "missing"}`
+      );
+      onShowToast({
+        type: ToastType.error,
+        message: i18n.t("message.swap-config-mismatch")
+      });
+      return;
+    }
+
+    selectedFirstCurrencyOption.value = firstCurrency;
+    selectedSecondCurrencyOption.value = secondCurrency;
 
     setSwapFee();
   } catch (error) {
@@ -301,7 +316,16 @@ function updateAmount(value: {
   type: MultipleCurrencyEventType;
 }) {
   amount.value = value.input.value ?? 0;
-  selectedFirstCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
+  const match = assets.value.find((item) => item.value == value.currency.value);
+  if (!match) {
+    Logger.error(`Swap currency not available (first side): ${value.currency.value}`);
+    onShowToast({
+      type: ToastType.error,
+      message: i18n.t("message.swap-currency-not-available")
+    });
+    return;
+  }
+  selectedFirstCurrencyOption.value = match;
   updateRoute();
 }
 
@@ -311,7 +335,16 @@ function updateSwapToAmount(value: {
   type: MultipleCurrencyEventType;
 }) {
   swapToAmount.value = value.input.value;
-  selectedSecondCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
+  const match = assets.value.find((item) => item.value == value.currency.value);
+  if (!match) {
+    Logger.error(`Swap currency not available (second side): ${value.currency.value}`);
+    onShowToast({
+      type: ToastType.error,
+      message: i18n.t("message.swap-currency-not-available")
+    });
+    return;
+  }
+  selectedSecondCurrencyOption.value = match;
 
   switch (value.type) {
     case MultipleCurrencyEventType.select: {

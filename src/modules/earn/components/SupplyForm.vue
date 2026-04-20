@@ -42,7 +42,7 @@
           {{ $t("message.preview-input") }}
         </div>
       </template>
-      <template v-if="decAmount.isPositive()">
+      <template v-if="decAmount.isPositive() && assets[selectedCurrency]">
         <div class="flex items-center gap-2 text-14">
           <SvgIcon
             name="check-solid"
@@ -219,7 +219,11 @@ async function onInit() {
 }
 
 const apr = computed(() => {
-  const [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
+  const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    return 0;
+  }
+  const [_, protocol] = currency.key.split("@");
 
   const a = earnStore.getProtocolApr(protocol);
   return a;
@@ -236,6 +240,9 @@ const decAmount = computed(() => {
 
 const amountStr = computed(() => {
   const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    return `${formatTokenBalance(decAmount.value)} (${stable.value})`;
+  }
   return `${formatTokenBalance(decAmount.value)} ${currency.label} (${stable.value})`;
 });
 

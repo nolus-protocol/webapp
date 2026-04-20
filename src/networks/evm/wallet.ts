@@ -94,8 +94,17 @@ export class MetaMaskWallet implements Wallet {
     const fullPubkey = SigningKey.recoverPublicKey(digest, sig);
 
     const uncompressed = getBytes(fullPubkey);
+    // Uncompressed secp256k1 pubkey: 1-byte prefix (0x04) + 32-byte x + 32-byte y = 65 bytes.
+    // A malformed pubkey means the wallet is unusable; fail visibly rather than
+    // silently deriving garbage from out-of-bounds reads.
+    if (uncompressed.length !== 65) {
+      throw new Error(`EVM wallet: unexpected pubkey length ${uncompressed.length}, expected 65`);
+    }
     const x = uncompressed.slice(1, 33);
     const y = uncompressed.slice(33);
+    if (y.length !== 32) {
+      throw new Error(`EVM wallet: unexpected pubkey length (y=${y.length})`);
+    }
     const compressed = new Uint8Array(33);
     compressed[0] = y[y.length - 1]! % 2 ? 0x03 : 0x02;
     compressed.set(x, 1);

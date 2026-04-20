@@ -22,7 +22,18 @@ export function reorderCoinsDeep(input: unknown): unknown {
     const obj = input as Record<string, unknown>;
     const keys = Object.keys(obj);
     const isCoin = keys.length === 2 && "denom" in obj && "amount" in obj;
-    if (isCoin) return { amount: String(obj.amount ?? "0"), denom: String(obj.denom ?? "") };
+    if (isCoin) {
+      // No silent auto-heal: missing amount/denom indicates a malformed coin
+      // from upstream (e.g. a Msg decoded without its amount field). Callers
+      // that need a zero coin must pass "amount": "0" explicitly.
+      if (obj.amount === undefined || obj.amount === null || obj.amount === "") {
+        throw new Error(`reorderCoinsDeep: coin missing amount (denom=${String(obj.denom)})`);
+      }
+      if (obj.denom === undefined || obj.denom === null || obj.denom === "") {
+        throw new Error(`reorderCoinsDeep: coin missing denom (amount=${String(obj.amount)})`);
+      }
+      return { amount: String(obj.amount), denom: String(obj.denom) };
+    }
 
     const out: Record<string, unknown> = {};
     for (const k of keys) out[k] = reorderCoinsDeep(obj[k]);

@@ -402,4 +402,68 @@ describe("CloseDialog.vue", () => {
     expect(hoisted.loggerError).toHaveBeenCalled();
     wrapper.unmount();
   });
+
+  it("does not crash when lease ticker is missing from currenciesData (unknown-asset guard)", async () => {
+    // Simulate version skew: chain returns a ticker not present in local config.
+    hoisted.getLease.mockReturnValue(makeLease({ amount: { ticker: "UNKNOWN", amount: "1000000000" } }));
+    const toast = vi.fn();
+    const wrapper = mount(CloseDialog, {
+      global: {
+        mocks: { $t: (k: string) => k },
+        provide: {
+          onShowToast: toast,
+          reload: vi.fn()
+        }
+      }
+    });
+    await wrapper.vm.$nextTick();
+    // Component must not throw during render; a toast with the unknown-asset i18n key fires.
+    expect(wrapper.exists()).toBe(true);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "error", message: "message.close-unknown-asset" })
+    );
+    wrapper.unmount();
+  });
+
+  it("does not crash when currency.value is null during transient states (lpn fallback)", async () => {
+    // Drive the `lpn` computed with no matching asset: an unknown ticker makes
+    // `assets` empty, so `currency.value` is undefined. The `lpn` computed must
+    // not throw accessing `.key.split(...)`.
+    hoisted.getLease.mockReturnValue(makeLease({ amount: { ticker: "MISSING", amount: "1000000000" } }));
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    // Force lpn evaluation by flipping slider to 100 (renders `lpn` in template).
+    await wrapper.find('[data-test="slider-right"]').trigger("click");
+    await wrapper.vm.$nextTick();
+    expect(wrapper.exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("does not crash and surfaces a toast when market price is zero (invalid-price guard)", async () => {
+    // Oracle hiccup: openingPrice is zero, so repaymentInStable.quo(price) would throw.
+    hoisted.getLeaseDisplayData.mockReturnValue({
+      openingPrice: new Dec("0"),
+      totalDebt: new Dec("0")
+    });
+    const toast = vi.fn();
+    const wrapper = mount(CloseDialog, {
+      global: {
+        mocks: { $t: (k: string) => k },
+        provide: {
+          onShowToast: toast,
+          reload: vi.fn()
+        }
+      }
+    });
+    await wrapper.vm.$nextTick();
+    expect(wrapper.exists()).toBe(true);
+    // Attempt to submit — action must bail out with error toast, walletOperation must not proceed.
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await new Promise((r) => setTimeout(r, 0));
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "error", message: "message.close-invalid-price" })
+    );
+    expect(hoisted.broadcastTx).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
 });
