@@ -161,13 +161,11 @@ import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
 import DelegateForm from "./DelegateForm.vue";
 
-function factory() {
+function factory(onShowToast: ReturnType<typeof vi.fn> = vi.fn()) {
   return mount(DelegateForm, {
     global: {
       mocks: { $t: (k: string) => k },
-      provide: {
-        onShowToast: vi.fn()
-      }
+      provide: { onShowToast }
     }
   });
 }
@@ -264,5 +262,66 @@ describe("DelegateForm.vue", () => {
     expect(hoisted.loadActivities).toHaveBeenCalled();
     expect(hoisted.routerPush).toHaveBeenCalledWith("/stake");
     wrapper.unmount();
+  });
+
+  describe("empty validators guard", () => {
+    beforeEach(() => {
+      hoisted.loadDelegatorValidators.mockResolvedValue([]);
+      hoisted.loadValidators.mockResolvedValue([]);
+    });
+
+    it("does not crash when both delegator and chain validators are empty", async () => {
+      const wrapper = factory();
+      await wrapper.find('[data-test="amount"]').setValue("100");
+      await wrapper.find('[data-test="submit"]').trigger("click");
+      await new Promise((r) => setTimeout(r, 0));
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 0));
+
+      // Form should still be mounted and button re-enabled
+      expect(wrapper.find('[data-test="submit"]').exists()).toBe(true);
+      wrapper.unmount();
+    });
+
+    it("does not call simulateDelegateTx or broadcastTx when no validators are available", async () => {
+      const wrapper = factory();
+      await wrapper.find('[data-test="amount"]').setValue("100");
+      await wrapper.find('[data-test="submit"]').trigger("click");
+      await new Promise((r) => setTimeout(r, 0));
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(hoisted.simulateDelegateTx).not.toHaveBeenCalled();
+      expect(hoisted.broadcastTx).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
+
+    it("surfaces an error toast to the user when no validators are available", async () => {
+      const toast = vi.fn();
+      const wrapper = factory(toast);
+      await wrapper.find('[data-test="amount"]').setValue("100");
+      await wrapper.find('[data-test="submit"]').trigger("click");
+      await new Promise((r) => setTimeout(r, 0));
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(toast).toHaveBeenCalledExactlyOnceWith({
+        type: "error",
+        message: "message.delegate-no-validators"
+      });
+      wrapper.unmount();
+    });
+
+    it("does not navigate away when no validators are available", async () => {
+      const wrapper = factory();
+      await wrapper.find('[data-test="amount"]').setValue("100");
+      await wrapper.find('[data-test="submit"]').trigger("click");
+      await new Promise((r) => setTimeout(r, 0));
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(hoisted.routerPush).not.toHaveBeenCalled();
+      wrapper.unmount();
+    });
   });
 });

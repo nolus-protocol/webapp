@@ -63,6 +63,40 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
+// After a deploy, already-open tabs still reference the old hashed JS chunks.
+// Lazy-route imports for those old chunks 404, the navigation silently completes
+// with no component mounted, and the user sees a blank main content area.
+// Force a fresh document load so the new index.html + new chunk hashes are picked up.
+const CHUNK_RELOAD_KEY = "nolus-chunk-reload-at";
+const CHUNK_RELOAD_COOLDOWN_MS = 10_000;
+const CHUNK_LOAD_ERROR_PATTERNS = [
+  /Failed to fetch dynamically imported module/i,
+  /error loading dynamically imported module/i,
+  /Importing a module script failed/i,
+  /Loading chunk \S+ failed/i
+];
+
+export function handleChunkLoadError(
+  error: unknown,
+  toPath: string | undefined,
+  storage: Storage,
+  now: number,
+  reload: (path: string) => void
+): void {
+  if (!(error instanceof Error)) return;
+  if (!CHUNK_LOAD_ERROR_PATTERNS.some((re) => re.test(error.message))) return;
+
+  const last = Number(storage.getItem(CHUNK_RELOAD_KEY) ?? "0");
+  if (now - last < CHUNK_RELOAD_COOLDOWN_MS) return;
+  storage.setItem(CHUNK_RELOAD_KEY, String(now));
+
+  reload(toPath ?? window.location.pathname);
+}
+
+router.onError((error, to) => {
+  handleChunkLoadError(error, to?.fullPath, window.sessionStorage, Date.now(), (path) => window.location.assign(path));
+});
+
 router
   .isReady()
   .then(() => {
@@ -74,7 +108,9 @@ const preloadAllRoutes = () => {
   router.getRoutes().forEach((route) => {
     const preload = route.components?.default;
     if (typeof preload === "function") {
-      preload();
+      // Stale chunks after a deploy will reject here; don't pollute console —
+      // the real navigation will trigger router.onError with the same error.
+      Promise.resolve(preload()).catch(() => {});
     }
   });
 };

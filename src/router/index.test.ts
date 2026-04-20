@@ -109,3 +109,118 @@ describe("router/index.ts", () => {
     await expect(mod.router.push("/some/nonexistent/path")).resolves.not.toThrow();
   });
 });
+
+describe("handleChunkLoadError", () => {
+  const key = "nolus-chunk-reload-at";
+
+  function makeStorage(initial: Record<string, string> = {}): Storage {
+    const store: Record<string, string> = { ...initial };
+    return {
+      getItem: (k: string) => store[k] ?? null,
+      setItem: (k: string, v: string) => {
+        store[k] = v;
+      },
+      removeItem: (k: string) => {
+        delete store[k];
+      },
+      clear: () => {
+        for (const k of Object.keys(store)) delete store[k];
+      },
+      key: (i: number) => Object.keys(store)[i] ?? null,
+      get length() {
+        return Object.keys(store).length;
+      }
+    };
+  }
+
+  it("reloads on 'Failed to fetch dynamically imported module' error", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    const storage = makeStorage();
+
+    handleChunkLoadError(
+      new Error("Failed to fetch dynamically imported module: https://x/assets/SingleLease-abc.js"),
+      "/leases/nolus1abc",
+      storage,
+      1_000_000,
+      reload
+    );
+
+    expect(reload).toHaveBeenCalledExactlyOnceWith("/leases/nolus1abc");
+    expect(storage.getItem(key)).toBe("1000000");
+  });
+
+  it("reloads on 'Loading chunk X failed' error", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    handleChunkLoadError(new Error("Loading chunk 42 failed."), "/dashboard", makeStorage(), 1_000_000, reload);
+    expect(reload).toHaveBeenCalledExactlyOnceWith("/dashboard");
+  });
+
+  it("reloads on 'Importing a module script failed' (Safari)", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    handleChunkLoadError(new Error("Importing a module script failed."), "/earn", makeStorage(), 1_000_000, reload);
+    expect(reload).toHaveBeenCalledExactlyOnceWith("/earn");
+  });
+
+  it("does not reload for unrelated errors", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    handleChunkLoadError(new Error("Network disconnected"), "/leases", makeStorage(), 1_000_000, reload);
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("does not reload when a reload happened within the last 10 seconds (loop guard)", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    const storage = makeStorage({ [key]: "995000" }); // 5s ago
+
+    handleChunkLoadError(
+      new Error("Failed to fetch dynamically imported module: x"),
+      "/leases",
+      storage,
+      1_000_000,
+      reload
+    );
+
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("reloads again once the 10s loop-guard window has elapsed", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    const storage = makeStorage({ [key]: "989000" }); // 11s ago
+
+    handleChunkLoadError(
+      new Error("Failed to fetch dynamically imported module: x"),
+      "/leases",
+      storage,
+      1_000_000,
+      reload
+    );
+
+    expect(reload).toHaveBeenCalledExactlyOnceWith("/leases");
+  });
+
+  it("falls back to current pathname when no target path is given", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    handleChunkLoadError(
+      new Error("Failed to fetch dynamically imported module: x"),
+      undefined,
+      makeStorage(),
+      1_000_000,
+      reload
+    );
+    expect(reload).toHaveBeenCalledExactlyOnceWith(window.location.pathname);
+  });
+
+  it("tolerates non-Error values (string / null)", async () => {
+    const { handleChunkLoadError } = await import("./index");
+    const reload = vi.fn();
+    handleChunkLoadError(null, "/leases", makeStorage(), 1_000_000, reload);
+    handleChunkLoadError("plain string", "/leases", makeStorage(), 1_000_000, reload);
+    expect(reload).not.toHaveBeenCalled();
+  });
+});
