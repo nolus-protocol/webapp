@@ -354,12 +354,22 @@ onBeforeUnmount(() => {
   dialog?.value?.close();
 });
 
+const unknownAssetReported = ref(false);
+
 const assets = computed(() => {
   const data = [];
 
   if (lease.value && lease.value.status === "opened") {
     const ticker = lease.value.amount.ticker;
     const asset = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+
+    // Version skew / config lag: chain returned a ticker we don't know about locally.
+    // Bail out with empty assets so the component doesn't crash. The matching watcher
+    // surfaces the user-facing toast; we must not do side effects in a computed.
+    if (!asset) {
+      return data;
+    }
+
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
 
     data.push({
@@ -377,6 +387,25 @@ const assets = computed(() => {
 
   return data;
 });
+
+// Surface the unknown-asset condition exactly once per dialog open.
+watch(
+  () => {
+    if (!lease.value || lease.value.status !== "opened") return false;
+    const ticker = lease.value.amount.ticker;
+    return !configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`];
+  },
+  (isUnknown) => {
+    if (isUnknown && !unknownAssetReported.value) {
+      unknownAssetReported.value = true;
+      onShowToast({
+        type: ToastType.error,
+        message: i18n.t("message.close-unknown-asset")
+      });
+    }
+  },
+  { immediate: true }
+);
 
 const currency = computed(() => {
   return assets.value[selectedCurrency.value];
@@ -454,8 +483,12 @@ const debtData = computed(() => {
     } else {
       const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
       const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+      if (!currecy) {
+        return { debt: "", price: "", asset: "", fee: "" };
+      }
       const asset = d.mul(price);
-      const value = new Dec(amount.value).mul(price).mul(new Dec(swapFee.value));
+      const amountStr = amount.value.length ? amount.value : "0";
+      const value = new Dec(amountStr).mul(price).mul(new Dec(swapFee.value));
       const lpn = getLpnByProtocol(lease.value.protocol);
       return {
         fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
@@ -477,7 +510,11 @@ const total = computed(() => {
 const debt = computed(() => {
   const selectedCurrency = currency.value;
   if (selectedCurrency) {
-    const { repayment, repaymentInStable } = getRepayment(100)!;
+    const repaymentData = getRepayment(100);
+    if (!repaymentData) {
+      return undefined;
+    }
+    const { repayment, repaymentInStable } = repaymentData;
     const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
     return {
@@ -506,7 +543,14 @@ const debt = computed(() => {
 });
 
 const lpn = computed(() => {
-  const [_key, protocol] = currency.value.key.split("@");
+  // currency.value can be undefined during transient states (no assets yet,
+  // unknown ticker bail-out, etc.). Fall back to the lease's own protocol
+  // to resolve the LPN — same intent as below, just without crashing on null.
+  const key = currency.value?.key;
+  const protocol = key ? key.split("@")[1] : (lease.value?.protocol ?? "");
+  if (!protocol) {
+    return "";
+  }
   const lpnData = getLpnByProtocol(protocol);
 
   for (const lpn of configStore.lpn ?? []) {
@@ -515,13 +559,14 @@ const lpn = computed(() => {
       return lpn.shortName;
     }
   }
-  return lpnData.shortName;
+  return lpnData?.shortName ?? "";
 });
 
 const payout = computed(() => {
   if (!lease.value || lease.value.status !== "opened") return "0.00";
   const ticker = lease.value.amount.ticker;
   const currencyData = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+  if (!currencyData) return "0.00";
   const price = new Dec(pricesStore.prices[currencyData!.key as string]?.price ?? 0);
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value).mul(price);
 
@@ -548,6 +593,7 @@ const positionLeft = computed(() => {
 
   const ticker = lease.value.amount.ticker;
   const currencyData = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+  if (!currencyData) return "0.00";
   const a = new Dec(lease.value.amount.amount, Number(currencyData!.decimal_digits));
   const value = new Dec(amount.value.length == 0 ? 0 : amount.value);
   const left = a.sub(value);
@@ -615,8 +661,10 @@ const shortReturnAtom = computed(() => {
 
 function onSetAmount(percent: number) {
   sliderValue.value = percent;
+  const selected = currency.value;
+  if (!selected) return;
   const a = total.value.mul(new Dec(percent).quo(new Dec(100)));
-  amount.value = a.toString(currency!.value.decimal_digits);
+  amount.value = a.toString(selected.decimal_digits);
 }
 const calculatedBalance = computed(() => {
   const asset = assets.value[selectedCurrency.value];
@@ -814,6 +862,11 @@ function getRepayment(p: number) {
       selectedCurrencyInfo: selectedCurrency
     };
   } else {
+    // Oracle hiccup / missing feed: dividing by zero throws `RangeError: Division by zero`.
+    // The calling action surfaces a user-facing toast; here we just bail out safely.
+    if (price.isZero()) {
+      return undefined;
+    }
     const repayment = repaymentInStable.quo(price);
     return {
       repayment,
@@ -836,6 +889,20 @@ async function onSendClick() {
 
 async function marketCloseLease() {
   const wallet = walletStore.wallet as NolusWallet;
+  // Oracle hiccup / missing feed: without a valid opening price we cannot compute
+  // the repayment split, and the tx would either revert on-chain or crash the
+  // client's division-by-zero. Bail out with a toast before any other validation
+  // so the user sees the root cause, not a downstream balance error.
+  if (wallet && lease.value) {
+    const openingPrice = getPrice();
+    if (!openingPrice || openingPrice.isZero()) {
+      onShowToast({
+        type: ToastType.error,
+        message: i18n.t("message.close-invalid-price")
+      });
+      return;
+    }
+  }
   if (wallet && isAmountValid() && lease.value) {
     try {
       loading.value = true;
@@ -905,12 +972,22 @@ watch(
 
 function getAmountValue(a: string) {
   const selectedCurrency = assets.value[0];
+  if (!selectedCurrency) {
+    return {
+      amountInStable: new CoinPretty({ coinDenom: "", coinMinimalDenom: "", coinDecimals: 0 }, new Int(0))
+        .trim(true)
+        .hideDenom(true),
+      amount: new CoinPretty({ coinDenom: "", coinMinimalDenom: "", coinDecimals: 0 }, new Int(0))
+    };
+  }
   const [_, protocolKey] = selectedCurrency.key.split("@");
   const lpnData = getLpnByProtocol(protocolKey);
 
   const amount = new Dec(a);
   const price = new Dec(pricesStore.prices[selectedCurrency!.key as string]?.price ?? 0);
-  const { repayment, repaymentInStable } = getRepayment(100)!;
+  const repaymentData = getRepayment(100);
+  const repayment = repaymentData?.repayment ?? new Dec(0);
+  const repaymentInStable = repaymentData?.repaymentInStable ?? new Dec(0);
 
   const amountInStableInt = amount
     .mul(price)

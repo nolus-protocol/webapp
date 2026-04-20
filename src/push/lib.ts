@@ -2,7 +2,7 @@ import { getLanguage, setLanguageDb } from "@/common/utils/LanguageUtils";
 import { publicKey, host } from "./config";
 import { STATUS } from "./global";
 
-let register: Promise<ServiceWorkerRegistration>;
+let register: Promise<ServiceWorkerRegistration> | null = null;
 
 export function notificationSubscribe(
   address: string
@@ -31,7 +31,13 @@ async function initSW(address: string): Promise<PushSubscription | typeof STATUS
 
 function getWorker() {
   if (!register) {
-    register = navigator.serviceWorker.register(`/worker.js`, { scope: "/" });
+    // Clear the cached promise on rejection so the next call retries a fresh
+    // register() — otherwise a single transient failure (404 after deploy,
+    // bad MIME, etc.) would poison the cache until full page reload.
+    register = navigator.serviceWorker.register(`/worker.js`, { scope: "/" }).catch((err) => {
+      register = null;
+      throw err;
+    });
   }
   return register;
 }

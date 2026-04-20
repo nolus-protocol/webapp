@@ -116,7 +116,7 @@
 
 <script lang="ts" setup>
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
-import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption } from "web-components";
+import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption, ToastType } from "web-components";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
@@ -172,6 +172,7 @@ const disabled = ref(false);
 const loadingTx = ref(false);
 const priceImapact = ref(0);
 const onClose = inject("close", () => {});
+const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 
 const errorInsufficientBalance = computed(() => error.value === i18n.t("message.invalid-balance-big"));
 
@@ -271,10 +272,24 @@ async function onInit() {
     const networkTransfers = config.transfers?.[configStore.protocolFilter]?.currencies ?? [];
     swapCurrencies.value = networkTransfers;
 
-    selectedFirstCurrencyOption.value = assets.value.find(
+    const firstCurrency = assets.value.find(
       (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
-    )!;
-    selectedSecondCurrencyOption.value = assets.value.find((item) => item.ibcData == config.swap_to_currency)!;
+    );
+    const secondCurrency = assets.value.find((item) => item.ibcData == config.swap_to_currency);
+
+    if (!firstCurrency || !secondCurrency) {
+      Logger.error(
+        `Swap config mismatch: first=${firstCurrency?.ibcData ?? "missing"}, second=${secondCurrency?.ibcData ?? "missing"}`
+      );
+      onShowToast({
+        type: ToastType.error,
+        message: i18n.t("message.swap-config-mismatch")
+      });
+      return;
+    }
+
+    selectedFirstCurrencyOption.value = firstCurrency;
+    selectedSecondCurrencyOption.value = secondCurrency;
 
     setSwapFee();
   } catch (error) {
@@ -301,7 +316,16 @@ function updateAmount(value: {
   type: MultipleCurrencyEventType;
 }) {
   amount.value = value.input.value ?? 0;
-  selectedFirstCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
+  const match = assets.value.find((item) => item.value == value.currency.value);
+  if (!match) {
+    Logger.error(`Swap currency not available (first side): ${value.currency.value}`);
+    onShowToast({
+      type: ToastType.error,
+      message: i18n.t("message.swap-currency-not-available")
+    });
+    return;
+  }
+  selectedFirstCurrencyOption.value = match;
   updateRoute();
 }
 
@@ -311,7 +335,16 @@ function updateSwapToAmount(value: {
   type: MultipleCurrencyEventType;
 }) {
   swapToAmount.value = value.input.value;
-  selectedSecondCurrencyOption.value = assets.value.find((item) => item.value == value.currency.value)!;
+  const match = assets.value.find((item) => item.value == value.currency.value);
+  if (!match) {
+    Logger.error(`Swap currency not available (second side): ${value.currency.value}`);
+    onShowToast({
+      type: ToastType.error,
+      message: i18n.t("message.swap-currency-not-available")
+    });
+    return;
+  }
+  selectedSecondCurrencyOption.value = match;
 
   switch (value.type) {
     case MultipleCurrencyEventType.select: {
@@ -356,11 +389,14 @@ function updateRoute() {
     return false;
   }
 
+  const first = selectedFirstCurrencyOption.value;
+  if (!first) return;
+
   if (validateInputs().length == 0) {
     const token = CurrencyUtils.convertDenomToMinimalDenom(
       amount.value.toString(),
-      selectedFirstCurrencyOption.value!.ibcData,
-      selectedFirstCurrencyOption.value!.decimal_digits
+      first.ibcData,
+      first.decimal_digits
     );
     if (token.amount.gt(new Int(0))) {
       setRoute(token, false);
@@ -369,11 +405,14 @@ function updateRoute() {
 }
 
 function updateSwapToRoute() {
+  const second = selectedSecondCurrencyOption.value;
+  if (!second) return;
+
   if (validateSwapToInputs().length == 0) {
     const token = CurrencyUtils.convertDenomToMinimalDenom(
       swapToAmount.value.toString(),
-      selectedSecondCurrencyOption.value!.ibcData,
-      selectedSecondCurrencyOption.value!.decimal_digits
+      second.ibcData,
+      second.decimal_digits
     );
     if (token.amount.gt(new Int(0))) {
       setRoute(token, true);
@@ -389,36 +428,35 @@ async function setRoute(token: Coin, revert = false) {
       loading.value = true;
       error.value = "";
 
+      const first = selectedFirstCurrencyOption.value;
+      const second = selectedSecondCurrencyOption.value;
+      if (!first || !second) return;
+
       const network = configStore.protocolFilter.toLowerCase();
 
       if (revert) {
         route = await SkipRouter.getRoute(
-          selectedFirstCurrencyOption.value!.ibcData,
-          selectedSecondCurrencyOption.value!.ibcData,
+          first.ibcData,
+          second.ibcData,
           token.amount.toString(),
           revert,
           undefined,
           undefined,
           network
         );
-        firstInputAmount.value = new Dec(route?.amount_in, selectedFirstCurrencyOption.value!.decimal_digits).toString(
-          selectedFirstCurrencyOption.value!.decimal_digits
-        );
+        firstInputAmount.value = new Dec(route?.amount_in, first.decimal_digits).toString(first.decimal_digits);
         amount.value = secondInputAmount.value;
       } else {
         route = await SkipRouter.getRoute(
-          selectedFirstCurrencyOption.value!.ibcData,
-          selectedSecondCurrencyOption.value!.ibcData,
+          first.ibcData,
+          second.ibcData,
           token.amount.toString(),
           revert,
           undefined,
           undefined,
           network
         );
-        secondInputAmount.value = new Dec(
-          route?.amount_out,
-          selectedSecondCurrencyOption.value!.decimal_digits
-        ).toString(selectedSecondCurrencyOption.value!.decimal_digits);
+        secondInputAmount.value = new Dec(route?.amount_out, second.decimal_digits).toString(second.decimal_digits);
         swapToAmount.value = secondInputAmount.value;
       }
       priceImapact.value = Number(route?.swap_price_impact_percent ?? "0");
@@ -438,16 +476,24 @@ async function setRoute(token: Coin, revert = false) {
 }
 
 function validateInputs() {
-  error.value = validateAmountV2(amount.value, selectedFirstCurrencyOption.value!.balance!.value);
-  if (selectedFirstCurrencyOption.value!.ibcData === selectedSecondCurrencyOption.value!.ibcData) {
+  const first = selectedFirstCurrencyOption.value;
+  const second = selectedSecondCurrencyOption.value;
+  if (!first || !second) return error.value;
+
+  error.value = validateAmountV2(amount.value, first.balance!.value);
+  if (first.ibcData === second.ibcData) {
     error.value = i18n.t("message.swap-same-error");
   }
   return error.value;
 }
 
 function validateSwapToInputs() {
-  error.value = validateAmountV2(swapToAmount.value, selectedSecondCurrencyOption.value!.balance!.value);
-  if (selectedFirstCurrencyOption.value!.ibcData === selectedSecondCurrencyOption.value!.ibcData) {
+  const first = selectedFirstCurrencyOption.value;
+  const second = selectedSecondCurrencyOption.value;
+  if (!first || !second) return error.value;
+
+  error.value = validateAmountV2(swapToAmount.value, second.balance!.value);
+  if (first.ibcData === second.ibcData) {
     error.value = i18n.t("message.swap-same-error");
   }
   return error.value;

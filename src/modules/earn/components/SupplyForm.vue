@@ -42,7 +42,7 @@
           {{ $t("message.preview-input") }}
         </div>
       </template>
-      <template v-if="decAmount.isPositive()">
+      <template v-if="decAmount.isPositive() && assets[selectedCurrency]">
         <div class="flex items-center gap-2 text-14">
           <SvgIcon
             name="check-solid"
@@ -219,7 +219,11 @@ async function onInit() {
 }
 
 const apr = computed(() => {
-  const [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
+  const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    return 0;
+  }
+  const [_, protocol] = currency.key.split("@");
 
   const a = earnStore.getProtocolApr(protocol);
   return a;
@@ -236,6 +240,9 @@ const decAmount = computed(() => {
 
 const amountStr = computed(() => {
   const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    return `${formatTokenBalance(decAmount.value)} (${stable.value})`;
+  }
   return `${formatTokenBalance(decAmount.value)} ${currency.label} (${stable.value})`;
 });
 
@@ -330,7 +337,10 @@ async function fetchDepositCapacity() {
 
 function validateSupply() {
   const asset = assets.value[selectedCurrency.value];
-  const [_, protocol] = assets.value[selectedCurrency.value].key.split("@");
+  if (!asset) {
+    return "";
+  }
+  const [_, protocol] = asset.key.split("@");
   const max = maxSupply.value[protocol];
 
   if (max.isNegative()) {
@@ -361,6 +371,11 @@ function onSelect(event: AdvancedCurrencyFieldOption) {
 
 function validateInputs() {
   const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    error.value = i18n.t("message.invalid-amount");
+    errorInsufficientBalance.value = false;
+    return error.value;
+  }
 
   const verr = validateSupply();
 

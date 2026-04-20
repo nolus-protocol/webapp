@@ -108,6 +108,26 @@ describe("router/index.ts", () => {
     // Catch-all redirect to "/" — should complete without rejection
     await expect(mod.router.push("/some/nonexistent/path")).resolves.not.toThrow();
   });
+
+  it("loadLanguage does not hang navigation when setLang rejects", async () => {
+    // Regression: a rejecting setLang used to bubble through the guard's
+    // bare `await`, so next() was never called and navigation hung silently.
+    // The guard must now catch and still call next() so the router resolves.
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    hoisted.setLangMock.mockRejectedValueOnce(new Error("locale fetch failed"));
+
+    const mod = await import("./index");
+
+    // If the guard hangs, this push never resolves — give it a finite race.
+    const push = mod.router.push("/dashboard");
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("navigation hung")), 1000));
+    await expect(Promise.race([push, timeout])).resolves.not.toThrow();
+
+    expect(hoisted.setLangMock).toHaveBeenCalledWith("en");
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    // Current route should actually be the target — navigation completed.
+    expect(mod.router.currentRoute.value.path).toBe("/dashboard");
+  });
 });
 
 describe("handleChunkLoadError", () => {

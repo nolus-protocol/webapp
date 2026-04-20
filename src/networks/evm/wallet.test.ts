@@ -273,4 +273,34 @@ describe("MetaMaskWallet", () => {
     await mm.connectCustom({ rpc: "r", api: "a" } as API, networkStub());
     expect(mm.ethAddress).toBe(testWallet.address);
   });
+
+  it("throws a descriptive error when a malformed pubkey has short y-bytes", async () => {
+    // Use vi.doMock to swap in a wallet module that imports a patched `ethers`
+    // where SigningKey.recoverPublicKey returns a truncated pubkey hex. That
+    // simulates a malformed pubkey (getBytes → < 33-byte y half).
+    vi.resetModules();
+    vi.doMock("ethers", async () => {
+      const actual = await vi.importActual<typeof import("ethers")>("ethers");
+      return {
+        ...actual,
+        SigningKey: {
+          ...actual.SigningKey,
+          // Return an uncompressed pubkey hex with only the 0x04 prefix byte.
+          // getBytes will give a 1-byte array; slicing yields empty x and y.
+          recoverPublicKey: () => "0x04"
+        }
+      };
+    });
+
+    const { MetaMaskWallet: PatchedWallet } = await import("./wallet");
+    const provider = mkProvider();
+    stubEthereum(provider);
+    const mm = new PatchedWallet();
+    await expect(mm.connectCustom({ rpc: "r", api: "a" } as API, networkStub())).rejects.toThrow(
+      /EVM wallet: unexpected pubkey length/
+    );
+
+    vi.doUnmock("ethers");
+    vi.resetModules();
+  });
 });

@@ -42,7 +42,7 @@
           {{ $t("message.preview-input") }}
         </div>
       </template>
-      <template v-else>
+      <template v-else-if="assets[selectedCurrency]">
         <div class="flex items-center gap-2 text-14">
           <SvgIcon
             name="check-solid"
@@ -254,8 +254,13 @@ async function onNextClick() {
 }
 
 async function onValidateAmount() {
+  const asset = assets.value[selectedCurrency.value];
+  if (!asset) {
+    error.value = i18n.t("message.invalid-amount");
+    return;
+  }
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
+  const currency = configStore.currenciesData![asset.value];
   const [_currency, protocol] = currency.key.split("@");
   const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
   const data = await lppClient.getLppBalance();
@@ -277,7 +282,14 @@ async function transferAmount() {
 
       const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
       const microAmount = getMicroAmount(currency.ibcData, input.value);
-      const asset = lpnBalances.value.find((item) => item.key == currency.key)!;
+      const asset = lpnBalances.value.find((item) => item.key == currency.key);
+      if (!asset) {
+        onShowToast({
+          type: ToastType.error,
+          message: i18n.t("message.unable-to-fetch-lpn-balance")
+        });
+        return;
+      }
 
       const [_currency, protocol] = currency.key.split("@");
 
@@ -321,6 +333,10 @@ function onSelect(event: AdvancedCurrencyFieldOption) {
 
 function validateInputs() {
   const currency = assets.value[selectedCurrency.value];
+  if (!currency) {
+    error.value = i18n.t("message.invalid-amount");
+    return error.value;
+  }
   error.value = validateAmountV2(input.value, currency.balance.value);
   return error.value;
 }

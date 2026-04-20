@@ -50,7 +50,14 @@ const router = createRouter({
 
 async function loadLanguage(to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) {
   const lang = getLanguage().key;
-  await setLang(lang);
+  try {
+    await setLang(lang);
+  } catch (e) {
+    // Never block navigation on a locale-load failure — the user would see a
+    // silently hung click. Log and proceed with whatever locale is already
+    // loaded (stale/default strings are better than a frozen app).
+    console.error("[router] setLang failed; continuing with existing locale", e);
+  }
   return next();
 }
 

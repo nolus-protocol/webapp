@@ -12,7 +12,7 @@ use std::time::Duration;
 use futures::{SinkExt, StreamExt};
 use tokio::sync::broadcast;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 // ============================================================================
 // Types
@@ -220,10 +220,19 @@ impl ChainEventClient {
     }
 
     fn handle_new_block(&self, msg: &serde_json::Value) {
-        let height = msg["result"]["data"]["value"]["block"]["header"]["height"]
+        // Only dispatch real heights. A missing or non-numeric height means
+        // the event is malformed; emitting a fake 0 would make subscribers
+        // believe the chain reported block 0.
+        let height = match msg["result"]["data"]["value"]["block"]["header"]["height"]
             .as_str()
             .and_then(|h| h.parse::<u64>().ok())
-            .unwrap_or(0);
+        {
+            Some(h) => h,
+            None => {
+                warn!("NewBlock event missing height: {}", msg);
+                return;
+            }
+        };
 
         // Ignore send errors — means no receivers are listening
         let _ = self.channels.new_block.send(height);
@@ -477,11 +486,11 @@ mod tests {
         assert!(contract_rx.try_recv().is_err());
     }
 
-    /// NewBlock with missing/malformed height field falls back to 0 rather
-    /// than panicking. `.unwrap_or(0)` is the explicit contract in
-    /// `handle_new_block` — lock it in.
+    /// NewBlock with missing/malformed height field must NOT emit on the
+    /// channel: subscribers should only receive real heights, never a fake
+    /// 0 that looks like a genuine reported block.
     #[test]
-    fn test_parse_new_block_missing_height_defaults_to_zero() {
+    fn test_parse_new_block_missing_height_does_not_dispatch() {
         let channels = EventChannels::new();
         let mut rx = channels.new_block.subscribe();
         let client = ChainEventClient {
@@ -496,7 +505,31 @@ mod tests {
             }
         }"#;
         client.handle_message(msg);
-        assert_eq!(rx.try_recv().unwrap(), 0);
+        assert!(
+            rx.try_recv().is_err(),
+            "handle_new_block must not send on missing height"
+        );
+    }
+
+    /// NewBlock with a non-numeric height string must also be dropped, not
+    /// coerced to 0.
+    #[test]
+    fn test_parse_new_block_malformed_height_does_not_dispatch() {
+        let channels = EventChannels::new();
+        let mut rx = channels.new_block.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='NewBlock'",
+                "data": { "value": { "block": { "header": { "height": "not-a-number" } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+        assert!(rx.try_recv().is_err());
     }
 
     /// Multiple subscribers each receive the same event — broadcast semantics.
