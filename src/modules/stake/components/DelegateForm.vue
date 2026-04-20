@@ -162,12 +162,17 @@ function validateInputs() {
 async function delegate() {
   if (!wallet.wallet || validationError.value.length > 0) return;
 
-  let validators = await getValidators();
-  let division = STAKING.VALIDATORS_NUMBER;
+  let validators = (await getValidators())?.filter((v) => v?.operator_address) ?? [];
 
-  if (validators?.length > 0) {
-    division = validators?.length;
+  if (validators.length === 0) {
+    onShowToast({
+      type: ToastType.error,
+      message: i18n.t("message.delegate-no-validators")
+    });
+    return;
   }
+
+  const division = validators.length;
 
   const data = CurrencyUtils.convertNolusToUNolus(input.value);
   const amount = Number(data.amount.toString());

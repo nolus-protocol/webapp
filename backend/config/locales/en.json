@@ -273,6 +273,7 @@
     "deposit-assets": "Deposit assets to begin using Nolus",
     "vote-successful": "Vote successfully on {proposal} proposal",
     "delegate-successful": "Assets delegated successfully",
+    "delegate-no-validators": "No validators are currently available for delegation. Please try again later.",
     "undelegate-successful": "Assets undelegation now in progress",
     "rewards-claimed-successful": "Rewards claimed successfully",
     "validator-distribution-tooltip": "Distribution of stake across validators. As long as the validator remains active, you earn rewards and maintain voting power",
