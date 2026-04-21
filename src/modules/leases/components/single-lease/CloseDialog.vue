@@ -351,6 +351,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(time);
   dialog?.value?.close();
 });
 
