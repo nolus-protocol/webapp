@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -338,10 +338,6 @@ describe("CloseDialog.vue", () => {
       usd_amount_out: "100",
       swap_price_impact_percent: "0"
     });
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("renders without throwing when a cached open lease is present", async () => {
