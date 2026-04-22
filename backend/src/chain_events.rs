@@ -14,6 +14,25 @@ use tokio::sync::broadcast;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
 use tracing::{debug, error, info, warn};
 
+/// Max time to wait for the initial WebSocket handshake.
+/// Without this, a stuck TCP/TLS handshake hangs the task forever with no
+/// progress log (observed 2026-04-21: connect_async sat for 19h mid-incident).
+const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
+
+/// Max time between observed `NewBlock` events before the watchdog forces a
+/// reconnect. Nolus produces blocks every ~3s, so 60s is >15× normal cadence
+/// and still bounds worst-case staleness at a minute.
+const BLOCK_SILENCE_TIMEOUT: Duration = Duration::from_secs(60);
+
+/// How often the watchdog ticks to re-evaluate block silence.
+const WATCHDOG_INTERVAL: Duration = Duration::from_secs(10);
+
+/// Pure predicate for the block-silence watchdog — kept outside
+/// `connect_and_listen` so it's trivially unit-testable.
+fn block_silence_exceeded(elapsed: Duration) -> bool {
+    elapsed > BLOCK_SILENCE_TIMEOUT
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -123,7 +142,17 @@ impl ChainEventClient {
 
     /// Connect, subscribe, and process messages until disconnect or error.
     async fn connect_and_listen(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let (ws_stream, _) = tokio_tungstenite::connect_async(&self.ws_url).await?;
+        let (ws_stream, _) = tokio::time::timeout(
+            CONNECT_TIMEOUT,
+            tokio_tungstenite::connect_async(&self.ws_url),
+        )
+        .await
+        .map_err(|_| {
+            format!(
+                "WebSocket connect timed out after {}s",
+                CONNECT_TIMEOUT.as_secs()
+            )
+        })??;
         let (mut write, mut read) = ws_stream.split();
 
         info!("Connected to CometBFT WebSocket");
@@ -154,9 +183,17 @@ impl ChainEventClient {
 
         // Reset backoff is handled by the caller on Ok(())
 
-        // Periodic ping to detect silent disconnects
+        // Periodic ping to detect silent disconnects.
         let mut ping_interval = tokio::time::interval(Duration::from_secs(30));
         ping_interval.tick().await; // consume the immediate first tick
+
+        // Block-silence watchdog: writes succeeding while reads never produce
+        // a NewBlock is the exact failure mode that wedged the dev backend for
+        // 19h. We observe real dispatches by subscribing to our own channel.
+        let mut block_rx = self.channels.new_block.subscribe();
+        let mut last_block_at = tokio::time::Instant::now();
+        let mut watchdog_interval = tokio::time::interval(WATCHDOG_INTERVAL);
+        watchdog_interval.tick().await;
 
         loop {
             tokio::select! {
@@ -184,6 +221,29 @@ impl ChainEventClient {
                 _ = ping_interval.tick() => {
                     if let Err(e) = write.send(WsMessage::Ping(vec![].into())).await {
                         return Err(Box::new(e));
+                    }
+                }
+                block_event = block_rx.recv() => {
+                    // Both Ok and Lagged mean "blocks have been flowing" —
+                    // only Closed is a real failure, but that can't happen
+                    // while `self.channels` keeps the sender alive.
+                    match block_event {
+                        Ok(_) | Err(broadcast::error::RecvError::Lagged(_)) => {
+                            last_block_at = tokio::time::Instant::now();
+                        }
+                        Err(broadcast::error::RecvError::Closed) => {
+                            return Err("new_block channel closed unexpectedly".into());
+                        }
+                    }
+                }
+                _ = watchdog_interval.tick() => {
+                    let elapsed = last_block_at.elapsed();
+                    if block_silence_exceeded(elapsed) {
+                        return Err(format!(
+                            "No NewBlock received for {}s (threshold {}s), forcing reconnect",
+                            elapsed.as_secs(),
+                            BLOCK_SILENCE_TIMEOUT.as_secs(),
+                        ).into());
                     }
                 }
             }
@@ -300,6 +360,28 @@ impl ChainEventClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn block_silence_watchdog_fires_just_past_threshold() {
+        assert!(block_silence_exceeded(
+            BLOCK_SILENCE_TIMEOUT + Duration::from_millis(1)
+        ));
+    }
+
+    #[test]
+    fn block_silence_watchdog_does_not_fire_at_or_below_threshold() {
+        assert!(!block_silence_exceeded(BLOCK_SILENCE_TIMEOUT));
+        assert!(!block_silence_exceeded(Duration::from_secs(0)));
+        assert!(!block_silence_exceeded(Duration::from_millis(1)));
+    }
+
+    #[test]
+    fn block_silence_timeout_exceeds_ping_interval() {
+        // If the silence timeout were shorter than the 30s ping cadence, the
+        // watchdog could trip during normal operation before the keep-alive
+        // ping has a chance to fail-fast on a real dead link.
+        assert!(BLOCK_SILENCE_TIMEOUT > Duration::from_secs(30));
+    }
 
     #[test]
     fn test_ws_url_from_rpc_https() {
