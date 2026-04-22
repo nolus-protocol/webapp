@@ -29,15 +29,8 @@
           :loading="loading"
           loadingWidth="200px"
           :label="$t('message.lease-size')"
-          :amount="{
-            microAmount: amount,
-            denom: asset?.shortName ?? '',
-            decimals: assetLoan?.decimal_digits ?? 0,
-            fontSize: 24,
-            animatedReveal: true,
-            compact: mobile
-          }"
-          :secondary="stable"
+          :amount="sizePrimary"
+          :secondary="sizeSecondary"
         />
         <div class="flex flex-col gap-8 md:flex-row">
           <div class="flex flex-col gap-4">
@@ -319,6 +312,62 @@ const status = computed(() => {
 
 const amount = computed(() => {
   return props.lease?.amount?.amount ?? "0";
+});
+
+const isShort = computed(() => props.displayData?.positionType === "short");
+
+// SHORT positions store the size in the stable (USDC) while the volatile
+// side (BTC) is the sub-number. LONGs are the opposite: size is in the
+// crypto, sub is the USD value. The rounding convention follows the asset
+// class — stable values always at 2 dp, crypto values always adaptive via
+// TokenAmount.
+const sizePrimary = computed<AmountDisplayProps>(() => {
+  if (isShort.value) {
+    const stableDec = new Dec(props.lease?.amount?.amount ?? "0", asset.value?.decimal_digits ?? 0);
+    return {
+      value: stableDec.toString(NATIVE_CURRENCY.maximumFractionDigits),
+      denom: NATIVE_CURRENCY.symbol,
+      decimals: NATIVE_CURRENCY.maximumFractionDigits,
+      fontSize: 24,
+      animatedReveal: true,
+      compact: mobile
+    };
+  }
+  return {
+    microAmount: amount.value,
+    denom: asset.value?.shortName ?? "",
+    decimals: assetLoan.value?.decimal_digits ?? 0,
+    fontSize: 24,
+    animatedReveal: true,
+    compact: mobile
+  };
+});
+
+const sizeSecondary = computed<AmountDisplayProps>(() => {
+  if (!isShort.value) {
+    return stable.value;
+  }
+  const cryptoAsset = lpn.value;
+  const stableDec = new Dec(props.lease?.amount?.amount ?? "0", asset.value?.decimal_digits ?? 0);
+  const price = pricesStore.prices[cryptoAsset?.key as string];
+  const priceDec = new Dec(price?.price ?? "0");
+  if (!cryptoAsset || priceDec.isZero()) {
+    return {
+      value: "0",
+      denom: cryptoAsset?.shortName ?? "",
+      isDenomPrefix: false,
+      hasSpace: true,
+      fontSize: 16
+    };
+  }
+  const cryptoDec = stableDec.quo(priceDec);
+  const cryptoMicro = cryptoDec.mul(new Dec(10 ** cryptoAsset.decimal_digits)).truncate();
+  return {
+    microAmount: cryptoMicro.toString(),
+    denom: cryptoAsset.shortName ?? "",
+    decimals: cryptoAsset.decimal_digits,
+    fontSize: 16
+  };
 });
 
 const assetLoan = computed(() => {
