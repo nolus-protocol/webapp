@@ -104,6 +104,7 @@ import {
 import { RouteNames } from "@/router";
 
 import BigNumber from "@/common/components/BigNumber.vue";
+import { buildLeaseSizeCell } from "./leaseSize";
 import ListHeader from "@/common/components/ListHeader.vue";
 import EmptyState from "@/common/components/EmptyState.vue";
 import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDialog.vue";
@@ -122,13 +123,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY, UPDATE_LEASES } from "@/config/global";
-import {
-  formatUsd,
-  formatDecAsUsd,
-  formatTokenBalance,
-  formatMobileAmount,
-  formatMobileUsd
-} from "@/common/utils/NumberFormatUtils";
+import { formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
 import { useRouter } from "vue-router";
 import type { IAction } from "./single-lease/Action.vue";
 import Action from "./single-lease/Action.vue";
@@ -252,13 +247,21 @@ const leasesData = computed<TableRowItemProps[]>(() => {
         const asset = getAsset(item);
         const amount = displayData.unitAsset;
         const stable = displayData.assetValueUsd;
-        const positionType = i18n.t(`message.${configStore.getPositionType(item.protocol).toLowerCase()}`);
+        const rawPositionType = configStore.getPositionType(item.protocol);
+        const positionType = i18n.t(`message.${rawPositionType.toLowerCase()}`);
+        const isShort = rawPositionType === "Short";
+        const cryptoPriceUsd = isShort
+          ? new Dec(pricesStore.prices[`${item.debt.ticker}@${item.protocol}`]?.price ?? "0")
+          : new Dec(0);
 
-        const value = {
-          subValue: formatDecAsUsd(stable),
-          value: formatTokenBalance(amount),
-          tooltip: `${amount.toString(asset?.decimal_digits ?? 6)}`
-        };
+        const value = buildLeaseSizeCell({
+          positionType: rawPositionType,
+          unitAsset: amount,
+          assetValueUsd: stable,
+          cryptoAsset: asset,
+          cryptoPriceUsd
+        });
+        const cryptoDec = isShort && cryptoPriceUsd.isPositive() ? amount.quo(cryptoPriceUsd) : new Dec(0);
 
         if (hide.value) {
           value.value = "****";
@@ -283,8 +286,8 @@ const leasesData = computed<TableRowItemProps[]>(() => {
                 class: "cursor-pointer"
               },
               {
-                value: hide.value ? "****" : formatMobileAmount(amount),
-                subValue: hide.value ? "****" : formatMobileUsd(stable),
+                value: hide.value ? "****" : isShort ? formatMobileUsd(stable) : formatMobileAmount(amount),
+                subValue: hide.value ? "****" : isShort ? formatMobileAmount(cryptoDec) : formatMobileUsd(stable),
                 variant: "right",
                 click: navigate,
                 class: "cursor-pointer"
