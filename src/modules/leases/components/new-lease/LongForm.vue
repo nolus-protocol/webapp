@@ -569,10 +569,20 @@ async function calculate() {
     } else {
       leaseApply.value = null;
     }
-  } catch {
-    amountErrorMsg.value = i18n.t("message.no-liquidity");
+  } catch (error) {
+    Logger.error("LongForm calculate error:", error);
+    amountErrorMsg.value = classifyQuoteError(error);
     leaseApply.value = null;
   }
+}
+
+// Only errors whose message references liquidity map to the "no-liquidity"
+// user message. Every other failure (RPC error, invalid ticker, contract
+// rejection) is surfaced as a generic error instead of being mislabelled —
+// historically this masked the root cause of bugs.
+function classifyQuoteError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error);
+  return /liquidity/i.test(msg) ? i18n.t("message.no-liquidity") : i18n.t("message.unexpected-error");
 }
 
 async function onOpenLease() {
