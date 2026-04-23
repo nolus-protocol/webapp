@@ -143,7 +143,12 @@ import { Dec } from "@keplr-wallet/unit";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { SkipRouter } from "@/common/utils/SkipRoute";
 
-const timeOut = 200;
+// Debounce window for the two Promise.all'd Skip API calls fired when the
+// lease quote changes. Must stay comfortably above the Leaser contract call
+// latency so rapid slider drags collapse to a single fire — a shorter window
+// let slow contract responses trigger back-to-back setSwapFee runs and hit
+// the backend's /api/swap/route strict rate limit (2 RPS, burst 5).
+const timeOut = 600;
 let time: NodeJS.Timeout;
 
 const props = defineProps<{
@@ -159,10 +164,6 @@ const swapStableFee = ref(0);
 
 onMounted(async () => {
   // Free interest is handled by a 3rd party service
-});
-
-onUnmounted(() => {
-  clearTimeout(time!);
 });
 
 onUnmounted(() => {
