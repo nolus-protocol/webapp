@@ -295,7 +295,12 @@ import { getLeasePositionSpec } from "@/common/utils/LeaseConfigService";
 import type { AmountSpec } from "@/common/api/types/webapp";
 import type { LeaseInfo } from "@/common/api";
 
-const timeOut = 250;
+// Debounce window for the Skip API call fired when inputs change. Must stay
+// comfortably above chain/contract latencies so rapid slider drags collapse
+// to a single fire — a shorter window lets slow responses trigger back-to-back
+// setSwapFee runs and hit the backend's /api/swap/route strict rate limit
+// (2 RPS, burst 5).
+const timeOut = 600;
 let time: NodeJS.Timeout;
 
 const route = useRoute();
