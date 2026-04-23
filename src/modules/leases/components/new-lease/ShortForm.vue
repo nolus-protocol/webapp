@@ -406,6 +406,19 @@ function onDrag(event: number) {
   ltd.value = Number(pos.mul(new Dec(PERMILLE)).truncate().toString());
 }
 
+// For a Short protocol the contract's `leaseTicker` is the stable currency the
+// position is denominated in (e.g., USDC_NOBLE) — NOT the user's down payment.
+// It's exposed in the protocol currencies list with group="lease" (the only one
+// for a Short protocol; `group="lpn"` there is the borrowed asset).
+async function resolveShortLeaseTicker(protocol: string): Promise<string> {
+  const currencies = await configStore.getProtocolCurrencies(protocol);
+  const stable = currencies.find((c) => c.group === "lease");
+  if (!stable) {
+    throw new Error(`Short protocol ${protocol} has no stable (group="lease") currency`);
+  }
+  return stable.ticker;
+}
+
 async function validateMinMaxValues(): Promise<boolean> {
   try {
     let isValid = true;
@@ -520,9 +533,7 @@ async function calculate() {
       const [_c, protocol] = loanCurrency.key.split("@");
 
       const [downPaymentTicker, _p] = currency.key.split("@");
-      // For shorts: leaseTicker is the stable currency (what position is denominated in)
-      // which is the same as the down payment ticker (e.g., USDC_NOBLE)
-      const leaseTicker = downPaymentTicker;
+      const leaseTicker = await resolveShortLeaseTicker(protocol);
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
@@ -546,9 +557,18 @@ async function calculate() {
     }
   } catch (error) {
     Logger.error("ShortForm calculate error:", error);
-    amountErrorMsg.value = i18n.t("message.no-liquidity");
+    amountErrorMsg.value = classifyQuoteError(error);
     leaseApply.value = null;
   }
+}
+
+// Only errors whose message references liquidity map to the "no-liquidity"
+// user message. Every other failure (config drift, RPC error, invalid ticker,
+// contract rejection) is surfaced as a generic error instead of being
+// mislabelled — historically this masked the root cause of bugs.
+function classifyQuoteError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error);
+  return /liquidity/i.test(msg) ? i18n.t("message.no-liquidity") : i18n.t("message.unexpected-error");
 }
 
 async function onOpenLease() {
@@ -586,8 +606,7 @@ async function openLease() {
       const configStore = useConfigStore();
 
       const [_borrowedTicker, protocol] = selectedCurrency.key.split("@");
-      // For shorts: leaseTicker is the stable currency (what position is denominated in)
-      const [leaseTicker] = selectedDownPaymentCurrency.key.split("@");
+      const leaseTicker = await resolveShortLeaseTicker(protocol);
 
       const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
 
