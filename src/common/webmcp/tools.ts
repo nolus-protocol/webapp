@@ -47,7 +47,6 @@ export interface WebMcpTool {
 
 const MECHANISM_BY_LABEL: Record<string, WalletConnectMechanism> = {
   keplr: WalletConnectMechanism.KEPLR,
-  leap: WalletConnectMechanism.LEAP,
   phantom: WalletConnectMechanism.EVM_PHANTOM,
   solflare: WalletConnectMechanism.SOL_SOLFLARE,
   ledger: WalletConnectMechanism.LEDGER
@@ -55,7 +54,6 @@ const MECHANISM_BY_LABEL: Record<string, WalletConnectMechanism> = {
 
 const ACTION_BY_MECHANISM: Record<WalletConnectMechanism, WalletActions> = {
   [WalletConnectMechanism.KEPLR]: WalletActions.CONNECT_KEPLR,
-  [WalletConnectMechanism.LEAP]: WalletActions.CONNECT_LEAP,
   [WalletConnectMechanism.EVM_PHANTOM]: WalletActions.CONNECT_EVM_PHANTOM,
   [WalletConnectMechanism.SOL_SOLFLARE]: WalletActions.CONNECT_SOL_SOLFLARE,
   [WalletConnectMechanism.LEDGER]: WalletActions.CONNECT_LEDGER,

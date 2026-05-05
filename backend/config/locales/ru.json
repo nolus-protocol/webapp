@@ -111,7 +111,6 @@
     "supply-position-action": "Внести {amount} в пул ликвидности",
     "withdraw-position-action": "Вывести {amount} из пула ликвидности",
     "settings": "Настройки",
-    "leap": "Leap",
     "Confirm": "Подтвердить",
     "Pending": "В ожидании",
     "Success": "Успешно",

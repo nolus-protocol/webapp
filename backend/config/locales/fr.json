@@ -111,7 +111,6 @@
     "supply-position-action": "Déposer {amount} dans le pool de liquidité",
     "withdraw-position-action": "Retirer {amount} du pool de liquidité",
     "settings": "Paramètres",
-    "leap": "Leap",
     "Confirm": "Confirmer",
     "Pending": "En attente",
     "Success": "Succès",

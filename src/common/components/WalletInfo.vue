@@ -79,7 +79,6 @@ import { useI18n } from "vue-i18n";
 
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg";
 import LedgerIcon from "@/assets/icons/wallets/ledger.svg";
-import LeapIcon from "@/assets/icons/wallets/leapwallet.svg";
 import PhantomIcon from "@/assets/icons/wallets/phantom.svg";
 import SolflareIcon from "@/assets/icons/wallets/solflare.svg";
 
@@ -114,10 +113,6 @@ const connections: {
   [WalletConnectMechanism.SOL_SOLFLARE]: {
     icon: SolflareIcon,
     label: i18n.t("message.solflare")
-  },
-  [WalletConnectMechanism.LEAP]: {
-    icon: LeapIcon,
-    label: i18n.t("message.leap")
   },
   [WalletConnectMechanism.LEDGER]: {
     icon: LedgerIcon,

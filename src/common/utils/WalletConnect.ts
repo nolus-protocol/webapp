@@ -8,7 +8,7 @@ import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { WalletManager } from ".";
 import { getCurrencyByDenom } from "./CurrencyLookup";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
-import { authenticateKeplr, authenticateLeap, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
+import { authenticateKeplr, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
 import { authenticateEvmPhantom, authenticateSolFlare } from "@/networks/cosm/WalletFactory";
 
 export const validateAddress = (address: string) => {
@@ -54,7 +54,6 @@ export const validateAmountV2 = (amount: string, amount2: string) => {
 
 const walletActionMap: Record<WalletConnectMechanism, WalletActions> = {
   [WalletConnectMechanism.KEPLR]: WalletActions.CONNECT_KEPLR,
-  [WalletConnectMechanism.LEAP]: WalletActions.CONNECT_LEAP,
   [WalletConnectMechanism.EVM_PHANTOM]: WalletActions.CONNECT_EVM_PHANTOM,
   [WalletConnectMechanism.SOL_SOLFLARE]: WalletActions.CONNECT_SOL_SOLFLARE,
   [WalletConnectMechanism.LEDGER]: WalletActions.CONNECT_LEDGER,
@@ -66,7 +65,6 @@ const externalWalletMap: Record<
   (wallet: Wallet, network: NetworkData) => Promise<BaseWallet | undefined>
 > = {
   [WalletConnectMechanism.KEPLR]: authenticateKeplr,
-  [WalletConnectMechanism.LEAP]: authenticateLeap,
   [WalletConnectMechanism.EVM_PHANTOM]: authenticateEvmPhantom,
   [WalletConnectMechanism.SOL_SOLFLARE]: authenticateSolFlare,
   [WalletConnectMechanism.LEDGER]: authenticateLedger,

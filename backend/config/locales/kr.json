@@ -111,7 +111,6 @@
     "supply-position-action": "{amount}을(를) liquidity pool에 공급",
     "withdraw-position-action": "liquidity pool에서 {amount} 출금",
     "settings": "설정",
-    "leap": "Leap",
     "Confirm": "확인",
     "Pending": "대기 중",
     "Success": "성공",

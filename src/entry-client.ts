@@ -41,7 +41,7 @@ async function bootstrap() {
 
   // Watch wallet changes and sync with new stores.
   // This handles initial page load auto-reconnect (via walletOperation in view.vue).
-  // Wallet switch from extension is handled directly by view.vue's updateKeplr/updateLeap.
+  // Wallet switch from extension is handled directly by view.vue's updateKeplr.
   watch(
     () => walletStore.wallet?.address,
     async (newAddress, oldAddress) => {

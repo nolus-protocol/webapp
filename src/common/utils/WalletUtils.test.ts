@@ -142,59 +142,6 @@ describe("WalletUtils.getKeplr", () => {
   });
 });
 
-describe("WalletUtils.getLeap", () => {
-  const w = window as unknown as { leap?: unknown };
-
-  beforeEach(() => {
-    delete w.leap;
-  });
-
-  afterEach(() => {
-    delete w.leap;
-    vi.restoreAllMocks();
-  });
-
-  it("should return window.leap when extension is already set", async () => {
-    const fakeLeap = { marker: "leap-instance" };
-    w.leap = fakeLeap;
-    const result = await WalletUtils.getLeap();
-    expect(result).toBe(fakeLeap);
-  });
-
-  it("should return undefined when document is complete and extension is absent", async () => {
-    expect(document.readyState).toBe("complete");
-    const result = await WalletUtils.getLeap();
-    expect(result).toBeUndefined();
-  });
-
-  it("should wait for readystatechange when document is not complete", async () => {
-    const originalDescriptor = Object.getOwnPropertyDescriptor(Document.prototype, "readyState");
-    Object.defineProperty(document, "readyState", {
-      configurable: true,
-      get: () => "loading"
-    });
-
-    try {
-      const promise = WalletUtils.getLeap();
-
-      Object.defineProperty(document, "readyState", {
-        configurable: true,
-        get: () => "complete"
-      });
-      const fakeLeap = { marker: "delayed-leap" };
-      w.leap = fakeLeap;
-      document.dispatchEvent(new Event("readystatechange"));
-
-      const result = await promise;
-      expect(result).toBe(fakeLeap);
-    } finally {
-      if (originalDescriptor) {
-        Object.defineProperty(Document.prototype, "readyState", originalDescriptor);
-      }
-    }
-  });
-});
-
 describe("WalletUtils.getWallet", () => {
   beforeEach(() => {
     mocks.fetchEndpoints.mockReset();

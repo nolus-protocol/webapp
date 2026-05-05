@@ -111,7 +111,6 @@
     "supply-position-action": "Supply {amount} ke liquidity pool",
     "withdraw-position-action": "Tarik {amount} dari liquidity pool",
     "settings": "Pengaturan",
-    "leap": "Leap",
     "Confirm": "Konfirmasi",
     "Pending": "Tertunda",
     "Success": "Berhasil",
