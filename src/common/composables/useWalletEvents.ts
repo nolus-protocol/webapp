@@ -7,7 +7,7 @@ import { IntercomService, Logger, walletOperation } from "@/common/utils";
 
 /**
  * Composable that manages wallet lifecycle events:
- * - Keplr/Leap keystorechange listeners
+ * - Keplr keystorechange listener
  * - Initial wallet connection on config init
  * - APR loading
  *
@@ -41,7 +41,6 @@ export function useWalletEvents(): void {
   }
 
   const updateKeplr = createKeystoreHandler(() => wallet.CONNECT_KEPLR());
-  const updateLeap = createKeystoreHandler(() => wallet.CONNECT_LEAP());
 
   async function loadNetwork() {
     try {
@@ -60,7 +59,6 @@ export function useWalletEvents(): void {
         await connectionStore.connectWallet(wallet.wallet.address);
       }
       window.addEventListener("keplr_keystorechange", updateKeplr);
-      window.addEventListener("leap_keystorechange", updateLeap);
       wallet.LOAD_APR();
     },
     { immediate: true }
@@ -68,6 +66,5 @@ export function useWalletEvents(): void {
 
   onUnmounted(() => {
     window.removeEventListener("keplr_keystorechange", updateKeplr);
-    window.removeEventListener("leap_keystorechange", updateLeap);
   });
 }

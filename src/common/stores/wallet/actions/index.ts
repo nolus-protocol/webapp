@@ -1,7 +1,6 @@
 import { WalletActions } from "../types";
 
 import { connectKeplr } from "./connectKeplr";
-import { connectLeap } from "./connectLeap";
 import { connectLedger } from "./connectLedger";
 import { disconnect } from "./disconnect";
 import { loadApr } from "./loadApr";
@@ -13,7 +12,6 @@ import { connectSolflare } from "./connectSolflare";
 export const actions = {
   [WalletActions.DISCONNECT]: disconnect,
   [WalletActions.CONNECT_KEPLR]: connectKeplr,
-  [WalletActions.CONNECT_LEAP]: connectLeap,
   [WalletActions.CONNECT_LEDGER]: connectLedger,
   [WalletActions.CONNECT_EVM_PHANTOM]: connectPhantom,
   [WalletActions.CONNECT_SOL_SOLFLARE]: connectSolflare,

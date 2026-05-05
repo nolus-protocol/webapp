@@ -94,10 +94,6 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
   return authenticateKeplrLike(wallet, network, WalletUtils.getKeplr, "Keplr");
 }
 
-async function authenticateLeap(wallet: Wallet, network: NetworkData) {
-  return authenticateKeplrLike(wallet, network, WalletUtils.getLeap, "Leap");
-}
-
 export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkData) {
   const node = await fetchEndpoints(network.key);
   const metamask = new MetaMaskWallet();
@@ -145,4 +141,4 @@ async function getLedgerTransport() {
   return await TransportWebUSB.create();
 }
 
-export { authenticateLedger, authenticateKeplr, authenticateLeap };
+export { authenticateLedger, authenticateKeplr };

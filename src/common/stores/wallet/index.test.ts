@@ -29,7 +29,6 @@ vi.mock("./actions", () => ({
   actions: {
     DISCONNECT: () => undefined,
     CONNECT_KEPLR: () => undefined,
-    CONNECT_LEAP: () => undefined,
     CONNECT_LEDGER: () => undefined,
     CONNECT_EVM_PHANTOM: () => undefined,
     CONNECT_SOL_SOLFLARE: () => undefined,
@@ -110,7 +109,6 @@ describe("useWalletStore", () => {
     // Actions are registered for each WalletActions enum value plus ignoreAssets
     expect(typeof store[WalletActions.DISCONNECT]).toBe("function");
     expect(typeof store[WalletActions.CONNECT_KEPLR]).toBe("function");
-    expect(typeof store[WalletActions.CONNECT_LEAP]).toBe("function");
     expect(typeof store[WalletActions.CONNECT_LEDGER]).toBe("function");
     expect(typeof store[WalletActions.CONNECT_EVM_PHANTOM]).toBe("function");
     expect(typeof store[WalletActions.CONNECT_SOL_SOLFLARE]).toBe("function");

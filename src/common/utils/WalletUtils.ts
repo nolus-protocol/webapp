@@ -5,22 +5,21 @@ import { WalletManager } from ".";
 import { Wallet, NETWORK_DATA } from "@/networks";
 import { fetchEndpoints } from "./EndpointService";
 
-function getExtension(prop: "keplr" | "leap"): Promise<Keplr | undefined> {
-  const w = window as unknown as Record<string, Keplr | undefined>;
-  const ext = w[prop];
+function getKeplrExtension(): Promise<Keplr | undefined> {
+  const w = window as unknown as { keplr?: Keplr };
 
-  if (ext) {
-    return Promise.resolve(ext);
+  if (w.keplr) {
+    return Promise.resolve(w.keplr);
   }
 
   if (document.readyState === "complete") {
-    return Promise.resolve(w[prop]);
+    return Promise.resolve(w.keplr);
   }
 
   return new Promise((resolve) => {
     const documentStateChange = (event: Event) => {
       if (event.target && (event.target as Document).readyState === "complete") {
-        resolve(w[prop]);
+        resolve(w.keplr);
         document.removeEventListener("readystatechange", documentStateChange);
       }
     };
@@ -31,11 +30,7 @@ function getExtension(prop: "keplr" | "leap"): Promise<Keplr | undefined> {
 
 export class WalletUtils {
   public static getKeplr(): Promise<Keplr | undefined> {
-    return getExtension("keplr");
-  }
-
-  public static getLeap(): Promise<Keplr | undefined> {
-    return getExtension("leap");
+    return getKeplrExtension();
   }
 
   public static isAuth(): boolean {

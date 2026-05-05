@@ -21,7 +21,7 @@ const {
   solanaMakeWCOfflineSigner: vi.fn(() => ({ type: "svm", chainId: "nolus-1", getAccounts: async () => [] })),
   fetchEndpointsMock: vi.fn().mockResolvedValue({ rpc: "r", api: "a" }),
   walletManagerMock: { getWalletConnectMechanism: vi.fn(() => undefined) },
-  walletUtilsMock: { getKeplr: vi.fn(), getLeap: vi.fn() },
+  walletUtilsMock: { getKeplr: vi.fn() },
   bluetoothCreateMock: vi.fn().mockResolvedValue({ type: "ble-transport" }),
   webusbCreateMock: vi.fn().mockResolvedValue({ type: "usb-transport" })
 }));
@@ -90,7 +90,6 @@ vi.mock("@cosmjs/ledger-amino", () => ({
 
 import {
   authenticateKeplr,
-  authenticateLeap,
   authenticateLedger,
   authenticateEvmPhantom,
   authenticateSolFlare
@@ -129,7 +128,6 @@ describe("WalletFactory", () => {
     webusbCreateMock.mockClear();
     walletManagerMock.getWalletConnectMechanism.mockReturnValue(undefined);
     walletUtilsMock.getKeplr.mockReset();
-    walletUtilsMock.getLeap.mockReset();
     fetchEndpointsMock.mockReset();
     fetchEndpointsMock.mockResolvedValue({ rpc: "r", api: "a" });
   });
@@ -193,25 +191,6 @@ describe("WalletFactory", () => {
       // useAccount() was called during createWallet
       const instance = bw as unknown as { useAccount: ReturnType<typeof vi.fn> };
       expect(instance.useAccount).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe("authenticateLeap", () => {
-    it("throws when Leap is not installed (label reflects leap)", async () => {
-      walletUtilsMock.getLeap.mockResolvedValue(undefined);
-      await expect(authenticateLeap(fakeWallet(), fakeNetwork())).rejects.toThrow(/Leap wallet is not installed/);
-    });
-
-    it("happy path builds a BaseWallet", async () => {
-      const offlineSigner = { getAccounts: async () => [] };
-      walletUtilsMock.getLeap.mockResolvedValue({
-        getOfflineSignerAuto: vi.fn().mockResolvedValue(offlineSigner),
-        experimentalSuggestChain: vi.fn().mockResolvedValue(undefined),
-        enable: vi.fn().mockResolvedValue(undefined)
-      });
-
-      await authenticateLeap(fakeWallet(), fakeNetwork());
-      expect(baseWalletCtor).toHaveBeenCalledTimes(1);
     });
   });
 
