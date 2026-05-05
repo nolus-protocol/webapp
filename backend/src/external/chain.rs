@@ -15,7 +15,16 @@ use crate::error::AppError;
 
 /// Maximum concurrent LCD/REST requests to the chain node.
 /// Prevents burst overload on cold start and during cache refresh cycles.
-const MAX_CONCURRENT_CHAIN_QUERIES: usize = 32;
+/// Override at runtime with `CHAIN_MAX_CONCURRENT_QUERIES`.
+const DEFAULT_MAX_CONCURRENT_CHAIN_QUERIES: usize = 256;
+
+fn chain_query_concurrency() -> usize {
+    std::env::var("CHAIN_MAX_CONCURRENT_QUERIES")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .filter(|&n| n > 0)
+        .unwrap_or(DEFAULT_MAX_CONCURRENT_CHAIN_QUERIES)
+}
 
 /// Maximum retries for transient HTTP errors (429, 503).
 const MAX_RETRIES: u32 = 3;
@@ -77,7 +86,7 @@ impl ChainClient {
         Self {
             rest_url,
             client,
-            query_semaphore: Arc::new(Semaphore::new(MAX_CONCURRENT_CHAIN_QUERIES)),
+            query_semaphore: Arc::new(Semaphore::new(chain_query_concurrency())),
         }
     }
 
