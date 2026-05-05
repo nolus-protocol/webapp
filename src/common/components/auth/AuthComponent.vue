@@ -1,6 +1,6 @@
 <template>
   <TermsDialog ref="terms" />
-  <div class="flex flex-col gap-4 px-6 pb-6">
+  <div class="select-wallet-content flex flex-col gap-4 px-6 pb-6">
     <div class="text-[14px] text-neutral-400">
       {{ $t("message.policy") }}
       <button

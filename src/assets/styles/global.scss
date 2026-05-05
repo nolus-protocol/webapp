@@ -56,3 +56,17 @@ svg {
 .intercom-lightweight-app {
   z-index: 1 !important;
 }
+
+// The shared Dialog component (web-components lib) pins md:h-[800px] on its
+// outer container. The Select Wallet modal only shows ~340px of content, so
+// it ends up with ~460px of empty space below "Learn more". Override here
+// because the Dialog's class-list prop pathway through motion-v's
+// inheritAttrs:false setup doesn't reliably forward the class to the
+// rendered DOM. The :has() selector targets any [role="dialog"] that
+// contains a .select-wallet-content child — which only AuthComponent emits.
+@media (min-width: 768px) {
+  [role="dialog"]:has(.select-wallet-content) {
+    height: auto !important;
+    max-height: 90dvh !important;
+  }
+}
