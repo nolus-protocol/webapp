@@ -88,12 +88,7 @@ vi.mock("@cosmjs/ledger-amino", () => ({
   }
 }));
 
-import {
-  authenticateKeplr,
-  authenticateLedger,
-  authenticateEvmPhantom,
-  authenticateSolFlare
-} from "./WalletFactory";
+import { authenticateKeplr, authenticateLedger, authenticateEvmPhantom, authenticateSolFlare } from "./WalletFactory";
 import type { NetworkData } from "@/common/types";
 
 function fakeWallet(chainId = "nolus-1") {
