@@ -15,12 +15,19 @@ export class WalletManager {
     localStorage.setItem(this.WALLET_CONNECT_MECHANISM, walletConnectMechanism);
   }
 
+  /**
+   * Returns the persisted wallet-connect mechanism, or `null` if absent or stale.
+   *
+   * Side effect: if the stored value is not a current `WalletConnectMechanism`
+   * enum member (e.g. left over from a removed wallet integration), this call
+   * clears `WALLET_CONNECT_MECHANISM` and `WALLET_PUBKEY` from localStorage and
+   * returns `null`. Without this, an unknown value falls through to undefined
+   * map lookups in `walletOperation` / `externalWallet` and crashes the
+   * auto-reconnect path.
+   */
   public static getWalletConnectMechanism(): string | null {
     const stored = localStorage.getItem(this.WALLET_CONNECT_MECHANISM);
     if (stored === null) return null;
-    // Self-heal stale mechanisms left over from removed wallet integrations.
-    // Without this, an unknown value falls through to undefined map lookups
-    // in walletOperation/externalWallet and crashes on auto-reconnect.
     const valid = (Object.values(WalletConnectMechanism) as string[]).includes(stored);
     if (!valid) {
       this.eraseWalletInfo();
