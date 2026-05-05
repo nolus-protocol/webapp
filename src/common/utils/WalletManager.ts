@@ -1,4 +1,4 @@
-import type { WalletConnectMechanism } from "@/common/types";
+import { WalletConnectMechanism } from "@/common/types";
 import { useWalletStore } from "../stores/wallet";
 import { useConfigStore } from "../stores/config";
 import { DefaultProtocolFilter } from "@/config/global";
@@ -16,7 +16,17 @@ export class WalletManager {
   }
 
   public static getWalletConnectMechanism(): string | null {
-    return localStorage.getItem(this.WALLET_CONNECT_MECHANISM);
+    const stored = localStorage.getItem(this.WALLET_CONNECT_MECHANISM);
+    if (stored === null) return null;
+    // Self-heal stale mechanisms left over from removed wallet integrations.
+    // Without this, an unknown value falls through to undefined map lookups
+    // in walletOperation/externalWallet and crashes on auto-reconnect.
+    const valid = (Object.values(WalletConnectMechanism) as string[]).includes(stored);
+    if (!valid) {
+      this.eraseWalletInfo();
+      return null;
+    }
+    return stored;
   }
 
   public static setPubKey(pubkey: string) {
