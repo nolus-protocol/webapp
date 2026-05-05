@@ -45,7 +45,6 @@ import { WalletActions } from "@/common/stores/wallet";
 import WalletBoxes from "./WalletBoxes.vue";
 import TermsDialog from "../dialogs/TermsDialog.vue";
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
-import LedgerIcon from "@/assets/icons/wallets/ledger.svg?url";
 
 import { IntercomService } from "@/common/utils";
 import type { IObjectKeys } from "@/common/types";
@@ -67,11 +66,6 @@ const connections = computed(
         icon: KeplrIcon,
         label: i18n.t("message.keplr"),
         type: WalletActions.CONNECT_KEPLR
-      },
-      Ledger: {
-        icon: LedgerIcon,
-        label: i18n.t("message.ledger"),
-        type: WalletActions.CONNECT_LEDGER
       }
     };
 
