@@ -56,30 +56,3 @@ svg {
 .intercom-lightweight-app {
   z-index: 1 !important;
 }
-
-// The shared Dialog component (web-components lib) pins md:h-[800px] on its
-// outer container, plus h-[calc(100%-80px)] on the inner overflow body.
-// AuthComponent only renders ~340px of content, so the modal otherwise has
-// ~460px of empty space below "Learn more". Override on desktop only —
-// mobile keeps h-[100dvh] full-screen.
-//
-// Both selectors used because the Dialog's outer class array sits behind a
-// motion-v Motion wrapper with inheritAttrs:false; the class-list prop
-// pathway didn't reliably forward to the rendered DOM in the deployed
-// bundle, so target via descendant content instead. The aria-label fallback
-// covers locales where the i18n title may differ in length but the role +
-// label pair is stable per the Dialog component.
-@media (min-width: 768px) {
-  [role="dialog"]:has(.select-wallet-content),
-  [role="dialog"][aria-label="Select Wallet"] {
-    height: auto !important;
-    max-height: 90dvh !important;
-  }
-  // Inner overflow body's h-[calc(100%-80px)] resolves circularly when the
-  // parent goes auto; force it explicitly so the modal sizes to the wallet
-  // list rather than expanding to fill viewport.
-  [role="dialog"]:has(.select-wallet-content) > .overflow-y-auto,
-  [role="dialog"][aria-label="Select Wallet"] > .overflow-y-auto {
-    height: auto !important;
-  }
-}
