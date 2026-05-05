@@ -405,14 +405,11 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
         .map(|s| s.as_str())
         .collect();
 
-    // Only include currencies from active protocols (ones with oracle contracts).
-    // This keeps currencies in sync with prices, which only queries active oracles.
-    let active_protocols: Option<std::collections::HashSet<String>> = state
-        .data_cache
-        .protocol_contracts
-        .load()
-        .map(|pc| pc.keys().cloned().collect());
-
+    // Pass through every (ticker, protocol) entry ETL knows about, including
+    // retired protocols. Per-entry `is_active` carries the truth; downstream
+    // selection (lpn_currencies, lease_currencies_set, frontend's preferred
+    // lookups) gates on that flag. Without this, historical pages can't render
+    // rows whose protocol no longer has live oracle contracts.
     let mut currencies_map: HashMap<String, CurrencyInfo> = HashMap::new();
     let mut lpn_currencies: Vec<CurrencyInfo> = Vec::new();
     let mut lease_currencies_set: std::collections::HashSet<String> =
@@ -423,12 +420,6 @@ pub async fn refresh_currencies(state: &Arc<AppState>) {
         let display = currency_config.currencies.get(&etl_currency.ticker);
 
         for protocol_mapping in etl_currency.protocols {
-            if let Some(ref active) = active_protocols {
-                if !active.contains(protocol_mapping.protocol.as_str()) {
-                    continue;
-                }
-            }
-
             let key = format!("{}@{}", etl_currency.ticker, protocol_mapping.protocol);
             let is_native = protocol_mapping.bank_symbol == "unls";
             let is_lpn = protocol_mapping.group == "lpn";
@@ -1859,11 +1850,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn refresh_currencies_filters_by_active_protocols() {
+    async fn refresh_currencies_passes_through_retired_protocols_with_inactive_flag() {
         let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
         state.data_cache.gated_config.store(sample_gated_bundle());
 
-        // Only PROTOCOL_A is active.
+        // Only PROTOCOL_A has live contracts; PROTOCOL_B is retired.
         let mut pc: ProtocolContractsMap = HashMap::new();
         pc.insert(
             "PROTOCOL_A".to_string(),
@@ -1877,6 +1868,9 @@ mod tests {
         );
         state.data_cache.protocol_contracts.store(pc);
 
+        // ETL reports an active ticker on PROTOCOL_A and an inactive ticker
+        // on the retired PROTOCOL_B. Historical pages need both so they can
+        // render rows for closed positions on retired protocols.
         let body = json!({
             "currencies": [
                 {
@@ -1889,19 +1883,26 @@ mod tests {
                             "group": "lease",
                             "bank_symbol": "ibc/atomA",
                             "dex_symbol": "ibc/atomA-dex"
-                        },
+                        }
+                    ]
+                },
+                {
+                    "ticker": "RETIRED",
+                    "decimal_digits": 6,
+                    "is_active": false,
+                    "protocols": [
                         {
                             "protocol": "PROTOCOL_B",
                             "group": "lease",
-                            "bank_symbol": "ibc/atomB",
-                            "dex_symbol": "ibc/atomB-dex"
+                            "bank_symbol": "ibc/retiredB",
+                            "dex_symbol": "ibc/retiredB-dex"
                         }
                     ]
                 }
             ],
-            "count": 1,
+            "count": 2,
             "active_count": 1,
-            "deprecated_count": 0
+            "deprecated_count": 1
         });
 
         Mock::given(method("GET"))
@@ -1913,8 +1914,22 @@ mod tests {
         refresh_currencies(&state).await;
 
         let loaded = state.data_cache.currencies.load().expect("populated");
-        assert!(loaded.currencies.contains_key("ATOM@PROTOCOL_A"));
-        assert!(!loaded.currencies.contains_key("ATOM@PROTOCOL_B"));
+
+        let active = loaded
+            .currencies
+            .get("ATOM@PROTOCOL_A")
+            .expect("active entry kept");
+        assert!(active.is_active);
+
+        let retired = loaded
+            .currencies
+            .get("RETIRED@PROTOCOL_B")
+            .expect("retired entry kept for historical lookups");
+        assert!(!retired.is_active);
+
+        // Inactive entries must not leak into the active LPN/lease selections.
+        assert!(loaded.lpn.iter().all(|c| c.ticker != "RETIRED"));
+        assert!(!loaded.lease_currencies.contains(&"RETIRED".to_string()));
     }
 
     // =======================================================================
