@@ -10,7 +10,7 @@ A DeFi money market web application for the [Nolus](https://nolus.io) protocol. 
 | Backend | Rust (Axum, Tokio) |
 | Blockchain | CosmJS, @nolus/nolusjs, cosmrs |
 | Networks | Nolus, Osmosis, Neutron |
-| Wallets | Keplr, Leap, Ledger (USB + Bluetooth), Phantom, Solflare |
+| Wallets | Keplr, Ledger (USB + Bluetooth), Phantom, Solflare |
 
 ## Requirements
 

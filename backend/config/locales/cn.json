@@ -111,7 +111,6 @@
     "supply-position-action": "向流动性池提供 {amount}",
     "withdraw-position-action": "从流动性池提取 {amount}",
     "settings": "设置",
-    "leap": "Leap",
     "Confirm": "确认",
     "Pending": "处理中",
     "Success": "成功",
