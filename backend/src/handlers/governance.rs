@@ -6,13 +6,18 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Path, Query, State},
+    http::{HeaderMap, HeaderValue},
     Json,
 };
+use futures::future::try_join_all;
 use serde::{Deserialize, Serialize};
-use tracing::{debug, warn};
+use tracing::debug;
 use utoipa::{IntoParams, ToSchema};
 
 use crate::{error::AppError, external::chain, AppState};
+
+/// Status string the chain reports for proposals currently accepting votes.
+const PROPOSAL_STATUS_VOTING_PERIOD: &str = "PROPOSAL_STATUS_VOTING_PERIOD";
 
 // ============================================================================
 // Hidden Proposals
@@ -100,91 +105,160 @@ pub struct PaginationInfo {
 
 /// List governance proposals
 ///
-/// Returns governance proposals in reverse-chronological order. For proposals
-/// in the voting period, the live tally is fetched; if `voter` is supplied,
-/// each such proposal is annotated with whether that address has voted.
+/// Returns governance proposals in reverse-chronological order from the
+/// background-refreshed cache. The response carries `Cache-Status: warm`
+/// (with a `Cache-Age` value in seconds) once the refresh task has populated
+/// the cache, or `Cache-Status: cold` with an empty list before the first
+/// refresh completes — never 503 — so the frontend's `Promise.allSettled`
+/// flow can render an empty state without a coordinated rollout.
+///
+/// Hidden proposals from the gated UI config are filtered at request time
+/// against the latest config; cached tallies are attached for voting-period
+/// proposals. The fresh tally for a single proposal is available on the
+/// per-id `/proposals/{id}/tally` endpoint, which still queries the chain
+/// directly. `?voter=` triggers a live `get_proposal_vote` fan-out across
+/// voting-period proposals only — a chain failure on any of those calls
+/// surfaces as 502.
 #[utoipa::path(
     get,
     path = "/api/governance/proposals",
     tag = "governance",
     params(ProposalsQuery),
     responses(
-        (status = 200, description = "Paginated list of proposals", body = ProposalsListResponse),
-        (status = 502, description = "Upstream chain RPC error", body = crate::error::ErrorResponse),
+        (
+            status = 200,
+            description = "Paginated list of proposals",
+            body = ProposalsListResponse,
+            headers(
+                ("Cache-Status" = String, description = "`warm` when served from the background-refreshed cache, `cold` before the first refresh has populated it (response body is then an empty list)."),
+                ("Cache-Age" = String, description = "Age in seconds of the cached snapshot. Present on `warm` responses, omitted on `cold`."),
+            ),
+        ),
+        (status = 502, description = "Upstream chain RPC error on live `?voter=` fan-out", body = crate::error::ErrorResponse),
     ),
 )]
 pub async fn get_proposals(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProposalsQuery>,
-) -> Result<Json<ProposalsListResponse>, AppError> {
-    let limit = query.limit.unwrap_or(10);
-    debug!("Fetching proposals with limit: {}", limit);
+) -> Result<(HeaderMap, Json<ProposalsListResponse>), AppError> {
+    let limit = query.limit.unwrap_or(10) as usize;
+    debug!("Fetching proposals from cache, limit: {}", limit);
 
-    let proposals_response = state.chain_client.get_proposals(limit, true).await?;
+    let cache = &state.data_cache.proposals_with_tally;
+    let snapshot = match cache.load() {
+        Some(snapshot) => snapshot,
+        None => {
+            // Cold cache — empty list with explicit header. The handler is
+            // never the place that triggers a chain fetch on cold; the
+            // background refresh task is the only writer.
+            let mut headers = HeaderMap::new();
+            headers.insert("Cache-Status", HeaderValue::from_static("cold"));
+            return Ok((
+                headers,
+                Json(ProposalsListResponse {
+                    proposals: Vec::new(),
+                    pagination: PaginationInfo {
+                        total: "0".to_string(),
+                        next_key: None,
+                    },
+                }),
+            ));
+        }
+    };
 
-    let mut proposals: Vec<ProposalResponse> = Vec::new();
+    // Hidden-proposal filter applies the *latest* gated config — request-time,
+    // not cache-time, so toggles take effect immediately.
+    let hidden_ids: std::collections::HashSet<String> = state
+        .data_cache
+        .gated_config
+        .load()
+        .map(|g| g.ui_settings.hidden_proposals.into_iter().collect())
+        .unwrap_or_default();
 
-    for proposal in proposals_response.proposals {
-        let mut response = ProposalResponse {
-            id: proposal.id.clone(),
-            status: proposal.status.clone(),
-            final_tally_result: proposal.final_tally_result,
-            submit_time: proposal.submit_time,
-            deposit_end_time: proposal.deposit_end_time,
-            voting_start_time: proposal.voting_start_time,
-            voting_end_time: proposal.voting_end_time,
-            title: proposal.title,
-            summary: proposal.summary,
-            messages: proposal.messages,
-            metadata: proposal.metadata,
-            tally: None,
-            voted: None,
+    let visible: Vec<chain::Proposal> = snapshot
+        .proposals
+        .into_iter()
+        .filter(|p| !hidden_ids.contains(&p.id))
+        .collect();
+    let total_visible = visible.len();
+    let page: Vec<chain::Proposal> = visible.into_iter().take(limit).collect();
+
+    // Live `?voter=` fan-out — only voting-period proposals trigger a vote
+    // call. A single chain error fails the whole request with 502; the
+    // 502 response shape is exactly what the frontend already handles for
+    // this endpoint.
+    let voted_map: std::collections::HashMap<String, bool> =
+        if let Some(voter) = query.voter.as_deref().filter(|v| !v.is_empty()) {
+            let voting_ids: Vec<String> = page
+                .iter()
+                .filter(|p| p.status == PROPOSAL_STATUS_VOTING_PERIOD)
+                .map(|p| p.id.clone())
+                .collect();
+            let chain_client = state.chain_client.clone();
+            let voter = voter.to_string();
+            let futs = voting_ids.into_iter().map(|id| {
+                let chain_client = chain_client.clone();
+                let voter = voter.clone();
+                async move {
+                    let res = chain_client.get_proposal_vote(&id, &voter).await?;
+                    let voted = match res {
+                        Some(vote_response) => !vote_response.vote.options.is_empty(),
+                        None => false,
+                    };
+                    Ok::<_, AppError>((id, voted))
+                }
+            });
+            try_join_all(futs).await?.into_iter().collect()
+        } else {
+            std::collections::HashMap::new()
         };
 
-        // For voting proposals, fetch tally
-        if proposal.status == "PROPOSAL_STATUS_VOTING_PERIOD" {
-            match state.chain_client.get_proposal_tally(&proposal.id).await {
-                Ok(tally_response) => {
-                    response.tally = Some(tally_response.tally);
-                }
-                Err(e) => {
-                    warn!("Failed to fetch tally for proposal {}: {}", proposal.id, e);
-                }
+    let proposals: Vec<ProposalResponse> = page
+        .into_iter()
+        .map(|p| {
+            let id = p.id.clone();
+            let status = p.status.clone();
+            let tally = if status == PROPOSAL_STATUS_VOTING_PERIOD {
+                snapshot.tallies.get(&id).cloned()
+            } else {
+                None
+            };
+            let voted = voted_map.get(&id).copied();
+            ProposalResponse {
+                id,
+                status,
+                final_tally_result: p.final_tally_result,
+                submit_time: p.submit_time,
+                deposit_end_time: p.deposit_end_time,
+                voting_start_time: p.voting_start_time,
+                voting_end_time: p.voting_end_time,
+                title: p.title,
+                summary: p.summary,
+                messages: p.messages,
+                metadata: p.metadata,
+                tally,
+                voted,
             }
+        })
+        .collect();
 
-            // If voter is provided, check if they voted
-            if let Some(ref voter) = query.voter {
-                match state
-                    .chain_client
-                    .get_proposal_vote(&proposal.id, voter)
-                    .await
-                {
-                    Ok(Some(vote_response)) => {
-                        response.voted = Some(!vote_response.vote.options.is_empty());
-                    }
-                    Ok(None) => {
-                        response.voted = Some(false);
-                    }
-                    Err(e) => {
-                        warn!(
-                            "Failed to check vote for proposal {} voter {}: {}",
-                            proposal.id, voter, e
-                        );
-                    }
-                }
-            }
-        }
-
-        proposals.push(response);
+    let mut headers = HeaderMap::new();
+    headers.insert("Cache-Status", HeaderValue::from_static("warm"));
+    let age = cache.age_secs().unwrap_or(0);
+    if let Ok(value) = HeaderValue::from_str(&age.to_string()) {
+        headers.insert("Cache-Age", value);
     }
 
-    Ok(Json(ProposalsListResponse {
-        proposals,
-        pagination: PaginationInfo {
-            total: proposals_response.pagination.total,
-            next_key: proposals_response.pagination.next_key,
-        },
-    }))
+    Ok((
+        headers,
+        Json(ProposalsListResponse {
+            proposals,
+            pagination: PaginationInfo {
+                total: total_visible.to_string(),
+                next_key: None,
+            },
+        }),
+    ))
 }
 
 /// Get proposal tally
@@ -524,14 +598,12 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn governance_proposals_upstream_failure_returns_502() {
-        // stub RPC (127.0.0.1:1 + 1ms timeout) ensures chain_client returns an
-        // error that maps to 502 BAD_GATEWAY via AppError::ChainRpc.
+    async fn governance_proposal_tally_upstream_failure_returns_502() {
         let app = build_app(test_app_state().await);
         let resp = app
             .oneshot(
                 Request::builder()
-                    .uri("/api/governance/proposals?limit=5")
+                    .uri("/api/governance/proposals/1/tally")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -540,13 +612,391 @@ mod tests {
         assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
     }
 
+    // =======================================================================
+    // Phase 1 cache refactor — proposals served from `proposals_with_tally`.
+    // =======================================================================
+
+    use std::collections::HashMap;
+    use wiremock::matchers::{method as wm_method, path as wm_path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    /// Build an `AppState` whose chain HTTP client uses a realistic timeout
+    /// and points at the supplied mock chain URL. Mirrors the helper in
+    /// `etl_proxy.rs::tests::state_with_etl_url`. Required for the live
+    /// `?voter` fan-out and per-id tally tests where chain calls actually
+    /// have to land on the wiremock.
+    async fn state_with_chain_url(chain_url: &str) -> Arc<AppState> {
+        use crate::config_store::ConfigStore;
+        use crate::handlers::websocket::WebSocketManager;
+        use crate::translations::{
+            llm::{LlmClient, LlmConfig},
+            TranslationStorage,
+        };
+        use std::time::Instant;
+
+        let mut cfg = crate::test_utils::test_config();
+        cfg.external.nolus_rest_url = chain_url.to_string();
+
+        let http_client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(5))
+            .build()
+            .expect("reqwest client");
+
+        let etl_client = crate::external::etl::EtlClient::new(
+            cfg.external.etl_api_url.clone(),
+            http_client.clone(),
+        );
+        let skip_client = crate::external::skip::SkipClient::new(
+            cfg.external.skip_api_url.clone(),
+            cfg.external.skip_api_key.clone(),
+            http_client.clone(),
+        );
+        let chain_client = crate::external::chain::ChainClient::new(
+            cfg.external.nolus_rest_url.clone(),
+            http_client.clone(),
+        );
+        let referral_client =
+            crate::external::referral::ReferralClient::new(&cfg, http_client.clone());
+        let zero_interest_client =
+            crate::external::zero_interest::ZeroInterestClient::new(&cfg, http_client.clone());
+
+        let config_dir = tempfile::tempdir().expect("tempdir").keep();
+        let config_store = ConfigStore::new(&config_dir);
+        config_store.init().await.expect("ConfigStore init");
+        let translation_dir = tempfile::tempdir().expect("tempdir").keep();
+        let translation_storage = TranslationStorage::new(&translation_dir);
+        translation_storage.init().await.expect("TS init");
+        let llm_client = LlmClient::new(LlmConfig {
+            api_key: String::new(),
+            model: "stub".to_string(),
+            base_url: Some("http://127.0.0.1:1/".to_string()),
+        });
+
+        Arc::new(AppState {
+            config: cfg,
+            etl_client,
+            skip_client,
+            chain_client,
+            referral_client,
+            zero_interest_client,
+            data_cache: crate::data_cache::AppDataCache::new(),
+            ws_manager: WebSocketManager::new(16),
+            config_store,
+            translation_storage,
+            llm_client,
+            startup_time: Instant::now(),
+        })
+    }
+
+    fn sample_proposal(id: &str, status: &str) -> chain::Proposal {
+        chain::Proposal {
+            id: id.to_string(),
+            status: status.to_string(),
+            final_tally_result: None,
+            submit_time: Some("2026-01-01T00:00:00Z".to_string()),
+            deposit_end_time: Some("2026-01-08T00:00:00Z".to_string()),
+            voting_start_time: Some("2026-01-08T00:00:00Z".to_string()),
+            voting_end_time: Some("2026-01-15T00:00:00Z".to_string()),
+            title: Some(format!("proposal {id}")),
+            summary: Some(format!("summary {id}")),
+            messages: vec![],
+            metadata: None,
+            tally: None,
+            voted: None,
+        }
+    }
+
+    fn populate_proposals_cache(state: &AppState, proposals: Vec<chain::Proposal>) {
+        state
+            .data_cache
+            .proposals_with_tally
+            .store(crate::data_cache::ProposalsWithTally {
+                proposals,
+                tallies: HashMap::new(),
+            });
+    }
+
     #[tokio::test]
-    async fn governance_proposal_tally_upstream_failure_returns_502() {
+    async fn governance_proposals_cold_cache_returns_empty_list_with_cache_status_header() {
         let app = build_app(test_app_state().await);
         let resp = app
             .oneshot(
                 Request::builder()
-                    .uri("/api/governance/proposals/1/tally")
+                    .uri("/api/governance/proposals")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers()
+                .get("cache-status")
+                .map(|v| v.to_str().unwrap()),
+            Some("cold")
+        );
+        let body = collect_body_str(resp).await;
+        assert!(
+            body.contains("\"proposals\":[]"),
+            "cold cache must return empty proposals list, body: {body}"
+        );
+        assert!(
+            body.contains("\"total\":\"0\""),
+            "cold cache pagination.total must be \"0\", body: {body}"
+        );
+        assert!(
+            body.contains("\"next_key\":null"),
+            "cold cache pagination.next_key must be null, body: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn governance_proposals_populated_cache_returns_list_with_cache_status_header() {
+        let state = test_app_state().await;
+        populate_proposals_cache(
+            &state,
+            vec![
+                sample_proposal("1", "PROPOSAL_STATUS_PASSED"),
+                sample_proposal("2", "PROPOSAL_STATUS_REJECTED"),
+            ],
+        );
+        let app = build_app(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(
+            resp.headers()
+                .get("cache-status")
+                .map(|v| v.to_str().unwrap()),
+            Some("warm")
+        );
+        // Cache-Age header must be present and a numeric string (likely "0").
+        let age = resp
+            .headers()
+            .get("cache-age")
+            .expect("cache-age header on warm response")
+            .to_str()
+            .expect("ascii cache-age")
+            .to_string();
+        let age_secs: u64 = age.parse().expect("cache-age is a non-negative integer");
+        assert!(age_secs <= 5, "expected small age, got {age_secs}");
+
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"id\":\"1\""), "body: {body}");
+        assert!(body.contains("\"id\":\"2\""), "body: {body}");
+        // No tally was populated for these finalized proposals; skip_serializing_if
+        // means the field is absent.
+        assert!(
+            !body.contains("\"tally\""),
+            "no tally field expected, body: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn governance_proposals_with_voter_fans_out_live_vote_calls() {
+        // 1 voting + 1 finalized; only the voting one should trigger the live
+        // get_proposal_vote chain call.
+        let mock = MockServer::start().await;
+        let state = state_with_chain_url(&mock.uri()).await;
+        populate_proposals_cache(
+            &state,
+            vec![
+                sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD"),
+                sample_proposal("2", "PROPOSAL_STATUS_PASSED"),
+            ],
+        );
+
+        // Vote response for proposal 1 — voter cast a YES vote.
+        Mock::given(wm_method("GET"))
+            .and(wm_path("/cosmos/gov/v1/proposals/1/votes/nolus1xxxx"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "vote": {
+                    "proposal_id": "1",
+                    "voter": "nolus1xxxx",
+                    "options": [{ "option": "VOTE_OPTION_YES", "weight": "1.0" }]
+                }
+            })))
+            .mount(&mock)
+            .await;
+
+        let app = build_app(state);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals?voter=nolus1xxxx")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+
+        // Only one chain vote call observed — the voting-period proposal.
+        let received = mock.received_requests().await.unwrap_or_default();
+        let vote_calls: Vec<_> = received
+            .iter()
+            .filter(|req| req.url.path().contains("/votes/"))
+            .collect();
+        assert_eq!(
+            vote_calls.len(),
+            1,
+            "exactly one vote chain call expected for the voting-period proposal"
+        );
+        assert!(
+            vote_calls[0].url.path().contains("/proposals/1/votes/"),
+            "vote call must be for proposal 1, got: {}",
+            vote_calls[0].url
+        );
+
+        // Response carries voted=true for proposal 1; proposal 2 has no `voted`.
+        assert!(
+            body.contains("\"voted\":true"),
+            "voted=true expected for proposal 1, body: {body}"
+        );
+    }
+
+    #[tokio::test]
+    async fn governance_proposals_hidden_filter_uses_latest_gated_config() {
+        let state = test_app_state().await;
+        populate_proposals_cache(
+            &state,
+            vec![
+                sample_proposal("X", "PROPOSAL_STATUS_PASSED"),
+                sample_proposal("Y", "PROPOSAL_STATUS_PASSED"),
+                sample_proposal("Z", "PROPOSAL_STATUS_PASSED"),
+            ],
+        );
+
+        // First request: hide Y only. Expect X and Z, not Y.
+        populate_gated(&state, vec!["Y".to_string()]);
+        let resp1 = build_app(state.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp1.status(), StatusCode::OK);
+        let body1 = collect_body_str(resp1).await;
+        assert!(body1.contains("\"id\":\"X\""), "X visible, body: {body1}");
+        assert!(
+            !body1.contains("\"id\":\"Y\""),
+            "Y must be filtered, body: {body1}"
+        );
+        assert!(body1.contains("\"id\":\"Z\""), "Z visible, body: {body1}");
+
+        // Swap gated_config: now hide both X and Y. Proposals cache untouched.
+        populate_gated(&state, vec!["X".to_string(), "Y".to_string()]);
+        let resp2 = build_app(state.clone())
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp2.status(), StatusCode::OK);
+        let body2 = collect_body_str(resp2).await;
+        assert!(
+            !body2.contains("\"id\":\"X\""),
+            "X now filtered, body: {body2}"
+        );
+        assert!(
+            !body2.contains("\"id\":\"Y\""),
+            "Y still filtered, body: {body2}"
+        );
+        assert!(body2.contains("\"id\":\"Z\""), "Z visible, body: {body2}");
+    }
+
+    #[tokio::test]
+    async fn governance_proposal_tally_per_id_stays_live() {
+        // Even with the proposals cache populated, the per-id tally route must
+        // still hit the chain — regression guard against accidentally routing
+        // it through the cached map.
+        let mock = MockServer::start().await;
+        let state = state_with_chain_url(&mock.uri()).await;
+        populate_proposals_cache(
+            &state,
+            vec![sample_proposal("7", "PROPOSAL_STATUS_VOTING_PERIOD")],
+        );
+
+        Mock::given(wm_method("GET"))
+            .and(wm_path("/cosmos/gov/v1/proposals/7/tally"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "tally": {
+                    "yes_count": "42",
+                    "abstain_count": "0",
+                    "no_count": "0",
+                    "no_with_veto_count": "0"
+                }
+            })))
+            .mount(&mock)
+            .await;
+
+        let app = build_app(state);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals/7/tally")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(body.contains("\"yes_count\":\"42\""), "body: {body}");
+
+        // Chain mock was actually hit — proves per-id stayed live.
+        let received = mock.received_requests().await.unwrap_or_default();
+        let hits: Vec<_> = received
+            .iter()
+            .filter(|r| r.url.path() == "/cosmos/gov/v1/proposals/7/tally")
+            .collect();
+        assert_eq!(
+            hits.len(),
+            1,
+            "per-id tally must be served live from chain, not from cache"
+        );
+    }
+
+    #[tokio::test]
+    async fn governance_proposals_with_voter_upstream_failure_on_vote_returns_502() {
+        // Renamed from `governance_proposals_upstream_failure_returns_502`.
+        // After the cache refactor, the list endpoint without `?voter` no
+        // longer touches the chain — so a chain failure can only surface
+        // when fanning out vote calls. Populate the cache, mock vote 500,
+        // expect 502.
+        let mock = MockServer::start().await;
+        let state = state_with_chain_url(&mock.uri()).await;
+        populate_proposals_cache(
+            &state,
+            vec![sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD")],
+        );
+
+        Mock::given(wm_method("GET"))
+            .and(wm_path("/cosmos/gov/v1/proposals/1/votes/nolus1xxxx"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("vote rpc unavailable"))
+            .mount(&mock)
+            .await;
+
+        let app = build_app(state);
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/governance/proposals?voter=nolus1xxxx")
                     .body(Body::empty())
                     .unwrap(),
             )

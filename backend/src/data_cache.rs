@@ -114,6 +114,20 @@ pub struct GatedConfigBundle {
 /// Keyed by protocol name (e.g., "OSMOSIS-OSMOSIS-USDC_NOBLE").
 pub type ProtocolContractsMap = HashMap<String, crate::external::chain::ProtocolContractsInfo>;
 
+/// Snapshot of governance proposals with their per-proposal tallies.
+///
+/// `proposals` is canonical — refreshed atomically as a unit on every cycle.
+/// `tallies` is keyed by proposal id and only carries entries for proposals
+/// in `PROPOSAL_STATUS_VOTING_PERIOD`. The map is merged with prior state on
+/// each refresh: per-id failures retain the prior value, proposals that exit
+/// voting period are pruned. Finalized proposals' tally lives on
+/// `Proposal::final_tally_result` and does not need a separate map entry.
+#[derive(Debug, Clone)]
+pub struct ProposalsWithTally {
+    pub proposals: Vec<crate::external::chain::Proposal>,
+    pub tallies: HashMap<String, crate::external::chain::TallyResult>,
+}
+
 /// All cached application data.
 ///
 /// Each field is a `Cached<T>` populated by a dedicated background refresh task.
@@ -148,6 +162,10 @@ pub struct AppDataCache {
 
     /// Annual inflation (from Nolus mint module, changes per governance proposal)
     pub annual_inflation: Cached<AnnualInflationResponse>,
+
+    /// Governance proposals with their voting-period tallies, refreshed
+    /// together so list reads serve consistent (proposal, tally) pairs.
+    pub proposals_with_tally: Cached<ProposalsWithTally>,
 
     /// Staking pool (bonded/not-bonded tokens)
     pub staking_pool: Cached<StakingPoolResponse>,
@@ -195,6 +213,7 @@ impl AppDataCache {
             pools: Cached::new(),
             validators: Cached::new(),
             annual_inflation: Cached::new(),
+            proposals_with_tally: Cached::new(),
             staking_pool: Cached::new(),
             gated_assets: Cached::new(),
             gated_protocols: Cached::new(),
@@ -219,6 +238,8 @@ impl AppDataCache {
             pools: self.field_status("pools", &self.pools),
             validators: self.field_status("validators", &self.validators),
             annual_inflation: self.field_status("annual_inflation", &self.annual_inflation),
+            proposals_with_tally: self
+                .field_status("proposals_with_tally", &self.proposals_with_tally),
             staking_pool: self.field_status("staking_pool", &self.staking_pool),
             gated_assets: self.field_status("gated_assets", &self.gated_assets),
             gated_protocols: self.field_status("gated_protocols", &self.gated_protocols),
@@ -266,6 +287,7 @@ pub struct CacheStatusSummary {
     pub pools: CacheFieldStatus,
     pub validators: CacheFieldStatus,
     pub annual_inflation: CacheFieldStatus,
+    pub proposals_with_tally: CacheFieldStatus,
     pub staking_pool: CacheFieldStatus,
     pub gated_assets: CacheFieldStatus,
     pub gated_protocols: CacheFieldStatus,
@@ -444,6 +466,7 @@ mod tests {
         assert!(!cache.pools.is_populated());
         assert!(!cache.validators.is_populated());
         assert!(!cache.annual_inflation.is_populated());
+        assert!(!cache.proposals_with_tally.is_populated());
         assert!(!cache.staking_pool.is_populated());
         assert!(!cache.gated_assets.is_populated());
         assert!(!cache.gated_protocols.is_populated());
@@ -480,6 +503,7 @@ mod tests {
             ("pools", &summary.pools),
             ("validators", &summary.validators),
             ("annual_inflation", &summary.annual_inflation),
+            ("proposals_with_tally", &summary.proposals_with_tally),
             ("staking_pool", &summary.staking_pool),
             ("gated_assets", &summary.gated_assets),
             ("gated_protocols", &summary.gated_protocols),

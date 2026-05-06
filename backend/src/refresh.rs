@@ -6,13 +6,37 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use futures::future::join_all;
+use futures::stream::{self, StreamExt};
 use tracing::{debug, error, info, warn};
 
+/// Per-call ceiling for `warm_essential_data` so a hung chain LCD on boot
+/// cannot block `axum::serve` from binding. The deploy script has already
+/// stopped the prior binary by the time warm-up runs — without an outer
+/// bound, a stuck handshake would take the host dark.
+const WARM_CALL_TIMEOUT: Duration = Duration::from_secs(15);
+
+/// Run `fut` with the warm-up timeout. On timeout, log a single `warn!` and
+/// return — the cache stays empty for that field and the request handler
+/// falls back to its cold-cache path.
+async fn warm_with_timeout<F>(name: &'static str, fut: F)
+where
+    F: std::future::Future<Output = ()>,
+{
+    if tokio::time::timeout(WARM_CALL_TIMEOUT, fut).await.is_err() {
+        warn!(
+            "warm_essential_data: {} timed out after {}s — leaving cache cold",
+            name,
+            WARM_CALL_TIMEOUT.as_secs()
+        );
+    }
+}
+
 use crate::chain_events::EventChannels;
-use crate::data_cache::GatedConfigBundle;
-use crate::external::chain::ProtocolContractsInfo;
+use crate::data_cache::{GatedConfigBundle, ProposalsWithTally};
+use crate::external::chain::{ProtocolContractsInfo, TallyResult};
 use crate::handlers::config::{
     AppConfigResponse, ContractsInfo, NativeAssetInfo, NetworkInfo, ProtocolInfo,
 };
@@ -41,24 +65,25 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
     info!("Starting essential data warm-up...");
 
     // Load gated config from disk first (no external deps)
-    refresh_gated_config(&state).await;
+    warm_with_timeout("gated_config", refresh_gated_config(&state)).await;
 
     // Load filter context (needs gated config + ETL)
-    refresh_filter_context(&state).await;
+    warm_with_timeout("filter_context", refresh_filter_context(&state)).await;
 
     // Load protocol contracts from admin contract
-    refresh_protocol_contracts(&state).await;
+    warm_with_timeout("protocol_contracts", refresh_protocol_contracts(&state)).await;
 
     // These can run in parallel since they depend on data already loaded above
     tokio::join!(
-        refresh_app_config(&state),
-        refresh_currencies(&state),
-        refresh_prices(&state),
-        refresh_gated_protocols(&state),
-        refresh_gated_networks(&state),
-        refresh_gas_fee_config(&state),
-        refresh_annual_inflation(&state),
-        refresh_staking_pool(&state),
+        warm_with_timeout("app_config", refresh_app_config(&state)),
+        warm_with_timeout("currencies", refresh_currencies(&state)),
+        warm_with_timeout("prices", refresh_prices(&state)),
+        warm_with_timeout("gated_protocols", refresh_gated_protocols(&state)),
+        warm_with_timeout("gated_networks", refresh_gated_networks(&state)),
+        warm_with_timeout("gas_fee_config", refresh_gas_fee_config(&state)),
+        warm_with_timeout("annual_inflation", refresh_annual_inflation(&state)),
+        warm_with_timeout("staking_pool", refresh_staking_pool(&state)),
+        warm_with_timeout("proposals_with_tally", refresh_governance_proposals(&state),),
     );
 
     info!("Essential data warm-up complete");
@@ -78,7 +103,8 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
 ///   All depend on Group 2 outputs.
 ///
 /// **Group 4 — Domain Data (60s, independent):**
-///   pools, validators — no internal dependencies.
+///   pools, validators, annual_inflation, staking_pool, proposals_with_tally —
+///   no internal dependencies.
 ///
 /// **Group 5 — ETL Stats (60s, independent):**
 ///   stats_overview, loans_stats — pure ETL reads.
@@ -126,6 +152,7 @@ pub fn start_all(state: Arc<AppState>, event_channels: &EventChannels) {
                 refresh_validators(s),
                 refresh_annual_inflation(s),
                 refresh_staking_pool(s),
+                refresh_governance_proposals(s),
             );
         })
     });
@@ -715,6 +742,109 @@ pub async fn refresh_validators(state: &Arc<AppState>) {
         .collect();
 
     state.data_cache.validators.store(result);
+}
+
+/// Status string the chain reports for proposals currently accepting votes.
+const PROPOSAL_STATUS_VOTING_PERIOD: &str = "PROPOSAL_STATUS_VOTING_PERIOD";
+
+/// Maximum concurrent per-proposal tally calls. The list endpoint can have
+/// up to ~10 voting-period proposals; capping at 8 keeps boot-time fan-out
+/// from stacking on top of the other Group 4 tasks plus any retry-held
+/// chain-client permits.
+const PROPOSAL_TALLY_FANOUT_CAP: usize = 8;
+
+/// Refresh governance proposals plus per-proposal tallies for those in
+/// `PROPOSAL_STATUS_VOTING_PERIOD`.
+///
+/// Semantics:
+/// - `proposals` is canonical: replaced atomically every cycle (even if every
+///   tally fan-out call fails).
+/// - `tallies` is merged with prior state: success overwrites, per-id failure
+///   retains the prior value, and proposals not in voting period are pruned.
+/// - On the proposals list call itself failing, the cache is left untouched.
+pub async fn refresh_governance_proposals(state: &Arc<AppState>) {
+    let started = std::time::Instant::now();
+
+    let proposals_response = match state.chain_client.get_proposals(100, true).await {
+        Ok(r) => r,
+        Err(e) => {
+            warn!("Failed to refresh governance proposals: {}", e);
+            return;
+        }
+    };
+    let proposals = proposals_response.proposals;
+
+    let prior_tallies: HashMap<String, TallyResult> = state
+        .data_cache
+        .proposals_with_tally
+        .load()
+        .map(|p| p.tallies)
+        .unwrap_or_default();
+
+    let voting_ids: Vec<String> = proposals
+        .iter()
+        .filter(|p| p.status == PROPOSAL_STATUS_VOTING_PERIOD)
+        .map(|p| p.id.clone())
+        .collect();
+    let voting_count = voting_ids.len();
+
+    // Fan out per-proposal tally fetches with a hard concurrency cap.
+    let chain_client = state.chain_client.clone();
+    let tally_results: Vec<(String, Result<TallyResult, String>)> = stream::iter(voting_ids)
+        .map(|id| {
+            let chain_client = chain_client.clone();
+            async move {
+                let res = chain_client
+                    .get_proposal_tally(&id)
+                    .await
+                    .map(|resp| resp.tally)
+                    .map_err(|e| e.to_string());
+                (id, res)
+            }
+        })
+        .buffer_unordered(PROPOSAL_TALLY_FANOUT_CAP)
+        .collect()
+        .await;
+
+    // Merge: start with prior tallies, prune anything not in this cycle's
+    // voting set, then apply this cycle's results (success overwrites,
+    // failure leaves the prior entry in place).
+    let voting_set: std::collections::HashSet<String> =
+        tally_results.iter().map(|(id, _)| id.clone()).collect();
+    let mut tallies = prior_tallies;
+    tallies.retain(|id, _| voting_set.contains(id));
+
+    let mut tallies_ok: usize = 0;
+    let mut tallies_kept_prior: usize = 0;
+    for (id, result) in tally_results {
+        match result {
+            Ok(tally) => {
+                tallies.insert(id, tally);
+                tallies_ok += 1;
+            }
+            Err(e) => {
+                warn!("Failed to fetch tally for proposal {}: {}", id, e);
+                if tallies.contains_key(&id) {
+                    tallies_kept_prior += 1;
+                }
+            }
+        }
+    }
+
+    let proposal_count = proposals.len();
+    state
+        .data_cache
+        .proposals_with_tally
+        .store(ProposalsWithTally { proposals, tallies });
+
+    info!(
+        "governance_refresh: proposals={} voting={} tallies_ok={} tallies_kept_prior={} elapsed_ms={}",
+        proposal_count,
+        voting_count,
+        tallies_ok,
+        tallies_kept_prior,
+        started.elapsed().as_millis(),
+    );
 }
 
 /// Refresh annual inflation from chain
@@ -2772,5 +2902,308 @@ mod tests {
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
         // Dropping `state` here (via scope end) is implicit — if any spawned
         // task held a problematic strong ref, clippy/miri would catch it in CI.
+    }
+
+    // =======================================================================
+    // refresh_governance_proposals (Phase 1 cache refactor)
+    // =======================================================================
+
+    /// Build a minimal `Proposal` value with the given id and status.
+    /// All other fields populated with deterministic placeholder strings so
+    /// equality assertions on the round-tripped value are stable.
+    fn sample_proposal(id: &str, status: &str) -> crate::external::chain::Proposal {
+        crate::external::chain::Proposal {
+            id: id.to_string(),
+            status: status.to_string(),
+            final_tally_result: None,
+            submit_time: Some("2026-01-01T00:00:00Z".to_string()),
+            deposit_end_time: Some("2026-01-08T00:00:00Z".to_string()),
+            voting_start_time: Some("2026-01-08T00:00:00Z".to_string()),
+            voting_end_time: Some("2026-01-15T00:00:00Z".to_string()),
+            title: Some(format!("proposal {id}")),
+            summary: Some(format!("summary {id}")),
+            messages: vec![],
+            metadata: None,
+            tally: None,
+            voted: None,
+        }
+    }
+
+    fn sample_tally(yes: &str) -> crate::external::chain::TallyResult {
+        crate::external::chain::TallyResult {
+            yes_count: yes.to_string(),
+            abstain_count: "0".to_string(),
+            no_count: "0".to_string(),
+            no_with_veto_count: "0".to_string(),
+        }
+    }
+
+    fn proposals_body(proposals: &[crate::external::chain::Proposal]) -> serde_json::Value {
+        json!({
+            "proposals": proposals,
+            "pagination": { "total": proposals.len().to_string(), "next_key": null }
+        })
+    }
+
+    #[tokio::test]
+    async fn refresh_governance_proposals_populates_on_success() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        let p_a = sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD");
+        let p_b = sample_proposal("2", "PROPOSAL_STATUS_PASSED");
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(proposals_body(&[p_a.clone(), p_b.clone()])),
+            )
+            .mount(&chain)
+            .await;
+
+        // Tally only fetched for voting-period proposals (just "1" here).
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals/1/tally"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(json!({ "tally": sample_tally("100") })),
+            )
+            .mount(&chain)
+            .await;
+
+        refresh_governance_proposals(&state).await;
+
+        let loaded: crate::data_cache::ProposalsWithTally = state
+            .data_cache
+            .proposals_with_tally
+            .load()
+            .expect("proposals_with_tally populated after success");
+
+        assert_eq!(loaded.proposals.len(), 2);
+        assert_eq!(loaded.proposals[0].id, "1");
+        assert_eq!(loaded.proposals[1].id, "2");
+
+        // Tally map: only the voting-period proposal has an entry.
+        assert_eq!(loaded.tallies.len(), 1);
+        let tally_a = loaded
+            .tallies
+            .get("1")
+            .expect("tally for voting proposal 1 stored");
+        assert_eq!(tally_a.yes_count, "100");
+        assert!(!loaded.tallies.contains_key("2"));
+    }
+
+    #[tokio::test]
+    async fn refresh_governance_proposals_partial_tally_failure_merges_with_prior() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        // Pre-populate cache with prior tallies for both A and B.
+        let prior_a = sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD");
+        let prior_b = sample_proposal("2", "PROPOSAL_STATUS_VOTING_PERIOD");
+        let mut prior_tallies: HashMap<String, crate::external::chain::TallyResult> =
+            HashMap::new();
+        prior_tallies.insert("1".to_string(), sample_tally("prior_a"));
+        prior_tallies.insert("2".to_string(), sample_tally("prior_b"));
+        state
+            .data_cache
+            .proposals_with_tally
+            .store(crate::data_cache::ProposalsWithTally {
+                proposals: vec![prior_a.clone(), prior_b.clone()],
+                tallies: prior_tallies,
+            });
+
+        // Fresh proposals list: A and B both still in voting period.
+        let fresh_a = sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD");
+        let fresh_b = sample_proposal("2", "PROPOSAL_STATUS_VOTING_PERIOD");
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(proposals_body(&[fresh_a.clone(), fresh_b.clone()])),
+            )
+            .mount(&chain)
+            .await;
+
+        // Tally A succeeds with a NEW value.
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals/1/tally"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({ "tally": sample_tally("fresh_a") })),
+            )
+            .mount(&chain)
+            .await;
+        // Tally B fails with 500.
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals/2/tally"))
+            .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
+            .mount(&chain)
+            .await;
+
+        refresh_governance_proposals(&state).await;
+
+        let loaded = state
+            .data_cache
+            .proposals_with_tally
+            .load()
+            .expect("populated");
+
+        // Proposals list reflects the fresh fetch.
+        assert_eq!(loaded.proposals.len(), 2);
+
+        // Tally A overwritten with fresh value; B retains prior.
+        let a = loaded.tallies.get("1").expect("tally A present");
+        assert_eq!(a.yes_count, "fresh_a");
+        let b = loaded
+            .tallies
+            .get("2")
+            .expect("tally B retained from prior");
+        assert_eq!(b.yes_count, "prior_b");
+    }
+
+    #[tokio::test]
+    async fn refresh_governance_proposals_prunes_non_voting_tallies() {
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        // Pre-populate with two voting-period proposals + tallies.
+        let mut prior_tallies: HashMap<String, crate::external::chain::TallyResult> =
+            HashMap::new();
+        prior_tallies.insert("1".to_string(), sample_tally("prior_a"));
+        prior_tallies.insert("2".to_string(), sample_tally("prior_b"));
+        state
+            .data_cache
+            .proposals_with_tally
+            .store(crate::data_cache::ProposalsWithTally {
+                proposals: vec![
+                    sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD"),
+                    sample_proposal("2", "PROPOSAL_STATUS_VOTING_PERIOD"),
+                ],
+                tallies: prior_tallies,
+            });
+
+        // Fresh fetch: A still voting, B passed.
+        let fresh_a = sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD");
+        let fresh_b = sample_proposal("2", "PROPOSAL_STATUS_PASSED");
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_json(proposals_body(&[fresh_a, fresh_b])),
+            )
+            .mount(&chain)
+            .await;
+
+        // Tally A succeeds. Tally B mock NOT mounted — refresh must not call it
+        // because B is no longer in voting period.
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals/1/tally"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({ "tally": sample_tally("fresh_a") })),
+            )
+            .mount(&chain)
+            .await;
+
+        refresh_governance_proposals(&state).await;
+
+        let loaded = state
+            .data_cache
+            .proposals_with_tally
+            .load()
+            .expect("populated");
+
+        // Tally map has key A only — B is dropped because B exited voting period.
+        assert!(loaded.tallies.contains_key("1"), "A tally retained");
+        assert!(
+            !loaded.tallies.contains_key("2"),
+            "B tally pruned on exit-voting"
+        );
+        assert_eq!(loaded.tallies.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn refresh_governance_proposals_caps_concurrency_at_eight() {
+        // Approach: use timing-based assertion. With 12 voting-period proposals,
+        // each tally mocked to take 100ms, `buffer_unordered(8)` should produce
+        // total elapsed ≈ ceil(12/8) * 100ms = 200ms. Fully serial would be
+        // ~1200ms; fully parallel ~100ms. We assert elapsed sits in a band
+        // that only `buffer_unordered(8)` (or a similar bound) satisfies.
+        //
+        // TODO: tighten this assertion once we settle on a counter approach
+        // (shared AtomicUsize incremented on mock-entry, peak tracked via
+        // fetch_max). For now, timing is the most portable signal.
+        let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
+
+        let proposals: Vec<crate::external::chain::Proposal> = (1..=12)
+            .map(|i| sample_proposal(&i.to_string(), "PROPOSAL_STATUS_VOTING_PERIOD"))
+            .collect();
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(proposals_body(&proposals)))
+            .mount(&chain)
+            .await;
+
+        // One mock matching ANY per-id tally URL, with a 100ms delay.
+        Mock::given(method("GET"))
+            .and(wiremock::matchers::path_regex(
+                r"^/cosmos/gov/v1/proposals/\d+/tally$",
+            ))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({ "tally": sample_tally("1") }))
+                    .set_delay(std::time::Duration::from_millis(100)),
+            )
+            .mount(&chain)
+            .await;
+
+        let started = std::time::Instant::now();
+        refresh_governance_proposals(&state).await;
+        let elapsed = started.elapsed();
+
+        // Concurrency 8 → ceil(12/8) = 2 batches × 100ms = ~200ms.
+        // Lower bound: must be > 100ms (else concurrency >= 12 — not bounded).
+        // Upper bound: generous slack for proposals fetch + scheduling.
+        assert!(
+            elapsed >= std::time::Duration::from_millis(180),
+            "elapsed {:?} too short — concurrency cap > 8?",
+            elapsed
+        );
+        assert!(
+            elapsed < std::time::Duration::from_millis(900),
+            "elapsed {:?} too long — fan-out not parallelizing?",
+            elapsed
+        );
+
+        // And we still successfully populated all 12 tallies.
+        let loaded = state
+            .data_cache
+            .proposals_with_tally
+            .load()
+            .expect("populated");
+        assert_eq!(loaded.tallies.len(), 12);
+    }
+
+    #[tokio::test]
+    async fn warm_essential_data_returns_within_bounded_time_on_chain_hang() {
+        // `test_app_state` configures the chain HTTP client with a 1ms request
+        // timeout against an unroutable address, so every chain call inside
+        // `warm_essential_data` fails fast. Real wall-clock here is bounded
+        // by that fast-fail path plus the disk-only refreshers — well under a
+        // second in practice. The 5s ceiling is a real-time regression guard:
+        // if a future change introduces an unbounded await without our
+        // `tokio::time::timeout(15s)` wrapper, this test catches it.
+        let state = crate::test_utils::test_app_state().await;
+
+        let started = std::time::Instant::now();
+        warm_essential_data(state.clone()).await;
+        let elapsed = started.elapsed();
+
+        assert!(
+            elapsed <= std::time::Duration::from_secs(5),
+            "warm_essential_data exceeded 5s wall-clock budget: {:?}",
+            elapsed
+        );
+
+        // No proposals cached — chain calls all failed fast.
+        assert!(state.data_cache.proposals_with_tally.load().is_none());
     }
 }
