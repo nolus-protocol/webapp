@@ -3182,34 +3182,28 @@ mod tests {
         assert_eq!(loaded.tallies.len(), 12);
     }
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test]
     async fn warm_essential_data_returns_within_bounded_time_on_chain_hang() {
-        // Default test_app_state uses `127.0.0.1:1` with a 1ms HTTP timeout.
-        // The contract under test is the per-call `tokio::time::timeout(15s)`
-        // wrapping every warm call: even if a chain endpoint hangs forever,
-        // warm_essential_data MUST return within ~16s of paused virtual time.
-        //
-        // Asserting on real wall-clock with a real wiremock-hung connection is
-        // too brittle under paused time. Instead we lean on the unroutable
-        // 1ms-timeout client (every fetch fails fast) and add an
-        // outer paused-time bound to confirm the function is non-blocking.
+        // `test_app_state` configures the chain HTTP client with a 1ms request
+        // timeout against an unroutable address, so every chain call inside
+        // `warm_essential_data` fails fast. Real wall-clock here is bounded
+        // by that fast-fail path plus the disk-only refreshers — well under a
+        // second in practice. The 5s ceiling is a real-time regression guard:
+        // if a future change introduces an unbounded await without our
+        // `tokio::time::timeout(15s)` wrapper, this test catches it.
         let state = crate::test_utils::test_app_state().await;
 
-        let started = tokio::time::Instant::now();
+        let started = std::time::Instant::now();
         warm_essential_data(state.clone()).await;
         let elapsed = started.elapsed();
 
-        // Bound: even the wrapped 15s timeout × however-many-serial-stages must
-        // be substantially less than (15s × stage_count). We pick a generous
-        // ceiling — 60s of paused virtual time — that nonetheless catches an
-        // unbounded hang regression.
         assert!(
-            elapsed <= std::time::Duration::from_secs(60),
-            "warm_essential_data exceeded 60s paused-time budget: {:?}",
+            elapsed <= std::time::Duration::from_secs(5),
+            "warm_essential_data exceeded 5s wall-clock budget: {:?}",
             elapsed
         );
 
-        // No proposals should be cached — chain calls all failed fast.
+        // No proposals cached — chain calls all failed fast.
         assert!(state.data_cache.proposals_with_tally.load().is_none());
     }
 }
