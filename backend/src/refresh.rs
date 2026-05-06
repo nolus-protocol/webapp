@@ -9,6 +9,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use futures::future::join_all;
+use futures::stream::{self, StreamExt};
 use tracing::{debug, error, info, warn};
 
 /// Per-call ceiling for `warm_essential_data` so a hung chain LCD on boot
@@ -34,8 +35,8 @@ where
 }
 
 use crate::chain_events::EventChannels;
-use crate::data_cache::GatedConfigBundle;
-use crate::external::chain::ProtocolContractsInfo;
+use crate::data_cache::{GatedConfigBundle, ProposalsWithTally};
+use crate::external::chain::{ProtocolContractsInfo, TallyResult};
 use crate::handlers::config::{
     AppConfigResponse, ContractsInfo, NativeAssetInfo, NetworkInfo, ProtocolInfo,
 };
@@ -82,6 +83,10 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
         warm_with_timeout("gas_fee_config", refresh_gas_fee_config(&state)),
         warm_with_timeout("annual_inflation", refresh_annual_inflation(&state)),
         warm_with_timeout("staking_pool", refresh_staking_pool(&state)),
+        warm_with_timeout(
+            "proposals_with_tally",
+            refresh_governance_proposals(&state),
+        ),
     );
 
     info!("Essential data warm-up complete");
@@ -101,7 +106,8 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
 ///   All depend on Group 2 outputs.
 ///
 /// **Group 4 — Domain Data (60s, independent):**
-///   pools, validators — no internal dependencies.
+///   pools, validators, annual_inflation, staking_pool, proposals_with_tally —
+///   no internal dependencies.
 ///
 /// **Group 5 — ETL Stats (60s, independent):**
 ///   stats_overview, loans_stats — pure ETL reads.
@@ -149,6 +155,7 @@ pub fn start_all(state: Arc<AppState>, event_channels: &EventChannels) {
                 refresh_validators(s),
                 refresh_annual_inflation(s),
                 refresh_staking_pool(s),
+                refresh_governance_proposals(s),
             );
         })
     });
@@ -738,6 +745,111 @@ pub async fn refresh_validators(state: &Arc<AppState>) {
         .collect();
 
     state.data_cache.validators.store(result);
+}
+
+/// Status string the chain reports for proposals currently accepting votes.
+const PROPOSAL_STATUS_VOTING_PERIOD: &str = "PROPOSAL_STATUS_VOTING_PERIOD";
+
+/// Maximum concurrent per-proposal tally calls. The list endpoint can have
+/// up to ~10 voting-period proposals; capping at 8 keeps boot-time fan-out
+/// from stacking on top of the other Group 4 tasks plus any retry-held
+/// chain-client permits.
+const PROPOSAL_TALLY_FANOUT_CAP: usize = 8;
+
+/// Refresh governance proposals plus per-proposal tallies for those in
+/// `PROPOSAL_STATUS_VOTING_PERIOD`.
+///
+/// Semantics:
+/// - `proposals` is canonical: replaced atomically every cycle (even if every
+///   tally fan-out call fails).
+/// - `tallies` is merged with prior state: success overwrites, per-id failure
+///   retains the prior value, and proposals not in voting period are pruned.
+/// - On the proposals list call itself failing, the cache is left untouched.
+pub async fn refresh_governance_proposals(state: &Arc<AppState>) {
+    let started = std::time::Instant::now();
+
+    let proposals_response = match state.chain_client.get_proposals(100, true).await {
+        Ok(r) => r,
+        Err(e) => {
+            warn!("Failed to refresh governance proposals: {}", e);
+            return;
+        }
+    };
+    let proposals = proposals_response.proposals;
+
+    let prior_tallies: HashMap<String, TallyResult> = state
+        .data_cache
+        .proposals_with_tally
+        .load()
+        .map(|p| p.tallies)
+        .unwrap_or_default();
+
+    let voting_ids: Vec<String> = proposals
+        .iter()
+        .filter(|p| p.status == PROPOSAL_STATUS_VOTING_PERIOD)
+        .map(|p| p.id.clone())
+        .collect();
+    let voting_count = voting_ids.len();
+
+    // Fan out per-proposal tally fetches with a hard concurrency cap.
+    let chain_client = state.chain_client.clone();
+    let tally_results: Vec<(String, Result<TallyResult, String>)> = stream::iter(voting_ids)
+        .map(|id| {
+            let chain_client = chain_client.clone();
+            async move {
+                let res = chain_client
+                    .get_proposal_tally(&id)
+                    .await
+                    .map(|resp| resp.tally)
+                    .map_err(|e| e.to_string());
+                (id, res)
+            }
+        })
+        .buffer_unordered(PROPOSAL_TALLY_FANOUT_CAP)
+        .collect()
+        .await;
+
+    // Merge: start with prior tallies, prune anything not in this cycle's
+    // voting set, then apply this cycle's results (success overwrites,
+    // failure leaves the prior entry in place).
+    let voting_set: std::collections::HashSet<String> = tally_results
+        .iter()
+        .map(|(id, _)| id.clone())
+        .collect();
+    let mut tallies = prior_tallies;
+    tallies.retain(|id, _| voting_set.contains(id));
+
+    let mut tallies_ok: usize = 0;
+    let mut tallies_kept_prior: usize = 0;
+    for (id, result) in tally_results {
+        match result {
+            Ok(tally) => {
+                tallies.insert(id, tally);
+                tallies_ok += 1;
+            }
+            Err(e) => {
+                warn!("Failed to fetch tally for proposal {}: {}", id, e);
+                if tallies.contains_key(&id) {
+                    tallies_kept_prior += 1;
+                }
+            }
+        }
+    }
+
+    let proposal_count = proposals.len();
+    state
+        .data_cache
+        .proposals_with_tally
+        .store(ProposalsWithTally { proposals, tallies });
+
+    info!(
+        "governance_refresh: proposals={} voting={} tallies_ok={} tallies_kept_prior={} elapsed_ms={}",
+        proposal_count,
+        voting_count,
+        tallies_ok,
+        tallies_kept_prior,
+        started.elapsed().as_millis(),
+    );
 }
 
 /// Refresh annual inflation from chain
