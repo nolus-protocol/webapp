@@ -83,10 +83,7 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
         warm_with_timeout("gas_fee_config", refresh_gas_fee_config(&state)),
         warm_with_timeout("annual_inflation", refresh_annual_inflation(&state)),
         warm_with_timeout("staking_pool", refresh_staking_pool(&state)),
-        warm_with_timeout(
-            "proposals_with_tally",
-            refresh_governance_proposals(&state),
-        ),
+        warm_with_timeout("proposals_with_tally", refresh_governance_proposals(&state),),
     );
 
     info!("Essential data warm-up complete");
@@ -812,10 +809,8 @@ pub async fn refresh_governance_proposals(state: &Arc<AppState>) {
     // Merge: start with prior tallies, prune anything not in this cycle's
     // voting set, then apply this cycle's results (success overwrites,
     // failure leaves the prior entry in place).
-    let voting_set: std::collections::HashSet<String> = tally_results
-        .iter()
-        .map(|(id, _)| id.clone())
-        .collect();
+    let voting_set: std::collections::HashSet<String> =
+        tally_results.iter().map(|(id, _)| id.clone()).collect();
     let mut tallies = prior_tallies;
     tallies.retain(|id, _| voting_set.contains(id));
 
@@ -2960,7 +2955,8 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/cosmos/gov/v1/proposals"))
             .respond_with(
-                ResponseTemplate::new(200).set_body_json(proposals_body(&[p_a.clone(), p_b.clone()])),
+                ResponseTemplate::new(200)
+                    .set_body_json(proposals_body(&[p_a.clone(), p_b.clone()])),
             )
             .mount(&chain)
             .await;
@@ -3003,7 +2999,8 @@ mod tests {
         // Pre-populate cache with prior tallies for both A and B.
         let prior_a = sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD");
         let prior_b = sample_proposal("2", "PROPOSAL_STATUS_VOTING_PERIOD");
-        let mut prior_tallies: HashMap<String, crate::external::chain::TallyResult> = HashMap::new();
+        let mut prior_tallies: HashMap<String, crate::external::chain::TallyResult> =
+            HashMap::new();
         prior_tallies.insert("1".to_string(), sample_tally("prior_a"));
         prior_tallies.insert("2".to_string(), sample_tally("prior_b"));
         state
@@ -3030,7 +3027,8 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/cosmos/gov/v1/proposals/1/tally"))
             .respond_with(
-                ResponseTemplate::new(200).set_body_json(json!({ "tally": sample_tally("fresh_a") })),
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({ "tally": sample_tally("fresh_a") })),
             )
             .mount(&chain)
             .await;
@@ -3055,7 +3053,10 @@ mod tests {
         // Tally A overwritten with fresh value; B retains prior.
         let a = loaded.tallies.get("1").expect("tally A present");
         assert_eq!(a.yes_count, "fresh_a");
-        let b = loaded.tallies.get("2").expect("tally B retained from prior");
+        let b = loaded
+            .tallies
+            .get("2")
+            .expect("tally B retained from prior");
         assert_eq!(b.yes_count, "prior_b");
     }
 
@@ -3064,7 +3065,8 @@ mod tests {
         let (state, _etl, chain) = state_with_wiremock_etl_and_chain().await;
 
         // Pre-populate with two voting-period proposals + tallies.
-        let mut prior_tallies: HashMap<String, crate::external::chain::TallyResult> = HashMap::new();
+        let mut prior_tallies: HashMap<String, crate::external::chain::TallyResult> =
+            HashMap::new();
         prior_tallies.insert("1".to_string(), sample_tally("prior_a"));
         prior_tallies.insert("2".to_string(), sample_tally("prior_b"));
         state
@@ -3094,7 +3096,8 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/cosmos/gov/v1/proposals/1/tally"))
             .respond_with(
-                ResponseTemplate::new(200).set_body_json(json!({ "tally": sample_tally("fresh_a") })),
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({ "tally": sample_tally("fresh_a") })),
             )
             .mount(&chain)
             .await;
