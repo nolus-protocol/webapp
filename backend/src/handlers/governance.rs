@@ -125,7 +125,15 @@ pub struct PaginationInfo {
     tag = "governance",
     params(ProposalsQuery),
     responses(
-        (status = 200, description = "Paginated list of proposals", body = ProposalsListResponse),
+        (
+            status = 200,
+            description = "Paginated list of proposals",
+            body = ProposalsListResponse,
+            headers(
+                ("Cache-Status" = String, description = "`warm` when served from the background-refreshed cache, `cold` before the first refresh has populated it (response body is then an empty list)."),
+                ("Cache-Age" = String, description = "Age in seconds of the cached snapshot. Present on `warm` responses, omitted on `cold`."),
+            ),
+        ),
         (status = 502, description = "Upstream chain RPC error on live `?voter=` fan-out", body = crate::error::ErrorResponse),
     ),
 )]

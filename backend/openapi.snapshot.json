@@ -1266,7 +1266,7 @@
           "governance"
         ],
         "summary": "List governance proposals",
-        "description": "Returns governance proposals in reverse-chronological order. For proposals\nin the voting period, the live tally is fetched; if `voter` is supplied,\neach such proposal is annotated with whether that address has voted.",
+        "description": "Returns governance proposals in reverse-chronological order from the\nbackground-refreshed cache. The response carries `Cache-Status: warm`\n(with a `Cache-Age` value in seconds) once the refresh task has populated\nthe cache, or `Cache-Status: cold` with an empty list before the first\nrefresh completes — never 503 — so the frontend's `Promise.allSettled`\nflow can render an empty state without a coordinated rollout.\n\nHidden proposals from the gated UI config are filtered at request time\nagainst the latest config; cached tallies are attached for voting-period\nproposals. The fresh tally for a single proposal is available on the\nper-id `/proposals/{id}/tally` endpoint, which still queries the chain\ndirectly. `?voter=` triggers a live `get_proposal_vote` fan-out across\nvoting-period proposals only — a chain failure on any of those calls\nsurfaces as 502.",
         "operationId": "get_proposals",
         "parameters": [
           {
@@ -1299,6 +1299,20 @@
         "responses": {
           "200": {
             "description": "Paginated list of proposals",
+            "headers": {
+              "Cache-Age": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Age in seconds of the cached snapshot. Present on `warm` responses, omitted on `cold`."
+              },
+              "Cache-Status": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "`warm` when served from the background-refreshed cache, `cold` before the first refresh has populated it (response body is then an empty list)."
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1308,7 +1322,7 @@
             }
           },
           "502": {
-            "description": "Upstream chain RPC error",
+            "description": "Upstream chain RPC error on live `?voter=` fan-out",
             "content": {
               "application/json": {
                 "schema": {
