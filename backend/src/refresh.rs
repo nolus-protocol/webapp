@@ -6,9 +6,32 @@
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 use futures::future::join_all;
 use tracing::{debug, error, info, warn};
+
+/// Per-call ceiling for `warm_essential_data` so a hung chain LCD on boot
+/// cannot block `axum::serve` from binding. The deploy script has already
+/// stopped the prior binary by the time warm-up runs — without an outer
+/// bound, a stuck handshake would take the host dark.
+const WARM_CALL_TIMEOUT: Duration = Duration::from_secs(15);
+
+/// Run `fut` with the warm-up timeout. On timeout, log a single `warn!` and
+/// return — the cache stays empty for that field and the request handler
+/// falls back to its cold-cache path.
+async fn warm_with_timeout<F>(name: &'static str, fut: F)
+where
+    F: std::future::Future<Output = ()>,
+{
+    if tokio::time::timeout(WARM_CALL_TIMEOUT, fut).await.is_err() {
+        warn!(
+            "warm_essential_data: {} timed out after {}s — leaving cache cold",
+            name,
+            WARM_CALL_TIMEOUT.as_secs()
+        );
+    }
+}
 
 use crate::chain_events::EventChannels;
 use crate::data_cache::GatedConfigBundle;
@@ -41,24 +64,24 @@ pub async fn warm_essential_data(state: Arc<AppState>) {
     info!("Starting essential data warm-up...");
 
     // Load gated config from disk first (no external deps)
-    refresh_gated_config(&state).await;
+    warm_with_timeout("gated_config", refresh_gated_config(&state)).await;
 
     // Load filter context (needs gated config + ETL)
-    refresh_filter_context(&state).await;
+    warm_with_timeout("filter_context", refresh_filter_context(&state)).await;
 
     // Load protocol contracts from admin contract
-    refresh_protocol_contracts(&state).await;
+    warm_with_timeout("protocol_contracts", refresh_protocol_contracts(&state)).await;
 
     // These can run in parallel since they depend on data already loaded above
     tokio::join!(
-        refresh_app_config(&state),
-        refresh_currencies(&state),
-        refresh_prices(&state),
-        refresh_gated_protocols(&state),
-        refresh_gated_networks(&state),
-        refresh_gas_fee_config(&state),
-        refresh_annual_inflation(&state),
-        refresh_staking_pool(&state),
+        warm_with_timeout("app_config", refresh_app_config(&state)),
+        warm_with_timeout("currencies", refresh_currencies(&state)),
+        warm_with_timeout("prices", refresh_prices(&state)),
+        warm_with_timeout("gated_protocols", refresh_gated_protocols(&state)),
+        warm_with_timeout("gated_networks", refresh_gated_networks(&state)),
+        warm_with_timeout("gas_fee_config", refresh_gas_fee_config(&state)),
+        warm_with_timeout("annual_inflation", refresh_annual_inflation(&state)),
+        warm_with_timeout("staking_pool", refresh_staking_pool(&state)),
     );
 
     info!("Essential data warm-up complete");
