@@ -8,8 +8,9 @@
  * - Network selection
  *
  * Browser HTTP cache (Cache-Control: max-age=3600, stale-while-revalidate=1800)
- * handles caching at the network layer. User preferences (protocol filter,
- * selected network) are persisted to localStorage.
+ * handles caching at the network layer. The mainnet/testnet `selectedNetwork`
+ * is persisted to localStorage. The `protocolFilter` (current network) is
+ * wallet-derived and not persisted — see `walletProtocolFilter.ts`.
  */
 
 import { defineStore } from "pinia";
@@ -32,7 +33,6 @@ import {
   type GasFeeConfigResponse
 } from "@/common/api";
 
-const PROTOCOL_FILTER_KEY = "protocol_filter";
 const SELECTED_NETWORK_KEY = "selected_network";
 
 export const useConfigStore = defineStore("config", () => {
@@ -67,17 +67,11 @@ export const useConfigStore = defineStore("config", () => {
   const initialized = ref(false);
 
   // User preferences
-  const protocolFilter = ref<string>(localStorage.getItem(PROTOCOL_FILTER_KEY) || "");
+  // protocolFilter is owned by the connected wallet (see applyWalletProtocolFilter
+  // in src/common/utils/walletProtocolFilter.ts). It is no longer persisted to
+  // localStorage — connect/disconnect actions push the value in directly.
+  const protocolFilter = ref<string>("");
   const selectedNetwork = ref<string>(localStorage.getItem(SELECTED_NETWORK_KEY) || "mainnet");
-
-  // Persist user preferences
-  watch(protocolFilter, (val) => {
-    if (val) {
-      localStorage.setItem(PROTOCOL_FILTER_KEY, val);
-    } else {
-      localStorage.removeItem(PROTOCOL_FILTER_KEY);
-    }
-  });
 
   watch(selectedNetwork, (val) => {
     localStorage.setItem(SELECTED_NETWORK_KEY, val);
@@ -509,19 +503,6 @@ export const useConfigStore = defineStore("config", () => {
     return getAvailableNetworkFilters().includes(filter.toUpperCase());
   }
 
-  /** Get network filter dropdown options (for UI dropdowns) */
-  function getNetworkFilterOptions(): { value: string; label: string; icon: string }[] {
-    const filters = getAvailableNetworkFilters();
-    return filters.map((filterKey) => {
-      const network = networkByKey.value.get(filterKey);
-      return {
-        value: filterKey,
-        label: network?.name ?? filterKey,
-        icon: network?.icon ?? ""
-      };
-    });
-  }
-
   /** Check if a protocol filter (network) is disabled (no active protocols) */
   function isProtocolFilterDisabled(networkFilter: string): boolean {
     const networkProtocols = getActiveProtocolsForNetwork(networkFilter);
@@ -796,33 +777,60 @@ export const useConfigStore = defineStore("config", () => {
       fetchGasFeeConfig()
     ]);
     fetchedNetworks.add(networkToFetch.toUpperCase());
-    ensureDefaultProtocolFilter();
     await prefetchProtocolCurrenciesForNetwork(networkToFetch);
     initialized.value = true;
   }
 
-  // Track which networks have had their assets fetched to avoid redundant API calls
+  // Track which networks have had their assets fetched to avoid redundant API calls.
+  // Failed fetches are recorded here too — a switch that 503s once must NOT retry-storm
+  // the backend on every subsequent toggle back to the same filter within the session.
   const fetchedNetworks = new Set<string>();
 
-  /** Set protocolFilter to the first available network if it's empty or invalid */
-  function ensureDefaultProtocolFilter(): void {
-    const available = getAvailableNetworkFilters();
-    if (available.length > 0 && !available.includes(protocolFilter.value.toUpperCase())) {
-      protocolFilter.value = available[0];
-    }
+  // Networks the wallet-driven mapping in `walletProtocolFilter.ts` can produce.
+  // Even when the backend has no protocol entry for one of these yet (e.g. SOLANA
+  // before the first Solana protocol ships), the watcher must still attempt the
+  // fetch so the failure surfaces loudly via console.error and the user sees an
+  // empty state — not a silently swallowed reject. Keep this set in sync with
+  // `protocolFilterForMechanism` in `src/common/utils/walletProtocolFilter.ts`.
+  const WALLET_PRODUCIBLE_NETWORKS = new Set(["OSMOSIS", "SOLANA"]);
+
+  function isAllowedNetworkFilter(filter: string): boolean {
+    const upper = filter.toUpperCase();
+    return WALLET_PRODUCIBLE_NETWORKS.has(upper) || isValidNetworkFilter(filter);
   }
 
-  // Watch for protocol filter changes and fetch assets for new networks
+  // Watch for protocol filter changes and fetch assets for new networks.
+  //
+  // Contract (post wallet-driven-network refactor):
+  //   1. Empty filter → no-op. Disconnect intentionally clears the filter.
+  //   2. Unknown filter → console.error + return. Filters that are neither in
+  //      the live network list nor in the wallet-producible set are gibberish
+  //      and must not burn a 503 round trip.
+  //   3. Failed fetch → console.error, clear assetsResponse so stale data from
+  //      the previous network does not survive the failed switch, AND record
+  //      the network in fetchedNetworks so we do not retry-storm.
   watch(protocolFilter, async (newFilter) => {
-    if (initialized.value && newFilter) {
-      const upperFilter = newFilter.toUpperCase();
-      if (!fetchedNetworks.has(upperFilter)) {
-        await fetchNetworkAssets(newFilter);
-        fetchedNetworks.add(upperFilter);
-      }
-      await prefetchProtocolCurrenciesForNetwork(newFilter).catch((e) => {
-        console.error("[ConfigStore] Failed to prefetch protocol currencies:", e);
-      });
+    if (!initialized.value) return;
+    if (!newFilter) return;
+
+    if (!isAllowedNetworkFilter(newFilter)) {
+      console.error("[ConfigStore] Invalid network filter rejected:", newFilter);
+      return;
+    }
+
+    const upperFilter = newFilter.toUpperCase();
+    if (fetchedNetworks.has(upperFilter)) return;
+
+    try {
+      await fetchNetworkAssets(newFilter);
+      await prefetchProtocolCurrenciesForNetwork(newFilter);
+      fetchedNetworks.add(upperFilter);
+    } catch (err) {
+      console.error("[ConfigStore] Failed to fetch assets for network:", upperFilter, err);
+      // Drop stale assets so the previous network's data is not visible under
+      // the new filter, then record the failure to prevent retry-storms.
+      assetsResponse.value = null;
+      fetchedNetworks.add(upperFilter);
     }
   });
 
@@ -924,7 +932,6 @@ export const useConfigStore = defineStore("config", () => {
     isLongPosition,
     getAvailableNetworkFilters,
     isValidNetworkFilter,
-    getNetworkFilterOptions,
     isProtocolFilterDisabled,
     getContracts,
 

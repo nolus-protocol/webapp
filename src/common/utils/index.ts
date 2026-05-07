@@ -22,5 +22,6 @@ export * from "./Logger";
 export * from "./LeaseUtils";
 export * from "./LeaseCalculator";
 export * from "./WalletConnect";
+export * from "./walletProtocolFilter";
 export * from "./NetworkUtils";
 export * from "./IntercomService";

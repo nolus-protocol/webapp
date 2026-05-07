@@ -1,15 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// WalletManager imports `{ useWalletStore }` (and config store) which transitively
-// pull heavy modules. We only exercise the localStorage gate, so stub them.
+// WalletManager imports `{ useWalletStore }` which transitively pulls heavy
+// modules. We only exercise the localStorage gate, so stub it.
 vi.mock("../stores/wallet", () => ({
   useWalletStore: () => ({ wallet: undefined })
-}));
-vi.mock("../stores/config", () => ({
-  useConfigStore: () => ({ isValidNetworkFilter: () => true })
-}));
-vi.mock("@/config/global", () => ({
-  DefaultProtocolFilter: "ALL"
 }));
 
 import { WalletManager } from "./WalletManager";
@@ -47,5 +41,20 @@ describe("WalletManager.getWalletConnectMechanism", () => {
     localStorage.setItem(WalletManager.WALLET_CONNECT_MECHANISM, "garbage");
     expect(WalletManager.getWalletConnectMechanism()).toBeNull();
     expect(localStorage.getItem(WalletManager.WALLET_CONNECT_MECHANISM)).toBeNull();
+  });
+});
+
+describe("WalletManager protocol filter surface (post-refactor)", () => {
+  // After the wallet-driven network refactor, the configStore is the sole
+  // owner of protocolFilter. WalletManager must NOT expose a PROTOCOL_FILTER
+  // constant or a getProtocolFilter() static — those were the legacy
+  // localStorage-backed read path and are gone.
+
+  it("does not expose a PROTOCOL_FILTER constant", () => {
+    expect((WalletManager as unknown as Record<string, unknown>).PROTOCOL_FILTER).toBeUndefined();
+  });
+
+  it("does not expose a getProtocolFilter static", () => {
+    expect((WalletManager as unknown as Record<string, unknown>).getProtocolFilter).toBeUndefined();
   });
 });

@@ -1,6 +1,6 @@
 import { type Store } from "../types";
 
-import { WalletManager } from "@/common/utils";
+import { WalletManager, applyWalletProtocolFilter } from "@/common/utils";
 import { NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
 import { Buffer } from "buffer";
@@ -18,6 +18,7 @@ export async function connectSolflare(this: Store) {
 
   WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.SOL_SOLFLARE);
   WalletManager.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
+  applyWalletProtocolFilter(WalletConnectMechanism.SOL_SOLFLARE);
 
   this.wallet = nolusWalletOfflineSigner;
   applyNolusWalletOverrides(this.wallet);

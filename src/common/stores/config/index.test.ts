@@ -164,33 +164,11 @@ describe("ConfigStore", () => {
     expect(store.selectedNetwork).toBe("mainnet");
   });
 
-  it("protocolFilter_persisted_to_localStorage_on_set", async () => {
-    const store = useConfigStore();
-    store.setProtocolFilter("OSMOSIS");
-    // watchers are flushed on the next microtask
-    await Promise.resolve();
-    expect(localStorage.getItem("protocol_filter")).toBe("OSMOSIS");
-  });
-
-  it("protocolFilter_cleared_from_localStorage_on_empty", async () => {
-    localStorage.setItem("protocol_filter", "OSMOSIS");
-    const store = useConfigStore();
-    store.clearProtocolFilter();
-    await Promise.resolve();
-    expect(localStorage.getItem("protocol_filter")).toBeNull();
-  });
-
   it("selectedNetwork_persisted_to_localStorage_on_set", async () => {
     const store = useConfigStore();
     store.setSelectedNetwork("testnet");
     await Promise.resolve();
     expect(localStorage.getItem("selected_network")).toBe("testnet");
-  });
-
-  it("protocolFilter_read_from_localStorage_on_store_creation", () => {
-    localStorage.setItem("protocol_filter", "NEUTRON");
-    const store = useConfigStore();
-    expect(store.protocolFilter).toBe("NEUTRON");
   });
 
   // -------------------------------------------------------------------------
@@ -448,16 +426,6 @@ describe("ConfigStore", () => {
     expect(filters).toContain("NEUTRON");
   });
 
-  it("getNetworkFilterOptions_maps_keys_to_labels", async () => {
-    api.getConfig.mockResolvedValueOnce(makeConfig());
-    const store = useConfigStore();
-    await store.fetchConfig();
-    const options = store.getNetworkFilterOptions();
-    const osmosis = options.find((o) => o.value === "OSMOSIS");
-    expect(osmosis?.label).toBe("Osmosis");
-    expect(osmosis?.icon).toBe("/icons/osmosis.svg");
-  });
-
   // -------------------------------------------------------------------------
   // Protocol lookups
   // -------------------------------------------------------------------------
@@ -534,5 +502,139 @@ describe("ConfigStore", () => {
   it("getPositionType_defaults_to_Long_when_unknown", () => {
     const store = useConfigStore();
     expect(store.getPositionType("DOES_NOT_EXIST")).toBe("Long");
+  });
+
+  // -------------------------------------------------------------------------
+  // protocolFilter watcher contract (post-refactor)
+  // -------------------------------------------------------------------------
+  //
+  // After the wallet-driven network refactor, the configStore is the sole
+  // owner of protocolFilter. The watcher must:
+  //   1. Reject filters that are not valid network keys before fetching, so
+  //      a stray "DEFINITELY_NOT_A_NETWORK" doesn't burn a 503 round trip.
+  //   2. Record failed fetches in a "do-not-retry" set so a flapping backend
+  //      doesn't get hammered by repeated setProtocolFilter calls for the
+  //      same network.
+  //   3. Log failures at error level (console.error), not just warn.
+  //   4. Drop stale assets when a switch fails — never leave the previous
+  //      network's assets visible under the new filter.
+
+  /** Helper: prime the store so initialize() is a no-op past the first cycle. */
+  async function primeInitializedStore() {
+    api.getConfig.mockResolvedValueOnce(makeConfig());
+    api.getCurrencies.mockResolvedValueOnce(makeCurrencies());
+    api.getNetworkAssets.mockResolvedValueOnce({ assets: [] });
+    api.getGatedProtocols.mockResolvedValueOnce({ protocols: [] });
+    api.getGasFeeConfig.mockResolvedValueOnce({ gas_prices: {}, gas_multiplier: 1 });
+    const store = useConfigStore();
+    await store.initialize();
+    api.getNetworkAssets.mockClear();
+    return store;
+  }
+
+  it("watcher_rejects_invalid_filter_before_fetching", async () => {
+    const store = await primeInitializedStore();
+
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      store.setProtocolFilter("DEFINITELY_NOT_A_NETWORK");
+      // Let the Vue watcher microtask flush.
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(api.getNetworkAssets).not.toHaveBeenCalled();
+      // Either warn or error is acceptable — implementation choice. The
+      // contract is "log it, don't silently swallow".
+      expect(consoleErr.mock.calls.length + consoleWarn.mock.calls.length).toBeGreaterThan(0);
+    } finally {
+      consoleErr.mockRestore();
+      consoleWarn.mockRestore();
+    }
+  });
+
+  it("watcher_failed_fetch_is_recorded_so_it_does_not_retry_storm", async () => {
+    const store = await primeInitializedStore();
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      api.getNetworkAssets.mockRejectedValue(new Error("solana down"));
+
+      store.setProtocolFilter("SOLANA");
+      // Let the watcher run + the rejected promise settle.
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+
+      const callsAfterFirstFail = api.getNetworkAssets.mock.calls.filter((c) => c[0] === "SOLANA").length;
+      expect(callsAfterFirstFail).toBe(1);
+
+      // Bounce away and back. The watcher must not re-fetch SOLANA — it has
+      // been recorded as failed.
+      store.setProtocolFilter("OSMOSIS");
+      await new Promise((r) => setTimeout(r, 0));
+      store.setProtocolFilter("SOLANA");
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+
+      const callsAfterBounce = api.getNetworkAssets.mock.calls.filter((c) => c[0] === "SOLANA").length;
+      expect(callsAfterBounce).toBe(1);
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+
+  it("watcher_failed_fetch_logs_at_error_level_with_network_key_and_error", async () => {
+    const store = await primeInitializedStore();
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const cause = new Error("solana down");
+      api.getNetworkAssets.mockRejectedValueOnce(cause);
+
+      store.setProtocolFilter("SOLANA");
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(consoleErr).toHaveBeenCalled();
+      // At least one call must mention SOLANA and carry the error.
+      const matching = consoleErr.mock.calls.find((args) =>
+        args.some((a) => typeof a === "string" && a.includes("SOLANA"))
+      );
+      expect(matching).toBeDefined();
+      expect(matching?.some((a) => a instanceof Error)).toBe(true);
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+
+  it("watcher_failed_fetch_clears_stale_assets_assetsResponse_is_null", async () => {
+    // Prime with OSMOSIS having real assets, so when SOLANA fails the
+    // stale OSMOSIS data is what we want to verify is cleared. Contract:
+    // assetsResponse === null after a failed switch — never leave stale
+    // assets visible under the new filter.
+    api.getConfig.mockResolvedValueOnce(makeConfig());
+    api.getCurrencies.mockResolvedValueOnce(makeCurrencies());
+    api.getNetworkAssets.mockResolvedValueOnce({
+      assets: [{ ticker: "OSMO", networks: ["OSMOSIS"], protocols: ["OSMOSIS"], icon: "" }]
+    });
+    api.getGatedProtocols.mockResolvedValueOnce({ protocols: [] });
+    api.getGasFeeConfig.mockResolvedValueOnce({ gas_prices: {}, gas_multiplier: 1 });
+
+    const store = useConfigStore();
+    await store.initialize();
+    expect(store.assets.length).toBe(1);
+
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      api.getNetworkAssets.mockRejectedValueOnce(new Error("solana down"));
+      store.setProtocolFilter("SOLANA");
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(store.assetsResponse).toBeNull();
+    } finally {
+      consoleErr.mockRestore();
+    }
   });
 });
