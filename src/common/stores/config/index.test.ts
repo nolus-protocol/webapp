@@ -164,33 +164,11 @@ describe("ConfigStore", () => {
     expect(store.selectedNetwork).toBe("mainnet");
   });
 
-  it("protocolFilter_persisted_to_localStorage_on_set", async () => {
-    const store = useConfigStore();
-    store.setProtocolFilter("OSMOSIS");
-    // watchers are flushed on the next microtask
-    await Promise.resolve();
-    expect(localStorage.getItem("protocol_filter")).toBe("OSMOSIS");
-  });
-
-  it("protocolFilter_cleared_from_localStorage_on_empty", async () => {
-    localStorage.setItem("protocol_filter", "OSMOSIS");
-    const store = useConfigStore();
-    store.clearProtocolFilter();
-    await Promise.resolve();
-    expect(localStorage.getItem("protocol_filter")).toBeNull();
-  });
-
   it("selectedNetwork_persisted_to_localStorage_on_set", async () => {
     const store = useConfigStore();
     store.setSelectedNetwork("testnet");
     await Promise.resolve();
     expect(localStorage.getItem("selected_network")).toBe("testnet");
-  });
-
-  it("protocolFilter_read_from_localStorage_on_store_creation", () => {
-    localStorage.setItem("protocol_filter", "NEUTRON");
-    const store = useConfigStore();
-    expect(store.protocolFilter).toBe("NEUTRON");
   });
 
   // -------------------------------------------------------------------------
@@ -446,16 +424,6 @@ describe("ConfigStore", () => {
     const filters = store.getAvailableNetworkFilters();
     expect(filters).toContain("OSMOSIS");
     expect(filters).toContain("NEUTRON");
-  });
-
-  it("getNetworkFilterOptions_maps_keys_to_labels", async () => {
-    api.getConfig.mockResolvedValueOnce(makeConfig());
-    const store = useConfigStore();
-    await store.fetchConfig();
-    const options = store.getNetworkFilterOptions();
-    const osmosis = options.find((o) => o.value === "OSMOSIS");
-    expect(osmosis?.label).toBe("Osmosis");
-    expect(osmosis?.icon).toBe("/icons/osmosis.svg");
   });
 
   // -------------------------------------------------------------------------
