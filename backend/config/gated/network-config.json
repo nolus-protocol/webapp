@@ -32,6 +32,9 @@
       "OSMOSIS-OSMOSIS-USDC_NOBLE": {
         "icon": "/assets/icons/pools/osmosis-usdc.svg"
       },
+      "OSMOSIS-OSMOSIS-OSMO": {
+        "icon": "/assets/icons/pools/osmosis-osmo.svg"
+      },
       "OSMOSIS-OSMOSIS-ALL_SOL": {
         "icon": "/assets/icons/pools/osmosis-allsol.svg"
       },
