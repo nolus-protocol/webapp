@@ -1,13 +1,6 @@
 <template>
   <div class="flex flex-col gap-6 p-4">
     <Dropdown
-      id="header"
-      :label="$t('message.network')"
-      :options="options"
-      :selected="option"
-      :on-select="onSelect"
-    />
-    <Dropdown
       id="language"
       :label="$t('message.language')"
       :options="languagesOptions"
@@ -47,14 +40,11 @@
 import { h, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { type DropdownOption, Dropdown } from "web-components";
-import { WalletManager } from "@/common/utils";
-import { usePricesStore } from "@/common/stores/prices";
 
 import { setLang } from "@/i18n";
 import { APPEARANCE, languages } from "@/config/global";
 import { setTheme, getTheme, type Theme } from "@/common/utils/ThemeManager";
 import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
-import { useConfigStore } from "@/common/stores/config";
 
 import DarkIcon from "@/assets/icons/theme/dark.svg";
 import LightIcon from "@/assets/icons/theme/light.svg";
@@ -63,8 +53,6 @@ import SyncIcon from "@/assets/icons/theme/sync.svg";
 const i18n = useI18n();
 const lang = getLanguage();
 const themeData = getTheme();
-const configStore = useConfigStore();
-const pricesStore = usePricesStore();
 
 const selectedAppearance = ref({
   label: i18n.t(`message.${themeData}`),
@@ -81,9 +69,6 @@ const ThemeIcons = {
   light: h(LightIcon),
   sync: h(SyncIcon)
 };
-
-const options = configStore.getNetworkFilterOptions();
-const option = options.find((item) => item.value == WalletManager.getProtocolFilter());
 
 const languagesOptions = ref(
   Object.keys(languages).map((key) => {
@@ -130,11 +115,6 @@ async function setLanguage(item: DropdownOption) {
     label: i18n.t(`message.${themeData}`),
     value: themeData
   };
-}
-
-async function onSelect(item: { value: string; label: string; icon: string }) {
-  configStore.setProtocolFilter(item.value);
-  await pricesStore.fetchPrices();
 }
 </script>
 

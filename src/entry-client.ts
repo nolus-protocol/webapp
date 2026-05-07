@@ -20,6 +20,9 @@ import { initWebMcp } from "./common/webmcp";
 const { app, router } = createApp();
 
 async function bootstrap() {
+  // One-shot cleanup of legacy "protocol_filter" localStorage key — remove in a follow-up release.
+  localStorage.removeItem("protocol_filter");
+
   // Initialize NolusClient with RPC endpoint (still needed for wallet signing)
   const endpoints = await fetchEndpoints(ChainConstants.CHAIN_KEY);
   const rpc = endpoints.rpc;

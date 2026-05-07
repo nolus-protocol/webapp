@@ -27,8 +27,6 @@ export const CONTRACTS: Record<string, ContractsConfig> = {
   }
 };
 
-export const DefaultProtocolFilter = "OSMOSIS";
-
 //add deleted protocols
 export const SORT_PROTOCOLS = [
   "OSMOSIS-OSMOSIS-USDC_NOBLE",
