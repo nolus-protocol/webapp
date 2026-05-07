@@ -1,6 +1,6 @@
 import { type Store } from "../types";
 
-import { WalletManager } from "@/common/utils";
+import { WalletManager, applyWalletProtocolFilter } from "@/common/utils";
 import { NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
 import { Buffer } from "buffer";
@@ -18,6 +18,7 @@ export async function connectPhantom(this: Store) {
 
   WalletManager.saveWalletConnectMechanism(WalletConnectMechanism.EVM_PHANTOM);
   WalletManager.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
+  applyWalletProtocolFilter(WalletConnectMechanism.EVM_PHANTOM);
 
   this.wallet = nolusWalletOfflineSigner;
   applyNolusWalletOverrides(this.wallet);

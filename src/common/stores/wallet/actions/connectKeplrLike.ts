@@ -2,7 +2,7 @@ import type { Keplr } from "@keplr-wallet/types";
 import type { OfflineDirectSigner } from "@cosmjs/proto-signing";
 import { type Store } from "../types";
 
-import { EnvNetworkUtils, WalletManager } from "@/common/utils";
+import { EnvNetworkUtils, WalletManager, applyWalletProtocolFilter } from "@/common/utils";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { ChainConstants, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { type WalletConnectMechanism } from "@/common/types";
@@ -60,6 +60,7 @@ export async function connectKeplrLike(
       // Save mechanism only after wallet is fully set up
       WalletManager.saveWalletConnectMechanism(mechanism);
       WalletManager.setPubKey(Buffer.from((nolusWalletOfflineSigner?.pubKey ?? "") as string).toString("hex"));
+      applyWalletProtocolFilter(mechanism);
     }
   }
 
