@@ -4,8 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 // factories (which are themselves hoisted to the top of the module).
 const {
   baseWalletCtor,
-  metamaskConnectCustom,
-  metamaskMakeWCOfflineSigner,
+  solanaWalletCtor,
   solanaConnectCustom,
   solanaMakeWCOfflineSigner,
   fetchEndpointsMock,
@@ -15,8 +14,7 @@ const {
   webusbCreateMock
 } = vi.hoisted(() => ({
   baseWalletCtor: vi.fn(),
-  metamaskConnectCustom: vi.fn().mockResolvedValue(undefined),
-  metamaskMakeWCOfflineSigner: vi.fn(() => ({ type: "evm", chainId: "nolus-1", getAccounts: async () => [] })),
+  solanaWalletCtor: vi.fn(),
   solanaConnectCustom: vi.fn().mockResolvedValue(undefined),
   solanaMakeWCOfflineSigner: vi.fn(() => ({ type: "svm", chainId: "nolus-1", getAccounts: async () => [] })),
   fetchEndpointsMock: vi.fn().mockResolvedValue({ rpc: "r", api: "a" }),
@@ -41,17 +39,13 @@ vi.mock("./BaseWallet", () => {
   };
 });
 
-vi.mock("../evm", () => ({
-  MetaMaskWallet: class {
-    connectCustom = metamaskConnectCustom;
-    makeWCOfflineSigner = metamaskMakeWCOfflineSigner;
-  }
-}));
-
 vi.mock("../sol", () => ({
   SolanaWallet: class {
     connectCustom = solanaConnectCustom;
     makeWCOfflineSigner = solanaMakeWCOfflineSigner;
+    constructor(...args: unknown[]) {
+      solanaWalletCtor(...args);
+    }
   }
 }));
 
@@ -88,7 +82,7 @@ vi.mock("@cosmjs/ledger-amino", () => ({
   }
 }));
 
-import { authenticateKeplr, authenticateLedger, authenticateEvmPhantom, authenticateSolFlare } from "./WalletFactory";
+import { authenticateKeplr, authenticateLedger, authenticatePhantom, authenticateSolFlare } from "./WalletFactory";
 import type { NetworkData } from "@/common/types";
 
 function fakeWallet(chainId = "nolus-1") {
@@ -115,8 +109,7 @@ function fakeNetwork(overrides: Partial<NetworkData> = {}): NetworkData {
 describe("WalletFactory", () => {
   beforeEach(() => {
     baseWalletCtor.mockClear();
-    metamaskConnectCustom.mockClear();
-    metamaskMakeWCOfflineSigner.mockClear();
+    solanaWalletCtor.mockClear();
     solanaConnectCustom.mockClear();
     solanaMakeWCOfflineSigner.mockClear();
     bluetoothCreateMock.mockClear();
@@ -205,20 +198,30 @@ describe("WalletFactory", () => {
     });
   });
 
-  describe("authenticateEvmPhantom", () => {
-    it("creates MetaMaskWallet, connectCustom, passes WC signer to BaseWallet", async () => {
-      await authenticateEvmPhantom(fakeWallet(), fakeNetwork());
+  describe("authenticatePhantom", () => {
+    it("constructs SolanaWallet with provider='phantom' and passes its WC signer to BaseWallet", async () => {
+      await authenticatePhantom(fakeWallet(), fakeNetwork());
       expect(fetchEndpointsMock).toHaveBeenCalledWith("nolus");
-      expect(metamaskConnectCustom).toHaveBeenCalledTimes(1);
-      expect(metamaskMakeWCOfflineSigner).toHaveBeenCalledTimes(1);
-      // The BaseWallet signer arg is the WC signer from MetaMask
-      expect(baseWalletCtor.mock.calls[0][1].type).toBe("evm");
+      expect(solanaWalletCtor).toHaveBeenCalledTimes(1);
+      expect(solanaWalletCtor).toHaveBeenCalledWith("phantom");
+      expect(solanaConnectCustom).toHaveBeenCalledTimes(1);
+      expect(solanaMakeWCOfflineSigner).toHaveBeenCalledTimes(1);
+      // The BaseWallet signer arg is the WC signer from SolanaWallet
+      expect(baseWalletCtor.mock.calls[0][1].type).toBe("svm");
+    });
+
+    it("phantom errors during connectCustom propagate (BaseWallet not built on failure)", async () => {
+      solanaConnectCustom.mockRejectedValueOnce(new Error("user denied"));
+      await expect(authenticatePhantom(fakeWallet(), fakeNetwork())).rejects.toThrow(/user denied/);
+      expect(baseWalletCtor).not.toHaveBeenCalled();
     });
   });
 
   describe("authenticateSolFlare", () => {
-    it("creates SolanaWallet and passes its WC signer to BaseWallet", async () => {
+    it("constructs SolanaWallet with provider='solflare' and passes its WC signer to BaseWallet", async () => {
       await authenticateSolFlare(fakeWallet(), fakeNetwork());
+      expect(solanaWalletCtor).toHaveBeenCalledTimes(1);
+      expect(solanaWalletCtor).toHaveBeenCalledWith("solflare");
       expect(solanaConnectCustom).toHaveBeenCalledTimes(1);
       expect(solanaMakeWCOfflineSigner).toHaveBeenCalledTimes(1);
       expect(baseWalletCtor.mock.calls[0][1].type).toBe("svm");

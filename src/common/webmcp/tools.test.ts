@@ -19,6 +19,9 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
+import { WalletConnectMechanism } from "@/common/types";
+import { WalletActions } from "@/common/stores/wallet/types/actions";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SOURCE = readFileSync(resolve(__dirname, "tools.ts"), "utf-8");
 
@@ -105,5 +108,77 @@ describe("WebMCP tool surface (source-level)", () => {
     for (const n of names) {
       expect(n).toMatch(re);
     }
+  });
+});
+
+/**
+ * Gap-closure: source-level mechanism/action map consistency.
+ *
+ * Pattern-extracts MECHANISM_BY_LABEL and ACTION_BY_MECHANISM, then asserts:
+ *   - every value in MECHANISM_BY_LABEL is a real WalletConnectMechanism member
+ *   - every mechanism in MECHANISM_BY_LABEL is also a key in ACTION_BY_MECHANISM
+ *   - every value of ACTION_BY_MECHANISM is a real WalletActions member
+ *   - the "phantom" label is mapped to SOL_PHANTOM (locks in the rename)
+ *   - SOL_PHANTOM is mapped to CONNECT_SOL_PHANTOM
+ *   - the deleted EVM_PHANTOM / CONNECT_EVM_PHANTOM identifiers do not appear
+ *
+ * Catches the rename-desync failure mode where WalletConnectMechanism or
+ * WalletActions enums are renamed but tools.ts still references old members.
+ */
+describe("WebMCP mechanism/action map consistency", () => {
+  function extractObjectLiteral(source: string, name: string): Record<string, string> {
+    const literalRe = new RegExp("const\\s+" + name + "[^=]*=\\s*\\{([\\s\\S]*?)\\}\\s*;");
+    const m = source.match(literalRe);
+    if (!m) throw new Error("Could not find object literal for " + name);
+    const body = m[1];
+    const out: Record<string, string> = {};
+    const entryRe =
+      /(?:(\w+)|\[\s*WalletConnectMechanism\.(\w+)\s*\])\s*:\s*(?:WalletConnectMechanism|WalletActions)\.(\w+)/g;
+    let match: RegExpExecArray | null;
+    while ((match = entryRe.exec(body)) !== null) {
+      const key = match[1] ?? match[2];
+      const value = match[3];
+      out[key] = value;
+    }
+    return out;
+  }
+
+  const mechanismByLabel = extractObjectLiteral(SOURCE, "MECHANISM_BY_LABEL");
+  const actionByMechanism = extractObjectLiteral(SOURCE, "ACTION_BY_MECHANISM");
+
+  it("every MECHANISM_BY_LABEL value is a real WalletConnectMechanism member", () => {
+    const validMembers = new Set(Object.keys(WalletConnectMechanism));
+    for (const [label, member] of Object.entries(mechanismByLabel)) {
+      expect(validMembers, `label "${label}" maps to unknown mechanism ${member}`).toContain(member);
+    }
+  });
+
+  it("every mechanism in MECHANISM_BY_LABEL is also a key in ACTION_BY_MECHANISM", () => {
+    for (const [label, member] of Object.entries(mechanismByLabel)) {
+      expect(
+        actionByMechanism,
+        `mechanism for label "${label}" (${member}) missing from ACTION_BY_MECHANISM`
+      ).toHaveProperty(member);
+    }
+  });
+
+  it("every ACTION_BY_MECHANISM value is a real WalletActions member", () => {
+    const validActions = new Set(Object.keys(WalletActions));
+    for (const [mechanism, action] of Object.entries(actionByMechanism)) {
+      expect(validActions, `mechanism ${mechanism} maps to unknown action ${action}`).toContain(action);
+    }
+  });
+
+  it("label 'phantom' maps to SOL_PHANTOM (post-rename contract)", () => {
+    expect(mechanismByLabel.phantom).toBe("SOL_PHANTOM");
+  });
+
+  it("SOL_PHANTOM maps to CONNECT_SOL_PHANTOM in ACTION_BY_MECHANISM", () => {
+    expect(actionByMechanism.SOL_PHANTOM).toBe("CONNECT_SOL_PHANTOM");
+  });
+
+  it("does NOT reference the removed EVM_PHANTOM mechanism or CONNECT_EVM_PHANTOM action", () => {
+    expect(SOURCE).not.toMatch(/EVM_PHANTOM/);
+    expect(SOURCE).not.toMatch(/CONNECT_EVM_PHANTOM/);
   });
 });

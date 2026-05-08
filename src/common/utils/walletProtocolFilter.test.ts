@@ -21,8 +21,8 @@ describe("protocolFilterForMechanism", () => {
     expect(protocolFilterForMechanism(WalletConnectMechanism.KEPLR)).toBe("OSMOSIS");
   });
 
-  it("maps EVM_PHANTOM to SOLANA", () => {
-    expect(protocolFilterForMechanism(WalletConnectMechanism.EVM_PHANTOM)).toBe("SOLANA");
+  it("maps SOL_PHANTOM to SOLANA", () => {
+    expect(protocolFilterForMechanism(WalletConnectMechanism.SOL_PHANTOM)).toBe("SOLANA");
   });
 
   it("maps SOL_SOLFLARE to SOLANA", () => {
@@ -53,8 +53,8 @@ describe("applyWalletProtocolFilter", () => {
     expect(setProtocolFilter).toHaveBeenCalledWith("OSMOSIS");
   });
 
-  it("calls setProtocolFilter('SOLANA') for EVM_PHANTOM", () => {
-    applyWalletProtocolFilter(WalletConnectMechanism.EVM_PHANTOM);
+  it("calls setProtocolFilter('SOLANA') for SOL_PHANTOM", () => {
+    applyWalletProtocolFilter(WalletConnectMechanism.SOL_PHANTOM);
     expect(setProtocolFilter).toHaveBeenCalledTimes(1);
     expect(setProtocolFilter).toHaveBeenCalledWith("SOLANA");
   });

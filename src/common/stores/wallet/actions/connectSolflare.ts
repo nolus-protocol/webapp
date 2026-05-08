@@ -9,7 +9,7 @@ import { SolanaWallet } from "@/networks/sol";
 import { applyNolusWalletOverrides } from "@/networks/cosm/NolusWalletOverride";
 
 export async function connectSolflare(this: Store) {
-  const sol = new SolanaWallet();
+  const sol = new SolanaWallet("solflare");
   const { pubkeyAny } = await sol.connect();
   const signer = sol.makeWCOfflineSigner();
 

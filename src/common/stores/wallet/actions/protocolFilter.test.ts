@@ -99,20 +99,18 @@ vi.mock("@/common/utils", async () => {
   };
 });
 
-// MetaMaskWallet (EVM) — stub `connect` and `makeWCOfflineSigner`.
-vi.mock("@/networks/evm", () => ({
-  MetaMaskWallet: vi.fn().mockImplementation(() => ({
-    connect: vi.fn().mockResolvedValue({ pubkeyAny: new Uint8Array([1, 2, 3]) }),
-    makeWCOfflineSigner: vi.fn().mockReturnValue({})
-  }))
-}));
-
-// SolanaWallet — same shape as MetaMaskWallet.
+// SolanaWallet — both Phantom and Solflare connect actions construct one.
+// Capture the `provider` ctor arg per call so the assertions below can verify
+// connectPhantom passes "phantom" and connectSolflare passes "solflare".
+const solanaWalletCtor = vi.fn();
 vi.mock("@/networks/sol", () => ({
-  SolanaWallet: vi.fn().mockImplementation(() => ({
-    connect: vi.fn().mockResolvedValue({ pubkeyAny: new Uint8Array([4, 5, 6]) }),
-    makeWCOfflineSigner: vi.fn().mockReturnValue({})
-  }))
+  SolanaWallet: vi.fn().mockImplementation((...args: unknown[]) => {
+    solanaWalletCtor(...args);
+    return {
+      connect: vi.fn().mockResolvedValue({ pubkeyAny: new Uint8Array([4, 5, 6]) }),
+      makeWCOfflineSigner: vi.fn().mockReturnValue({})
+    };
+  })
 }));
 
 // Ledger transports never run in jsdom. Stub create() to a minimal object.
@@ -139,6 +137,7 @@ import type { Store } from "../types";
 
 beforeEach(() => {
   setProtocolFilter.mockClear();
+  solanaWalletCtor.mockClear();
   localStorage.clear();
 });
 
@@ -188,6 +187,14 @@ describe("connectPhantom", () => {
     expect(setProtocolFilter).toHaveBeenCalledTimes(1);
     expect(setProtocolFilter).toHaveBeenCalledWith("SOLANA");
   });
+
+  it("constructs SolanaWallet with provider='phantom'", async () => {
+    const store = makeStore();
+    await connectPhantom.call(store);
+
+    expect(solanaWalletCtor).toHaveBeenCalledTimes(1);
+    expect(solanaWalletCtor).toHaveBeenCalledWith("phantom");
+  });
 });
 
 describe("connectSolflare", () => {
@@ -197,6 +204,14 @@ describe("connectSolflare", () => {
 
     expect(setProtocolFilter).toHaveBeenCalledTimes(1);
     expect(setProtocolFilter).toHaveBeenCalledWith("SOLANA");
+  });
+
+  it("constructs SolanaWallet with provider='solflare'", async () => {
+    const store = makeStore();
+    await connectSolflare.call(store);
+
+    expect(solanaWalletCtor).toHaveBeenCalledTimes(1);
+    expect(solanaWalletCtor).toHaveBeenCalledWith("solflare");
   });
 });
 
