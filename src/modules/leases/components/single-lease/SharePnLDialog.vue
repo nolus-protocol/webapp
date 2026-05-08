@@ -87,7 +87,6 @@ import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
 
-import shareImageOne from "@/assets/icons/share-image-1.svg?url";
 import shareImageTwo from "@/assets/icons/share-image-2.png?url";
 import shareImageThree from "@/assets/icons/share-image-3.png?url";
 import shareImageFour from "@/assets/icons/share-image-4.png?url";
@@ -105,7 +104,7 @@ const i18n = useI18n();
 const configStore = useConfigStore();
 const pricesStore = usePricesStore();
 const imageIndex = ref(0);
-const images = [shareImageOne, shareImageTwo, shareImageThree, shareImageFour];
+const images = [shareImageTwo, shareImageThree, shareImageFour];
 const canvasRefs = ref<{ [key: string]: HTMLCanvasElement }>({});
 
 const showPnlAmount = ref(true);
@@ -122,10 +121,9 @@ type Palette = {
 // brand pair (PNL_POSITIVE / PNL_NEGATIVE) used on every cover for visual
 // consistency across the share library.
 const palettes: Palette[] = [
-  { text: "#082D63", muted: "#5E7699", logo: "dark" }, // 1: light grey/peach gradient
-  { text: "#FFFFFF", muted: "#C1CAD7", logo: "light" }, // 2: dark navy illustration
-  { text: "#082D63", muted: "#5E7699", logo: "dark" }, // 3: orange
-  { text: "#082D63", muted: "#5E7699", logo: "dark" } // 4: light lavender
+  { text: "#FFFFFF", muted: "#C1CAD7", logo: "light" }, // dark navy illustration
+  { text: "#082D63", muted: "#5E7699", logo: "dark" }, // orange
+  { text: "#082D63", muted: "#5E7699", logo: "dark" } // light lavender
 ];
 
 const PNL_POSITIVE = "#1AB171";
