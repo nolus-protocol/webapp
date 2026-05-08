@@ -87,8 +87,6 @@ import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
 
-import arrowup from "@/assets/icons/arrowup.svg?url";
-import arrowdown from "@/assets/icons/arrowdown.svg?url";
 import shareImageOne from "@/assets/icons/share-image-1.svg?url";
 import shareImageTwo from "@/assets/icons/share-image-2.png?url";
 import shareImageThree from "@/assets/icons/share-image-3.png?url";
@@ -115,20 +113,24 @@ const showPositionSize = ref(true);
 type Palette = {
   text: string;
   muted: string;
+  pnlPositive: string;
+  pnlNegative: string;
 };
 
-// Per-cover text palette. PnL +/- and pill colors stay constant — the shared
-// dark-blue/green/red set has enough contrast against every cover.
+// Per-cover palette. Each cover gets its own positive / negative colors so the
+// PnL hero and the Long/Short label remain readable against the illustration —
+// the brand red on bright orange (cover 3) is the failure case the shared
+// constants used to produce.
 const palettes: Palette[] = [
-  { text: "#082D63", muted: "#5E7699" }, // 1: light grey/peach gradient
-  { text: "#FFFFFF", muted: "#C1CAD7" }, // 2: dark navy illustration
-  { text: "#082D63", muted: "#5E7699" }, // 3: orange
-  { text: "#082D63", muted: "#5E7699" } // 4: light lavender
+  // 1: light grey/peach gradient
+  { text: "#082D63", muted: "#5E7699", pnlPositive: "#1AB171", pnlNegative: "#AB1F3B" },
+  // 2: dark navy — brighter tones to lift off the dark backdrop
+  { text: "#FFFFFF", muted: "#C1CAD7", pnlPositive: "#3FE490", pnlNegative: "#FF6577" },
+  // 3: orange — deeper tones so red and green do not blend with the cover
+  { text: "#082D63", muted: "#5E7699", pnlPositive: "#0E5D3F", pnlNegative: "#5C0F1F" },
+  // 4: light lavender
+  { text: "#082D63", muted: "#5E7699", pnlPositive: "#1AB171", pnlNegative: "#AB1F3B" }
 ];
-
-const PNL_POSITIVE = "#1AB171";
-const PNL_NEGATIVE = "#ab1f3b";
-const PILL_TEXT = "#FFFFFF";
 
 let leaseData: LeaseInfo | null;
 let leaseDisplayData: LeaseDisplayData | null;
@@ -228,19 +230,45 @@ watch([showPnlAmount, showPrice, showPositionSize], () => {
   }
 });
 
+// Font preload. ctx.font = "..." picks the font synchronously but does not
+// wait for the @font-face rule to load — the first canvas paint after dialog
+// open silently falls back to the system serif/sans until the browser
+// ambient-loads Garet via DOM use elsewhere. Awaiting document.fonts.load on
+// every spec we paint forces the font into the document's font set up front.
+// Memoized: subsequent calls resolve immediately.
+let fontsReady: Promise<void> | null = null;
+const FONT_SPECS = [
+  "500 24px 'Garet'",
+  "500 28px 'Garet'",
+  "500 32px 'Garet'",
+  "500 36px 'Garet'",
+  "600 80px 'Garet'",
+  "600 96px 'Garet'"
+];
+const ensureFonts = (): Promise<void> => {
+  if (fontsReady) return fontsReady;
+  if (typeof document === "undefined" || !document.fonts) {
+    fontsReady = Promise.resolve();
+    return fontsReady;
+  }
+  // Catch the rejection so a font-load failure (404, CSP block, transient
+  // network) degrades to the system fallback. Without the catch a single
+  // failure poisons every render through the memoized promise.
+  fontsReady = Promise.all(FONT_SPECS.map((spec) => document.fonts.load(spec)))
+    .then(() => undefined)
+    .catch(() => undefined);
+  return fontsReady;
+};
+
 const renderCard = async (ctx: CanvasRenderingContext2D, bgSrc: string) => {
+  await ensureFonts();
   await setBackground(ctx, bgSrc);
 
-  const metric = await getBuyTextWidth(ctx);
-  drawPositionPill(ctx, metric);
-
-  // setArrow + setAsset are awaited because they paint asynchronously via
-  // image.onload. Without await, a re-render triggered mid-flight (e.g. by the
-  // toggle watcher) lets a prior render's onload fire onto a newer frame's
-  // canvas, swapping in stale arrow direction / asset icon.
-  await setArrow(ctx);
-  setBuyText(ctx);
-  await setAsset(ctx);
+  // setAsset is awaited because it paints asynchronously via image.onload.
+  // Without await, a re-render triggered mid-flight (e.g. by the toggle
+  // watcher) lets a prior render's onload fire onto a newer frame's canvas,
+  // swapping in a stale asset icon.
+  await setPositionMetaRow(ctx);
 
   // PnL hero block (always shown). Inline absolute amount when toggle is on.
   setPnlPercent(ctx);
@@ -249,7 +277,7 @@ const renderCard = async (ctx: CanvasRenderingContext2D, bgSrc: string) => {
   }
 
   // Optional rows stack below the PnL block. y-cursor advances per rendered row.
-  let cursorY = 555;
+  let cursorY = 540;
   if (showPrice.value) {
     setEntryPriceRow(ctx, cursorY);
     cursorY += 50;
@@ -310,107 +338,88 @@ async function setBackground(ctx: CanvasRenderingContext2D, src: string) {
   });
 }
 
-function drawPositionPill(ctx: CanvasRenderingContext2D, textWidth: number) {
-  const radius = 20;
-  const x = 90;
-  const y = 230;
-  const width = textWidth + 100;
-  const height = 60;
-
-  const fill = pnlNumber() < 0 ? PNL_NEGATIVE : PNL_POSITIVE;
-  ctx.strokeStyle = fill;
-  ctx.fillStyle = fill;
-  ctx.lineJoin = "round";
-  ctx.lineWidth = radius;
-
-  ctx.strokeRect(x + radius * 0.5, y + radius * 0.5, width - radius, height - radius);
-  ctx.fillRect(x + radius * 0.5, y + radius * 0.5, width - radius, height - radius);
-  ctx.stroke();
-  ctx.fill();
-}
-
-async function setArrow(ctx: CanvasRenderingContext2D) {
-  const image = new Image();
-  const data = await fetch(pnlNumber() < 0 ? arrowdown : arrowup);
-  const blob = await data.blob();
-
-  return new Promise<void>((resolve) => {
-    image.onload = () => {
-      ctx.drawImage(image, 110, 247, 28, 26);
-      resolve();
-    };
-    image.src = window.URL.createObjectURL(blob);
-  });
-}
-
-async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
-  ctx.font = "600 30px 'Garet'";
-  const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
-  return ctx.measureText(`${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase()).width;
-}
-
-async function setBuyText(ctx: CanvasRenderingContext2D) {
-  ctx.font = "600 30px 'Garet'";
-  ctx.fillStyle = PILL_TEXT;
-  const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
-  ctx.fillText(`${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(), 150, 270);
-}
-
-async function setAsset(ctx: CanvasRenderingContext2D) {
+// Compact meta row at the top of the type column:
+//   [icon 40px] Long · BTC
+// Direction word ("Long" / "Short") is colored by the palette's positive /
+// negative tone — this is *position direction*, not PnL sign. The PnL hero
+// below carries the sign coloring. Both can be the same red on a losing short
+// without ambiguity because the size hierarchy makes the role obvious.
+async function setPositionMetaRow(ctx: CanvasRenderingContext2D) {
   const asst = asset();
   if (!asst) return;
+
+  const positionType = leaseData ? configStore.getPositionType(leaseData.protocol) : "Long";
+  const directionLabel = i18n.t(`message.${positionType.toLowerCase()}`);
+  const tickerLabel = asst.shortName ?? "";
+  const pal = palette();
+  const directionColor = positionType === "Short" ? pal.pnlNegative : pal.pnlPositive;
 
   const image = new Image();
   const data = await fetch(asst.icon);
   const blob = await data.blob();
-  const textColor = palette().text;
 
   return new Promise<void>((resolve) => {
     image.onload = () => {
-      const rect = 60;
-      const hf = rect / image.height;
-      const width = hf * image.width;
-      ctx.drawImage(image, 100, 310, width, hf * image.height);
+      const baselineY = 240;
+      const iconHeight = 40;
+      const iconScale = iconHeight / image.height;
+      const iconWidth = iconScale * image.width;
+      const iconX = 90;
+      const iconY = baselineY - iconHeight + 4;
+      ctx.drawImage(image, iconX, iconY, iconWidth, iconHeight);
 
-      ctx.font = "500 42px 'Garet'";
-      ctx.fillStyle = textColor;
-      if (asst.shortName) {
-        ctx.fillText(asst.shortName, 115 + width, 350);
-      }
+      let cursorX = iconX + iconWidth + 18;
+
+      ctx.font = "500 36px 'Garet'";
+      ctx.fillStyle = directionColor;
+      ctx.fillText(directionLabel, cursorX, baselineY);
+      cursorX += ctx.measureText(directionLabel).width;
+
+      const separator = "  ·  ";
+      ctx.fillStyle = pal.muted;
+      ctx.fillText(separator, cursorX, baselineY);
+      cursorX += ctx.measureText(separator).width;
+
+      ctx.fillStyle = pal.text;
+      ctx.fillText(tickerLabel, cursorX, baselineY);
+
       resolve();
     };
     image.src = window.URL.createObjectURL(blob);
   });
 }
+
+const PNL_HERO_BASELINE_Y = 430;
 
 function setPnlPercent(ctx: CanvasRenderingContext2D) {
   const pos = pnlNumber();
   const symbol = pos < 0 ? "-" : "+";
   const [a, d] = Math.abs(pos).toFixed(2).split(".");
+  const pal = palette();
 
-  ctx.fillStyle = pos < 0 ? PNL_NEGATIVE : PNL_POSITIVE;
+  ctx.fillStyle = pos < 0 ? pal.pnlNegative : pal.pnlPositive;
 
   const amount = `${symbol}${formatNumber(a, 0)}`;
-  ctx.font = "600 72px 'Garet'";
-  ctx.fillText(amount, 90, 490);
+  ctx.font = "600 96px 'Garet'";
+  ctx.fillText(amount, 90, PNL_HERO_BASELINE_Y);
 
   const w = ctx.measureText(amount).width;
-  ctx.font = "600 58px 'Garet'";
-  ctx.fillText(`.${d}%`, 90 + w, 490);
+  ctx.font = "600 80px 'Garet'";
+  ctx.fillText(`.${d}%`, 90 + w, PNL_HERO_BASELINE_Y);
 }
 
 function setPnlAmountInline(ctx: CanvasRenderingContext2D) {
-  ctx.font = "600 72px 'Garet'";
+  ctx.font = "600 96px 'Garet'";
   const pos = pnlNumber();
   const symbol = pos < 0 ? "-" : "+";
   const [a, d] = Math.abs(pos).toFixed(2).split(".");
   const integerWidth = ctx.measureText(`${symbol}${formatNumber(a, 0)}`).width;
-  ctx.font = "600 58px 'Garet'";
+  ctx.font = "600 80px 'Garet'";
   const decimalWidth = ctx.measureText(`.${d}%`).width;
 
-  ctx.font = "500 32px 'Garet'";
+  ctx.font = "500 36px 'Garet'";
   ctx.fillStyle = palette().muted;
-  ctx.fillText(`(${pnlAmountFormatted()})`, 90 + integerWidth + decimalWidth + 18, 485);
+  ctx.fillText(`(${pnlAmountFormatted()})`, 90 + integerWidth + decimalWidth + 22, PNL_HERO_BASELINE_Y - 8);
 }
 
 function setEntryPriceRow(ctx: CanvasRenderingContext2D, y: number) {
@@ -450,21 +459,22 @@ function setPositionSizeRow(ctx: CanvasRenderingContext2D, y: number) {
 }
 
 function setTimeStamp(ctx: CanvasRenderingContext2D) {
-  const timestamp = new Date();
-  const m = timestamp.getMonth() + 1;
-  const d = timestamp.getDate();
-  const h = timestamp.getHours();
-  const min = timestamp.getMinutes();
+  const now = new Date();
+  const locale = i18n.locale.value;
+  const datePart = new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  }).format(now);
+  const timePart = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(now);
 
-  const year = timestamp.getFullYear();
-  const month = m.toString().length == 1 ? `0${m}` : m;
-  const day = d.toString().length == 1 ? `0${d}` : d;
-  const hours = h.toString().length == 1 ? `0${h}` : h;
-  const minutes = min.toString().length == 1 ? `0${min}` : min;
-
-  ctx.font = "500 32px 'Garet'";
+  ctx.font = "500 28px 'Garet'";
   ctx.fillStyle = palette().muted;
-  ctx.fillText(`${i18n.t("message.timestamp")}:  ${year}-${month}-${day} ${hours}:${minutes}`, 90, 800);
+  ctx.fillText(`${datePart} · ${timePart}`, 90, 820);
 }
 
 function download() {
