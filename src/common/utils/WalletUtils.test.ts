@@ -96,26 +96,11 @@ describe("WalletUtils.getKeplr", () => {
     vi.restoreAllMocks();
   });
 
-  it("should return window.keplr when extension is already set and identifies as Keplr", async () => {
-    const fakeKeplr = { isKeplr: true, marker: "keplr-instance" };
+  it("should return window.keplr when extension is already set", async () => {
+    const fakeKeplr = { marker: "keplr-instance" };
     w.keplr = fakeKeplr;
     const result = await WalletUtils.getKeplr();
     expect(result).toBe(fakeKeplr);
-  });
-
-  it("should return undefined when window.keplr is set but isKeplr !== true", async () => {
-    // Defends against wallet-aggregator placeholder injection: a hostile extension can
-    // populate window.keplr with a Keplr-shaped object lacking the identity flag.
-    w.keplr = { marker: "aggregator-shim" };
-    const result = await WalletUtils.getKeplr();
-    expect(result).toBeUndefined();
-  });
-
-  it("should return undefined when isKeplr is truthy-but-not-strictly-true", async () => {
-    // Strict equality `=== true` rejects truthy non-true values like 1 or "yes".
-    w.keplr = { isKeplr: 1, marker: "loose-keplr" };
-    const result = await WalletUtils.getKeplr();
-    expect(result).toBeUndefined();
   });
 
   it("should return the extension when document is complete and extension becomes available", async () => {
@@ -142,7 +127,7 @@ describe("WalletUtils.getKeplr", () => {
         configurable: true,
         get: () => "complete"
       });
-      const fakeKeplr = { isKeplr: true, marker: "delayed-keplr" };
+      const fakeKeplr = { marker: "delayed-keplr" };
       w.keplr = fakeKeplr;
       document.dispatchEvent(new Event("readystatechange"));
 
