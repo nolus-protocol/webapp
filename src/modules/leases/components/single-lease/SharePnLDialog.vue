@@ -31,6 +31,29 @@
               ref="canvas"
             ></canvas>
           </div>
+          <div class="flex flex-col gap-3">
+            <span class="text-16">{{ $t("message.optional-info-share") }}</span>
+            <div class="flex flex-wrap gap-x-6 gap-y-3">
+              <Checkbox
+                id="share-pnl-amount"
+                :label="$t('message.pnl-amount')"
+                v-model="showPnlAmount"
+                @input="() => {}"
+              />
+              <Checkbox
+                id="share-price"
+                :label="$t('message.price')"
+                v-model="showPrice"
+                @input="() => {}"
+              />
+              <Checkbox
+                id="share-position-size"
+                :label="$t('message.lease-size')"
+                v-model="showPositionSize"
+                @input="() => {}"
+              />
+            </div>
+          </div>
         </div>
 
         <hr class="border-border-color" />
@@ -57,8 +80,8 @@
 </template>
 
 <script lang="ts" setup>
-import { nextTick, ref } from "vue";
-import { Button, Dialog } from "web-components";
+import { nextTick, ref, watch } from "vue";
+import { Button, Checkbox, Dialog } from "web-components";
 import { Logger } from "@/common/utils";
 import { formatNumber } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
@@ -85,15 +108,32 @@ const imageIndex = ref(0);
 const images = [shareImageOne, shareImageTwo, shareImageThree, shareImageFour];
 const canvasRefs = ref<{ [key: string]: HTMLCanvasElement }>({});
 
-const colors = {
-  red: "#ab1f3b",
-  green: "#1AB171",
-  white: "white",
-  gray: "#c1cad7"
+const showPnlAmount = ref(true);
+const showPrice = ref(true);
+const showPositionSize = ref(true);
+
+type Palette = {
+  text: string;
+  muted: string;
 };
+
+// Per-cover text palette. PnL +/- and pill colors stay constant — the shared
+// dark-blue/green/red set has enough contrast against every cover.
+const palettes: Palette[] = [
+  { text: "#082D63", muted: "#5E7699" }, // 1: light grey/peach gradient
+  { text: "#FFFFFF", muted: "#C1CAD7" }, // 2: dark navy illustration
+  { text: "#082D63", muted: "#5E7699" }, // 3: orange
+  { text: "#082D63", muted: "#5E7699" } // 4: light lavender
+];
+
+const PNL_POSITIVE = "#1AB171";
+const PNL_NEGATIVE = "#ab1f3b";
+const PILL_TEXT = "#FFFFFF";
 
 let leaseData: LeaseInfo | null;
 let leaseDisplayData: LeaseDisplayData | null;
+
+const palette = (): Palette => palettes[imageIndex.value] ?? palettes[0];
 
 const asset = () => {
   if (!leaseData) return undefined;
@@ -152,6 +192,25 @@ const currentPrice = () => {
   );
 };
 
+const entryPrice = () => {
+  if (!leaseDisplayData) return "0";
+  return formatNumber(leaseDisplayData.openingPrice.toString(), NATIVE_CURRENCY.maximumFractionDigits);
+};
+
+const positionSizeUsd = () => {
+  if (!leaseDisplayData) return "0";
+  return formatNumber(leaseDisplayData.assetValueUsd.toString(), 2);
+};
+
+const pnlNumber = () => Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
+
+const pnlAmountFormatted = () => {
+  if (!leaseDisplayData) return "$0.00";
+  const amount = leaseDisplayData.pnlAmount;
+  const sign = amount.isNegative() ? "-" : "+";
+  return `${sign}$${formatNumber(amount.abs().toString(), 2)}`;
+};
+
 const supportShare = () => {
   return !!navigator.share;
 };
@@ -161,50 +220,84 @@ function setBackgroundIndex(index: number) {
   generateCanvas();
 }
 
-const generateSmallCanvas = async (canvasElement: HTMLCanvasElement, imgSrc: string) => {
-  try {
-    const context = canvasElement.getContext("2d") as CanvasRenderingContext2D;
-
-    canvasElement.width = 1600;
-    canvasElement.height = 900;
-
-    await setSmallBackground(context, imgSrc);
-    const metric = await getBuyTextWidth(context);
-    roundedRectWhite(context);
-    roundedRect(context, {
-      radius: 20,
-      x: 90,
-      y: 230,
-      width: metric + 100,
-      height: 60
-    });
-    setArrow(context);
-    setBuyText(context);
-    setPosition(context);
-    setTimeStamp(context);
-    setAsset(context);
-    setPricePerSymbol(context);
-
-    setLines(context, {
-      x: 100,
-      y: 450,
-      width: 450,
-      height: 3
-    });
-    setLines(context, {
-      x: 100,
-      y: 582,
-      width: 450,
-      height: 3
-    });
-  } catch (e) {
-    Logger.error(e);
+watch([showPnlAmount, showPrice, showPositionSize], () => {
+  generateCanvas();
+  for (const key in canvasRefs.value) {
+    const img = images[key as keyof typeof images];
+    generateSmallCanvas(canvasRefs.value[key], img as string);
   }
+});
+
+const renderCard = async (ctx: CanvasRenderingContext2D, bgSrc: string) => {
+  await setBackground(ctx, bgSrc);
+
+  const metric = await getBuyTextWidth(ctx);
+  drawPositionPill(ctx, metric);
+
+  // setArrow + setAsset are awaited because they paint asynchronously via
+  // image.onload. Without await, a re-render triggered mid-flight (e.g. by the
+  // toggle watcher) lets a prior render's onload fire onto a newer frame's
+  // canvas, swapping in stale arrow direction / asset icon.
+  await setArrow(ctx);
+  setBuyText(ctx);
+  await setAsset(ctx);
+
+  // PnL hero block (always shown). Inline absolute amount when toggle is on.
+  setPnlPercent(ctx);
+  if (showPnlAmount.value) {
+    setPnlAmountInline(ctx);
+  }
+
+  // Optional rows stack below the PnL block. y-cursor advances per rendered row.
+  let cursorY = 555;
+  if (showPrice.value) {
+    setEntryPriceRow(ctx, cursorY);
+    cursorY += 50;
+    setMarkPriceRow(ctx, cursorY);
+    cursorY += 50;
+  }
+  if (showPositionSize.value) {
+    setPositionSizeRow(ctx, cursorY);
+  }
+
+  setTimeStamp(ctx);
 };
 
-async function setSmallBackground(ctx: CanvasRenderingContext2D, imgSrc: string) {
+// Per-canvas promise chain. Without this, a render triggered while a previous
+// render of the same canvas is mid-flight (e.g. user toggles a checkbox before
+// the prior renderCard's image.onload chain finishes) interleaves: stale paints
+// from the older render land on top of the newer render's bg, and toggle
+// changes can leave ghost rows visible. Each new render chains after the
+// previous one for that canvas, so renders fully serialize per-canvas.
+const renderChains = new WeakMap<HTMLCanvasElement, Promise<void>>();
+
+const scheduleRender = (canvasElement: HTMLCanvasElement, imgSrc: string): Promise<void> => {
+  const prev = renderChains.get(canvasElement) ?? Promise.resolve();
+  const next = prev.then(async () => {
+    try {
+      const context = canvasElement.getContext("2d") as CanvasRenderingContext2D;
+      canvasElement.width = 1600;
+      canvasElement.height = 900;
+      await renderCard(context, imgSrc);
+    } catch (e) {
+      Logger.error(e);
+    }
+  });
+  renderChains.set(canvasElement, next);
+  return next;
+};
+
+const generateSmallCanvas = (canvasElement: HTMLCanvasElement, imgSrc: string) => scheduleRender(canvasElement, imgSrc);
+
+const generateCanvas = () => {
+  const canvasElement = canvas.value;
+  if (!canvasElement) return;
+  return scheduleRender(canvasElement, images[imageIndex.value]);
+};
+
+async function setBackground(ctx: CanvasRenderingContext2D, src: string) {
   const image = new Image();
-  const data = await fetch(imgSrc);
+  const data = await fetch(src);
   const blob = await data.blob();
 
   return new Promise<void>((resolve) => {
@@ -217,169 +310,37 @@ async function setSmallBackground(ctx: CanvasRenderingContext2D, imgSrc: string)
   });
 }
 
-const generateCanvas = async () => {
-  try {
-    const canvasElement = canvas.value as HTMLCanvasElement;
-    const context = canvasElement.getContext("2d") as CanvasRenderingContext2D;
+function drawPositionPill(ctx: CanvasRenderingContext2D, textWidth: number) {
+  const radius = 20;
+  const x = 90;
+  const y = 230;
+  const width = textWidth + 100;
+  const height = 60;
 
-    canvasElement.width = 1600;
-    canvasElement.height = 900;
-
-    await setBackground(context);
-    const metric = await getBuyTextWidth(context);
-    roundedRectWhite(context);
-    roundedRect(context, {
-      radius: 20,
-      x: 90,
-      y: 230,
-      width: metric + 100,
-      height: 60
-    });
-    setArrow(context);
-    setBuyText(context);
-    setPosition(context);
-    setTimeStamp(context);
-    setAsset(context);
-    setPricePerSymbol(context);
-
-    setLines(context, {
-      x: 100,
-      y: 450,
-      width: 450,
-      height: 3
-    });
-    setLines(context, {
-      x: 100,
-      y: 582,
-      width: 450,
-      height: 3
-    });
-  } catch (e) {
-    Logger.error(e);
-  }
-};
-
-async function setBackground(ctx: CanvasRenderingContext2D) {
-  const image = new Image();
-  const data = await fetch(images[imageIndex.value]);
-  const blob = await data.blob();
-
-  return new Promise<void>((resolve) => {
-    image.onload = async () => {
-      ctx.drawImage(image, 0, 0, 1600, 900);
-      return resolve();
-    };
-
-    image.src = window.URL.createObjectURL(blob);
-  });
-}
-
-function roundedRectWhite(ctx: CanvasRenderingContext2D) {
-  ctx.fillStyle = colors.white;
-
-  const options = {
-    radius: 20,
-    x: 50,
-    y: 200,
-    width: 550,
-    height: 500
-  };
-
+  const fill = pnlNumber() < 0 ? PNL_NEGATIVE : PNL_POSITIVE;
+  ctx.strokeStyle = fill;
+  ctx.fillStyle = fill;
   ctx.lineJoin = "round";
-  ctx.lineWidth = options.radius;
-  ctx.strokeStyle = colors.white;
-  ctx.fillStyle = colors.white;
+  ctx.lineWidth = radius;
 
-  ctx.strokeRect(
-    options.x + options.radius * 0.5,
-    options.y + options.radius * 0.5,
-    options.width - options.radius,
-    options.height - options.radius
-  );
-
-  ctx.fillRect(
-    options.x + options.radius * 0.5,
-    options.y + options.radius * 0.5,
-    options.width - options.radius,
-    options.height - options.radius
-  );
-
-  ctx.stroke();
-  ctx.fill();
-}
-
-function setLines(
-  ctx: CanvasRenderingContext2D,
-  options: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }
-) {
-  ctx.fillStyle = colors.white;
-
-  ctx.lineJoin = "round";
-  ctx.fillStyle = colors.gray;
-  ctx.fillRect(options.x, options.y, options.width, options.height);
-
-  ctx.stroke();
-  ctx.fill();
-}
-
-function roundedRect(
-  ctx: CanvasRenderingContext2D,
-  options: {
-    radius: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }
-) {
-  const num = Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
-
-  if (num < 0) {
-    ctx.strokeStyle = colors.red;
-    ctx.fillStyle = colors.red;
-  } else {
-    ctx.strokeStyle = colors.green;
-    ctx.fillStyle = colors.green;
-  }
-
-  ctx.lineJoin = "round";
-  ctx.lineWidth = options.radius;
-
-  ctx.strokeRect(
-    options.x + options.radius * 0.5,
-    options.y + options.radius * 0.5,
-    options.width - options.radius,
-    options.height - options.radius
-  );
-
-  ctx.fillRect(
-    options.x + options.radius * 0.5,
-    options.y + options.radius * 0.5,
-    options.width - options.radius,
-    options.height - options.radius
-  );
-
+  ctx.strokeRect(x + radius * 0.5, y + radius * 0.5, width - radius, height - radius);
+  ctx.fillRect(x + radius * 0.5, y + radius * 0.5, width - radius, height - radius);
   ctx.stroke();
   ctx.fill();
 }
 
 async function setArrow(ctx: CanvasRenderingContext2D) {
   const image = new Image();
-  const num = Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
-
-  const data = await fetch(num < 0 ? arrowdown : arrowup);
+  const data = await fetch(pnlNumber() < 0 ? arrowdown : arrowup);
   const blob = await data.blob();
 
-  image.onload = async () => {
-    ctx.drawImage(image, 110, 247, 28, 26);
-  };
-
-  image.src = window.URL.createObjectURL(blob);
+  return new Promise<void>((resolve) => {
+    image.onload = () => {
+      ctx.drawImage(image, 110, 247, 28, 26);
+      resolve();
+    };
+    image.src = window.URL.createObjectURL(blob);
+  });
 }
 
 async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
@@ -390,65 +351,102 @@ async function getBuyTextWidth(ctx: CanvasRenderingContext2D) {
 
 async function setBuyText(ctx: CanvasRenderingContext2D) {
   ctx.font = "600 30px 'Garet'";
-  ctx.fillStyle = "white";
+  ctx.fillStyle = PILL_TEXT;
   const posType = leaseData ? configStore.getPositionType(leaseData.protocol).toLowerCase() : "long";
   ctx.fillText(`${i18n.t(`message.${posType}`)} ${i18n.t("message.buy-position")}`.toUpperCase(), 150, 270);
 }
 
 async function setAsset(ctx: CanvasRenderingContext2D) {
-  const asst = asset()!;
+  const asst = asset();
+  if (!asst) return;
+
   const image = new Image();
   const data = await fetch(asst.icon);
   const blob = await data.blob();
+  const textColor = palette().text;
 
-  image.onload = async () => {
-    const rect = 60;
-    const hf = rect / image.height;
-    const width = hf * image.width;
-    ctx.drawImage(image, 100, 310, width, hf * image.height);
+  return new Promise<void>((resolve) => {
+    image.onload = () => {
+      const rect = 60;
+      const hf = rect / image.height;
+      const width = hf * image.width;
+      ctx.drawImage(image, 100, 310, width, hf * image.height);
 
-    ctx.font = "500 42px 'Garet'";
-    ctx.fillStyle = "#082D63";
-    if (asst.shortName) {
-      ctx.fillText(asst.shortName, 115 + width, 350);
-    }
-  };
-
-  image.src = window.URL.createObjectURL(blob);
+      ctx.font = "500 42px 'Garet'";
+      ctx.fillStyle = textColor;
+      if (asst.shortName) {
+        ctx.fillText(asst.shortName, 115 + width, 350);
+      }
+      resolve();
+    };
+    image.src = window.URL.createObjectURL(blob);
+  });
 }
 
-function setPricePerSymbol(ctx: CanvasRenderingContext2D) {
-  ctx.font = "500 32px 'Garet'";
-  ctx.fillStyle = "#5E7699";
-  ctx.fillText(
-    `${i18n.t("message.price-per-symbol", {
-      symbol: asset()?.shortName
-    })}: $${currentPrice()}`,
-    100,
-    405
-  );
-}
-
-function setPosition(ctx: CanvasRenderingContext2D) {
-  const pos = Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
+function setPnlPercent(ctx: CanvasRenderingContext2D) {
+  const pos = pnlNumber();
   const symbol = pos < 0 ? "-" : "+";
   const [a, d] = Math.abs(pos).toFixed(2).split(".");
 
-  if (pos < 0) {
-    ctx.fillStyle = colors.red;
-  } else {
-    ctx.fillStyle = colors.green;
-  }
+  ctx.fillStyle = pos < 0 ? PNL_NEGATIVE : PNL_POSITIVE;
 
   const amount = `${symbol}${formatNumber(a, 0)}`;
-
   ctx.font = "600 72px 'Garet'";
-  ctx.fillText(amount, 90, 545);
+  ctx.fillText(amount, 90, 490);
 
   const w = ctx.measureText(amount).width;
-
   ctx.font = "600 58px 'Garet'";
-  ctx.fillText(`.${d}%`, 90 + w, 545);
+  ctx.fillText(`.${d}%`, 90 + w, 490);
+}
+
+function setPnlAmountInline(ctx: CanvasRenderingContext2D) {
+  ctx.font = "600 72px 'Garet'";
+  const pos = pnlNumber();
+  const symbol = pos < 0 ? "-" : "+";
+  const [a, d] = Math.abs(pos).toFixed(2).split(".");
+  const integerWidth = ctx.measureText(`${symbol}${formatNumber(a, 0)}`).width;
+  ctx.font = "600 58px 'Garet'";
+  const decimalWidth = ctx.measureText(`.${d}%`).width;
+
+  ctx.font = "500 32px 'Garet'";
+  ctx.fillStyle = palette().muted;
+  ctx.fillText(`(${pnlAmountFormatted()})`, 90 + integerWidth + decimalWidth + 18, 485);
+}
+
+function setEntryPriceRow(ctx: CanvasRenderingContext2D, y: number) {
+  const label = i18n.t("message.entry-price");
+  ctx.font = "500 24px 'Garet'";
+  ctx.fillStyle = palette().muted;
+  ctx.fillText(label, 90, y);
+
+  const labelWidth = ctx.measureText(label).width;
+  ctx.font = "500 28px 'Garet'";
+  ctx.fillStyle = palette().text;
+  ctx.fillText(`$${entryPrice()}`, 90 + labelWidth + 20, y);
+}
+
+function setMarkPriceRow(ctx: CanvasRenderingContext2D, y: number) {
+  const label = i18n.t("message.mark-price");
+  ctx.font = "500 24px 'Garet'";
+  ctx.fillStyle = palette().muted;
+  ctx.fillText(label, 90, y);
+
+  const labelWidth = ctx.measureText(label).width;
+  ctx.font = "500 28px 'Garet'";
+  ctx.fillStyle = palette().text;
+  ctx.fillText(`$${currentPrice()}`, 90 + labelWidth + 20, y);
+}
+
+function setPositionSizeRow(ctx: CanvasRenderingContext2D, y: number) {
+  const label = i18n.t("message.lease-size");
+  ctx.font = "500 24px 'Garet'";
+  ctx.fillStyle = palette().muted;
+  ctx.fillText(label, 90, y);
+
+  const labelWidth = ctx.measureText(label).width;
+  ctx.font = "500 28px 'Garet'";
+  ctx.fillStyle = palette().text;
+  ctx.fillText(`$${positionSizeUsd()}`, 90 + labelWidth + 20, y);
 }
 
 function setTimeStamp(ctx: CanvasRenderingContext2D) {
@@ -465,8 +463,8 @@ function setTimeStamp(ctx: CanvasRenderingContext2D) {
   const minutes = min.toString().length == 1 ? `0${min}` : min;
 
   ctx.font = "500 32px 'Garet'";
-  ctx.fillStyle = "#5E7699";
-  ctx.fillText(`${i18n.t("message.timestamp")}:  ${year}-${month}-${day} ${hours}:${minutes}`, 90, 655);
+  ctx.fillStyle = palette().muted;
+  ctx.fillText(`${i18n.t("message.timestamp")}:  ${year}-${month}-${day} ${hours}:${minutes}`, 90, 800);
 }
 
 function download() {
