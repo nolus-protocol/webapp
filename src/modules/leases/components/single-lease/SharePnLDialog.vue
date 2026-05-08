@@ -91,6 +91,8 @@ import shareImageOne from "@/assets/icons/share-image-1.svg?url";
 import shareImageTwo from "@/assets/icons/share-image-2.png?url";
 import shareImageThree from "@/assets/icons/share-image-3.png?url";
 import shareImageFour from "@/assets/icons/share-image-4.png?url";
+import logoLight from "@/assets/icons/logo-light.svg?url";
+import logoDark from "@/assets/icons/logo-dark.svg?url";
 import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -113,24 +115,21 @@ const showPositionSize = ref(true);
 type Palette = {
   text: string;
   muted: string;
-  pnlPositive: string;
-  pnlNegative: string;
+  logo: "light" | "dark";
 };
 
-// Per-cover palette. Each cover gets its own positive / negative colors so the
-// PnL hero and the Long/Short label remain readable against the illustration —
-// the brand red on bright orange (cover 3) is the failure case the shared
-// constants used to produce.
+// Per-cover palette covers text + logo variant only. PnL colors are a single
+// brand pair (PNL_POSITIVE / PNL_NEGATIVE) used on every cover for visual
+// consistency across the share library.
 const palettes: Palette[] = [
-  // 1: light grey/peach gradient
-  { text: "#082D63", muted: "#5E7699", pnlPositive: "#1AB171", pnlNegative: "#AB1F3B" },
-  // 2: dark navy — brighter tones to lift off the dark backdrop
-  { text: "#FFFFFF", muted: "#C1CAD7", pnlPositive: "#3FE490", pnlNegative: "#FF6577" },
-  // 3: orange — deeper tones so red and green do not blend with the cover
-  { text: "#082D63", muted: "#5E7699", pnlPositive: "#0E5D3F", pnlNegative: "#5C0F1F" },
-  // 4: light lavender
-  { text: "#082D63", muted: "#5E7699", pnlPositive: "#1AB171", pnlNegative: "#AB1F3B" }
+  { text: "#082D63", muted: "#5E7699", logo: "dark" }, // 1: light grey/peach gradient
+  { text: "#FFFFFF", muted: "#C1CAD7", logo: "light" }, // 2: dark navy illustration
+  { text: "#082D63", muted: "#5E7699", logo: "dark" }, // 3: orange
+  { text: "#082D63", muted: "#5E7699", logo: "dark" } // 4: light lavender
 ];
+
+const PNL_POSITIVE = "#1AB171";
+const PNL_NEGATIVE = "#AB1F3B";
 
 let leaseData: LeaseInfo | null;
 let leaseDisplayData: LeaseDisplayData | null;
@@ -206,6 +205,19 @@ const positionSizeUsd = () => {
 
 const pnlNumber = () => Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
 
+// Effective leverage at open: (downPayment + debt) / downPayment. For a
+// freshly opened lease the debt equals the borrowed principal, so this is the
+// classic "I went 2.5x on this trade" number. As interest accrues totalDebt
+// drifts up, which would creep this slightly over its initial value — small
+// effect over the lifetime of a lease and acceptable for a share card.
+const leverageMultiple = (): string | null => {
+  if (!leaseDisplayData) return null;
+  const dp = leaseDisplayData.downPayment;
+  if (!dp.isPositive()) return null;
+  const lev = dp.add(leaseDisplayData.totalDebt).quo(dp);
+  return `x${Number(lev.toString()).toFixed(1)}`;
+};
+
 const pnlAmountFormatted = () => {
   if (!leaseDisplayData) return "$0.00";
   const amount = leaseDisplayData.pnlAmount;
@@ -264,11 +276,11 @@ const renderCard = async (ctx: CanvasRenderingContext2D, bgSrc: string) => {
   await ensureFonts();
   await setBackground(ctx, bgSrc);
 
-  // setAsset is awaited because it paints asynchronously via image.onload.
-  // Without await, a re-render triggered mid-flight (e.g. by the toggle
-  // watcher) lets a prior render's onload fire onto a newer frame's canvas,
-  // swapping in a stale asset icon.
-  await setPositionMetaRow(ctx);
+  // setLogo is awaited (image.onload) so the logo paints before any later
+  // render's setBackground overwrites the canvas. Same pattern as in PR-A.
+  await setLogo(ctx);
+
+  setPositionMetaRow(ctx);
 
   // PnL hero block (always shown). Inline absolute amount when toggle is on.
   setPnlPercent(ctx);
@@ -289,6 +301,7 @@ const renderCard = async (ctx: CanvasRenderingContext2D, bgSrc: string) => {
   }
 
   setTimeStamp(ctx);
+  setBrandUrl(ctx);
 };
 
 // Per-canvas promise chain. Without this, a render triggered while a previous
@@ -338,55 +351,76 @@ async function setBackground(ctx: CanvasRenderingContext2D, src: string) {
   });
 }
 
-// Compact meta row at the top of the type column:
-//   [icon 40px] Long · BTC
-// Direction word ("Long" / "Short") is colored by the palette's positive /
-// negative tone — this is *position direction*, not PnL sign. The PnL hero
-// below carries the sign coloring. Both can be the same red on a losing short
-// without ambiguity because the size hierarchy makes the role obvious.
-async function setPositionMetaRow(ctx: CanvasRenderingContext2D) {
+// Compact meta row at the top of the type column. Synchronous — no images.
+//   LONG x2.5 | BTC
+// Direction colored by sign (positive tone for Long, negative for Short),
+// leverage + ticker neutral, separator muted. Leverage segment is omitted if
+// downPayment is zero (defensive — should never happen in practice).
+function setPositionMetaRow(ctx: CanvasRenderingContext2D) {
   const asst = asset();
   if (!asst) return;
 
   const positionType = leaseData ? configStore.getPositionType(leaseData.protocol) : "Long";
-  const directionLabel = i18n.t(`message.${positionType.toLowerCase()}`);
+  const directionLabel = i18n.t(`message.${positionType.toLowerCase()}`).toUpperCase();
   const tickerLabel = asst.shortName ?? "";
+  const lev = leverageMultiple();
   const pal = palette();
-  const directionColor = positionType === "Short" ? pal.pnlNegative : pal.pnlPositive;
+  const directionColor = positionType === "Short" ? PNL_NEGATIVE : PNL_POSITIVE;
+
+  const baselineY = 240;
+  const baseX = 90;
+  const separator = " | ";
+  let cursorX = baseX;
+
+  ctx.font = "600 36px 'Garet'";
+  ctx.fillStyle = directionColor;
+  ctx.fillText(directionLabel, cursorX, baselineY);
+  cursorX += ctx.measureText(directionLabel).width;
+
+  if (lev) {
+    const levText = ` ${lev}`;
+    ctx.fillStyle = pal.text;
+    ctx.fillText(levText, cursorX, baselineY);
+    cursorX += ctx.measureText(levText).width;
+  }
+
+  if (tickerLabel) {
+    ctx.fillStyle = pal.muted;
+    ctx.fillText(separator, cursorX, baselineY);
+    cursorX += ctx.measureText(separator).width;
+
+    ctx.fillStyle = pal.text;
+    ctx.fillText(tickerLabel, cursorX, baselineY);
+  }
+}
+
+// Render the Nolus logo (mark + wordmark) top-left of the canvas. Uses
+// logo-light.svg on dark covers, logo-dark.svg on light covers. The logo SVG
+// is 126x32 native; rendered at 2x = 252x64. Awaited so the image.onload
+// paints before the next render's setBackground overwrites the bitmap.
+async function setLogo(ctx: CanvasRenderingContext2D) {
+  const variant = palette().logo;
+  const src = variant === "light" ? logoLight : logoDark;
 
   const image = new Image();
-  const data = await fetch(asst.icon);
+  const data = await fetch(src);
   const blob = await data.blob();
 
   return new Promise<void>((resolve) => {
     image.onload = () => {
-      const baselineY = 240;
-      const iconHeight = 40;
-      const iconScale = iconHeight / image.height;
-      const iconWidth = iconScale * image.width;
-      const iconX = 90;
-      const iconY = baselineY - iconHeight + 4;
-      ctx.drawImage(image, iconX, iconY, iconWidth, iconHeight);
-
-      let cursorX = iconX + iconWidth + 18;
-
-      ctx.font = "500 36px 'Garet'";
-      ctx.fillStyle = directionColor;
-      ctx.fillText(directionLabel, cursorX, baselineY);
-      cursorX += ctx.measureText(directionLabel).width;
-
-      const separator = "  ·  ";
-      ctx.fillStyle = pal.muted;
-      ctx.fillText(separator, cursorX, baselineY);
-      cursorX += ctx.measureText(separator).width;
-
-      ctx.fillStyle = pal.text;
-      ctx.fillText(tickerLabel, cursorX, baselineY);
-
+      const w = 252;
+      const h = 64;
+      ctx.drawImage(image, 80, 80, w, h);
       resolve();
     };
     image.src = window.URL.createObjectURL(blob);
   });
+}
+
+function setBrandUrl(ctx: CanvasRenderingContext2D) {
+  ctx.font = "500 26px 'Garet'";
+  ctx.fillStyle = palette().muted;
+  ctx.fillText("nolus.io", 90, 858);
 }
 
 const PNL_HERO_BASELINE_Y = 430;
@@ -395,9 +429,8 @@ function setPnlPercent(ctx: CanvasRenderingContext2D) {
   const pos = pnlNumber();
   const symbol = pos < 0 ? "-" : "+";
   const [a, d] = Math.abs(pos).toFixed(2).split(".");
-  const pal = palette();
 
-  ctx.fillStyle = pos < 0 ? pal.pnlNegative : pal.pnlPositive;
+  ctx.fillStyle = pos < 0 ? PNL_NEGATIVE : PNL_POSITIVE;
 
   const amount = `${symbol}${formatNumber(a, 0)}`;
   ctx.font = "600 96px 'Garet'";
