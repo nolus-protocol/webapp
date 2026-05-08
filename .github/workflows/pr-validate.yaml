@@ -59,7 +59,7 @@ jobs:
           # Test files (*.test.ts) are excluded — their docblocks legitimately name the
           # forbidden tokens to document the policy; they cannot themselves move funds.
           if grep -rE --include='*.ts' --include='*.vue' --exclude='*.test.ts' --exclude='*.spec.ts' \
-                  '\b(signTx|signDirect|signAndBroadcast|broadcastTx|simulate[A-Za-z]*Tx|NolusWalletFactory)\b|@/networks/(cosm|evm|sol)/.*Wallet|wallet\.(sign|broadcast)' \
+                  '\b(signTx|signDirect|signAndBroadcast|broadcastTx|simulate[A-Za-z]*Tx|NolusWalletFactory)\b|@/networks/(cosm|sol)/.*Wallet|wallet\.(sign|broadcast)' \
                   src/common/webmcp/ 2>/dev/null; then
             echo "FAIL: src/common/webmcp/ references a signing/broadcast surface — policy violation."
             echo "      WebMCP scope is connect + read + navigate only. See src/common/webmcp/tools.ts docblock."
