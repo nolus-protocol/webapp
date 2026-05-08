@@ -47,14 +47,14 @@ export interface WebMcpTool {
 
 const MECHANISM_BY_LABEL: Record<string, WalletConnectMechanism> = {
   keplr: WalletConnectMechanism.KEPLR,
-  phantom: WalletConnectMechanism.EVM_PHANTOM,
+  phantom: WalletConnectMechanism.SOL_PHANTOM,
   solflare: WalletConnectMechanism.SOL_SOLFLARE,
   ledger: WalletConnectMechanism.LEDGER
 };
 
 const ACTION_BY_MECHANISM: Record<WalletConnectMechanism, WalletActions> = {
   [WalletConnectMechanism.KEPLR]: WalletActions.CONNECT_KEPLR,
-  [WalletConnectMechanism.EVM_PHANTOM]: WalletActions.CONNECT_EVM_PHANTOM,
+  [WalletConnectMechanism.SOL_PHANTOM]: WalletActions.CONNECT_SOL_PHANTOM,
   [WalletConnectMechanism.SOL_SOLFLARE]: WalletActions.CONNECT_SOL_SOLFLARE,
   [WalletConnectMechanism.LEDGER]: WalletActions.CONNECT_LEDGER,
   [WalletConnectMechanism.LEDGER_BLUETOOTH]: WalletActions.CONNECT_LEDGER

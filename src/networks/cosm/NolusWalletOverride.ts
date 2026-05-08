@@ -97,7 +97,11 @@ export function applyNolusWalletOverrides(wallet: NolusWallet): void {
     return { txHash, txBytes, usedFee };
   };
 
-  // Override getGasInfo — also uses gas multiplier for fee estimation
+  // Override getGasInfo — also uses gas multiplier for fee estimation.
+  // The `pubkey: Pubkey` parameter is load-bearing for the Solana Ed25519 path:
+  // SolanaWallet.simulateMultiTx supplies an Ed25519-encoded pubkey here, so a
+  // future refactor that drops the param and inlines `encodeSecp256k1Pubkey(wallet.pubKey!)`
+  // would silently break the Solana flow (chain rejects the wrong pubkey type).
   wallet.getGasInfo = async function (messages: MsgWithTypeUrl[], memo: string, pubkey: Pubkey, sequence: number) {
     const gasMultiplier = getGasMultiplier();
     const encodedMSGS: ReturnType<typeof wallet.registry.encodeAsAny>[] = [];

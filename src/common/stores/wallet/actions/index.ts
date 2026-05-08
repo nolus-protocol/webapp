@@ -13,7 +13,7 @@ export const actions = {
   [WalletActions.DISCONNECT]: disconnect,
   [WalletActions.CONNECT_KEPLR]: connectKeplr,
   [WalletActions.CONNECT_LEDGER]: connectLedger,
-  [WalletActions.CONNECT_EVM_PHANTOM]: connectPhantom,
+  [WalletActions.CONNECT_SOL_PHANTOM]: connectPhantom,
   [WalletActions.CONNECT_SOL_SOLFLARE]: connectSolflare,
   [WalletActions.LOAD_VESTED_TOKENS]: loadVestedTokens,
   [WalletActions.LOAD_APR]: loadApr,

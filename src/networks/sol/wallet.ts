@@ -42,10 +42,29 @@ export class SolanaWallet implements Wallet {
   type: string = WalletTypes.svm;
   chainId: string;
 
-  constructor() {}
+  private readonly providerKind: "solflare" | "phantom";
+
+  constructor(provider: "solflare" | "phantom") {
+    this.providerKind = provider;
+  }
 
   private getProvider() {
-    return (window as Window).solflare;
+    if (this.providerKind === "solflare") {
+      const provider = (window as Window).solflare;
+      if (!provider || (provider as { isSolflare?: unknown }).isSolflare !== true) {
+        throw new Error("Solflare wallet is not installed.");
+      }
+      return provider;
+    }
+
+    const phantom = (window as Window).phantom;
+    const provider = (phantom as { solana?: unknown } | undefined)?.solana as
+      | (Window["solflare"] & { isPhantom?: unknown })
+      | undefined;
+    if (!provider || provider.isPhantom !== true) {
+      throw new Error("Phantom wallet is not installed.");
+    }
+    return provider;
   }
 
   async getChainId() {

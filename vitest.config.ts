@@ -165,12 +165,6 @@ export default mergeConfig(
             functions: 100,
             statements: 95
           },
-          "src/networks/evm/sign.ts": {
-            lines: 100,
-            branches: 90,
-            functions: 100,
-            statements: 100
-          },
           "src/common/composables/useAsyncOperation.ts": {
             lines: 95,
             branches: 85,
@@ -193,12 +187,6 @@ export default mergeConfig(
           "src/networks/sol/wallet.ts": {
             lines: 95,
             branches: 85,
-            functions: 95,
-            statements: 95
-          },
-          "src/networks/evm/wallet.ts": {
-            lines: 95,
-            branches: 75,
             functions: 95,
             statements: 95
           },

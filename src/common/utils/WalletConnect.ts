@@ -9,7 +9,7 @@ import { WalletManager } from ".";
 import { getCurrencyByDenom } from "./CurrencyLookup";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
-import { authenticateEvmPhantom, authenticateSolFlare } from "@/networks/cosm/WalletFactory";
+import { authenticatePhantom, authenticateSolFlare } from "@/networks/cosm/WalletFactory";
 
 export const validateAddress = (address: string) => {
   if (!address || address.trim() == "") {
@@ -52,9 +52,9 @@ export const validateAmountV2 = (amount: string, amount2: string) => {
   return "";
 };
 
-const walletActionMap: Record<WalletConnectMechanism, WalletActions> = {
+export const walletActionMap: Record<WalletConnectMechanism, WalletActions> = {
   [WalletConnectMechanism.KEPLR]: WalletActions.CONNECT_KEPLR,
-  [WalletConnectMechanism.EVM_PHANTOM]: WalletActions.CONNECT_EVM_PHANTOM,
+  [WalletConnectMechanism.SOL_PHANTOM]: WalletActions.CONNECT_SOL_PHANTOM,
   [WalletConnectMechanism.SOL_SOLFLARE]: WalletActions.CONNECT_SOL_SOLFLARE,
   [WalletConnectMechanism.LEDGER]: WalletActions.CONNECT_LEDGER,
   [WalletConnectMechanism.LEDGER_BLUETOOTH]: WalletActions.CONNECT_LEDGER
@@ -65,7 +65,7 @@ const externalWalletMap: Record<
   (wallet: Wallet, network: NetworkData) => Promise<BaseWallet | undefined>
 > = {
   [WalletConnectMechanism.KEPLR]: authenticateKeplr,
-  [WalletConnectMechanism.EVM_PHANTOM]: authenticateEvmPhantom,
+  [WalletConnectMechanism.SOL_PHANTOM]: authenticatePhantom,
   [WalletConnectMechanism.SOL_SOLFLARE]: authenticateSolFlare,
   [WalletConnectMechanism.LEDGER]: authenticateLedger,
   [WalletConnectMechanism.LEDGER_BLUETOOTH]: authenticateLedger

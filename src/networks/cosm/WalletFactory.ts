@@ -14,7 +14,6 @@ import { AminoTypes } from "@cosmjs/stargate";
 import { WalletManager, WalletUtils, Logger } from "@/common/utils";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { BaseWallet } from "./BaseWallet";
-import { MetaMaskWallet } from "../evm";
 import { SolanaWallet } from "../sol";
 
 const aminoTypes = {
@@ -94,18 +93,18 @@ async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
   return authenticateKeplrLike(wallet, network, WalletUtils.getKeplr, "Keplr");
 }
 
-export async function authenticateEvmPhantom(wallet: Wallet, network: NetworkData) {
+export async function authenticateSolFlare(wallet: Wallet, network: NetworkData) {
   const node = await fetchEndpoints(network.key);
-  const metamask = new MetaMaskWallet();
-  await metamask.connectCustom(node, network);
-  const signer = metamask.makeWCOfflineSigner();
+  const sol = new SolanaWallet("solflare");
+  await sol.connectCustom(node, network);
+  const signer = sol.makeWCOfflineSigner();
 
   return await createWallet(wallet, signer, network.prefix, network.gasMultiplier, network.gasPrice, network.explorer);
 }
 
-export async function authenticateSolFlare(wallet: Wallet, network: NetworkData) {
+export async function authenticatePhantom(wallet: Wallet, network: NetworkData) {
   const node = await fetchEndpoints(network.key);
-  const sol = new SolanaWallet();
+  const sol = new SolanaWallet("phantom");
   await sol.connectCustom(node, network);
   const signer = sol.makeWCOfflineSigner();
 

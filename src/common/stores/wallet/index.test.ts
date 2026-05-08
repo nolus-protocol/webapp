@@ -30,7 +30,7 @@ vi.mock("./actions", () => ({
     DISCONNECT: () => undefined,
     CONNECT_KEPLR: () => undefined,
     CONNECT_LEDGER: () => undefined,
-    CONNECT_EVM_PHANTOM: () => undefined,
+    CONNECT_SOL_PHANTOM: () => undefined,
     CONNECT_SOL_SOLFLARE: () => undefined,
     LOAD_VESTED_TOKENS: () => undefined,
     LOAD_APR: () => undefined,
@@ -55,6 +55,8 @@ vi.mock("./getters", () => ({
 }));
 
 import { useWalletStore, WalletActions } from "./index";
+import { WalletConnectMechanism } from "@/common/types";
+import { walletActionMap } from "@/common/utils/WalletConnect";
 
 describe("useWalletStore", () => {
   beforeEach(() => {
@@ -110,7 +112,7 @@ describe("useWalletStore", () => {
     expect(typeof store[WalletActions.DISCONNECT]).toBe("function");
     expect(typeof store[WalletActions.CONNECT_KEPLR]).toBe("function");
     expect(typeof store[WalletActions.CONNECT_LEDGER]).toBe("function");
-    expect(typeof store[WalletActions.CONNECT_EVM_PHANTOM]).toBe("function");
+    expect(typeof store[WalletActions.CONNECT_SOL_PHANTOM]).toBe("function");
     expect(typeof store[WalletActions.CONNECT_SOL_SOLFLARE]).toBe("function");
     expect(typeof store[WalletActions.LOAD_VESTED_TOKENS]).toBe("function");
     expect(typeof store[WalletActions.LOAD_APR]).toBe("function");
@@ -140,6 +142,36 @@ describe("useWalletStore", () => {
     // Smoke check that the enum re-export path is intact.
     expect(WalletActions.DISCONNECT).toBe("DISCONNECT");
     expect(WalletActions.CONNECT_KEPLR).toBe("CONNECT_KEPLR");
+    expect(WalletActions.CONNECT_SOL_PHANTOM).toBe("CONNECT_SOL_PHANTOM");
     expect(WalletActions.LOAD_APR).toBe("LOAD_APR");
+  });
+
+  // End-to-end mechanism → action wiring guard.
+  //
+  // Catches the Pinia "action-name string-value desync" failure mode: if the
+  // WalletActions enum member name and its string value drift apart (e.g. the
+  // member is renamed but the string value is left as the old name), Pinia
+  // registers actions under the string value while the rest of the codebase
+  // looks them up by enum name — and the call vanishes silently.
+  //
+  // For every WalletConnectMechanism, walletActionMap must resolve to a
+  // WalletActions value, AND that value must be a callable function on the
+  // store surface.
+  describe("end-to-end mechanism → action wiring", () => {
+    it.each(Object.values(WalletConnectMechanism))(
+      "mechanism %s resolves to a registered store action",
+      (mechanism) => {
+        const action = walletActionMap[mechanism];
+        expect(action, `walletActionMap[${mechanism}] is undefined`).toBeDefined();
+        // The action key must be a WalletActions enum value.
+        expect(Object.values(WalletActions)).toContain(action);
+
+        const store = useWalletStore();
+        expect(
+          typeof store[action as keyof typeof store],
+          `store does not expose a function for action key ${action}`
+        ).toBe("function");
+      }
+    );
   });
 });

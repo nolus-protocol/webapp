@@ -106,7 +106,7 @@ const connections: {
     icon: KeplrIcon,
     label: i18n.t("message.keplr")
   },
-  [WalletConnectMechanism.EVM_PHANTOM]: {
+  [WalletConnectMechanism.SOL_PHANTOM]: {
     icon: PhantomIcon,
     label: i18n.t("message.phantom")
   },
