@@ -232,8 +232,7 @@ const stable = computed(() => {
     const value = new Dec(props.lease.amount.amount, asset?.decimal_digits ?? 0).mul(new Dec(price?.price ?? "0"));
     return formatUsd(value.toString(2));
   } else if (posType === "short") {
-    const lpn = configStore.getLpnByProtocol(protocol);
-    const value = new Dec(props.lease.amount.amount, lpn?.decimal_digits ?? 0);
+    const value = new Dec(props.lease.amount.amount, asset?.decimal_digits ?? 0);
     return formatUsd(value.toString(2));
   }
 
