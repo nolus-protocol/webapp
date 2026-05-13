@@ -10,7 +10,7 @@
         <div class="flex flex-col gap-6 px-6 pb-6 text-typography-default">
           <div class="flex flex-col gap-4">
             <span class="text-16">{{ $t("message.cover-design") }}</span>
-            <div class="flex justify-between">
+            <div class="flex flex-wrap justify-start gap-3">
               <button
                 class="w-full max-w-[108px] overflow-hidden rounded"
                 v-for="(img, index) of images"
@@ -287,7 +287,7 @@ const renderCard = async (ctx: CanvasRenderingContext2D, bgSrc: string) => {
   }
 
   // Optional rows stack below the PnL block. y-cursor advances per rendered row.
-  let cursorY = 540;
+  let cursorY = 490;
   if (showPrice.value) {
     setEntryPriceRow(ctx, cursorY);
     cursorY += 50;
@@ -421,7 +421,7 @@ function setBrandUrl(ctx: CanvasRenderingContext2D) {
   ctx.fillText("nolus.io", 90, 858);
 }
 
-const PNL_HERO_BASELINE_Y = 430;
+const PNL_HERO_BASELINE_Y = 380;
 
 function setPnlPercent(ctx: CanvasRenderingContext2D) {
   const pos = pnlNumber();
@@ -505,7 +505,7 @@ function setTimeStamp(ctx: CanvasRenderingContext2D) {
 
   ctx.font = "500 28px 'Garet'";
   ctx.fillStyle = palette().muted;
-  ctx.fillText(`${datePart} · ${timePart}`, 90, 820);
+  ctx.fillText(`${datePart} · ${timePart}`, 90, 790);
 }
 
 function download() {
