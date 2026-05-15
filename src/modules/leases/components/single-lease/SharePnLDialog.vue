@@ -201,16 +201,22 @@ const positionSizeUsd = () => {
 
 const pnlNumber = () => Number(leaseDisplayData?.pnlPercent.toString(2) ?? "0");
 
-// Effective leverage at open: (downPayment + debt) / downPayment. For a
-// freshly opened lease the debt equals the borrowed principal, so this is the
-// classic "I went 2.5x on this trade" number. As interest accrues totalDebt
-// drifts up, which would creep this slightly over its initial value — small
-// effect over the lifetime of a lease and acceptable for a share card.
+// Prefer the frozen initial leverage from the lease-open snapshot — it
+// matches what the user actually opened at (e.g. exactly 2.5x at protocol
+// max) and doesn't drift with interest accrual or manual repayments. Falls
+// back to a live computation when ETL hasn't exposed loan_amount_stable for
+// the lease (older rows pre-dating that field). The previous live formula
+// added downPayment (USD) to totalDebt (LPN units) which produced a wildly
+// inflated leverage on shorts; the fallback uses totalDebtUsd to keep the
+// magnitude sane even when frozen data is unavailable.
 const leverageMultiple = (): string | null => {
   if (!leaseDisplayData) return null;
+  if (leaseDisplayData.leverageAtOpen && leaseDisplayData.leverageAtOpen.isPositive()) {
+    return `x${Number(leaseDisplayData.leverageAtOpen.toString()).toFixed(1)}`;
+  }
   const dp = leaseDisplayData.downPayment;
   if (!dp.isPositive()) return null;
-  const lev = dp.add(leaseDisplayData.totalDebt).quo(dp);
+  const lev = dp.add(leaseDisplayData.totalDebtUsd).quo(dp);
   return `x${Number(lev.toString()).toFixed(1)}`;
 };
 

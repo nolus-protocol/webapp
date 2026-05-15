@@ -57,6 +57,10 @@ export interface LeaseDisplayData {
   openingPrice: Dec;
   fee: Dec;
   repaymentValue: Dec;
+  /** Frozen initial leverage from the lease-open snapshot
+   * `(downPayment + loanAtOpen) / downPayment`. null when ETL didn't expose
+   * `loan_amount_stable` (older leases ingested before that field shipped). */
+  leverageAtOpen: Dec | null;
   // In progress status
   inProgressType: "opening" | "repayment" | "close" | "liquidation" | "slippage_protection" | null;
   // Asset amounts
@@ -132,6 +136,16 @@ export class LeaseCalculator {
       currency?.decimal_digits ?? 8
     );
 
+    // Frozen initial leverage from the lease-open snapshot. LS_loan_amnt_stable
+    // is in stable USDC decimals (6) regardless of position type, matching
+    // the downPayment unit produced by parseEtlData above. Falls back to null
+    // if the ETL row predates the loan_amount_stable exposure — the share-pnl
+    // card then uses the live (drifting) formula as a degraded fallback.
+    const leverageAtOpen =
+      lease.etl_data?.loan_amount_stable && downPayment.isPositive()
+        ? downPayment.add(new Dec(lease.etl_data.loan_amount_stable, 6)).quo(downPayment)
+        : null;
+
     // Calculate PnL
     const { pnlAmount, pnlPercent, pnlPositive } = this.calculatePnl(
       assetValueUsd,
@@ -174,6 +188,7 @@ export class LeaseCalculator {
       openingPrice,
       fee,
       repaymentValue,
+      leverageAtOpen,
       inProgressType,
       unitAsset,
       stableAsset

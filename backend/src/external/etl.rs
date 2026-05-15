@@ -387,6 +387,11 @@ pub struct EtlLeaseInfo {
     pub downpayment_amount: Option<String>,
     #[serde(rename = "LS_loan_amnt_asset")]
     pub loan_amount: Option<String>,
+    /// LS_loan_amnt_stable — the loan principal in stable USD at lease open
+    /// (6 decimals). Used to compute the frozen initial leverage, which
+    /// doesn't drift with interest accrual or partial repayments.
+    #[serde(rename = "LS_loan_amnt_stable")]
+    pub loan_amount_stable: Option<String>,
     /// LS_asset_symbol is the leveraged asset (e.g., ALL_BTC)
     #[serde(rename = "LS_asset_symbol")]
     pub lease_position_ticker: Option<String>,
