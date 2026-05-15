@@ -5194,6 +5194,13 @@
             ],
             "description": "Downpayment amount (LS_cltr_amnt_stable: asset_micro_units × price)"
           },
+          "loan_amount_stable": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Loan principal in stable USD at lease open (LS_loan_amnt_stable, 6\ndecimals). Used to compute frozen initial leverage that doesn't drift\nwith accruing interest or manual repayments."
+          },
           "collateral_symbol": {
             "type": [
               "string",
