@@ -90,8 +90,7 @@ import { useI18n } from "vue-i18n";
 import shareImageTwo from "@/assets/icons/share-image-2.png?url";
 import shareImageThree from "@/assets/icons/share-image-3.png?url";
 import shareImageFour from "@/assets/icons/share-image-4.png?url";
-import logoLight from "@/assets/icons/logo-light.svg?url";
-import logoDark from "@/assets/icons/logo-dark.svg?url";
+import nolusLogo from "@/assets/icons/logo-light.svg?url";
 import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -114,16 +113,15 @@ const showPositionSize = ref(true);
 type Palette = {
   text: string;
   muted: string;
-  logo: "light" | "dark";
 };
 
-// Per-cover palette covers text + logo variant only. PnL colors are a single
-// brand pair (PNL_POSITIVE / PNL_NEGATIVE) used on every cover for visual
+// Per-cover palette covers text colors only. PnL colors are a single brand
+// pair (PNL_POSITIVE / PNL_NEGATIVE) used on every cover for visual
 // consistency across the share library.
 const palettes: Palette[] = [
-  { text: "#FFFFFF", muted: "#C1CAD7", logo: "light" }, // dark navy illustration
-  { text: "#082D63", muted: "#5E7699", logo: "dark" }, // orange
-  { text: "#082D63", muted: "#5E7699", logo: "dark" } // light lavender
+  { text: "#FFFFFF", muted: "#C1CAD7" }, // dark navy illustration
+  { text: "#082D63", muted: "#5E7699" }, // orange
+  { text: "#082D63", muted: "#5E7699" } // light lavender
 ];
 
 const PNL_POSITIVE = "#1AB171";
@@ -392,23 +390,20 @@ function setPositionMetaRow(ctx: CanvasRenderingContext2D) {
   }
 }
 
-// Render the Nolus logo (mark + wordmark) top-left of the canvas. Uses
-// logo-light.svg on dark covers, logo-dark.svg on light covers. The logo SVG
-// is 126x32 native; rendered at 2x = 252x64. Awaited so the image.onload
-// paints before the next render's setBackground overwrites the bitmap.
+// Render the Nolus brand mark top-left of the canvas. The source SVG is
+// 126x32 with the 32x32 mark on the left followed by the "nolus" wordmark;
+// we crop to the mark only so every cover shows the same compact glyph
+// (the wordmark would blend into the dark navy cover anyway). Awaited so
+// image.onload paints before the next render's setBackground overwrites
+// the bitmap.
 async function setLogo(ctx: CanvasRenderingContext2D) {
-  const variant = palette().logo;
-  const src = variant === "light" ? logoLight : logoDark;
-
   const image = new Image();
-  const data = await fetch(src);
+  const data = await fetch(nolusLogo);
   const blob = await data.blob();
 
   return new Promise<void>((resolve) => {
     image.onload = () => {
-      const w = 252;
-      const h = 64;
-      ctx.drawImage(image, 80, 80, w, h);
+      ctx.drawImage(image, 0, 0, 32, 32, 80, 80, 64, 64);
       resolve();
     };
     image.src = window.URL.createObjectURL(blob);
