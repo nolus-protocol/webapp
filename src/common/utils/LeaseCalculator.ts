@@ -137,13 +137,15 @@ export class LeaseCalculator {
     );
 
     // Frozen initial leverage from the lease-open snapshot. LS_loan_amnt_stable
-    // is in stable USDC decimals (6) regardless of position type, matching
-    // the downPayment unit produced by parseEtlData above. Falls back to null
-    // if the ETL row predates the loan_amount_stable exposure — the share-pnl
-    // card then uses the live (drifting) formula as a degraded fallback.
+    // is scaled by the LPN's native decimals (1e6 for OSMO, 1e8 for ALL_BTC,
+    // etc.), not by stable decimals — using a fixed 6 here inflated the loan
+    // 100x on BTC shorts and produced ~76x leverage on a real 1.75x position.
+    // Falls back to null if ETL hasn't exposed the field for this lease — the
+    // share-pnl card then uses the live (drifting) formula as a degraded
+    // fallback.
     const leverageAtOpen =
       lease.etl_data?.loan_amount_stable && downPayment.isPositive()
-        ? downPayment.add(new Dec(lease.etl_data.loan_amount_stable, 6)).quo(downPayment)
+        ? downPayment.add(new Dec(lease.etl_data.loan_amount_stable, lpnDecimals)).quo(downPayment)
         : null;
 
     // Calculate PnL
