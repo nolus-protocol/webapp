@@ -163,6 +163,10 @@ pub struct LeaseOpeningStateInfo {
 pub struct LeaseEtlData {
     /// Downpayment amount (LS_cltr_amnt_stable: asset_micro_units × price)
     pub downpayment_amount: Option<String>,
+    /// Loan principal in stable USD at lease open (LS_loan_amnt_stable, 6
+    /// decimals). Used to compute frozen initial leverage that doesn't drift
+    /// with accruing interest or manual repayments.
+    pub loan_amount_stable: Option<String>,
     /// Collateral symbol (e.g., "USDC_NOBLE" or "ALL_BTC") — determines downpayment decimals
     pub collateral_symbol: Option<String>,
     /// Opening price per asset
@@ -861,6 +865,7 @@ async fn fetch_lease_info(
     // Note: Some fields are at the top level of EtlLeaseOpening, not inside lease
     let etl_info = etl_data.as_ref().map(|d| LeaseEtlData {
         downpayment_amount: d.lease.downpayment_amount.clone(),
+        loan_amount_stable: d.lease.loan_amount_stable.clone(),
         collateral_symbol: d.lease.collateral_symbol.clone(),
         // Opening price is inside lease.opening_price (was LS_opening_price)
         price: d.lease.opening_price.clone(),
@@ -1800,6 +1805,7 @@ mod tests {
                 timestamp: None,
                 downpayment_amount: Some(downpayment.to_string()),
                 loan_amount: None,
+                loan_amount_stable: None,
                 lease_position_ticker: None,
                 collateral_symbol: collateral_symbol.map(|s| s.to_string()),
                 opening_price: None,

@@ -86,6 +86,9 @@ export interface LeaseOpeningStateInfo {
 export interface LeaseEtlData {
   /** Downpayment amount (LS_cltr_amnt_stable: asset_micro_units × price) */
   downpayment_amount?: string;
+  /** Loan principal in stable USD at lease open (LS_loan_amnt_stable, 6 decimals).
+   * Used to compute frozen initial leverage. */
+  loan_amount_stable?: string;
   /** Collateral symbol (e.g., "USDC_NOBLE" or "ALL_BTC") — determines downpayment decimals */
   collateral_symbol?: string;
   /** Opening price per asset */
