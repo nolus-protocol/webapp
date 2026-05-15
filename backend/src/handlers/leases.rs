@@ -1805,6 +1805,7 @@ mod tests {
                 timestamp: None,
                 downpayment_amount: Some(downpayment.to_string()),
                 loan_amount: None,
+                loan_amount_stable: None,
                 lease_position_ticker: None,
                 collateral_symbol: collateral_symbol.map(|s| s.to_string()),
                 opening_price: None,
