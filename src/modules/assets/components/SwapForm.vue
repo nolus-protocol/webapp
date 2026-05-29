@@ -123,10 +123,9 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
-import { tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
+import { getPriceForCurrency, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { usePricesStore } from "@/common/stores/prices";
 import { h } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { MultipleCurrencyEventType, type SkipRouteConfigType } from "@/common/types";
@@ -149,7 +148,6 @@ const id = Date.now();
 
 const wallet = useWalletStore();
 const balancesStore = useBalancesStore();
-const pricesStore = usePricesStore();
 const configStore = useConfigStore();
 const historyStore = useHistoryStore();
 const i18n = useI18n();
@@ -203,7 +201,7 @@ const assets = computed(() => {
     const value = new Dec(amount, currency.decimal_digits);
     const balance = formatTokenBalance(value);
 
-    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
+    const price = new Dec(getPriceForCurrency(currency));
     const stable = price.mul(value);
 
     data.push({
@@ -229,14 +227,18 @@ const assets = computed(() => {
 });
 
 const firstCalculatedBalance = computed(() => {
-  const price = new Dec(pricesStore.prices[selectedFirstCurrencyOption.value?.value as string]?.price ?? 0);
+  const ibcData = selectedFirstCurrencyOption.value?.ibcData;
+  const currency = ibcData ? tryGetCurrencyByDenom(ibcData) : null;
+  const price = new Dec(currency ? getPriceForCurrency(currency) : "0");
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
 });
 
 const secondCalculatedBalance = computed(() => {
-  const price = new Dec(pricesStore.prices[selectedSecondCurrencyOption.value?.value as string]?.price ?? 0);
+  const ibcData = selectedSecondCurrencyOption.value?.ibcData;
+  const currency = ibcData ? tryGetCurrencyByDenom(ibcData) : null;
+  const price = new Dec(currency ? getPriceForCurrency(currency) : "0");
   const v = swapToAmount?.value?.length ? swapToAmount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
