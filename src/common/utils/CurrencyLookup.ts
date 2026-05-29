@@ -7,6 +7,7 @@
 
 import type { CurrencyInfo } from "@/common/api";
 import { useConfigStore } from "../stores/config";
+import { usePricesStore } from "../stores/prices";
 
 /**
  * Get currency by ticker
@@ -104,6 +105,37 @@ export function getCurrencyByTickerForProtocol(ticker: string, protocol: string)
   }
 
   return currency;
+}
+
+/**
+ * Resolve a currency's USD price string, with a network-aware fallback.
+ *
+ * The price feed is keyed by `TICKER@PROTOCOL`. Shared IBC denoms (e.g. USDC)
+ * resolve via `tryGetCurrencyByDenom` to a single, arbitrary protocol entry
+ * whose `key` may have no published price — which would otherwise default the
+ * value to 0, display `$0.00`, and mis-sort the asset to the bottom of the
+ * Swap/Deposit/Withdraw dropdowns. When the currency's own key is absent from
+ * the feed, fall back to the network's primary-protocol key for the same
+ * ticker — the same entry the Assets table resolves via
+ * `getCurrencyByTickerForNetwork` — before finally defaulting to "0".
+ *
+ * Returns a decimal price string suitable for `new Dec(...)`.
+ */
+export function getPriceForCurrency(currency: CurrencyInfo): string {
+  const pricesStore = usePricesStore();
+
+  const direct = pricesStore.prices[currency.key]?.price;
+  if (direct != null) {
+    return direct;
+  }
+
+  const configStore = useConfigStore();
+  const primary = configStore.getCurrencyByTickerForNetwork(currency.ticker, configStore.protocolFilter);
+  if (primary && primary.key !== currency.key) {
+    return pricesStore.prices[primary.key]?.price ?? "0";
+  }
+
+  return "0";
 }
 
 /**

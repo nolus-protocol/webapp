@@ -115,14 +115,17 @@ import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
-import { getCurrencyByTickerForNetwork, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
+import {
+  getCurrencyByTickerForNetwork,
+  getPriceForCurrency,
+  tryGetCurrencyByDenom
+} from "@/common/utils/CurrencyLookup";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
 import { SkipRouter, type SkipTxResult } from "@/common/utils/SkipRoute";
 import type { NetworkInfo } from "@/common/api/types/config";
 import { Dec } from "@keplr-wallet/unit";
-import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
 import { HISTORY_ACTIONS } from "@/modules/history/types";
@@ -141,7 +144,7 @@ const assets = computed(() => {
     const balance = formatTokenBalance(value);
     const exactBalance = value.isZero() ? "0" : value.toString(asset.decimal_digits).replace(/\.?0+$/, "");
 
-    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
+    const price = new Dec(getPriceForCurrency(currency));
     const stable = price.mul(value);
     data.push({
       name: currency.name,
@@ -176,7 +179,6 @@ let route: RouteResponse | null;
 
 const walletStore = useWalletStore();
 const balancesStore = useBalancesStore();
-const pricesStore = usePricesStore();
 const configStore = useConfigStore();
 const historyStore = useHistoryStore();
 const networks = ref<Network[]>(NETWORK_DATA.list);
@@ -266,7 +268,7 @@ const calculatedBalance = computed(() => {
   const currency = tryGetCurrencyByDenom(asset.from!);
   if (!currency) return formatUsd(0);
 
-  const price = new Dec(pricesStore.prices[currency.key!]?.price ?? 0);
+  const price = new Dec(getPriceForCurrency(currency));
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);

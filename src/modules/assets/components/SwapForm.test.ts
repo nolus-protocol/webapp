@@ -111,7 +111,8 @@ vi.mock("@/common/utils/ConfigService", () => ({
 }));
 
 vi.mock("@/common/utils/CurrencyLookup", () => ({
-  tryGetCurrencyByDenom: hoisted.tryGetCurrencyByDenomMock
+  tryGetCurrencyByDenom: hoisted.tryGetCurrencyByDenomMock,
+  getPriceForCurrency: (currency: { key: string }) => hoisted.pricesState[currency.key]?.price ?? "0"
 }));
 
 vi.mock("@/common/utils/NumberFormatUtils", () => ({

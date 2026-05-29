@@ -131,13 +131,12 @@ import {
 } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
-import { tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
+import { getPriceForCurrency, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { coin } from "@cosmjs/stargate";
 import { Decimal } from "@cosmjs/math";
 import { SkipRouter, type SkipTxResult } from "@/common/utils/SkipRoute";
 import type { NetworkInfo } from "@/common/api/types/config";
 import { Dec } from "@keplr-wallet/unit";
-import { usePricesStore } from "@/common/stores/prices";
 import { ErrorCodes } from "@/config/global";
 import { useConfigStore } from "@/common/stores/config";
 import { HISTORY_ACTIONS } from "@/modules/history/types";
@@ -155,7 +154,7 @@ const assets = computed(() => {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = formatTokenBalance(value);
     const exactBalance = value.isZero() ? "0" : value.toString(asset.decimal_digits).replace(/\.?0+$/, "");
-    const price = new Dec(pricesStore.prices[currency.key]?.price ?? 0);
+    const price = new Dec(getPriceForCurrency(currency));
     const stable = price.mul(value);
 
     data.push({
@@ -200,7 +199,6 @@ const balancesStore = useBalancesStore();
 const configStore = useConfigStore();
 const historyStore = useHistoryStore();
 const networks = ref<Network[]>(NETWORK_DATA.list);
-const pricesStore = usePricesStore();
 
 const selectedNetwork = ref(0);
 const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(balancesStore.filteredBalances);
@@ -296,7 +294,7 @@ const calculatedBalance = computed(() => {
   const currency = tryGetCurrencyByDenom(denom);
   if (!currency) return formatUsd(0);
 
-  const price = new Dec(pricesStore.prices[currency.key!]?.price ?? 0);
+  const price = new Dec(getPriceForCurrency(currency));
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
