@@ -106,7 +106,7 @@ import { useHistoryStore } from "@/common/stores/history";
 import { usePricesStore } from "@/common/stores/prices";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
 import { useConfigStore } from "@/common/stores/config";
-import { Logger, walletOperation } from "@/common/utils";
+import { classifyError, Logger, walletOperation } from "@/common/utils";
 import { formatNumber, formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
@@ -366,7 +366,7 @@ async function operation() {
       });
     } catch (error: unknown) {
       Logger.error(error);
-      amountErrorMsg.value = error instanceof Error ? error.message : String(error);
+      amountErrorMsg.value = i18n.t(classifyError(error));
     } finally {
       loading.value = false;
     }
