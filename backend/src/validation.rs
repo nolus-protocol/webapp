@@ -12,7 +12,7 @@ pub fn validate_bech32_address(address: &str, field_name: &str) -> Result<(), Ap
             details: None,
         });
     }
-    bech32::decode(address).map_err(|_| AppError::Validation {
+    bech32::decode(address).map_err(|_err| AppError::Validation {
         message: format!("Invalid {} format", field_name),
         field: Some(field_name.to_string()),
         details: None,

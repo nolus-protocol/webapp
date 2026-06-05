@@ -232,7 +232,7 @@ pub async fn get_unconfigured(
         .config_store
         .load_currency_display()
         .await
-        .unwrap_or_else(|_| CurrencyDisplayConfig {
+        .unwrap_or_else(|_err| CurrencyDisplayConfig {
             currencies: std::collections::HashMap::new(),
         });
 
@@ -240,7 +240,7 @@ pub async fn get_unconfigured(
         .config_store
         .load_gated_network_config()
         .await
-        .unwrap_or_else(|_| GatedNetworkConfig {
+        .unwrap_or_else(|_err| GatedNetworkConfig {
             networks: std::collections::HashMap::new(),
         });
 
@@ -329,7 +329,7 @@ pub async fn upsert_currency_display(
         .config_store
         .load_currency_display()
         .await
-        .unwrap_or_else(|_| CurrencyDisplayConfig {
+        .unwrap_or_else(|_err| CurrencyDisplayConfig {
             currencies: std::collections::HashMap::new(),
         });
 
@@ -428,7 +428,7 @@ pub async fn upsert_network_config(
         .config_store
         .load_gated_network_config()
         .await
-        .unwrap_or_else(|_| GatedNetworkConfig {
+        .unwrap_or_else(|_err| GatedNetworkConfig {
             networks: std::collections::HashMap::new(),
         });
 

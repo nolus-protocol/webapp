@@ -248,7 +248,7 @@ impl TranslationStorage {
         let initial_content = if let Some(source_lang) = copy_from {
             self.load_active(source_lang)
                 .await
-                .unwrap_or_else(|_| serde_json::json!({}))
+                .unwrap_or_else(|_err| serde_json::json!({}))
         } else {
             serde_json::json!({})
         };
@@ -404,7 +404,7 @@ impl TranslationStorage {
         let mut locale = self
             .load_active(lang)
             .await
-            .unwrap_or_else(|_| serde_json::json!({}));
+            .unwrap_or_else(|_err| serde_json::json!({}));
 
         // Get old value for audit
         let old_value = get_nested_value(&locale, key).map(|v| v.to_string());
@@ -443,7 +443,7 @@ impl TranslationStorage {
         let target_locale = self
             .load_active(lang)
             .await
-            .unwrap_or_else(|_| serde_json::json!({}));
+            .unwrap_or_else(|_err| serde_json::json!({}));
 
         let source_keys = flatten_json(&source_locale, "");
         let target_keys = flatten_json(&target_locale, "");
@@ -842,7 +842,7 @@ impl TranslationStorage {
         let mut locale = self
             .load_active(lang)
             .await
-            .unwrap_or_else(|_| serde_json::json!({}));
+            .unwrap_or_else(|_err| serde_json::json!({}));
         set_nested_value(&mut locale, key, Value::String(value.to_string()))?;
         self.save_active(lang, &locale).await
     }

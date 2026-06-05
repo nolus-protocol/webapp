@@ -149,7 +149,7 @@ impl ChainEventClient {
             tokio_tungstenite::connect_async(&self.ws_url),
         )
         .await
-        .map_err(|_| {
+        .map_err(|_err| {
             format!(
                 "WebSocket connect timed out after {}s",
                 CONNECT_TIMEOUT.as_secs()

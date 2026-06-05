@@ -230,7 +230,7 @@ pub async fn get_balances(
             }
 
             // Calculate USD value
-            let amount_f64: f64 = bank_balance.amount.parse().unwrap_or_else(|_| {
+            let amount_f64: f64 = bank_balance.amount.parse().unwrap_or_else(|_err| {
                 warn!(
                     "Failed to parse balance amount for {}: {}",
                     currency.ticker, bank_balance.amount

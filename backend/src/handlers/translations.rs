@@ -438,7 +438,7 @@ pub async fn update_active(
 
     // Decode the key (it may be URL encoded with dots as %2E)
     let decoded_key = urlencoding::decode(&key)
-        .map_err(|_| AppError::Validation {
+        .map_err(|_err| AppError::Validation {
             message: "Invalid key encoding".to_string(),
             field: Some("key".to_string()),
             details: None,
@@ -541,7 +541,7 @@ pub async fn get_key_history(
     let storage = get_translation_storage(&state)?;
 
     let decoded_key = urlencoding::decode(&key)
-        .map_err(|_| AppError::Validation {
+        .map_err(|_err| AppError::Validation {
             message: "Invalid key encoding".to_string(),
             field: Some("key".to_string()),
             details: None,

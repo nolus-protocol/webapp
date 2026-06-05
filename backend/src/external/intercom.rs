@@ -111,7 +111,9 @@ impl IntercomClient {
                 })?
                 .timestamp(),
         )
-        .map_err(|_| AppError::Internal("Token expiration timestamp out of range".to_string()))?;
+        .map_err(|_err| {
+            AppError::Internal("Token expiration timestamp out of range".to_string())
+        })?;
 
         // Flatten attributes into a HashMap for the JWT payload
         let attributes_map: HashMap<String, serde_json::Value> = {
