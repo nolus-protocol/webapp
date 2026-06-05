@@ -143,7 +143,7 @@ async function loadData(intetval: string) {
   if (positionType === "Long") {
     const [key, protocol]: string[] = ticker?.includes("@")
       ? ticker.split("@")
-      : [ticker as string, props.lease!.protocol];
+      : [ticker as string, props.lease?.protocol ?? ""];
 
     const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
     return prices;
@@ -299,7 +299,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
             : "";
         tooltip.html(`<strong>${i18n.t("message.price")}:</strong> ${formatUsd(closestData.Price)}${liquidationHtml}`);
 
-        const node = tooltip.node()!.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+
+        if (!tooltipNode) {
+          return;
+        }
+
+        const node = tooltipNode.getBoundingClientRect();
         const height = node.height;
         const width = node.width;
 

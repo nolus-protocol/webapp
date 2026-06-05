@@ -20,7 +20,8 @@
 </template>
 
 <script lang="ts" setup>
-import { useWalletStore, WalletActions } from "@/common/stores/wallet";
+import type { WalletActions } from "@/common/stores/wallet";
+import { useWalletStore } from "@/common/stores/wallet";
 import { Logger } from "@/common/utils";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";

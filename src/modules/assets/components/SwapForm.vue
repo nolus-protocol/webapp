@@ -125,7 +125,8 @@ import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils 
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { getPriceForCurrency, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
-import { Coin, Dec, Int } from "@keplr-wallet/unit";
+import type { Coin } from "@keplr-wallet/unit";
+import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { MultipleCurrencyEventType, type SkipRouteConfigType } from "@/common/types";
@@ -189,7 +190,7 @@ const assets = computed(() => {
   const data = [];
 
   for (const c of swapCurrencies.value) {
-    if (c.visible && configStore.protocolFilter != c.visible) continue;
+    if (c.visible && configStore.protocolFilter !== c.visible) continue;
     if (blacklist.value.includes(c.from)) continue;
 
     const currency = tryGetCurrencyByDenom(c.from);
@@ -247,8 +248,8 @@ const secondCalculatedBalance = computed(() => {
 const selectedAsset = computed(() => {
   if (!selectedFirstCurrencyOption.value) return undefined;
   return (
-    assets.value.find((item) => item.value == selectedFirstCurrencyOption.value?.value) ??
-    assets.value.find((item) => item.ibcData == selectedFirstCurrencyOption.value?.ibcData) ??
+    assets.value.find((item) => item.value === selectedFirstCurrencyOption.value?.value) ??
+    assets.value.find((item) => item.ibcData === selectedFirstCurrencyOption.value?.ibcData) ??
     selectedFirstCurrencyOption.value
   );
 });
@@ -275,9 +276,9 @@ async function onInit() {
     swapCurrencies.value = networkTransfers;
 
     const firstCurrency = assets.value.find(
-      (item) => item.ibcData == config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
+      (item) => item.ibcData === config[`swap_currency_${protocol}` as keyof SkipRouteConfigType]
     );
-    const secondCurrency = assets.value.find((item) => item.ibcData == config.swap_to_currency);
+    const secondCurrency = assets.value.find((item) => item.ibcData === config.swap_to_currency);
 
     if (!firstCurrency || !secondCurrency) {
       Logger.error(
@@ -300,7 +301,7 @@ async function onInit() {
 }
 
 async function onNextClick() {
-  if (validateInputs().length == 0) {
+  if (validateInputs().length === 0) {
     try {
       disabled.value = true;
       await walletOperation(onSwap);
@@ -318,7 +319,7 @@ function updateAmount(value: {
   type: MultipleCurrencyEventType;
 }) {
   amount.value = value.input.value ?? 0;
-  const match = assets.value.find((item) => item.value == value.currency.value);
+  const match = assets.value.find((item) => item.value === value.currency.value);
   if (!match) {
     Logger.error(`Swap currency not available (first side): ${value.currency.value}`);
     onShowToast({
@@ -337,7 +338,7 @@ function updateSwapToAmount(value: {
   type: MultipleCurrencyEventType;
 }) {
   swapToAmount.value = value.input.value;
-  const match = assets.value.find((item) => item.value == value.currency.value);
+  const match = assets.value.find((item) => item.value === value.currency.value);
   if (!match) {
     Logger.error(`Swap currency not available (second side): ${value.currency.value}`);
     onShowToast({
@@ -387,14 +388,14 @@ async function setSwapFee() {
 }
 
 function updateRoute() {
-  if (!amount.value.length || amount.value.length == 0) {
+  if (!amount.value.length || amount.value.length === 0) {
     return false;
   }
 
   const first = selectedFirstCurrencyOption.value;
   if (!first) return;
 
-  if (validateInputs().length == 0) {
+  if (validateInputs().length === 0) {
     const token = CurrencyUtils.convertDenomToMinimalDenom(
       amount.value.toString(),
       first.ibcData,
@@ -410,7 +411,7 @@ function updateSwapToRoute() {
   const second = selectedSecondCurrencyOption.value;
   if (!second) return;
 
-  if (validateSwapToInputs().length == 0) {
+  if (validateSwapToInputs().length === 0) {
     const token = CurrencyUtils.convertDenomToMinimalDenom(
       swapToAmount.value.toString(),
       second.ibcData,
@@ -480,9 +481,9 @@ async function setRoute(token: Coin, revert = false) {
 function validateInputs() {
   const first = selectedFirstCurrencyOption.value;
   const second = selectedSecondCurrencyOption.value;
-  if (!first || !second) return error.value;
+  if (!first || !second || !first.balance) return error.value;
 
-  error.value = validateAmountV2(amount.value, first.balance!.value);
+  error.value = validateAmountV2(amount.value, first.balance.value);
   if (first.ibcData === second.ibcData) {
     error.value = i18n.t("message.swap-same-error");
   }
@@ -492,9 +493,9 @@ function validateInputs() {
 function validateSwapToInputs() {
   const first = selectedFirstCurrencyOption.value;
   const second = selectedSecondCurrencyOption.value;
-  if (!first || !second) return error.value;
+  if (!first || !second || !second.balance) return error.value;
 
-  error.value = validateAmountV2(swapToAmount.value, second.balance!.value);
+  error.value = validateAmountV2(swapToAmount.value, second.balance.value);
   if (first.ibcData === second.ibcData) {
     error.value = i18n.t("message.swap-same-error");
   }
@@ -513,10 +514,17 @@ async function onSwap() {
     const addresses: Record<string, string> = {};
 
     for (const key in wallets) {
-      addresses[key] = wallets[key].address!;
+      const walletAddress = wallets[key].address;
+      if (!walletAddress) {
+        throw new Error(`Wallet address not available for ${key}`);
+      }
+      addresses[key] = walletAddress;
     }
 
-    await SkipRouter.submitRoute(route!, wallets, async (tx: SkipTxResult, baseWallet: BaseWallet) => {
+    if (!route) {
+      throw new Error("Route not available");
+    }
+    await SkipRouter.submitRoute(route, wallets, async (tx: SkipTxResult, baseWallet: BaseWallet) => {
       const element = {
         hash: tx.txHash,
         status: SwapStatus.pending,
@@ -552,6 +560,10 @@ async function onSwap() {
 }
 
 async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
+  if (!route) {
+    throw new Error("Route not available");
+  }
+  const currentRoute = route;
   const native = wallet.wallet.signer.chainId as string;
   const addrs = {
     [native]: wallet.wallet
@@ -559,17 +571,17 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   const chainToParse: { [key: string]: NetworkInfo } = {};
   const chains = (await SkipRouter.getChains()).filter((item) => {
-    if (item.chain_id == native) {
+    if (item.chain_id === native) {
       return false;
     }
-    return route!.chain_ids.includes(item.chain_id);
+    return currentRoute.chain_ids.includes(item.chain_id);
   });
 
   const supportedNetworks = configStore.supportedNetworksData;
   for (const chain of chains) {
     for (const key in supportedNetworks) {
       const networkData = supportedNetworks[key];
-      if (networkData?.value == chain.chain_name) {
+      if (networkData?.value === chain.chain_name) {
         chainToParse[key] = networkData;
       }
     }

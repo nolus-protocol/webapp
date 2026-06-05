@@ -113,7 +113,8 @@ import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/netwo
 import type { ExternalCurrency } from "@/common/types";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { Dec } from "@keplr-wallet/unit";
-import { NolusClient, NolusWallet } from "@nolus/nolusjs";
+import type { NolusWallet } from "@nolus/nolusjs";
+import { NolusClient } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
@@ -169,7 +170,7 @@ onBeforeUnmount(() => {
 });
 
 const price = computed(() => {
-  return formatPriceUsd(amount.value.length == 0 ? 0 : amount.value);
+  return formatPriceUsd(amount.value.length === 0 ? 0 : amount.value);
 });
 
 const currency = computed(() => {
@@ -187,7 +188,10 @@ const assets = computed(() => {
   const data = [];
 
   if (lease.value) {
-    const asset = getCurrency()!;
+    const asset = getCurrency();
+    if (!asset) {
+      return data;
+    }
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
 
     data.push({
@@ -197,7 +201,7 @@ const assets = computed(() => {
       label: asset.shortName,
       ibcData: asset.ibcData,
       shortName: asset.shortName,
-      decimal_digits: asset.decimal_digits!,
+      decimal_digits: asset.decimal_digits,
       key: asset.key,
       ticker: asset.ticker
     });
@@ -208,7 +212,7 @@ const assets = computed(() => {
 
 const payout = computed(() => {
   if (!lease.value || !displayData.value) return "0";
-  const end_price = new Dec(amount.value.length == 0 ? 0 : amount.value);
+  const end_price = new Dec(amount.value.length === 0 ? 0 : amount.value);
   const positionType = configStore.getPositionType(lease.value.protocol);
   const debt = displayData.value.totalDebt ?? new Dec(0);
 
@@ -253,7 +257,7 @@ function getCurrency() {
 
   if (positionType === "Long") {
     const ticker = lease.value.amount.ticker;
-    return configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+    return configStore.currenciesData[`${ticker}@${lease.value.protocol}`];
   } else {
     return getLpnByProtocol(lease.value.protocol);
   }
@@ -271,7 +275,7 @@ const total = computed(() => {
 
 function handleAmountChange(event: string) {
   amount.value = event;
-  if (amount.value != "") {
+  if (amount.value !== "") {
     let percent = new Dec(amount.value).quo(total.value).mul(new Dec(100));
     if (percent.isNegative()) {
       percent = new Dec(0);
@@ -288,8 +292,11 @@ function isAmountValid() {
   amountErrorMsg.value = "";
   if (lease.value && lease.value.status === "opened") {
     const a = new Dec(amount.value.length > 0 ? amount.value : 0);
-    const currencyData = getCurrencyByTicker(lease.value.amount.ticker!);
-    const price = getPrice()!;
+    const currencyData = getCurrencyByTicker(lease.value.amount.ticker);
+    const price = getPrice();
+    if (!price) {
+      return isValid;
+    }
 
     if (amount.value || amount.value !== "") {
       const isLowerThanOrEqualsToZero = a.lte(new Dec(0));
@@ -354,7 +361,7 @@ async function operation() {
 
       const percent = getPercent();
 
-      const takeProfit = Number(percent!.mul(new Dec(PERMILLE)).round().toString());
+      const takeProfit = Number(percent.mul(new Dec(PERMILLE)).round().toString());
       const stopLoss = lease.value.close_policy?.stop_loss;
       const {
         txHash: _txHash,

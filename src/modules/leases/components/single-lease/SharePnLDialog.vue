@@ -510,8 +510,11 @@ function setTimeStamp(ctx: CanvasRenderingContext2D) {
 }
 
 function download() {
+  if (!canvas.value) {
+    return;
+  }
   const anchor = document.createElement("a");
-  anchor.href = canvas.value!.toDataURL("image/png");
+  anchor.href = canvas.value.toDataURL("image/png");
   anchor.download = "position.png";
   anchor.click();
   anchor.remove();

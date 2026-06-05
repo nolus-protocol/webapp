@@ -136,12 +136,16 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
           .attr("fill", hoverColor)
           .node() as Element | null;
         if (barEl) {
-          const bx = +barEl.getAttribute("x")! + +barEl.getAttribute("width")! / 2;
+          const bx = +(barEl.getAttribute("x") ?? 0) + +(barEl.getAttribute("width") ?? 0) / 2;
           crosshair.attr("x1", bx).attr("x2", bx).style("display", null);
         }
 
         tooltip.html(`<strong>${i18n.t("message.amount")}</strong> ${formatUsd(closestData.amount)}`);
-        const node = tooltip.node()!.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+        if (!tooltipNode) {
+          return;
+        }
+        const node = tooltipNode.getBoundingClientRect();
         tooltip
           .style("opacity", 1)
           .style("left", `${event.pageX - node.width / 2}px`)

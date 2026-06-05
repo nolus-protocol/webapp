@@ -1,7 +1,7 @@
 import { ref, type Ref } from "vue";
 import { Logger, WalletManager } from "@/common/utils";
 import { type Proposal } from "@/modules/vote/types";
-import { ProposalStatus } from "web-components";
+import type { ProposalStatus } from "web-components";
 import { BackendApi } from "@/common/api";
 import { getProposalsConfig } from "@/common/utils/ConfigService";
 

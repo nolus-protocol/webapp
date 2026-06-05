@@ -143,7 +143,7 @@ const assets = computed<TableRowItemProps[]>(() => {
   const param = search.value.toLowerCase();
   return filteredAssets.value
     .filter((item) => {
-      if (param.length == 0) {
+      if (param.length === 0) {
         return true;
       }
       const c = item.currency;

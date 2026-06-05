@@ -31,6 +31,21 @@ function getGasMultiplier(): number {
   return feeConfig.gas_multiplier;
 }
 
+/**
+ * Read the connected wallet's pubKey and address.
+ * Throws if either is missing (fail loudly — a wallet reaching the signing path
+ * without an identity is a broken state, not a recoverable condition).
+ */
+function requireWalletIdentity(wallet: NolusWallet): { pubKey: Uint8Array; address: string } {
+  if (!wallet.pubKey) {
+    throw new Error("Wallet public key not available");
+  }
+  if (!wallet.address) {
+    throw new Error("Wallet address not available");
+  }
+  return { pubKey: wallet.pubKey, address: wallet.address };
+}
+
 export function applyNolusWalletOverrides(wallet: NolusWallet): void {
   // Override gasPrices — use backend-cached gas prices instead of chain query
   wallet.gasPrices = async (): Promise<{ [denom: string]: number }> => {
@@ -51,20 +66,22 @@ export function applyNolusWalletOverrides(wallet: NolusWallet): void {
   // Override simulateTx — use backend gas_multiplier instead of ChainConstants.GAS_MULTIPLIER
   wallet.simulateTx = async function (msg: EncodeObject["value"], msgTypeUrl: string, memo = "") {
     // Ledger/hardware wallet delegation
-    if (wallet.getOfflineSigner().simulateTx) {
-      return wallet.getOfflineSigner().simulateTx!(msg, memo);
+    const offlineSimulateTx = wallet.getOfflineSigner().simulateTx;
+    if (offlineSimulateTx) {
+      return offlineSimulateTx(msg, memo);
     }
 
     const gasMultiplier = getGasMultiplier();
-    const pubkey = encodeSecp256k1Pubkey(wallet.pubKey!);
+    const { pubKey, address } = requireWalletIdentity(wallet);
+    const pubkey = encodeSecp256k1Pubkey(pubKey);
     const msgAny = { typeUrl: msgTypeUrl, value: msg };
-    const { sequence } = await wallet.getSequence(wallet.address!);
+    const { sequence } = await wallet.getSequence(address);
     const { gasInfo } = await wallet
       .forceGetQueryClient()
       .tx.simulate([wallet.registry.encodeAsAny(msgAny)], memo, pubkey, sequence);
     const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * gasMultiplier);
     const usedFee = await wallet.selectDynamicFee(gas, [{ msg, msgTypeUrl }]);
-    const txRaw = await wallet.sign(wallet.address!, [msgAny], usedFee, memo);
+    const txRaw = await wallet.sign(address, [msgAny], usedFee, memo);
     const txBytes = Uint8Array.from(TxRaw.encode(txRaw).finish());
     const txHash = toHex(sha256(txBytes));
     return { txHash, txBytes, usedFee };
@@ -74,12 +91,14 @@ export function applyNolusWalletOverrides(wallet: NolusWallet): void {
   // @ts-expect-error -- simulateMultiTx is private on NolusWallet but we need to override it
   wallet.simulateMultiTx = async function (messages: MsgWithTypeUrl[], memo = "") {
     // Ledger/hardware wallet delegation
-    if (wallet.getOfflineSigner().simulateMultiTx) {
-      return wallet.getOfflineSigner().simulateMultiTx!(messages, memo);
+    const offlineSimulateMultiTx = wallet.getOfflineSigner().simulateMultiTx;
+    if (offlineSimulateMultiTx) {
+      return offlineSimulateMultiTx(messages, memo);
     }
 
     const gasMultiplier = getGasMultiplier();
-    const pubkey = encodeSecp256k1Pubkey(wallet.pubKey!);
+    const { pubKey, address } = requireWalletIdentity(wallet);
+    const pubkey = encodeSecp256k1Pubkey(pubKey);
     const encodedMSGS: ReturnType<typeof wallet.registry.encodeAsAny>[] = [];
     const msgs: EncodeObject[] = [];
     for (const item of messages) {
@@ -87,11 +106,11 @@ export function applyNolusWalletOverrides(wallet: NolusWallet): void {
       encodedMSGS.push(wallet.registry.encodeAsAny(msgAny));
       msgs.push(msgAny);
     }
-    const { sequence } = await wallet.getSequence(wallet.address!);
+    const { sequence } = await wallet.getSequence(address);
     const { gasInfo } = await wallet.forceGetQueryClient().tx.simulate(encodedMSGS, memo, pubkey, sequence);
     const gas = Math.round(Number(gasInfo?.gasUsed ?? 0) * gasMultiplier);
     const usedFee = await wallet.selectDynamicFee(gas, messages);
-    const txRaw = await wallet.sign(wallet.address!, msgs, usedFee, memo);
+    const txRaw = await wallet.sign(address, msgs, usedFee, memo);
     const txBytes = Uint8Array.from(TxRaw.encode(txRaw).finish());
     const txHash = toHex(sha256(txBytes));
     return { txHash, txBytes, usedFee };
@@ -100,7 +119,7 @@ export function applyNolusWalletOverrides(wallet: NolusWallet): void {
   // Override getGasInfo — also uses gas multiplier for fee estimation.
   // The `pubkey: Pubkey` parameter is load-bearing for the Solana Ed25519 path:
   // SolanaWallet.simulateMultiTx supplies an Ed25519-encoded pubkey here, so a
-  // future refactor that drops the param and inlines `encodeSecp256k1Pubkey(wallet.pubKey!)`
+  // future refactor that drops the param and inlines `encodeSecp256k1Pubkey(wallet.pubKey)`
   // would silently break the Solana flow (chain rejects the wrong pubkey type).
   wallet.getGasInfo = async function (messages: MsgWithTypeUrl[], memo: string, pubkey: Pubkey, sequence: number) {
     const gasMultiplier = getGasMultiplier();

@@ -16,7 +16,7 @@ import MainLayout from "@/modules/view.vue";
 
 const router = createRouter({
   scrollBehavior(to, from) {
-    if (to.meta.key == from.meta.key) {
+    if (to.meta.key === from.meta.key) {
       return false;
     }
     if (to.hash.length > 0) {

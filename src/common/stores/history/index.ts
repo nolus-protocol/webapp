@@ -266,10 +266,11 @@ export const useHistoryStore = defineStore("history", () => {
     try {
       const rawTxs = await BackendApi.getTransactions(address.value, skip, limit, filters);
       const transformedTxs = transformTransactions(rawTxs, address.value);
+      const currentAddress = address.value ?? "";
 
       // Process each transaction with message formatting
       const promises = transformedTxs.map(async (d) => {
-        const [msg, coin, route, routeDetails] = await message(d, address.value!, i18n.global, voteMessages);
+        const [msg, coin, route, routeDetails] = await message(d, currentAddress, i18n.global, voteMessages);
         d.historyData = {
           msg,
           coin,
@@ -337,9 +338,10 @@ export const useHistoryStore = defineStore("history", () => {
     try {
       const rawTxs = await BackendApi.getTransactions(address.value, 0, 10);
       const transformedTxs = transformTransactions(rawTxs, address.value);
+      const currentAddress = address.value ?? "";
 
       const promises = transformedTxs.map(async (d) => {
-        const [msg, coin, route, routeDetails] = await message(d, address.value!, i18n.global, voteMessages);
+        const [msg, coin, route, routeDetails] = await message(d, currentAddress, i18n.global, voteMessages);
         d.historyData = {
           msg,
           coin,
@@ -432,14 +434,14 @@ export const useHistoryStore = defineStore("history", () => {
           icon: from.icon,
           token: {
             balance: formatTokenBalance(
-              new Dec(index == 0 ? operation.amount_in : operation.amount_out, currency?.decimal_digits)
+              new Dec(index === 0 ? operation.amount_in : operation.amount_out, currency?.decimal_digits)
             ),
             symbol: currency?.shortName
           },
           meta: () => h("div", `${from.label} > ${to.label}`)
         });
 
-        if (index == route?.operations.length - 1) {
+        if (index === route?.operations.length - 1) {
           steps.push({
             label: i18nInstance.t("message.receive-stepper"),
             icon: to.icon,

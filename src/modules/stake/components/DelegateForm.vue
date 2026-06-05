@@ -129,7 +129,7 @@ const stable = computed(() => {
 });
 
 const isEmpty = computed(() => {
-  if (input.value.length == 0 || Number(input.value) == 0) {
+  if (input.value.length === 0 || Number(input.value) === 0) {
     return true;
   }
   return false;
@@ -141,7 +141,7 @@ function onInput(data: string) {
 }
 
 async function onNextClick() {
-  if (validateInputs().length == 0) {
+  if (validateInputs().length === 0) {
     disabled.value = true;
     try {
       await walletOperation(delegate);

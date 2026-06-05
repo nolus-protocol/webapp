@@ -10,10 +10,14 @@ export const CHART_AXIS = {
 };
 
 export function getChartWidth(plotContainer: HTMLElement): number {
-  return plotContainer.parentElement!.clientWidth;
+  return plotContainer.parentElement?.clientWidth ?? 0;
 }
 
-const measureCanvas = document.createElement("canvas").getContext("2d")!;
+const measureCanvasContext = document.createElement("canvas").getContext("2d");
+if (!measureCanvasContext) {
+  throw new Error("2D canvas context not available");
+}
+const measureCanvas = measureCanvasContext;
 
 export function computeMarginLeft(
   yDomain: [number, number],

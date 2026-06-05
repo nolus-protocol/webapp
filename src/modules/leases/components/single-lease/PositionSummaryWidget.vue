@@ -247,7 +247,8 @@ import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
 import { formatNumber, getAdaptivePriceDecimals } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-import { NolusClient, NolusWallet } from "@nolus/nolusjs";
+import type { NolusWallet } from "@nolus/nolusjs";
+import { NolusClient } from "@nolus/nolusjs";
 import { dateParser, IntercomService, isMobile, Logger, walletOperation } from "@/common/utils";
 import { useRouter } from "vue-router";
 import { SingleLeaseDialog } from "@/modules/leases/enums";
@@ -389,7 +390,7 @@ const pricerPerAsset = computed(() => {
   } else if (posType === "short") {
     const p = props.lease?.protocol as string;
     const debtTicker = props.lease?.debt?.ticker;
-    const currency = configStore.currenciesData![`${debtTicker}@${p}`];
+    const currency = configStore.currenciesData[`${debtTicker}@${p}`];
     return currency;
   }
   return asset.value;

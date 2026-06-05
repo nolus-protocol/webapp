@@ -63,6 +63,12 @@ import { useEarnStore } from "./index";
 
 const { captured, BackendApi, subscribeEarn } = hoisted;
 
+function emitEarn(addr: string, positions: any[], totalUsd: string) {
+  const handler = captured.onEarn;
+  expect(handler).toBeTruthy();
+  (handler as (addr: string, positions: any[], totalUsd: string) => void)(addr, positions, totalUsd);
+}
+
 describe("useEarnStore", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -480,7 +486,7 @@ describe("useEarnStore", () => {
     await store.setAddress("nolus1x");
     expect(captured.onEarn).not.toBeNull();
 
-    captured.onEarn!(
+    emitEarn(
       "nolus1x",
       [
         {
@@ -512,7 +518,7 @@ describe("useEarnStore", () => {
     const store = useEarnStore();
     await store.setAddress("nolus1x");
 
-    captured.onEarn!(
+    emitEarn(
       "nolus1OTHER",
       [
         {

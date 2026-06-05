@@ -205,7 +205,13 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
         tooltip.html(`<strong>${i18n.t("message.amount")}:</strong> ${formatUsd(closestData.amount)}`);
 
-        const node = tooltip.node()!.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+
+        if (!tooltipNode) {
+          return;
+        }
+
+        const node = tooltipNode.getBoundingClientRect();
         const height = node.height;
         const width = node.width;
 

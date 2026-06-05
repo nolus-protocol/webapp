@@ -2,6 +2,9 @@ import js from "@eslint/js";
 import tseslint from "typescript-eslint";
 import pluginVue from "eslint-plugin-vue";
 import prettierConfig from "eslint-config-prettier";
+import { fileURLToPath } from "node:url";
+
+const tsconfigRootDir = fileURLToPath(new URL(".", import.meta.url));
 
 export default tseslint.config(
   {
@@ -86,7 +89,9 @@ export default tseslint.config(
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: [".vue"],
-        sourceType: "module"
+        sourceType: "module",
+        projectService: true,
+        tsconfigRootDir
       }
     },
     rules: {
@@ -99,7 +104,19 @@ export default tseslint.config(
       "@typescript-eslint/no-non-null-asserted-optional-chain": "error",
       "no-fallthrough": "error",
 
+      eqeqeq: ["error", "always", { null: "ignore" }],
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "separate-type-imports" }],
+      "no-console": ["error", { allow: ["warn", "error"] }],
+
       "vue/multi-word-component-names": "off"
+    }
+  },
+
+  {
+    files: ["src/common/utils/Logger.ts"],
+    rules: {
+      "no-console": "off"
     }
   },
 

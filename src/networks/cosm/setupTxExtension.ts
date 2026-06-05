@@ -2,16 +2,11 @@ import type { Pubkey } from "@cosmjs/amino";
 import { createProtobufRpcClient, type QueryClient } from "@cosmjs/stargate";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 import { AuthInfo, Fee, Tx, TxBody } from "cosmjs-types/cosmos/tx/v1beta1/tx";
-import { Any } from "cosmjs-types/google/protobuf/any";
+import type { Any } from "cosmjs-types/google/protobuf/any";
 import { encodePubkey } from "./encode";
 
-import {
-  GetTxRequest,
-  GetTxResponse,
-  ServiceClientImpl,
-  SimulateRequest,
-  SimulateResponse
-} from "cosmjs-types/cosmos/tx/v1beta1/service";
+import type { GetTxRequest, GetTxResponse, SimulateResponse } from "cosmjs-types/cosmos/tx/v1beta1/service";
+import { ServiceClientImpl, SimulateRequest } from "cosmjs-types/cosmos/tx/v1beta1/service";
 
 export interface TxExtension {
   readonly tx: {

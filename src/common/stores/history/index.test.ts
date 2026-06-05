@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type * as CommonUtils from "@/common/utils";
 import { setActivePinia, createPinia } from "pinia";
 
 // jsdom doesn't implement matchMedia; ThemeManager (loaded via the utils barrel
@@ -52,7 +53,7 @@ vi.mock("@nolus/nolusjs", () => ({
 }));
 
 vi.mock("@/common/utils", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/common/utils")>();
+  const actual = await importOriginal<typeof CommonUtils>();
   return {
     ...actual,
     getCreatedAtForHuman: vi.fn(() => "just now"),

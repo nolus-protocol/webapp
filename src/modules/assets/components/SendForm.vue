@@ -114,7 +114,8 @@ import { NETWORK_DATA } from "@/networks/config";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
 
-import { type BaseWallet, Wallet } from "@/networks";
+import type { Wallet } from "@/networks";
+import { type BaseWallet } from "@/networks";
 import { CONFIRM_STEP, type ExternalCurrency, type Network, type SkipRouteConfigType } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
@@ -148,7 +149,7 @@ const assets = computed(() => {
   const data = [];
   for (const asset of (networkCurrenciesRef.value as ExternalCurrency[] | AssetBalance[]) ?? []) {
     const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
-    const currency = tryGetCurrencyByDenom(denom!);
+    const currency = tryGetCurrencyByDenom(denom);
     if (!currency) continue; // Skip deprecated/removed denoms
 
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
@@ -160,22 +161,22 @@ const assets = computed(() => {
     data.push({
       name: asset.name,
       value: denom,
-      label: asset.shortName!,
-      shortName: asset.shortName!,
-      icon: asset.icon!,
-      decimal_digits: asset.decimal_digits!,
+      label: asset.shortName,
+      shortName: asset.shortName,
+      icon: asset.icon,
+      decimal_digits: asset.decimal_digits,
       balance: {
         value: exactBalance,
         customLabel: `${balance} ${asset.shortName}`,
-        ticker: asset.shortName!,
+        ticker: asset.shortName,
         denom: asset.balance.denom,
         amount: asset.balance?.amount
       },
       ibcData: (asset as ExternalCurrency).ibcData,
       from: (asset as AssetBalance).from,
-      native: asset.native!,
-      symbol: asset.symbol!,
-      ticker: asset.ticker!,
+      native: asset.native,
+      symbol: asset.symbol,
+      ticker: asset.ticker,
       stable,
       price: formatDecAsUsd(stable)
     });
@@ -258,7 +259,7 @@ async function onInit() {
     skipRouteConfig = config;
     chainsData = chns;
     const n = NETWORK_DATA.list.filter((item) => {
-      if (skipRouteConfig!.transfers[item.key]) {
+      if (config.transfers[item.key]) {
         return true;
       }
       return false;
@@ -266,7 +267,7 @@ async function onInit() {
     networks.value = [...n].filter((item) => {
       return !IGNORED_NETWORKS.includes(item.key);
     });
-    const index = networks.value.findIndex((item: Network) => item.key == configStore.protocolFilter);
+    const index = networks.value.findIndex((item: Network) => item.key === configStore.protocolFilter);
     if (index < 0) {
       selectedNetwork.value = 0;
     } else {
@@ -279,8 +280,8 @@ async function onInit() {
 }
 
 onUnmounted(() => {
-  clearTimeout(timeOut!);
-  if (client && step.value != CONFIRM_STEP.PENDING) {
+  clearTimeout(timeOut);
+  if (client && step.value !== CONFIRM_STEP.PENDING) {
     destroyClient();
   }
 });
@@ -309,7 +310,7 @@ function destroyClient() {
 }
 
 function setHistory() {
-  const chains = getChainIds(tempRoute.value! as RouteResponse);
+  const chains = getChainIds(tempRoute.value as RouteResponse);
 
   const data = {
     id,
@@ -351,7 +352,7 @@ watch(
 
 async function onUpdateNetwork(event: Network) {
   tempRoute.value = null;
-  selectedNetwork.value = networks.value.findIndex((item) => item == event);
+  selectedNetwork.value = networks.value.findIndex((item) => item === event);
   if (!event.native) {
     await setCosmosNetwork();
   } else {
@@ -400,7 +401,7 @@ async function setCosmosNetwork() {
   const currencies = [];
   const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
   for (const c of data ?? []) {
-    if (c.visible && configStore.protocolFilter != c.visible) continue;
+    if (c.visible && configStore.protocolFilter !== c.visible) continue;
 
     const currency = tryGetCurrencyByDenom(c.from);
     if (!currency) continue; // Skip deprecated/removed denoms
@@ -440,7 +441,7 @@ function validateAmount() {
     return false;
   }
 
-  if (amount.value.at(0) == ".") {
+  if (amount.value.at(0) === ".") {
     amountErrorMsg.value = i18n.t("message.invalid-amount");
     return false;
   }
@@ -488,7 +489,7 @@ async function onSendClick() {
 }
 
 function onSubmitNative() {
-  const isValid = validateAmount() && validateAddress(receiverAddress.value).length == 0;
+  const isValid = validateAmount() && validateAddress(receiverAddress.value).length === 0;
 
   if (isValid) {
     onSwap();
@@ -603,7 +604,11 @@ async function onSwapCosmos() {
         const addresses: Record<string, string> = {};
 
         for (const key in wallets) {
-          addresses[key] = wallets[key].address!;
+          const walletAddress = wallets[key].address;
+          if (!walletAddress) {
+            throw new Error(`Wallet address not available for ${key}`);
+          }
+          addresses[key] = walletAddress;
         }
 
         setHistory();
@@ -649,7 +654,10 @@ async function onSwapCosmos() {
 }
 
 async function submit(wallets: { [key: string]: BaseWallet }) {
-  await SkipRouter.submitRoute(route!, wallets, async (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => {
+  if (!route) {
+    throw new Error("Route not available");
+  }
+  await SkipRouter.submitRoute(route, wallets, async (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => {
     walletStore.history[id].historyData.route.activeStep++;
     walletStore.history[id].historyData.routeDetails.activeStep++;
 
@@ -674,16 +682,19 @@ async function submit(wallets: { [key: string]: BaseWallet }) {
 }
 
 async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
+  if (!route) {
+    throw new Error("Route not available");
+  }
   const native = walletStore.wallet.signer.chainId as string;
   const addrs = {
     [native]: walletStore.wallet
   };
 
-  const chainToParse: { [key: string]: NetworkInfo } = getChains(route!);
+  const chainToParse: { [key: string]: NetworkInfo } = getChains(route);
   const promises = [];
   for (const chain in chainToParse) {
     const fn = async function () {
-      if (chain != NATIVE_NETWORK.key) {
+      if (chain !== NATIVE_NETWORK.key) {
         const client = await WalletUtils.getWallet(chain);
         const network = NETWORK_DATA;
         const networkData = network?.supportedNetworks[chain];
@@ -703,10 +714,10 @@ async function getRoute() {
   const chainId = await client.getChainId();
   const asset = assets.value[selectedCurrency.value];
 
-  const transferAmount = Decimal.fromUserInput(amount.value, asset!.decimal_digits as number);
+  const transferAmount = Decimal.fromUserInput(amount.value, asset.decimal_digits as number);
 
   const route = await SkipRouter.getRoute(
-    asset.from!,
+    asset.from,
     asset.balance.denom,
     transferAmount.atomics,
     false,
@@ -717,21 +728,21 @@ async function getRoute() {
   return route;
 }
 
-function getChains(route?: RouteResponse) {
+function getChains(route: RouteResponse) {
   const chainToParse: { [key: string]: NetworkInfo } = {};
   const native = walletStore.wallet.signer.chain_id as string;
   const chains = chainsData.filter((item) => {
-    if (item.chain_id == native) {
+    if (item.chain_id === native) {
       return false;
     }
-    return route!.chain_ids?.includes(item.chain_id);
+    return route.chain_ids?.includes(item.chain_id);
   });
 
   const supportedNetworks = configStore.supportedNetworksData;
   for (const chain of chains) {
     for (const key in supportedNetworks) {
       const networkData = supportedNetworks[key];
-      if (networkData?.value == chain.chain_name.toLowerCase()) {
+      if (networkData?.value === chain.chain_name.toLowerCase()) {
         chainToParse[key] = networkData;
       }
     }
@@ -740,17 +751,17 @@ function getChains(route?: RouteResponse) {
   return chainToParse;
 }
 
-function getChainIds(route?: RouteResponse) {
+function getChainIds(route: RouteResponse) {
   const chainToParse: { [key: string]: NetworkInfo } = {};
   const chains = chainsData.filter((item) => {
-    return route!.chain_ids?.includes?.(item.chain_id);
+    return route.chain_ids?.includes?.(item.chain_id);
   });
 
   const supportedNetworks = configStore.supportedNetworksData;
   for (const chain of chains) {
     for (const key in supportedNetworks) {
       const networkData = supportedNetworks[key];
-      if (networkData?.value == chain.chain_name.toLowerCase()) {
+      if (networkData?.value === chain.chain_name.toLowerCase()) {
         chainToParse[chain.chain_id] = networkData;
       }
     }

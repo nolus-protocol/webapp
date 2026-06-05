@@ -143,7 +143,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         rects.filter((_, i) => i === barIndex).style("fill", hoverColor);
 
         tooltip.html(`<strong>${nearestData.ticker}:</strong> ${formatUsd(nearestData.loan)}`);
-        const node = tooltip.node()!.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+        if (!tooltipNode) {
+          return;
+        }
+        const node = tooltipNode.getBoundingClientRect();
         tooltip
           .style("opacity", 1)
           .style("left", `${event.pageX - node.width / 2}px`)

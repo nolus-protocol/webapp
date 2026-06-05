@@ -119,6 +119,12 @@ import { useLeasesStore } from "./index";
 
 const { captured, BackendApi, subscribeLeases } = hoisted;
 
+function emitLeases(lease: any) {
+  const handler = captured.onLeases;
+  expect(handler).toBeTruthy();
+  (handler as (lease: any) => void)(lease);
+}
+
 type LeaseRec = {
   address: string;
   protocol: string;
@@ -428,7 +434,7 @@ describe("useLeasesStore", () => {
     await store.setOwner("nolus1x");
 
     expect(captured.onLeases).not.toBeNull();
-    captured.onLeases!({ address: "l1", status: "opened", amount: { ticker: "ATOM", amount: "9999" } });
+    emitLeases({ address: "l1", status: "opened", amount: { ticker: "ATOM", amount: "9999" } });
 
     const lease = store.leases.find((l) => l.address === "l1");
     expect(lease?.amount.amount).toBe("9999");
@@ -440,7 +446,7 @@ describe("useLeasesStore", () => {
     await store.setOwner("nolus1x");
 
     // Send a regressing status via WS — store should ignore it.
-    captured.onLeases!(mkLease({ address: "l1", status: "opening" }));
+    emitLeases(mkLease({ address: "l1", status: "opening" }));
 
     expect(store.leases.find((l) => l.address === "l1")?.status).toBe("opened");
   });
@@ -450,7 +456,7 @@ describe("useLeasesStore", () => {
     BackendApi.getLeases.mockResolvedValueOnce([]);
     await store.setOwner("nolus1x");
 
-    captured.onLeases!(mkLease({ address: "new1", status: "opened" }));
+    emitLeases(mkLease({ address: "new1", status: "opened" }));
     expect(store.leases.find((l) => l.address === "new1")).toBeDefined();
   });
 

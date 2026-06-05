@@ -213,7 +213,8 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import { Dec, Int } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { useI18n } from "vue-i18n";
-import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
+import type { NolusWallet } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { Leaser, type LeaseApply } from "@nolus/nolusjs/build/contracts";
 import { useRouter } from "vue-router";
 
@@ -328,21 +329,21 @@ const assets = computed(() => {
     data.push({
       name: asset.name,
       value: denom,
-      label: asset.shortName!,
-      shortName: asset.shortName!,
-      icon: asset.icon!,
-      decimal_digits: asset.decimal_digits!,
+      label: asset.shortName,
+      shortName: asset.shortName,
+      icon: asset.icon,
+      decimal_digits: asset.decimal_digits,
       balance: {
         value: exactBalance,
         customLabel: `${balance} ${asset.shortName}`,
-        ticker: asset.shortName!,
+        ticker: asset.shortName,
         denom: asset.balance.denom,
         amount: asset.balance?.amount
       },
       ibcData: (asset as ExternalCurrency).ibcData,
-      native: asset.native!,
-      symbol: asset.symbol!,
-      ticker: asset.ticker!,
+      native: asset.native,
+      symbol: asset.symbol,
+      ticker: asset.ticker,
       key: asset.key,
       stable,
       price: formatDecAsUsd(stable)
@@ -390,7 +391,7 @@ const calculatedBalance = computed(() => {
     return formatUsd(0);
   }
 
-  const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
@@ -637,7 +638,7 @@ async function openLease() {
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
 
       const item = tx?.events.find((item: IObjectKeys) => {
-        return item.type == WASM_EVENTS["wasm-ls-request-loan"].key;
+        return item.type === WASM_EVENTS["wasm-ls-request-loan"].key;
       });
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];

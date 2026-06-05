@@ -109,15 +109,15 @@ const configStore = useConfigStore();
 const assets = computed(() => {
   const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
   const lpns = configStore.lpn?.filter((item) => {
-    const c = configStore.currenciesData![item.key!];
-    const [_currency, protocol] = c.key!.split("@");
+    const c = configStore.currenciesData[item.key];
+    const [_currency, protocol] = c.key.split("@");
     return activeProtocols.includes(protocol);
   });
 
   const data = [];
 
   for (const lpn of lpns ?? []) {
-    const asset = lpnBalances.value.find((item) => item.key == lpn.key);
+    const asset = lpnBalances.value.find((item) => item.key === lpn.key);
     const value = new Dec(asset?.coin?.amount.toString() ?? 0, lpn.decimal_digits);
     const balance = formatTokenBalance(value);
 
@@ -178,7 +178,7 @@ const stable = computed(() => {
 });
 
 const isEmpty = computed(() => {
-  if (input.value.length == 0 || Number(input.value) == 0) {
+  if (input.value.length === 0 || Number(input.value) === 0) {
     return true;
   }
   return false;
@@ -239,7 +239,7 @@ function onInput(data: string) {
 }
 
 async function onNextClick() {
-  if (validateInputs().length == 0) {
+  if (validateInputs().length === 0) {
     try {
       await onValidateAmount();
 
@@ -260,7 +260,7 @@ async function onValidateAmount() {
     return;
   }
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-  const currency = configStore.currenciesData![asset.value];
+  const currency = configStore.currenciesData[asset.value];
   const [_currency, protocol] = currency.key.split("@");
   const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
   const data = await lppClient.getLppBalance();
@@ -280,9 +280,9 @@ async function transferAmount() {
     try {
       loading.value = true;
 
-      const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
+      const currency = configStore.currenciesData[assets.value[selectedCurrency.value].value];
       const microAmount = getMicroAmount(currency.ibcData, input.value);
-      const asset = lpnBalances.value.find((item) => item.key == currency.key);
+      const asset = lpnBalances.value.find((item) => item.key === currency.key);
       if (!asset) {
         onShowToast({
           type: ToastType.error,
@@ -327,7 +327,7 @@ async function transferAmount() {
 }
 
 function onSelect(event: AdvancedCurrencyFieldOption) {
-  const index = assets.value.findIndex((item) => item == event);
+  const index = assets.value.findIndex((item) => item === event);
   selectedCurrency.value = index;
 }
 

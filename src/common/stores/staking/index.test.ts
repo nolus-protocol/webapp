@@ -61,6 +61,12 @@ import { useStakingStore } from "./index";
 
 const { captured, BackendApi, subscribeStaking } = hoisted;
 
+function emitStaking(addr: string, response: any) {
+  const handler = captured.onStaking;
+  expect(handler).toBeTruthy();
+  (handler as (addr: string, response: any) => void)(addr, response);
+}
+
 describe("useStakingStore", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -337,17 +343,17 @@ describe("useStakingStore", () => {
     expect(captured.onStaking).not.toBeNull();
 
     // Mismatched address: ignored
-    captured.onStaking!("nolus1OTHER", {
+    emitStaking("nolus1OTHER", {
       delegations: [{ validator_address: "ignored", shares: "0", balance: { denom: "u", amount: "0" } }]
     });
     expect(store.delegations).toEqual([]);
 
     // Null response: ignored (response is falsy)
-    captured.onStaking!("nolus1x", null);
+    emitStaking("nolus1x", null);
     expect(store.delegations).toEqual([]);
 
     // Matching address + partial response: fields only updated where present
-    captured.onStaking!("nolus1x", {
+    emitStaking("nolus1x", {
       delegations: [{ validator_address: "v1", shares: "1", balance: { denom: "u", amount: "5" } }],
       total_staked: "5"
       // rewards, unbonding, total_rewards omitted — should remain at defaults
