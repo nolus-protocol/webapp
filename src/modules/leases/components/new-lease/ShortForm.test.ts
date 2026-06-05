@@ -335,8 +335,10 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     await wrapper.vm.$nextTick();
 
     // Switch selected collateral to USDC_NOBLE via the stubbed picker.
+    // Amount stays within the 1 USDC fixture balance so the reactive balance
+    // check passes and the quote (the subject of this test) is attempted.
     await wrapper.find('[data-test="pick-usdc"]').trigger("click");
-    await wrapper.find('[data-test="amount"]').setValue("100");
+    await wrapper.find('[data-test="amount"]').setValue("1");
     await flushMicrotasks();
     await wrapper.vm.$nextTick();
     await flushMicrotasks();
@@ -400,6 +402,20 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     await flushMicrotasks();
 
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
+    wrapper.unmount();
+  });
+
+  it("shows insufficient-balance (not a quote error) when amount exceeds the wallet balance", async () => {
+    // BTC balance is 0.005 (500000 micro); 1 BTC is far above it.
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("1");
+    await flushMicrotasks();
+    await wrapper.vm.$nextTick();
+    await flushMicrotasks();
+
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.invalid-balance-big");
+    expect(hoisted.leaseQuote).not.toHaveBeenCalled();
     wrapper.unmount();
   });
 });
