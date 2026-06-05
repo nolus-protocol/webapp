@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type * as VueRouter from "vue-router";
+import type * as NolusJs from "@nolus/nolusjs";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -186,34 +187,18 @@ vi.mock("@/common/utils/CurrencyLookup", () => ({
   })
 }));
 
-vi.mock("@nolus/nolusjs", () => ({
-  CurrencyUtils: {
-    convertDenomToMinimalDenom: (amt: string) => ({
-      amount: {
-        toString: () => (Number(amt || "0") * 1e6).toString(),
-        toDec: () => ({
-          isZero: () => false,
-          lte: () => false,
-          gt: () => false,
-          lt: () => false,
-          toString: () => String(amt)
-        })
-      }
-    }),
-    convertMinimalDenomToDenom: (amt: string) => ({
-      toDec: () => ({
-        mul: () => ({ toString: () => amt, mul: () => ({ toString: () => amt }) }),
-        toString: () => amt
-      })
-    })
-  },
-  NolusClient: {
-    getInstance: () => ({
-      getCosmWasmClient: async () => ({})
-    })
-  },
-  NolusWallet: class {}
-}));
+// Use real CurrencyUtils (Dec math) so the repayment/validation computeds run
+// faithfully when a test drives the reactive input. Only mock NolusClient for
+// the contract call path.
+vi.mock("@nolus/nolusjs", async () => {
+  const actual = await vi.importActual<typeof NolusJs>("@nolus/nolusjs");
+  return {
+    ...actual,
+    NolusClient: {
+      getInstance: () => ({ getCosmWasmClient: async () => ({}) })
+    }
+  };
+});
 
 vi.mock("@nolus/nolusjs/build/contracts", () => ({
   Lease: class {
@@ -278,7 +263,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import RepayDialog from "./RepayDialog.vue";
 
 function makeLease(overrides: Record<string, unknown> = {}) {
@@ -318,6 +303,12 @@ describe("RepayDialog.vue", () => {
     });
     hoisted.getLease.mockReturnValue(makeLease());
     hoisted.getLeaseDisplayData.mockReturnValue({ openingPrice: { toString: () => "1" } });
+    // Reset the shared price fixture every test so a price-feed mutation in one
+    // case cannot leak into the next (no shared mutable fixture state).
+    hoisted.pricesRef.prices = {
+      "USDC@osmosis-1": { price: "1" },
+      "ATOM@osmosis-1": { price: "10" }
+    };
   });
 
   afterEach(() => {
@@ -372,6 +363,21 @@ describe("RepayDialog.vue", () => {
     await wrapper.find('[data-test="submit"]').trigger("click");
     await new Promise((r) => setTimeout(r, 0));
     expect(hoisted.loggerError).toHaveBeenCalled();
+    wrapper.unmount();
+  });
+
+  it("surfaces a specific message (no raw throw, no silent freeze) when the price feed is missing while typing", async () => {
+    // Late/missing WS price for the repayment currency: the reactive validator
+    // used to deref `prices[key].price` and throw inside the watch, freezing the
+    // field. It must now set a specific localized message instead.
+    hoisted.pricesRef.prices = {} as typeof hoisted.pricesRef.prices;
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("5");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
     wrapper.unmount();
   });
 });

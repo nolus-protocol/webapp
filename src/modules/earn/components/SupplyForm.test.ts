@@ -343,4 +343,27 @@ describe("SupplyForm.vue", () => {
       wrapper.unmount();
     });
   });
+
+  it("validateSupply does not throw before the per-protocol deposit capacity has loaded — finding 5", () => {
+    const wrapper = factory();
+    const vm = wrapper.vm as unknown as {
+      assets: unknown[];
+      maxSupply: Record<string, unknown>;
+      input: string;
+      validateInputs: () => string;
+    };
+    // One real asset is present, but the async fetchDepositCapacity has not yet
+    // populated maxSupply for its protocol — `max` is undefined. The over-cap
+    // check used to call `max.isNegative()` and throw inside the reactive path.
+    expect(vm.assets.length).toBeGreaterThan(0);
+    vm.maxSupply = {};
+    vm.input = "100";
+    let result = "";
+    expect(() => {
+      result = vm.validateInputs();
+    }).not.toThrow();
+    // Falls through to the mocked validateAmountV2 (empty) — no capacity error.
+    expect(result).toBe("");
+    wrapper.unmount();
+  });
 });

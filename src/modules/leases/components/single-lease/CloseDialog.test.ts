@@ -140,7 +140,10 @@ vi.mock("@/common/stores/config", () => ({
     get lpn() {
       return hoisted.configRef.lpn;
     },
-    getPositionType: hoisted.configRef.getPositionType
+    getPositionType: hoisted.configRef.getPositionType,
+    getCurrencyByKey: (key: string) => (hoisted.configRef.currenciesData as Record<string, unknown>)[key],
+    getCurrencyByTicker: (ticker: string) =>
+      Object.values(hoisted.configRef.currenciesData).find((c) => (c as { ticker: string }).ticker === ticker)
   })
 }));
 
@@ -283,7 +286,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { Dec } from "@keplr-wallet/unit";
 import CloseDialog from "./CloseDialog.vue";
 
@@ -340,6 +343,12 @@ describe("CloseDialog.vue", () => {
       usd_amount_out: "100",
       swap_price_impact_percent: "0"
     });
+    // Reset the shared price fixture every test so a price-feed mutation in one
+    // case cannot leak into the next (no shared mutable fixture state).
+    hoisted.pricesRef.prices = {
+      "USDC@osmosis-1": { price: "1" },
+      "ATOM@osmosis-1": { price: "10" }
+    };
   });
 
   it("renders without throwing when a cached open lease is present", async () => {
@@ -434,6 +443,32 @@ describe("CloseDialog.vue", () => {
     await wrapper.find('[data-test="slider-right"]').trigger("click");
     await wrapper.vm.$nextTick();
     expect(wrapper.exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("surfaces a specific message (no raw throw, no silent freeze) when the close-currency price is missing while typing", async () => {
+    // Late/missing WS price for the position currency: the reactive validator
+    // used to deref `prices[key].price` with no guard and throw inside the watch,
+    // freezing the field. It must now set a specific localized message instead.
+    hoisted.pricesRef.prices = { "USDC@osmosis-1": { price: "1" } } as typeof hoisted.pricesRef.prices;
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("5");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
+    wrapper.unmount();
+  });
+
+  it("does not raise the missing-data error for a valid amount when prices are present", async () => {
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("5");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.exists()).toBe(true);
+    expect(wrapper.find('[data-test="err"]').text()).not.toBe("message.unexpected-error");
     wrapper.unmount();
   });
 

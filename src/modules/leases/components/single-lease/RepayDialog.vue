@@ -362,8 +362,13 @@ function getRepayment(p: number) {
   if (positionType === "Short") {
     const lpnShort = getLpnByProtocol(lease.value.protocol);
     if (!lpnShort) return undefined;
-    const price = new Dec(pricesStore.prices[lpnShort.key as string].price);
-    const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency.key as string].price);
+    const lpnPriceEntry = pricesStore.prices[lpnShort.key as string];
+    const selectedPriceEntry = pricesStore.prices[selectedCurrency.key as string];
+    // Missing price entries make the conversion undefined (and would divide by
+    // zero); bail so callers render an empty preview instead of throwing.
+    if (!lpnPriceEntry?.price || !selectedPriceEntry?.price) return undefined;
+    const price = new Dec(lpnPriceEntry.price);
+    const selected_asset_price = new Dec(selectedPriceEntry.price);
     const repayment = repaymentInStable.mul(price);
     return {
       repayment: repayment.quo(selected_asset_price),
@@ -403,21 +408,28 @@ function isAmountValid() {
 
   if (coinData && leaseValue) {
     if (amnt || amnt !== "") {
-      const price = pricesStore.prices[coinData.key as string];
+      const priceEntry = pricesStore.prices[coinData.key as string];
+      // The price feed can lag the form (late WS price, config skew). Without it
+      // validation cannot run; surface a specific message rather than dereferencing
+      // a missing entry and throwing inside the reactive watch.
+      if (!priceEntry?.price) {
+        amountErrorMsg.value = i18n.t("message.unexpected-error");
+        return false;
+      }
 
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amnt, "", coinData.decimal_digits);
       const balance = CurrencyUtils.calculateBalance(
-        price.price,
+        priceEntry.price,
         amountInMinimalDenom,
         coinData.decimal_digits
       ).toDec();
       const minAmount = new Dec(minimumLeaseAmount);
-      const p = new Dec(price.price);
+      const p = new Dec(priceEntry.price);
       const amountInStable = new Dec(amnt.length === 0 ? "0" : amnt).mul(p);
 
       const debt = getDebtValue();
       const lpn = getLpnByProtocol(leaseValue.protocol);
-      const debtInCurrencies = debt.quo(new Dec(price.price));
+      const debtInCurrencies = debt.quo(new Dec(priceEntry.price));
       const minAmm = new Dec(minimumLeaseAmount).mul(new Dec(10 ** lpn.decimal_digits));
 
       const minAmountCurrency = minAmount.quo(p);
@@ -480,8 +492,11 @@ function getDebtValue() {
     if (!lpn) {
       throw new Error("LPN currency not available");
     }
-    const price = new Dec(pricesStore.prices[lpn.key as string].price);
-    return debt.mul(price);
+    const priceEntry = pricesStore.prices[lpn.key as string];
+    if (!priceEntry?.price) {
+      throw new Error("LPN price not available");
+    }
+    return debt.mul(new Dec(priceEntry.price));
   }
   return debt;
 }
@@ -535,10 +550,19 @@ async function repayLease() {
   }
 }
 
+// Reacts to: the typed amount and the selected repayment currency.
+// Re-firing on the same input is safe — isAmountValid is idempotent (it resets
+// amountErrorMsg on each run). The try/catch is the backstop for any residual
+// throw from a lagging price/currency feed so the field never silently freezes.
 watch(
   () => [amount.value, selectedCurrency.value],
   () => {
-    isAmountValid();
+    try {
+      isAmountValid();
+    } catch (e) {
+      Logger.error(e);
+      amountErrorMsg.value = i18n.t("message.unexpected-error");
+    }
   }
 );
 
