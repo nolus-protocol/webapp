@@ -32,8 +32,7 @@ Copy and edit the environment files as needed:
 
 | File | Purpose |
 |------|---------|
-| `.env.spa` | Local dev (backend serves frontend) |
-| `.env.serve` | Vite dev server mode (frontend only) |
+| `.env.serve` | Vite dev server mode (`npm run serve`) — user-created, not shipped |
 | `backend/.env` | Backend configuration (see `backend/.env.example`) |
 
 ### 3. Build and run
@@ -68,6 +67,7 @@ npm run serve
 | Backend tests | `cd backend && cargo test` |
 | Format frontend | `npm run format` |
 | Format backend | `cd backend && cargo fmt` |
+| Lint frontend | `npm run lint` |
 | Lint backend | `cd backend && cargo clippy` |
 
 ## License
