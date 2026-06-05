@@ -84,3 +84,13 @@ wiremock = "0.6"
 lto = true
 codegen-units = 1
 strip = true
+
+[lints.clippy]
+as_conversions = "warn"
+too_many_lines = { level = "warn", priority = -1 }
+cognitive_complexity = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
+missing_const_for_fn = { level = "warn", priority = -1 }
+redundant_pub_crate = "deny"
+single_char_lifetime_names = "warn"
