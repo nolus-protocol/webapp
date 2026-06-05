@@ -19,6 +19,9 @@ const MAX_AUDIT_LOG_ENTRIES: usize = 1000;
 /// Maximum number of audit log entries returned in a single query.
 const MAX_PAGE_LIMIT: usize = 100;
 
+/// Number of audit log entries returned when the query omits a limit.
+const DEFAULT_PAGE_LIMIT: usize = 50;
+
 /// Audit log entry for configuration changes
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditLogEntry {
@@ -169,7 +172,7 @@ impl ConfigStore {
 
         let total = filtered.len();
         let limit = if query.limit == 0 {
-            50
+            DEFAULT_PAGE_LIMIT
         } else {
             query.limit.min(MAX_PAGE_LIMIT)
         };
