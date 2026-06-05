@@ -33,7 +33,7 @@ import Chart from "@/common/components/Chart.vue";
 import { Tooltip } from "web-components";
 
 import type { LeaseInfo } from "@/common/api";
-import { LeaseUtils } from "@/common/utils";
+import { computeChartLiquidationPrice } from "./liquidationLine";
 import { formatPriceUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
 import {
   CHART_AXIS,
@@ -48,7 +48,6 @@ import { plot, lineY } from "@observablehq/plot";
 import { computed, ref, watch } from "vue";
 import { pointer, select, type Selection } from "d3";
 import { useI18n } from "vue-i18n";
-import { Dec } from "@keplr-wallet/unit";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useAnalyticsStore } from "@/common/stores";
@@ -104,22 +103,17 @@ const currency = computed(() => {
 async function setData() {
   if (props.lease) {
     const chartData = await loadData(props.interval);
-    const liquidations = getLiquidations();
+    const liquidation = resolveLiquidationPrice();
+    // computeChartLiquidationPrice returns 0 for any non-opened / zero-value lease.
+    const liquidationLabel = liquidation <= 0 ? null : liquidation.toString();
+
     data.value = (chartData ?? [])
       .map((item) => {
         const [date, price] = item;
-        const now = new Date(date);
-
-        const l = liquidations.reduce((closest, date) =>
-          Math.abs(date.date.getTime() - now.getTime()) < Math.abs(closest.date.getTime() - now.getTime())
-            ? date
-            : closest
-        );
-
         return {
-          Date: now,
+          Date: new Date(date),
           Price: price,
-          Liquidation: props.lease?.status === "opening" ? null : l.amount.toString()
+          Liquidation: liquidationLabel
         };
       })
       .reverse();
@@ -127,65 +121,19 @@ async function setData() {
   }
 }
 
-function getLiquidations() {
-  let asset = new Dec(0);
-  const asset2 = new Dec(0);
-
-  const liquidations: {
-    amount: Dec;
-    date: Date;
-  }[] = [];
-
+// Current liquidation trigger, resolved with the same decimals the position
+// widgets use. Rendered as a flat line across the series — see liquidationLine.ts.
+function resolveLiquidationPrice(): number {
   const protocolKey = props.lease?.protocol as string;
+  const unitAssetInfo = configStore.currenciesData?.[`${props.lease?.amount.ticker}@${protocolKey}`];
+  const lpn = getLpnByProtocol(protocolKey);
+  const stableAssetInfo = lpn ? configStore.currenciesData?.[lpn.key] : null;
 
-  if (props.lease?.status === "opened") {
-    const historyElements = [...(props.lease?.etl_data?.history ?? [])].reverse();
-
-    for (const history of historyElements) {
-      const ticker = history.symbol;
-
-      const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
-      if (unitAssetInfo) {
-        asset = asset.add(new Dec(history.amount ?? "0", unitAssetInfo.decimal_digits));
-      }
-
-      const l = parceLiquidaitons(asset, asset2);
-      liquidations.push({
-        amount: l,
-        date: new Date(history.timestamp ?? Date.now())
-      });
-    }
-  }
-  const l = parceLiquidaitons(new Dec(0), new Dec(0));
-  liquidations.unshift({
-    amount: l,
-    date: new Date()
+  return computeChartLiquidationPrice(props.lease, {
+    positionType: configStore.getPositionType(protocolKey),
+    unitDecimals: Number(unitAssetInfo?.decimal_digits ?? 0),
+    stableDecimals: Number(stableAssetInfo?.decimal_digits ?? 0)
   });
-
-  return liquidations;
-}
-
-function parceLiquidaitons(stableAdd: Dec, uAsset: Dec) {
-  let liquidation = new Dec(0);
-  if (props.lease?.status === "opened") {
-    const protocolKey = props.lease?.protocol as string;
-    const ticker = props.lease?.amount.ticker;
-    const unitAssetInfo = configStore.currenciesData![`${ticker!}@${protocolKey}`];
-    const lpn = getLpnByProtocol(protocolKey);
-    const stableAssetInfo = lpn ? configStore.currenciesData?.[lpn.key] : null;
-
-    const unitAsset = new Dec(props.lease.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));
-    const stableAsset = new Dec(props.lease.debt.principal, Number(stableAssetInfo?.decimal_digits ?? 0));
-
-    const positionType = configStore.getPositionType(protocolKey);
-    if (positionType === "Long") {
-      liquidation = LeaseUtils.calculateLiquidation(stableAsset.add(stableAdd), unitAsset.add(uAsset));
-    } else {
-      liquidation = LeaseUtils.calculateLiquidationShort(unitAsset.add(uAsset), stableAsset.add(stableAdd));
-    }
-  }
-
-  return liquidation;
 }
 
 async function loadData(intetval: string) {
@@ -253,7 +201,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     y: {
       type: "linear",
       domain: yDomain,
-      clamp: true,
+      // Not clamped: a liquidation far outside the price range is clipped to the
+      // frame (invisible) rather than pinned to an edge at a position that would
+      // contradict its tooltip value.
+      clamp: false,
       grid: true,
       label: null,
       labelArrow: false,
@@ -332,18 +283,21 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
         dotPrice.attr("cx", xPixel).attr("cy", yScale.apply(closestData.Price)).style("display", null);
 
-        if (closestData.Liquidation !== null) {
-          dotLiquidation
-            .attr("cx", xPixel)
-            .attr("cy", yScale.apply(Number(closestData.Liquidation)))
-            .style("display", null);
+        const liquidationValue = closestData.Liquidation !== null ? Number(closestData.Liquidation) : null;
+        // Only place the liquidation dot when its value is inside the visible Y
+        // domain; otherwise it would be pinned to an edge and contradict the
+        // tooltip value.
+        if (liquidationValue !== null && liquidationValue >= yDomain[0] && liquidationValue <= yDomain[1]) {
+          dotLiquidation.attr("cx", xPixel).attr("cy", yScale.apply(liquidationValue)).style("display", null);
         } else {
           dotLiquidation.style("display", "none");
         }
 
-        tooltip.html(
-          `<strong>${i18n.t("message.price")}:</strong> ${formatUsd(closestData.Price)}<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> ${formatUsd(Number(closestData.Liquidation!))}`
-        );
+        const liquidationHtml =
+          liquidationValue !== null
+            ? `<br><strong>${i18n.t("message.chart-liquidation-tooltip")}:</strong> ${formatUsd(liquidationValue)}`
+            : "";
+        tooltip.html(`<strong>${i18n.t("message.price")}:</strong> ${formatUsd(closestData.Price)}${liquidationHtml}`);
 
         const node = tooltip.node()!.getBoundingClientRect();
         const height = node.height;
