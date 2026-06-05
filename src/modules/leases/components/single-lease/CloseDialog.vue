@@ -280,7 +280,7 @@ import {
   formatTokenBalance,
   formatPercent
 } from "@/common/utils/NumberFormatUtils";
-import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
+import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency } from "@/common/types";
 import { MAX_DECIMALS, minimumLeaseAmount, PERCENT } from "@/config/global";
@@ -728,46 +728,54 @@ async function setSwapFee() {
     const lease_currency = currency.value;
     const lpnCurrency = getLpnByProtocol(lease.value?.protocol as string);
     const debtValue = debt.value;
-    if (!debtValue || !lpnCurrency) {
+    if (!debtValue || !lpnCurrency || !lease_currency) {
       return;
     }
-    let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-      debtValue.amount.toDec().toString(),
-      lease_currency.ibcData,
-      lease_currency.decimal_digits
-    ).amount.toString();
-
-    let amountIn = 0;
-    let amountOut = 0;
-
-    const positionType = configStore.getPositionType(lease.value?.protocol as string);
-    if (positionType === "Short") {
-      microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+    // The Skip route call (and the Dec conversions) run inside a debounced timer
+    // detached from the render cycle: an unhandled rejection here would surface
+    // as a console error and leave the preview fee silently stale. Catch and log
+    // so a transient route/price failure degrades gracefully instead.
+    try {
+      let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
         debtValue.amount.toDec().toString(),
-        lpnCurrency.ibcData,
-        lpnCurrency.decimal_digits
+        lease_currency.ibcData,
+        lease_currency.decimal_digits
       ).amount.toString();
+
+      let amountIn = 0;
+      let amountOut = 0;
+
+      const positionType = configStore.getPositionType(lease.value?.protocol as string);
+      if (positionType === "Short") {
+        microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+          debtValue.amount.toDec().toString(),
+          lpnCurrency.ibcData,
+          lpnCurrency.decimal_digits
+        ).amount.toString();
+      }
+
+      await Promise.all([
+        SkipRouter.getRoute(lease_currency.ibcData, lpnCurrency.ibcData, microAmount).then((data) => {
+          amountIn += Number(data.usd_amount_in ?? 0);
+          amountOut += Number(data.usd_amount_out ?? 0);
+
+          return Number(data?.swap_price_impact_percent ?? 0);
+        })
+      ]);
+
+      const out_a = Math.max(amountOut, amountIn);
+      const in_a = Math.min(amountOut, amountIn);
+
+      const diff = out_a - in_a;
+      let fee = 0;
+      if (in_a > 0) {
+        fee = diff / in_a;
+      }
+
+      swapFee.value = fee;
+    } catch (e) {
+      Logger.error(e);
     }
-
-    await Promise.all([
-      SkipRouter.getRoute(lease_currency.ibcData, lpnCurrency.ibcData, microAmount).then((data) => {
-        amountIn += Number(data.usd_amount_in ?? 0);
-        amountOut += Number(data.usd_amount_out ?? 0);
-
-        return Number(data?.swap_price_impact_percent ?? 0);
-      })
-    ]);
-
-    const out_a = Math.max(amountOut, amountIn);
-    const in_a = Math.min(amountOut, amountIn);
-
-    const diff = out_a - in_a;
-    let fee = 0;
-    if (in_a > 0) {
-      fee = diff / in_a;
-    }
-
-    swapFee.value = fee;
   }, timeOut);
 }
 
@@ -776,22 +784,36 @@ function isAmountValid() {
   amountErrorMsg.value = "";
   if (lease.value && lease.value.status === "opened") {
     const a = amount.value;
-    const currencyData = configStore.currenciesData[`${lease.value.amount.ticker}@${lease.value.protocol}`];
-    const debtAmount = new Dec(lease.value.amount.amount, Number(currencyData.decimal_digits));
+    const currencyData = configStore.getCurrencyByKey(`${lease.value.amount.ticker}@${lease.value.protocol}`);
     const minAssetSpec = minAsset.value;
-    if (!minAssetSpec) {
-      throw new Error("Minimum asset spec not available");
-    }
-    const minAssetTicker = minAssetSpec.ticker;
-    const minAmountCurrency = getCurrencyByTicker(minAssetTicker);
-    let minAmont = new Dec(minAssetSpec.amount, Number(minAmountCurrency.decimal_digits));
-
+    const minAmountCurrency = minAssetSpec ? configStore.getCurrencyByTicker(minAssetSpec.ticker) : undefined;
     const positionType = configStore.getPositionType(lease.value.protocol);
-    if (positionType === "Short") {
-      const p = new Dec(pricesStore.prices[`${minAssetTicker}@${lease.value.protocol}`].price);
-      minAmont = minAmont.mul(p);
+    const currencyPriceEntry = currencyData ? pricesStore.prices[currencyData.key as string] : undefined;
+    const shortMinAssetPrice =
+      positionType === "Short" && minAssetSpec
+        ? pricesStore.prices[`${minAssetSpec.ticker}@${lease.value.protocol}`]?.price
+        : undefined;
+
+    // Price/currency feeds can lag the form (late WS price, config skew). Without
+    // them validation cannot run; surface a specific message rather than
+    // force-unwrapping a missing entry and throwing inside the reactive watch.
+    if (
+      !currencyData ||
+      !minAssetSpec ||
+      !minAmountCurrency ||
+      !currencyPriceEntry?.price ||
+      (positionType === "Short" && !shortMinAssetPrice)
+    ) {
+      amountErrorMsg.value = i18n.t("message.unexpected-error");
+      return false;
     }
-    const price = new Dec(pricesStore.prices[currencyData.key as string].price);
+
+    const debtAmount = new Dec(lease.value.amount.amount, Number(currencyData.decimal_digits));
+    let minAmont = new Dec(minAssetSpec.amount, Number(minAmountCurrency.decimal_digits));
+    if (positionType === "Short" && shortMinAssetPrice) {
+      minAmont = minAmont.mul(new Dec(shortMinAssetPrice));
+    }
+    const price = new Dec(currencyPriceEntry.price);
 
     const minAmountTemp = new Dec(minimumLeaseAmount);
     const amountInStable = new Dec(a.length === 0 ? "0" : a).mul(price);
@@ -971,10 +993,19 @@ function getCurrency() {
   };
 }
 
+// Reacts to: the typed amount and the selected close currency.
+// Re-firing on the same input is safe — isAmountValid is idempotent (it resets
+// amountErrorMsg on each run). The try/catch is the backstop for any residual
+// throw from a lagging price/currency feed so the field never silently freezes.
 watch(
   () => [amount.value, selectedCurrency.value],
   () => {
-    isAmountValid();
+    try {
+      isAmountValid();
+    } catch (e) {
+      Logger.error(e);
+      amountErrorMsg.value = i18n.t("message.unexpected-error");
+    }
   }
 );
 

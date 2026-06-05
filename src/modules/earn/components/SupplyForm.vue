@@ -343,7 +343,10 @@ function validateSupply() {
   const [_, protocol] = asset.key.split("@");
   const max = maxSupply.value[protocol];
 
-  if (max.isNegative()) {
+  // maxSupply is populated per-protocol by an async fetchDepositCapacity; before
+  // it lands for this protocol `max` is undefined. Treat the not-yet-loaded state
+  // like a negative cap (skip the over-cap check) rather than dereferencing it.
+  if (!max || max.isNegative()) {
     return "";
   }
 
