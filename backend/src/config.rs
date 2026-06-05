@@ -2,6 +2,9 @@ use serde::Deserialize;
 use std::env;
 use thiserror::Error;
 
+/// Default TCP port the server binds to when `PORT` is unset.
+const DEFAULT_PORT: u16 = 3000;
+
 // ============================================================================
 // Configuration Errors
 // ============================================================================
@@ -65,7 +68,7 @@ impl Default for ServerConfig {
     fn default() -> Self {
         Self {
             host: "0.0.0.0".to_string(),
-            port: 3000,
+            port: DEFAULT_PORT,
             cors_origins: None,
         }
     }
@@ -280,7 +283,7 @@ impl AppConfig {
         };
 
         let port: u16 = env::var("PORT")
-            .unwrap_or_else(|_err| "3000".to_string())
+            .unwrap_or_else(|_err| DEFAULT_PORT.to_string())
             .parse()
             .map_err(|e| anyhow::anyhow!("PORT must be a valid port number (u16): {e}"))?;
 

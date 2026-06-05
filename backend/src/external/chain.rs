@@ -35,6 +35,9 @@ const INITIAL_BACKOFF_MS: u64 = 100;
 /// HTTP status codes that trigger retry with backoff.
 const RETRYABLE_STATUS_CODES: [u16; 2] = [429, 503];
 
+/// Milliseconds per second, for `Retry-After` (seconds) → millisecond conversion.
+const MS_PER_SEC: u64 = 1000;
+
 /// Simple jitter using system time nanoseconds (no rand crate needed).
 fn rand_jitter(max: u64) -> u64 {
     if max == 0 {
@@ -144,7 +147,7 @@ impl ChainClient {
                 .get("retry-after")
                 .and_then(|v| v.to_str().ok())
                 .and_then(|v| v.parse::<u64>().ok())
-                .map(|secs| secs * 1000);
+                .map(|secs| secs * MS_PER_SEC);
 
             let wait_ms = retry_after_ms.unwrap_or(backoff_ms);
             let jitter = rand_jitter(wait_ms / 4);

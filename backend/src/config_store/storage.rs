@@ -13,6 +13,12 @@ use tracing::{debug, error, info, warn};
 
 use super::gated_types::*;
 
+/// Maximum audit log entries retained in memory; older entries are dropped.
+const MAX_AUDIT_LOG_ENTRIES: usize = 1000;
+
+/// Maximum number of audit log entries returned in a single query.
+const MAX_PAGE_LIMIT: usize = 100;
+
 /// Audit log entry for configuration changes
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditLogEntry {
@@ -113,10 +119,10 @@ impl ConfigStore {
             let mut log = self.audit_log.write().await;
             log.push(entry.clone());
 
-            // Keep only the last 1000 entries in memory
+            // Keep only the most recent entries in memory
             let len = log.len();
-            if len > 1000 {
-                log.drain(0..len - 1000);
+            if len > MAX_AUDIT_LOG_ENTRIES {
+                log.drain(0..len - MAX_AUDIT_LOG_ENTRIES);
             }
         }
 
@@ -165,7 +171,7 @@ impl ConfigStore {
         let limit = if query.limit == 0 {
             50
         } else {
-            query.limit.min(100)
+            query.limit.min(MAX_PAGE_LIMIT)
         };
         let offset = query.offset.min(total);
 
