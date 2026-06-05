@@ -894,7 +894,14 @@ function getRepayment(p: number) {
     const SHORT_PRICE_BUFFER = new Dec("1.01");
     const debtTicker = lease.value.debt.ticker;
     const debtAssetPrice = new Dec(pricesStore.prices[`${debtTicker}@${lease.value.protocol}`]?.price ?? "1");
-    const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency.key as string].price);
+    const selectedPriceEntry = pricesStore.prices[selectedCurrency.key as string];
+    // A missing selected-currency price would divide by zero and throw inside a
+    // render computed, freezing it. Bail so callers render an empty preview —
+    // mirrors the Long branch below and the guarded RepayDialog.
+    if (!selectedPriceEntry?.price) {
+      return undefined;
+    }
+    const selected_asset_price = new Dec(selectedPriceEntry.price);
     const repayment = repaymentInStable.mul(debtAssetPrice).mul(SHORT_PRICE_BUFFER);
     return {
       repayment: repayment.quo(selected_asset_price),

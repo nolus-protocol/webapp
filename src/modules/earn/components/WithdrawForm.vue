@@ -163,7 +163,13 @@ const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: st
 
 const input = ref("0");
 const error = ref("");
-const errorInsufficientBalance = computed(() => error.value === i18n.t("message.invalid-balance-big"));
+const errorInsufficientBalance = computed(() =>
+  [
+    i18n.t("message.invalid-balance-big"),
+    i18n.t("message.withdraw-lpp-balance-error"),
+    i18n.t("message.invalid-amount")
+  ].includes(error.value)
+);
 const loading = ref(false);
 const disabled = ref(false);
 const selectedCurrency = ref(0);
@@ -254,6 +260,9 @@ async function onNextClick() {
       await walletOperation(transferAmount);
     } catch (e) {
       Logger.error(e);
+      // Don't swallow: a failed liquidity pre-check (onValidateAmount) or wallet
+      // op must leave a localized message on the field, not just stop the button.
+      error.value = i18n.t(classifyError(e));
     } finally {
       disabled.value = false;
     }

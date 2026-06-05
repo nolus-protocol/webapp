@@ -68,7 +68,7 @@ const hoisted = vi.hoisted(() => {
       }
     },
     lpn: [{ key: "USDC@osmosis-1", shortName: "USDC" }],
-    getPositionType: (_p: string) => "Long"
+    positionType: "Long" as "Long" | "Short"
   };
 
   const balancesRef = {
@@ -140,7 +140,7 @@ vi.mock("@/common/stores/config", () => ({
     get lpn() {
       return hoisted.configRef.lpn;
     },
-    getPositionType: hoisted.configRef.getPositionType,
+    getPositionType: (_p: string) => hoisted.configRef.positionType,
     getCurrencyByKey: (key: string) => (hoisted.configRef.currenciesData as Record<string, unknown>)[key],
     getCurrencyByTicker: (ticker: string) =>
       Object.values(hoisted.configRef.currenciesData).find((c) => (c as { ticker: string }).ticker === ticker)
@@ -351,6 +351,7 @@ describe("CloseDialog.vue", () => {
       "USDC@osmosis-1": { price: "1" },
       "ATOM@osmosis-1": { price: "10" }
     };
+    hoisted.configRef.positionType = "Long";
   });
 
   it("renders without throwing when a cached open lease is present", async () => {
@@ -463,6 +464,20 @@ describe("CloseDialog.vue", () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.exists()).toBe(true);
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
+    wrapper.unmount();
+  });
+
+  it("does not throw/freeze on a short position when the selected-currency price is missing (finding 13)", async () => {
+    // Short getRepayment force-derefed prices[selectedCurrency.key].price; a
+    // missing entry threw inside the debt/preview computeds and froze them.
+    hoisted.configRef.positionType = "Short";
+    hoisted.pricesRef.prices = { "USDC@osmosis-1": { price: "1" } } as typeof hoisted.pricesRef.prices;
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("5");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    expect(wrapper.exists()).toBe(true);
     wrapper.unmount();
   });
 

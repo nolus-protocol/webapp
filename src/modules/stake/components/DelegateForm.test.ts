@@ -97,7 +97,9 @@ vi.mock("@/common/utils", () => ({
   },
   Utils: { getRandomInt: () => 0 },
   validateAmountV2: hoisted.validateAmountV2Mock,
-  walletOperation: hoisted.walletOperationMock
+  walletOperation: hoisted.walletOperationMock,
+  classifyError: (e: unknown) =>
+    e instanceof Error && /liquidity/i.test(e.message) ? "message.no-liquidity" : "message.unexpected-error"
 }));
 
 vi.mock("@/common/utils/NumberFormatUtils", () => ({
@@ -246,6 +248,19 @@ describe("DelegateForm.vue", () => {
     expect(hoisted.walletOperationMock).toHaveBeenCalledTimes(1);
     expect(hoisted.simulateDelegateTx).toHaveBeenCalledTimes(1);
     expect(hoisted.broadcastTx).toHaveBeenCalledTimes(1);
+    wrapper.unmount();
+  });
+
+  it("surfaces a localized message (not a silent stop) when delegate rejects — finding 9", async () => {
+    hoisted.walletOperationMock.mockRejectedValueOnce(new Error("validator fetch failed"));
+    const wrapper = factory();
+    await wrapper.find('[data-test="amount"]').setValue("100");
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await new Promise((r) => setTimeout(r, 0));
+    await nextTick();
+    // The failure used to be swallowed (Logger.error only) — the field now shows
+    // a classified message instead of staying blank.
+    expect(wrapper.find('[data-test="error"]').text()).toBe("message.unexpected-error");
     wrapper.unmount();
   });
 
