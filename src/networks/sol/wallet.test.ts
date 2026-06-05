@@ -230,7 +230,7 @@ describe("SolanaWallet (Solflare provider)", () => {
       })
     });
 
-    const res = await bound.simulateMultiTx!(
+    const res = await bound.simulateMultiTx?.(
       [{ msg: { fromAddress: "a", toAddress: "b" }, msgTypeUrl: "/cosmos.bank.v1beta1.MsgSend" }],
       ""
     );
@@ -262,7 +262,7 @@ describe("SolanaWallet (Solflare provider)", () => {
       })
     });
 
-    await bound.simulateMultiTx!(
+    await bound.simulateMultiTx?.(
       [{ msg: { fromAddress: "a", toAddress: "b" }, msgTypeUrl: "/cosmos.bank.v1beta1.MsgSend" }],
       ""
     );
@@ -307,7 +307,7 @@ describe("SolanaWallet (Solflare provider)", () => {
       })
     });
 
-    await bound.simulateMultiTx!(
+    await bound.simulateMultiTx?.(
       [{ msg: { fromAddress: "a", toAddress: "b" }, msgTypeUrl: "/cosmos.bank.v1beta1.MsgSend" }],
       ""
     );
@@ -332,7 +332,7 @@ describe("SolanaWallet (Solflare provider)", () => {
     const bound = Object.assign(signer, {
       simulateMultiTx: vi.fn().mockResolvedValue({ txHash: "deadbeef", txBytes: new Uint8Array(), usedFee: {} })
     });
-    await bound.simulateTx!({ x: 1 } as never, "/cosmos.bank.v1beta1.MsgSend", "memo");
+    await bound.simulateTx?.({ x: 1 } as never, "/cosmos.bank.v1beta1.MsgSend", "memo");
     expect(bound.simulateMultiTx).toHaveBeenCalledWith(
       [{ msg: { x: 1 }, msgTypeUrl: "/cosmos.bank.v1beta1.MsgSend" }],
       "memo"
@@ -435,7 +435,7 @@ describe("SolanaWallet (Phantom provider)", () => {
       })
     });
 
-    await bound.simulateMultiTx!(
+    await bound.simulateMultiTx?.(
       [{ msg: { fromAddress: "a", toAddress: "b" }, msgTypeUrl: "/cosmos.bank.v1beta1.MsgSend" }],
       ""
     );

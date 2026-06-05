@@ -116,8 +116,8 @@ const assets = computed(() => {
   try {
     const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
     const lpns = configStore.lpn?.filter((item) => {
-      const c = configStore.currenciesData![item.key!];
-      const [_currency, protocol] = c.key!.split("@");
+      const c = configStore.currenciesData[item.key];
+      const [_currency, protocol] = c.key.split("@");
       return activeProtocols.includes(protocol);
     });
 
@@ -154,7 +154,7 @@ const assets = computed(() => {
     for (const protocol of SORT_PROTOCOLS) {
       const index = data.findIndex((item) => {
         const [_key, pr] = item.value.split("@");
-        return pr == protocol;
+        return pr === protocol;
       });
       if (index > -1) {
         items.push(data[index]);
@@ -247,7 +247,7 @@ const amountStr = computed(() => {
 });
 
 async function onNextClick() {
-  if (validateInputs().length == 0) {
+  if (validateInputs().length === 0) {
     try {
       disabled.value = true;
       await walletOperation(transferAmount);
@@ -265,7 +265,7 @@ async function transferAmount() {
   if (wallet && error.value === "") {
     try {
       loading.value = true;
-      const currency = configStore.currenciesData![assets.value[selectedCurrency.value].value];
+      const currency = configStore.currenciesData[assets.value[selectedCurrency.value].value];
       const microAmount = getMicroAmount(currency.ibcData, input.value);
 
       const [_currency, protocol] = currency.key.split("@");
@@ -303,7 +303,7 @@ async function fetchDepositCapacity() {
   const value: { [key: string]: boolean } = {};
   const data = [];
   for (const lpn of lpns ?? []) {
-    const [_currency, protocol] = lpn.key!.split("@");
+    const [_currency, protocol] = lpn.key.split("@");
 
     const fn = async () => {
       try {
@@ -315,7 +315,7 @@ async function fetchDepositCapacity() {
         const lppClient = new Lpp(cosmWasmClient, contract);
         const depositCapacity = await lppClient.getDepositCapacity();
 
-        if (Number(depositCapacity?.amount) == 0) {
+        if (Number(depositCapacity?.amount) === 0) {
           value[protocol] = false;
           maxSupply.value[protocol] = new Int(0);
         } else {
@@ -347,7 +347,7 @@ function validateSupply() {
     return "";
   }
 
-  const i = input.value.length == 0 ? "0" : input.value;
+  const i = input.value.length === 0 ? "0" : input.value;
 
   const a = CurrencyUtils.convertDenomToMinimalDenom(i, asset.ibcData, asset.decimal_digits);
 
@@ -365,7 +365,7 @@ function validateSupply() {
 }
 
 function onSelect(event: AdvancedCurrencyFieldOption) {
-  const index = assets.value.findIndex((item) => item == event);
+  const index = assets.value.findIndex((item) => item === event);
   selectedCurrency.value = index;
 }
 

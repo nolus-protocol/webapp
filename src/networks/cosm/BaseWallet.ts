@@ -69,6 +69,9 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     explorer: string
   ) {
     super(tmClient, signer, options);
+    if (!tmClient) {
+      throw new Error("CometClient is required to construct BaseWallet");
+    }
     this.offlineSigner = signer;
     this.rpc = rpc;
     this.api = api;
@@ -77,7 +80,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     this.gasMultiplier = gasMultiplier;
     this.explorer = explorer;
     this.queryClientBase = QueryClient.withExtensions(
-      tmClient!,
+      tmClient,
       setupAuthExtension,
       setupBankExtension,
       setupStakingExtension,
@@ -133,11 +136,14 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     pubkey: Secp256k1Pubkey,
     sequence: { sequence?: number; accountNumber?: number }
   ) {
+    if (sequence.sequence == null) {
+      throw new Error("Account sequence not available");
+    }
     const { gasInfo } = await this.queryClientBase.tx.simulate(
       [this.registry.encodeAsAny(msgAny)],
       memo,
       pubkey,
-      sequence.sequence!
+      sequence.sequence
     );
     return gasInfo;
   }
@@ -224,7 +230,10 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
 
   private async sequence() {
     try {
-      const account = await this.getAccount(this.address!);
+      if (!this.address) {
+        throw new Error("Wallet address not available");
+      }
+      const account = await this.getAccount(this.address);
       return { sequence: account?.sequence, accountNumber: account?.accountNumber };
     } catch (error) {
       Logger.error(error);

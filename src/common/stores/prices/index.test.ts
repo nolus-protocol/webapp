@@ -38,6 +38,12 @@ const hoisted = vi.hoisted(() => {
 });
 const { captured, getPricesMock, subscribePricesMock } = hoisted;
 
+function emitPrices(payload: Record<string, string>) {
+  const handler = captured.onPrices;
+  expect(handler).toBeTruthy();
+  (handler as (payload: Record<string, string>) => void)(payload);
+}
+
 vi.mock("@/common/api", () => ({
   BackendApi: {
     getPrices: hoisted.getPricesMock
@@ -178,7 +184,7 @@ describe("usePricesStore", () => {
     await store.initialize();
 
     expect(captured.onPrices).not.toBeNull();
-    captured.onPrices!({ "USDC@A": "1.05" });
+    emitPrices({ "USDC@A": "1.05" });
     expect(store.prices["USDC@A"]).toEqual({ price: "1.05", symbol: "USDC" });
   });
 
@@ -187,7 +193,7 @@ describe("usePricesStore", () => {
     const store = usePricesStore();
     await store.initialize();
 
-    captured.onPrices!({ "DOT@X": "5.0" });
+    emitPrices({ "DOT@X": "5.0" });
     expect(store.prices["DOT@X"]).toEqual({ price: "5.0", symbol: "DOT" });
   });
 
@@ -197,11 +203,14 @@ describe("usePricesStore", () => {
     await store.initialize();
 
     const before = store.lastUpdated;
+    expect(before).toBeTruthy();
     // Force a measurable time gap
     await new Promise((r) => setTimeout(r, 5));
-    captured.onPrices!({ "A@P": "1" });
+    emitPrices({ "A@P": "1" });
     expect(store.lastUpdated).not.toBe(before);
-    expect(store.lastUpdated!.getTime()).toBeGreaterThanOrEqual(before!.getTime());
+    const after = store.lastUpdated;
+    expect(after).toBeTruthy();
+    expect((after as Date).getTime()).toBeGreaterThanOrEqual((before as Date).getTime());
   });
 
   it("cleanup unsubscribes from WS and allows re-subscribe", async () => {

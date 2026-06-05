@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type * as VueRouter from "vue-router";
 
 // Mock every module the router imports so the router module can be loaded
 // under jsdom without pulling in hundreds of deps.
@@ -51,7 +52,7 @@ vi.mock("@/modules/view.vue", () => ({ default: { name: "MainLayout", template: 
 
 // Force vue-router to use memory history in tests to avoid jsdom/history races.
 vi.mock("vue-router", async () => {
-  const actual = await vi.importActual<typeof import("vue-router")>("vue-router");
+  const actual = await vi.importActual<typeof VueRouter>("vue-router");
   return {
     ...actual,
     createWebHistory: actual.createMemoryHistory

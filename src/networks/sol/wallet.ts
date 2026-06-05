@@ -25,12 +25,12 @@ import type { Window } from "../window";
 import { PubKey as Ed25519PubKey } from "cosmjs-types/cosmos/crypto/ed25519/keys";
 import { encodeEd25519Pubkey } from "@cosmjs/amino";
 
-import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
-import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
-import { MsgDelegate, MsgUndelegate, MsgBeginRedelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
-import { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
-import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
+import type { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
+import type { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
+import type { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
+import type { MsgDelegate, MsgUndelegate, MsgBeginRedelegate } from "cosmjs-types/cosmos/staking/v1beta1/tx";
+import type { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
+import type { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
 
 export class SolanaWallet implements Wallet {
@@ -48,7 +48,7 @@ export class SolanaWallet implements Wallet {
     this.providerKind = provider;
   }
 
-  private getProvider() {
+  private getProvider(): NonNullable<Window["solflare"]> {
     if (this.providerKind === "solflare") {
       const provider = (window as Window).solflare;
       if (!provider || (provider as { isSolflare?: unknown }).isSolflare !== true) {
@@ -101,12 +101,12 @@ export class SolanaWallet implements Wallet {
   private async getWallet(chainInfo: ChainInfo) {
     const provider = this.getProvider();
 
-    const isConnected = await provider!.connect();
-    if (!isConnected || !provider?.publicKey) {
+    const isConnected = await provider.connect();
+    if (!isConnected || !provider.publicKey) {
       throw new Error("Connection failed—user rejected or no publicKey available.");
     }
 
-    const publicKey = provider!.publicKey;
+    const publicKey = provider.publicKey;
     const ed25519PublicKey = publicKey.toBytes();
     const solAddress = publicKey.toBase58();
 
@@ -222,7 +222,7 @@ export class SolanaWallet implements Wallet {
         });
         const signBytes = SignDoc.encode(signDoc).finish();
 
-        const { signature } = await provider!.signMessage(signBytes);
+        const { signature } = await provider.signMessage(signBytes);
 
         const txRaw = TxRaw.fromPartial({
           bodyBytes: txBodyBytes,

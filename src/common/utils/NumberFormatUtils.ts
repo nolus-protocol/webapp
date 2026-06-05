@@ -4,7 +4,8 @@
  * Handles number formatting for display in the UI.
  */
 
-import { Dec, CoinPretty } from "@keplr-wallet/unit";
+import type { CoinPretty } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { DECIMALS_AMOUNT, MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
 
 // Intl.NumberFormat construction is expensive — cache instances by options signature.

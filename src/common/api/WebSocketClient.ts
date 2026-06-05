@@ -7,6 +7,8 @@
 
 import type { LeaseInfo, BalanceInfo, StakingPositionsResponse } from "./BackendApi";
 
+import { Logger } from "@/common/utils/Logger";
+
 // WebSocket URL from environment, falls back to same-origin /ws (for Vite dev proxy)
 function getWsUrl(): string {
   return (
@@ -244,7 +246,7 @@ class WebSocketClientImpl {
         this.ws = new WebSocket(this.url);
 
         this.ws.onopen = () => {
-          console.log("[WebSocket] Connected");
+          Logger.log("[WebSocket] Connected");
           this.setConnectionState("connected");
           this.reconnectAttempts = 0;
           this.resubscribeAll();
@@ -252,7 +254,7 @@ class WebSocketClientImpl {
         };
 
         this.ws.onclose = (event) => {
-          console.log("[WebSocket] Disconnected", event.code, event.reason);
+          Logger.log("[WebSocket] Disconnected", event.code, event.reason);
           this.cleanup();
           this.setConnectionState("disconnected");
           this.scheduleReconnect();
@@ -310,7 +312,7 @@ class WebSocketClientImpl {
       this.config.maxReconnectInterval
     );
 
-    console.log(`[WebSocket] Reconnecting in ${interval}ms (attempt ${this.reconnectAttempts + 1})`);
+    Logger.log(`[WebSocket] Reconnecting in ${interval}ms (attempt ${this.reconnectAttempts + 1})`);
     this.setConnectionState("reconnecting");
 
     this.reconnectTimeout = setTimeout(() => {
@@ -340,11 +342,11 @@ class WebSocketClientImpl {
 
       switch (message.type) {
         case "subscribed":
-          console.log(`[WebSocket] Subscribed to ${message.topic}`);
+          Logger.log(`[WebSocket] Subscribed to ${message.topic}`);
           break;
 
         case "unsubscribed":
-          console.log(`[WebSocket] Unsubscribed from ${message.topic}`);
+          Logger.log(`[WebSocket] Unsubscribed from ${message.topic}`);
           break;
 
         case "error":
@@ -461,14 +463,15 @@ class WebSocketClientImpl {
       }
     }
 
-    subscription.callbacks.add(callback);
+    const sub = subscription;
+    sub.callbacks.add(callback);
 
     // Return unsubscribe function
     return () => {
-      subscription!.callbacks.delete(callback);
+      sub.callbacks.delete(callback);
 
       // If no more callbacks, unsubscribe from server
-      if (subscription!.callbacks.size === 0) {
+      if (sub.callbacks.size === 0) {
         this.subscriptions.delete(key);
         if (this.ws?.readyState === WebSocket.OPEN) {
           this.send({ type: "unsubscribe", topic, ...params });

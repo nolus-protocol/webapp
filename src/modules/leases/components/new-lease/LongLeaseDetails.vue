@@ -165,7 +165,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  clearTimeout(time!);
+  clearTimeout(time);
 });
 
 watch(
@@ -218,7 +218,7 @@ const downPaymentAsset = computed(() => {
 });
 
 const downPaymentAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key]?.price ?? 0);
   const decimals = new Dec(10 ** downPaymentAsset.value.decimal_digits);
   const v = downPaymentStable.value;
   const amount = v.quo(price).mul(decimals);
@@ -226,14 +226,14 @@ const downPaymentAmount = computed(() => {
 });
 
 const downPaymentStable = computed(() => {
-  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key!]?.price ?? 0);
-  const v = props.downpaymenAmount.length == 0 ? "0" : props.downpaymenAmount;
+  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key]?.price ?? 0);
+  const v = props.downpaymenAmount.length === 0 ? "0" : props.downpaymenAmount;
   const stable = price.mul(new Dec(v));
   return stable;
 });
 
 const borrowAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key]?.price ?? 0);
   const decimals = new Dec(10 ** asset.value.decimal_digits);
   const v = borrowStable.value;
   const amount = v.quo(price).mul(decimals);
@@ -241,7 +241,7 @@ const borrowAmount = computed(() => {
 });
 
 const swapFeeAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value.key!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[asset.value.key]?.price ?? 0);
   const decimals = new Dec(10 ** asset.value.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
@@ -249,7 +249,7 @@ const swapFeeAmount = computed(() => {
 });
 
 const borrowStable = computed(() => {
-  const price = new Dec(pricesStore.prices[lpn.value.key!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[lpn.value.key]?.price ?? 0);
   const v = props.lease?.borrow?.amount ?? "0";
   const stable = price.mul(new Dec(v, lpn.value.decimal_digits));
   return stable;
@@ -283,13 +283,13 @@ const percentLique = computed(() => {
 
 function getLquidation() {
   const lease = props.lease;
-  if (lease) {
-    const unitAssetInfo = getCurrencyByTicker(lease.borrow.ticker!);
-    const stableAssetInfo = getCurrencyByTicker(lease.total.ticker!);
+  if (lease && lease.borrow.ticker && lease.total.ticker) {
+    const unitAssetInfo = getCurrencyByTicker(lease.borrow.ticker);
+    const stableAssetInfo = getCurrencyByTicker(lease.total.ticker);
 
-    const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo!.decimal_digits));
+    const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo.decimal_digits));
 
-    const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo!.decimal_digits));
+    const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo.decimal_digits));
     return LeaseUtils.calculateLiquidation(unitAsset, stableAsset);
   }
 
@@ -313,8 +313,9 @@ function getTotalAmount() {
 }
 
 async function setSwapFee() {
-  clearTimeout(time!);
-  if (props.lease) {
+  clearTimeout(time);
+  const lease = props.lease;
+  if (lease) {
     time = setTimeout(async () => {
       const currency = downPaymentAsset.value;
       const [_, p] = asset.value.key.split("@");
@@ -335,7 +336,7 @@ async function setSwapFee() {
 
           return Number(data?.swap_price_impact_percent ?? 0);
         }),
-        SkipRouter.getRoute(lpn.ibcData, asset.value.ibcData, props.lease!.borrow.amount).then((data) => {
+        SkipRouter.getRoute(lpn.ibcData, asset.value.ibcData, lease.borrow.amount).then((data) => {
           amountIn += Number(data.usd_amount_in ?? 0);
           amountOut += Number(data.usd_amount_out ?? 0);
 

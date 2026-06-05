@@ -85,7 +85,7 @@ const makeLease = (overrides: MakeLeaseOverrides = {}): LeaseInfo => {
 };
 
 // Bias toward stable Dec equality comparisons via string form.
-const decEq = (a: Dec, expected: string) => expect(a.toString()).toBe(new Dec(expected).toString());
+const decEq = (a: Dec | undefined, expected: string) => expect(a?.toString()).toBe(new Dec(expected).toString());
 
 // ============================================================================
 // Tests
@@ -421,8 +421,8 @@ describe("LeaseCalculator", () => {
       // stable=8, unit=1 → 8 / 0.8 / 1 = 10
       const result = calc.calculateStopLoss(lease, "long", new Dec(1), new Dec(8));
       expect(result).not.toBeNull();
-      decEq(result!.price, "10");
-      expect(result!.percent).toBe(80);
+      decEq(result?.price, "10");
+      expect(result?.percent).toBe(80);
     });
 
     it("should compute short slPrice = unit * (sl/1000) / stable", () => {
@@ -430,14 +430,14 @@ describe("LeaseCalculator", () => {
       // unit=4, stable=1 → 4 * 0.75 / 1 = 3
       const result = calc.calculateStopLoss(lease, "short", new Dec(4), new Dec(1));
       expect(result).not.toBeNull();
-      decEq(result!.price, "3");
-      expect(result!.percent).toBe(75);
+      decEq(result?.price, "3");
+      expect(result?.percent).toBe(75);
     });
 
     it("should return slPercent as sl/10", () => {
       const lease = makeLease({ close_policy: { stop_loss: 750 } });
       const result = calc.calculateStopLoss(lease, "long", new Dec(1), new Dec(1));
-      expect(result!.percent).toBe(75);
+      expect(result?.percent).toBe(75);
     });
   });
 
@@ -463,8 +463,8 @@ describe("LeaseCalculator", () => {
       // stable=12, unit=1 → 12 / 1.2 / 1 = 10
       const result = calc.calculateTakeProfit(lease, "long", new Dec(1), new Dec(12));
       expect(result).not.toBeNull();
-      decEq(result!.price, "10");
-      expect(result!.percent).toBe(120);
+      decEq(result?.price, "10");
+      expect(result?.percent).toBe(120);
     });
 
     it("should compute short tpPrice", () => {
@@ -472,8 +472,8 @@ describe("LeaseCalculator", () => {
       // unit=2, stable=1 → 2 * 1.5 / 1 = 3
       const result = calc.calculateTakeProfit(lease, "short", new Dec(2), new Dec(1));
       expect(result).not.toBeNull();
-      decEq(result!.price, "3");
-      expect(result!.percent).toBe(150);
+      decEq(result?.price, "3");
+      expect(result?.percent).toBe(150);
     });
   });
 
@@ -519,7 +519,7 @@ describe("LeaseCalculator", () => {
       expect(interestDueDate).not.toBeNull();
       // Date.now() fixed at 2026-01-01; add 3 days in ms
       const expected = new Date("2026-01-01T00:00:00.000Z").getTime() + 3 * 24 * 60 * 60 * 1000;
-      expect(interestDueDate!.getTime()).toBe(expected);
+      expect(interestDueDate?.getTime()).toBe(expected);
     });
   });
 

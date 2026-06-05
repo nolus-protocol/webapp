@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type * as VueRouter from "vue-router";
+import type * as NolusJs from "@nolus/nolusjs";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -116,7 +118,7 @@ const hoisted = vi.hoisted(() => {
 });
 
 vi.mock("vue-router", async () => {
-  const actual = await vi.importActual<typeof import("vue-router")>("vue-router");
+  const actual = await vi.importActual<typeof VueRouter>("vue-router");
   return {
     ...actual,
     useRouter: () => ({ push: hoisted.routerPush }),
@@ -200,7 +202,7 @@ vi.mock("@/modules/leases/components/new-lease/ShortLeaseDetails.vue", () => ({
 }));
 
 vi.mock("@nolus/nolusjs", async () => {
-  const actual = await vi.importActual<typeof import("@nolus/nolusjs")>("@nolus/nolusjs");
+  const actual = await vi.importActual<typeof NolusJs>("@nolus/nolusjs");
   return {
     ...actual,
     NolusClient: {

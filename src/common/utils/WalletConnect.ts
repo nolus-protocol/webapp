@@ -12,7 +12,7 @@ import { authenticateKeplr, authenticateLedger, type BaseWallet, type Wallet } f
 import { authenticatePhantom, authenticateSolFlare } from "@/networks/cosm/WalletFactory";
 
 export const validateAddress = (address: string) => {
-  if (!address || address.trim() == "") {
+  if (!address || address.trim() === "") {
     return i18n.global.t("message.invalid-address");
   }
 
@@ -28,7 +28,7 @@ export const validateAmountV2 = (amount: string, amount2: string) => {
   amount = removeSpace(removeComma(amount?.toString() ?? ""));
   amount2 = removeSpace(removeComma(amount2?.toString() ?? ""));
 
-  const hasDot = amount?.at?.(0) == ".";
+  const hasDot = amount?.at?.(0) === ".";
 
   if (!amount || hasDot) {
     return i18n.global.t("message.invalid-amount");

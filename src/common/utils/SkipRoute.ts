@@ -142,7 +142,11 @@ export class SkipRouter {
     const addresses: Record<string, string> = {};
 
     for (const key in wallets) {
-      addresses[key] = wallets[key].address!;
+      const walletAddress = wallets[key].address;
+      if (!walletAddress) {
+        throw new Error(`Wallet address not available for ${key}`);
+      }
+      addresses[key] = walletAddress;
     }
 
     for (const id of route.chain_ids) {

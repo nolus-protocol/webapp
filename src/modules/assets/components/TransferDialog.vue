@@ -68,7 +68,7 @@ const title = computed(() => {
 function onChangeTab(event: number) {
   let path = route.matched[1].path ?? "/";
 
-  if (path == "/") {
+  if (path === "/") {
     path = "";
   }
 

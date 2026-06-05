@@ -44,7 +44,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
       ];
 
-      if (msg.from == address) {
+      if (msg.from === address) {
         return [
           i18n.t("message.send-action", {
             address: truncateString(msg.data?.toAddress),
@@ -62,7 +62,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         ];
       }
 
-      if (msg.to == address) {
+      if (msg.to === address) {
         return [
           i18n.t("message.receive-action", {
             address: truncateString(msg.data.fromAddress),
@@ -82,13 +82,13 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       return [formatMessageType(msg.type), null];
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-      if (msg.from == address) {
+      if (msg.from === address) {
         const token = await fetchCurrency(msg.data.token);
 
-        const receiver = getIcon(getChainName(msg.data.receiver)!);
-        const sender = getIcon(getChainName(msg.data.sender)!);
-        const labelReceiver = getChainLabel(getChainName(msg.data.receiver)!);
-        const labelSender = getChainLabel(getChainName(msg.data.sender)!);
+        const receiver = getIcon(getChainName(msg.data.receiver));
+        const sender = getIcon(getChainName(msg.data.sender));
+        const labelReceiver = getChainLabel(getChainName(msg.data.receiver));
+        const labelSender = getChainLabel(getChainName(msg.data.sender));
 
         const steps = [
           {
@@ -131,7 +131,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         ];
       }
 
-      if (msg.to == address) {
+      if (msg.to === address) {
         const token = getCurrency(msg.data.token);
         return [
           i18n.t("message.receive-action", {
@@ -152,10 +152,10 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         const coin = parseCoins(`${data.amount}${denom}`)[0];
         delete msg.fee_denom;
 
-        const receiver = getIcon(getChainName(data.receiver)!);
-        const sender = getIcon(getChainName(data.sender)!);
-        const labelReceiver = getChainLabel(getChainName(data.receiver)!);
-        const labelSender = getChainLabel(getChainName(data.sender)!);
+        const receiver = getIcon(getChainName(data.receiver));
+        const sender = getIcon(getChainName(data.sender));
+        const labelReceiver = getChainLabel(getChainName(data.receiver));
+        const labelSender = getChainLabel(getChainName(data.sender));
 
         const detailedSteps = [
           {
@@ -301,8 +301,8 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           const withdraw = await BackendApi.getLpWithdraw(msg.tx_hash);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
             withdraw.LP_amnt_asset ?? 0,
-            lpn.ibcData!,
-            lpn.shortName!,
+            lpn.ibcData,
+            lpn.shortName,
             Number(lpn.decimal_digits)
           );
           return [
@@ -631,12 +631,12 @@ function getChainName(address: string) {
   }
 }
 
-function getIcon(prefix: string) {
+function getIcon(prefix: string | null) {
   try {
     const configStore = useConfigStore();
     const supportedNetworks = configStore.supportedNetworksData;
     for (const key in supportedNetworks) {
-      if (supportedNetworks[key].prefix == prefix) {
+      if (supportedNetworks[key].prefix === prefix) {
         return supportedNetworks[key].icon;
       }
     }
@@ -646,12 +646,12 @@ function getIcon(prefix: string) {
   }
 }
 
-function getChainLabel(prefix: string) {
+function getChainLabel(prefix: string | null) {
   try {
     const configStore = useConfigStore();
     const supportedNetworks = configStore.supportedNetworksData;
     for (const key in supportedNetworks) {
-      if (supportedNetworks[key].prefix == prefix) {
+      if (supportedNetworks[key].prefix === prefix) {
         return supportedNetworks[key].name;
       }
     }

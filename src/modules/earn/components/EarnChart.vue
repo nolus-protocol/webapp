@@ -51,7 +51,7 @@ const chart = ref<typeof Chart>();
 const props = defineProps<{ amount: Dec; currencyKey: string }>();
 
 const currency = computed(() => {
-  return configStore.currenciesData![props.currencyKey];
+  return configStore.currenciesData[props.currencyKey];
 });
 
 watch(
@@ -118,7 +118,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
           `<strong>${i18n.t("message.amount")}</strong> ${formatNumber(closestData.amount, 2)} ${currency.value?.shortName}`
         );
 
-        const node = tooltip.node()!.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+        if (!tooltipNode) {
+          return;
+        }
+        const node = tooltipNode.getBoundingClientRect();
         const height = node.height;
         const width = node.width;
 

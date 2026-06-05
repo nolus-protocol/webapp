@@ -66,6 +66,12 @@ import { useBalancesStore } from "./index";
 
 const { captured, BackendApi, subscribeBalances } = hoisted;
 
+function emitBalances(addr: string, balances: any) {
+  const handler = captured.onBalances;
+  expect(handler).toBeTruthy();
+  (handler as (addr: string, balances: any) => void)(addr, balances);
+}
+
 type BalanceRec = {
   key: string;
   symbol: string;
@@ -301,7 +307,7 @@ describe("useBalancesStore", () => {
     await store.setAddress("nolus1x");
 
     expect(captured.onBalances).not.toBeNull();
-    captured.onBalances!("nolus1x", [mkBalance({ amount: "5" })]);
+    emitBalances("nolus1x", [mkBalance({ amount: "5" })]);
     expect(store.balances.length).toBe(1);
     expect(store.balances[0].amount).toBe("5");
   });
@@ -314,7 +320,7 @@ describe("useBalancesStore", () => {
     const store = useBalancesStore();
     await store.setAddress("nolus1x");
 
-    captured.onBalances!("nolus1OTHER", [mkBalance({ amount: "99" })]);
+    emitBalances("nolus1OTHER", [mkBalance({ amount: "99" })]);
     expect(store.balances).toEqual([]);
   });
 
@@ -326,7 +332,7 @@ describe("useBalancesStore", () => {
     const store = useBalancesStore();
     await store.setAddress("nolus1x");
 
-    captured.onBalances!("nolus1x", "not an array" as any);
+    emitBalances("nolus1x", "not an array" as any);
     expect(store.balances).toEqual([]);
   });
 

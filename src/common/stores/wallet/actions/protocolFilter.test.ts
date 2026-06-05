@@ -18,6 +18,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type * as CommonUtils from "@/common/utils";
 
 // The actions barrel pulls in heavy modules transitively (ThemeManager via
 // utils, IntercomService, network wallets). Keep this file focused on the
@@ -87,7 +88,7 @@ vi.mock("@nolus/nolusjs", () => ({
 // WalletManager has localStorage side-effects. Stub the static surface we
 // touch so we don't pollute jsdom localStorage between tests.
 vi.mock("@/common/utils", async () => {
-  const actual = await vi.importActual<typeof import("@/common/utils")>("@/common/utils");
+  const actual = await vi.importActual<typeof CommonUtils>("@/common/utils");
   return {
     ...actual,
     WalletManager: {

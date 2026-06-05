@@ -66,9 +66,10 @@ const columns = computed<TableColumnProps[]>(() => [
 ]);
 
 const leasesHistory = computed(() => {
+  const protocol = props.lease?.protocol ?? "";
   return (props.lease?.etl_data?.history ?? []).map((item) => {
     const ticker = item.symbol ?? "";
-    const currency = configStore.currenciesData?.[`${ticker}@${props.lease!.protocol}`];
+    const currency = configStore.currenciesData?.[`${ticker}@${protocol}`];
     const amountDec = new Dec(item.amount ?? "0", currency?.decimal_digits);
     const amountLabel = mobile ? formatMobileAmount(amountDec) : formatTokenBalance(amountDec);
     return {

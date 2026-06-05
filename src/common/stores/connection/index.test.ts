@@ -68,6 +68,12 @@ import { useConnectionStore } from "./index";
 
 const { captured, wsClient } = hoisted;
 
+function emitState(state: string) {
+  const handler = captured.onConnectionState;
+  expect(handler).toBeTruthy();
+  (handler as (state: string) => void)(state);
+}
+
 describe("useConnectionStore", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -142,7 +148,7 @@ describe("useConnectionStore", () => {
     expect(store.isReady).toBe(false);
 
     // Now simulate ws "connected" — isReady should flip.
-    captured.onConnectionState!("connected");
+    emitState("connected");
     expect(store.isWsConnected).toBe(true);
     expect(store.isReady).toBe(true);
   });
@@ -182,10 +188,10 @@ describe("useConnectionStore", () => {
     await store.initializeApp();
     expect(captured.onConnectionState).not.toBeNull();
 
-    captured.onConnectionState!("connecting");
+    emitState("connecting");
     expect(store.wsState).toBe("connecting");
 
-    captured.onConnectionState!("connected");
+    emitState("connected");
     expect(store.wsState).toBe("connected");
   });
 
@@ -195,13 +201,13 @@ describe("useConnectionStore", () => {
     store.connectWallet("nolus1abc");
 
     // First "connected" after a disconnected window → count=1.
-    captured.onConnectionState!("disconnected");
-    captured.onConnectionState!("connected");
+    emitState("disconnected");
+    emitState("connected");
     expect(store.wsReconnectCount).toBe(1);
 
     // Another cycle → count=2.
-    captured.onConnectionState!("disconnected");
-    captured.onConnectionState!("connected");
+    emitState("disconnected");
+    emitState("connected");
     expect(store.wsReconnectCount).toBe(2);
   });
 
@@ -210,8 +216,8 @@ describe("useConnectionStore", () => {
     await store.initializeApp();
     // No connectWallet.
 
-    captured.onConnectionState!("disconnected");
-    captured.onConnectionState!("connected");
+    emitState("disconnected");
+    emitState("connected");
     expect(store.wsReconnectCount).toBe(0);
   });
 
@@ -259,7 +265,7 @@ describe("useConnectionStore", () => {
     const store = useConnectionStore();
     await store.initializeApp();
     store.connectWallet("nolus1abc");
-    captured.onConnectionState!("connected");
+    emitState("connected");
 
     store.cleanup();
 

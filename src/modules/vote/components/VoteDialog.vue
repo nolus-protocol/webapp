@@ -190,17 +190,18 @@ async function onVoteEmit(vote: VoteOption) {
     isLoading.value = vote;
     isDisabled.value = true;
 
-    if (wallet.wallet) {
+    const connectedWallet = wallet.wallet;
+    if (connectedWallet) {
       const typeUrl = "/cosmos.gov.v1beta1.MsgVote";
       const voteMsg = MsgVote.fromPartial({
         proposalId: BigInt(props.proposal.id),
-        voter: wallet.wallet!.address,
+        voter: connectedWallet.address,
         option: vote
       });
 
-      const { txBytes } = await wallet.wallet!.simulateTx(voteMsg, typeUrl);
+      const { txBytes } = await connectedWallet.simulateTx(voteMsg, typeUrl);
 
-      await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
+      await connectedWallet.broadcastTx(txBytes as Uint8Array);
       hide();
       historyStore.loadActivities();
       onShowToast({

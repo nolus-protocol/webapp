@@ -80,7 +80,7 @@ const transactionData = computed<TableRowItemProps>(() => {
 
 function getTimeStamp() {
   if (props.transaction.historyData.skipRoute) {
-    return getCreatedAtForHuman(new Date(props.transaction.historyData.id!));
+    return getCreatedAtForHuman(new Date(props.transaction.historyData.id ?? ""));
   }
   if (props.transaction.historyData.timestamp) {
     return props.transaction.historyData.timestamp;

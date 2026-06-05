@@ -13,6 +13,7 @@
  * decimals). Keep these tests green to prevent that returning.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type * as VueRouter from "vue-router";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -72,7 +73,7 @@ const hoisted = vi.hoisted(() => {
 });
 
 vi.mock("vue-router", async () => {
-  const actual = await vi.importActual<typeof import("vue-router")>("vue-router");
+  const actual = await vi.importActual<typeof VueRouter>("vue-router");
   return { ...actual, useRouter: () => ({ push: vi.fn() }) };
 });
 
@@ -365,7 +366,7 @@ describe("PositionSummaryWidget — Size rounding", () => {
         .findAllComponents({ name: "BigNumber" })
         .find((w) => w.props("label") === "message.interest-due");
       expect(bn).toBeTruthy();
-      const amount = bn!.props("amount") as BigNumberAmount;
+      const amount = bn?.props("amount") as BigNumberAmount;
       // Must go through the microAmount path with the volatile's decimals so
       // TokenAmount's adaptive renderer can show sat-level amounts. Passing
       // `decimals: 2` here would cut off crypto precision.
@@ -381,7 +382,7 @@ describe("PositionSummaryWidget — Size rounding", () => {
         .findAllComponents({ name: "BigNumber" })
         .find((w) => w.props("label") === "message.interest-due");
       expect(bn).toBeTruthy();
-      const amount = bn!.props("amount") as BigNumberAmount;
+      const amount = bn?.props("amount") as BigNumberAmount;
       expect(amount.decimals).toBe(hoisted.USDC.decimal_digits);
       expect(amount.denom).toBe(hoisted.USDC.shortName);
       expect(amount.microAmount).toBeDefined();

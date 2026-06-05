@@ -76,13 +76,13 @@ async function setStats() {
   responses.value = [
     {
       name: i18n.t("message.borrowed-taxes"),
-      value: v1 == 0 ? zero : v1,
+      value: v1 === 0 ? zero : v1,
       ticker: `${new Dec(props.borrowAmount, props.borrowAsset?.decimal_digits ?? 0).toString(props.borrowAsset?.decimal_digits ?? 0)} ${props.borrowAsset?.shortName ?? ""}`,
       price: formatDecAsUsd(props.borrowStable)
     },
     {
       name: i18n.t("message.downpayment"),
-      value: v2 == 0 ? zero : v2,
+      value: v2 === 0 ? zero : v2,
       ticker: `${new Dec(props.downPaymentAmount, props.downPaymentAsset?.decimal_digits ?? 0).toString(props.downPaymentAsset?.decimal_digits ?? 0)} ${props.downPaymentAsset?.shortName ?? ""}`,
       price: formatDecAsUsd(props.downPaymentStable)
     }
@@ -201,7 +201,11 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
           )}`
         );
 
-        const node = tooltip.node()!.getBoundingClientRect();
+        const tooltipNode = tooltip.node();
+        if (!tooltipNode) {
+          return;
+        }
+        const node = tooltipNode.getBoundingClientRect();
         const height = node.height;
         const width = node.width;
 

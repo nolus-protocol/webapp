@@ -7,7 +7,7 @@ import {
   DelayedVestingAccount,
   PeriodicVestingAccount
 } from "cosmjs-types/cosmos/vesting/v1beta1/vesting";
-import { Any } from "cosmjs-types/google/protobuf/any";
+import type { Any } from "cosmjs-types/google/protobuf/any";
 import { accountFromAny } from "./accountParser";
 import { encodePubkey } from "./encode";
 

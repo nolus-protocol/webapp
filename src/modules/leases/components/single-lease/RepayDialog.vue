@@ -146,7 +146,8 @@ import { minimumLeaseAmount } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 
-import { CurrencyUtils, NolusClient, NolusWallet } from "@nolus/nolusjs";
+import type { NolusWallet } from "@nolus/nolusjs";
+import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
 import { useI18n } from "vue-i18n";
 import type { Coin } from "@cosmjs/proto-signing";
 import { Lease } from "@nolus/nolusjs/build/contracts";
@@ -218,7 +219,7 @@ function onSetAmount(percent: number) {
   const a = getRepayment(percent);
   sliderValue.value = percent;
   sliderValueDec.value = new Dec(percent);
-  amount.value = a?.repayment ? a.repayment.toString(currency!.value.decimal_digits) : "";
+  amount.value = a?.repayment ? a.repayment.toString(currency.value.decimal_digits) : "";
 }
 
 const assets = computed(() => {
@@ -234,21 +235,21 @@ const assets = computed(() => {
     data.push({
       name: asset.name,
       value: denom,
-      label: asset.shortName!,
-      shortName: asset.shortName!,
-      icon: asset.icon!,
-      decimal_digits: asset.decimal_digits!,
+      label: asset.shortName,
+      shortName: asset.shortName,
+      icon: asset.icon,
+      decimal_digits: asset.decimal_digits,
       balance: {
         value: exactBalance,
         customLabel: `${balance} ${asset.shortName}`,
-        ticker: asset.shortName!,
+        ticker: asset.shortName,
         denom: asset.balance.denom,
         amount: asset.balance?.amount
       },
       ibcData: (asset as ExternalCurrency).ibcData,
-      native: asset.native!,
-      symbol: asset.symbol!,
-      ticker: asset.ticker!,
+      native: asset.native,
+      symbol: asset.symbol,
+      ticker: asset.ticker,
       key: asset.key,
       stable,
       price: formatDecAsUsd(stable)
@@ -262,7 +263,7 @@ const calculatedBalance = computed(() => {
   if (!asset) {
     return formatUsd(0);
   }
-  const price = new Dec(pricesStore.prices[asset.key!]?.price ?? 0);
+  const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
   const v = amount?.value?.length ? amount?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
@@ -277,23 +278,24 @@ const balances = computed(() => {
   if (positionType === "Short") {
     // Short: debt is in LPN (e.g. USDC_NOBLE), use debt.ticker
     const debtTicker = lease.value.debt.ticker;
-    repaymentCurrency = configStore.currenciesData![`${debtTicker}@${lease.value.protocol}`];
+    repaymentCurrency = configStore.currenciesData[`${debtTicker}@${lease.value.protocol}`];
   } else {
     // Long: debt is in LPN (e.g. USDC)
     repaymentCurrency = getLpnByProtocol(lease.value.protocol);
   }
 
   if (!repaymentCurrency) return [];
+  const resolvedCurrency = repaymentCurrency;
 
   // Use the protocol-specific currency directly (not a cross-protocol find by ibcData)
   // to ensure the .key matches the price entry in pricesStore.
-  const walletBalance = balancesStore.balances.find((item) => item.denom === repaymentCurrency!.ibcData);
-  return [{ ...repaymentCurrency, balance: walletBalance ?? { denom: repaymentCurrency.ibcData, amount: "0" } }];
+  const walletBalance = balancesStore.balances.find((item) => item.denom === resolvedCurrency.ibcData);
+  return [{ ...resolvedCurrency, balance: walletBalance ?? { denom: resolvedCurrency.ibcData, amount: "0" } }];
 });
 
 function handleAmountChange(event: string) {
   amount.value = event;
-  if (amount.value != "" && debt.value) {
+  if (amount.value !== "" && debt.value) {
     let percent = new Dec(amount.value).quo(debt.value.amount.toDec()).mul(new Dec(100));
     if (percent.isNegative()) {
       percent = new Dec(0);
@@ -310,7 +312,11 @@ function handleAmountChange(event: string) {
 const debt = computed(() => {
   const selectedCurrency = currency.value;
   if (selectedCurrency) {
-    const { repayment } = getRepayment(100)!;
+    const repaymentData = getRepayment(100);
+    if (!repaymentData) {
+      return undefined;
+    }
+    const { repayment } = repaymentData;
     const repaymentInt = repayment.mul(new Dec(10).pow(new Int(selectedCurrency.decimal_digits))).truncate();
 
     return {
@@ -332,6 +338,7 @@ function getRepayment(p: number) {
 
   const amount = outStandingDebt();
   const lpn = getLpnByProtocol(lease.value.protocol);
+  if (!lpn) return undefined;
   const c = lpn;
 
   const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
@@ -344,6 +351,7 @@ function getRepayment(p: number) {
   const percent = new Dec(p).quo(new Dec(100));
   let repaymentInStable = amountToRepay.mul(percent);
   const selectedCurrency = currency.value;
+  if (!selectedCurrency) return undefined;
 
   if (swapFee.value) {
     repaymentInStable = repaymentInStable.add(repaymentInStable.mul(new Dec(swapFee.value)));
@@ -352,9 +360,10 @@ function getRepayment(p: number) {
   const positionType = configStore.getPositionType(lease.value.protocol);
 
   if (positionType === "Short") {
-    const lpn = getLpnByProtocol(lease.value.protocol);
-    const price = new Dec(pricesStore.prices[lpn!.key as string].price);
-    const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency!.key as string].price);
+    const lpnShort = getLpnByProtocol(lease.value.protocol);
+    if (!lpnShort) return undefined;
+    const price = new Dec(pricesStore.prices[lpnShort.key as string].price);
+    const selected_asset_price = new Dec(pricesStore.prices[selectedCurrency.key as string].price);
     const repayment = repaymentInStable.mul(price);
     return {
       repayment: repayment.quo(selected_asset_price),
@@ -362,7 +371,7 @@ function getRepayment(p: number) {
       selectedCurrencyInfo: selectedCurrency
     };
   } else {
-    const price = new Dec(pricesStore.prices[selectedCurrency!.key as string]?.price ?? 1);
+    const price = new Dec(pricesStore.prices[selectedCurrency.key as string]?.price ?? 1);
     const repayment = repaymentInStable.quo(price);
     return {
       repayment,
@@ -390,10 +399,11 @@ function isAmountValid() {
 
   const amnt = amount.value;
   const coinData = currency.value;
+  const leaseValue = lease.value;
 
-  if (coinData) {
+  if (coinData && leaseValue) {
     if (amnt || amnt !== "") {
-      const price = pricesStore.prices[coinData!.key as string];
+      const price = pricesStore.prices[coinData.key as string];
 
       const amountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(amnt, "", coinData.decimal_digits);
       const balance = CurrencyUtils.calculateBalance(
@@ -403,10 +413,10 @@ function isAmountValid() {
       ).toDec();
       const minAmount = new Dec(minimumLeaseAmount);
       const p = new Dec(price.price);
-      const amountInStable = new Dec(amnt.length == 0 ? "0" : amnt).mul(p);
+      const amountInStable = new Dec(amnt.length === 0 ? "0" : amnt).mul(p);
 
       const debt = getDebtValue();
-      const lpn = getLpnByProtocol(lease.value!.protocol);
+      const lpn = getLpnByProtocol(leaseValue.protocol);
       const debtInCurrencies = debt.quo(new Dec(price.price));
       const minAmm = new Dec(minimumLeaseAmount).mul(new Dec(10 ** lpn.decimal_digits));
 
@@ -430,7 +440,7 @@ function isAmountValid() {
       if (debt.gt(minAmm) && amountInStable.lt(minAmount)) {
         amountErrorMsg.value = i18n.t("message.min-amount-allowed", {
           amount: formatTokenBalance(minAmountCurrency),
-          currency: coinData!.shortName
+          currency: coinData.shortName
         });
         isValid = false;
       }
@@ -461,10 +471,16 @@ function getDebtValue() {
   let debt = outStandingDebt();
   debt = debt.add(debt.mul(new Dec(swapFee.value)));
 
-  const positionType = configStore.getPositionType(lease.value!.protocol);
+  if (!lease.value) {
+    throw new Error("Lease not available");
+  }
+  const positionType = configStore.getPositionType(lease.value.protocol);
   if (positionType === "Short") {
-    const lpn = getLpnByProtocol(lease.value!.protocol);
-    const price = new Dec(pricesStore.prices[lpn!.key as string].price);
+    const lpn = getLpnByProtocol(lease.value.protocol);
+    if (!lpn) {
+      throw new Error("LPN currency not available");
+    }
+    const price = new Dec(pricesStore.prices[lpn.key as string].price);
     return debt.mul(price);
   }
   return debt;
@@ -539,7 +555,7 @@ const detbPartial = computed(() => {
   const d = debt?.repayment;
   if (price && d && debtTotal && lease.value) {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const currecy = configStore.currenciesData[`${ticker}@${lease.value.protocol}`];
 
     const positionType = configStore.getPositionType(lease.value.protocol);
     const rest = debtTotal.repayment.sub(d);
@@ -568,7 +584,7 @@ const debtData = computed(() => {
 
   if (price && d && lease.value) {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
-    const currecy = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+    const currecy = configStore.currenciesData[`${ticker}@${lease.value.protocol}`];
 
     const positionType = configStore.getPositionType(lease.value.protocol);
     if (positionType === "Short") {
@@ -588,7 +604,7 @@ const liquidation = computed(() => {
   }
 
   const ticker = lease.value.amount.ticker;
-  const unitAssetInfo = configStore.currenciesData![`${ticker}@${lease.value.protocol}`];
+  const unitAssetInfo = configStore.currenciesData[`${ticker}@${lease.value.protocol}`];
   const lpn = getLpnByProtocol(lease.value.protocol);
 
   const unitAsset = new Dec(lease.value.amount.amount, Number(unitAssetInfo?.decimal_digits ?? 0));

@@ -146,6 +146,22 @@ describe("NolusWalletOverride", () => {
       const signCalls = (w.sign as ReturnType<typeof vi.fn>).mock.calls;
       expect(signCalls[0][3]).toBe("");
     });
+
+    it("throws when wallet pubKey is missing (fail loudly)", async () => {
+      const w = buildFakeWallet();
+      applyNolusWalletOverrides(w);
+      (w as Record<string, unknown>).pubKey = undefined;
+      const fn = w.simulateTx as Override<"simulateTx">;
+      await expect(fn({} as never, "/cosmos.bank.v1beta1.MsgSend")).rejects.toThrow(/public key not available/);
+    });
+
+    it("throws when wallet address is missing (fail loudly)", async () => {
+      const w = buildFakeWallet();
+      applyNolusWalletOverrides(w);
+      (w as Record<string, unknown>).address = undefined;
+      const fn = w.simulateTx as Override<"simulateTx">;
+      await expect(fn({} as never, "/cosmos.bank.v1beta1.MsgSend")).rejects.toThrow(/address not available/);
+    });
   });
 
   describe("simulateMultiTx override", () => {

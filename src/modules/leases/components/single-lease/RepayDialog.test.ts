@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import type * as VueRouter from "vue-router";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -95,7 +96,7 @@ const hoisted = vi.hoisted(() => {
 });
 
 vi.mock("vue-router", async () => {
-  const actual = await vi.importActual<typeof import("vue-router")>("vue-router");
+  const actual = await vi.importActual<typeof VueRouter>("vue-router");
   return {
     ...actual,
     useRoute: () => hoisted.routeRef,

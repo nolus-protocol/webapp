@@ -220,7 +220,7 @@ const leasesData = computed<TableRowItemProps[]>(() => {
   const mobile = isMobile();
   const items = networkFilteredLeases.value
     .filter((item) => {
-      if (param.length == 0) {
+      if (param.length === 0) {
         return true;
       }
       const positionTicker = item.etl_data?.lease_position_ticker ?? item.amount.ticker;
