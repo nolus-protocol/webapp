@@ -123,6 +123,7 @@ import { useHistoryStore } from "@/common/stores/history";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import {
+  classifyError,
   externalWallet,
   Logger,
   transferCurrency,
@@ -335,7 +336,7 @@ watch(
           try {
             tempRoute.value = await getRoute();
           } catch (e: unknown) {
-            amountErrorMsg.value = e instanceof Error ? e.message : String(e);
+            amountErrorMsg.value = i18n.t(classifyError(e));
           }
         });
       }
@@ -376,7 +377,7 @@ async function onSubmitCosmos() {
       await onSwap();
     }
   } catch (e: unknown) {
-    amountErrorMsg.value = String(e);
+    amountErrorMsg.value = i18n.t(classifyError(e));
   } finally {
     isDisabled.value = false;
   }
@@ -582,7 +583,7 @@ async function transferAmount() {
     historyStore.loadActivities();
     onClose();
   } catch (e: unknown) {
-    amountErrorMsg.value = String(e);
+    amountErrorMsg.value = i18n.t(classifyError(e));
   } finally {
     isLoading.value = false;
   }
@@ -626,7 +627,7 @@ async function onSwapCosmos() {
         onClose();
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
-        amountErrorMsg.value = error instanceof Error ? error.message : String(error);
+        amountErrorMsg.value = i18n.t(classifyError(error));
         Logger.error(error);
 
         if (walletStore.history[id]) {
