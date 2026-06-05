@@ -123,8 +123,23 @@ jobs:
       - name: Format check
         run: cargo fmt --all -- --check
 
-      - name: Clippy (deny warnings)
-        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Clippy (deny warnings; pending restriction lints allowed until their fix-issues land — #170/#179/#186/#187/#188)
+        run: >-
+          cargo clippy --all-targets --all-features --
+          -D warnings
+          -A clippy::unwrap_used
+          -A clippy::expect_used
+          -A clippy::as_conversions
+          -A clippy::too_many_lines
+          -A clippy::cognitive_complexity
+          -A clippy::missing_const_for_fn
+          -A clippy::single_char_lifetime_names
+
+      - name: Ensure ripgrep
+        run: command -v rg || (sudo apt-get update && sudo apt-get install -y ripgrep)
+
+      - name: Style checks (house Rust conventions)
+        run: bash scripts/style-check.sh
 
       - name: Build
         run: cargo build --all-targets
