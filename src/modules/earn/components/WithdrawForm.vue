@@ -93,7 +93,14 @@ import { NATIVE_NETWORK } from "../../../config/global/network";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { Coin, Dec, Int } from "@keplr-wallet/unit";
-import { getMicroAmount, Logger, validateAmountV2, WalletManager, walletOperation } from "@/common/utils";
+import {
+  classifyError,
+  getMicroAmount,
+  Logger,
+  validateAmountV2,
+  WalletManager,
+  walletOperation
+} from "@/common/utils";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
@@ -319,7 +326,7 @@ async function transferAmount() {
       });
     } catch (e) {
       Logger.error(e);
-      error.value = e instanceof Error ? e.message : String(e);
+      error.value = i18n.t(classifyError(e));
     } finally {
       loading.value = false;
     }

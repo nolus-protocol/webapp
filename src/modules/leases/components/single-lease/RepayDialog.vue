@@ -137,7 +137,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
-import { getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
+import { classifyError, getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
 import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
@@ -507,7 +507,7 @@ async function onSendClick() {
     await walletOperation(repayLease);
   } catch (e: unknown) {
     Logger.error(e);
-    amountErrorMsg.value = e instanceof Error ? e.message : String(e);
+    amountErrorMsg.value = i18n.t(classifyError(e));
   } finally {
     disabled.value = false;
   }
@@ -542,7 +542,7 @@ async function repayLease() {
         message: i18n.t("message.toast-repaid")
       });
     } catch (e: unknown) {
-      amountErrorMsg.value = e instanceof Error ? e.message : String(e);
+      amountErrorMsg.value = i18n.t(classifyError(e));
       Logger.error(e);
     } finally {
       loading.value = false;

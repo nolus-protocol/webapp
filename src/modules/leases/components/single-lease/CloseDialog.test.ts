@@ -177,7 +177,9 @@ vi.mock("@/common/utils", async () => {
       coinMinimalDenom: "ibc/ATOM"
     }),
     Logger: { error: hoisted.loggerError },
-    walletOperation: hoisted.walletOperationMock
+    walletOperation: hoisted.walletOperationMock,
+    classifyError: (e: unknown) =>
+      e instanceof Error && /liquidity/i.test(e.message) ? "message.no-liquidity" : "message.unexpected-error"
   };
 });
 
@@ -400,13 +402,16 @@ describe("CloseDialog.vue", () => {
     wrapper.unmount();
   });
 
-  it("logs error when walletOperation rejects", async () => {
+  it("logs error and shows a localized message (not raw text) when walletOperation rejects", async () => {
     hoisted.walletOperationMock.mockRejectedValueOnce(new Error("boom"));
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="submit"]').trigger("click");
     await new Promise((r) => setTimeout(r, 0));
     expect(hoisted.loggerError).toHaveBeenCalled();
+    // The raw "boom" must not leak onto the field — it is classified instead.
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
+    expect(wrapper.find('[data-test="err"]').text()).not.toBe("boom");
     wrapper.unmount();
   });
 

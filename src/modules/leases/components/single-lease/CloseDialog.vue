@@ -272,7 +272,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
-import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
+import { classifyError, getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import {
   formatDecAsUsd,
   formatUsd,
@@ -921,7 +921,7 @@ async function onSendClick() {
     await walletOperation(marketCloseLease);
   } catch (e: unknown) {
     Logger.error(e);
-    amountErrorMsg.value = e instanceof Error ? e.message : String(e);
+    amountErrorMsg.value = i18n.t(classifyError(e));
   } finally {
     disabled.value = false;
   }
@@ -968,7 +968,7 @@ async function marketCloseLease() {
       });
     } catch (e: unknown) {
       Logger.error(e);
-      amountErrorMsg.value = e instanceof Error ? e.message : String(e);
+      amountErrorMsg.value = i18n.t(classifyError(e));
     } finally {
       loading.value = false;
     }

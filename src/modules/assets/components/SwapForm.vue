@@ -121,7 +121,7 @@ import { NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
-import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
+import { classifyError, externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { getPriceForCurrency, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
@@ -139,7 +139,6 @@ import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
 import type { RouteResponse } from "@/common/types/skipRoute";
 import type { NetworkInfo } from "@/common/api/types/config";
-import { ApiError } from "@/common/api/types/common";
 import { WalletTypes } from "@/networks/types";
 
 let time: NodeJS.Timeout;
@@ -465,11 +464,7 @@ async function setRoute(token: Coin, revert = false) {
       priceImapact.value = Number(route?.swap_price_impact_percent ?? "0");
       setSwapFee();
     } catch (e) {
-      if (e instanceof ApiError && e.code === "SWAP_ROUTE_FAILED") {
-        error.value = i18n.t("message.swap-route-failed");
-      } else {
-        error.value = e instanceof Error ? e.message : String(e);
-      }
+      error.value = i18n.t(classifyError(e));
       route = null;
       Logger.error(e);
     } finally {
@@ -552,7 +547,7 @@ async function onSwap() {
       wallet.history[id].txHashes = txHashes.value;
     }
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
+    error.value = i18n.t(classifyError(e));
     Logger.error(error);
 
     if (wallet.history[id]) {

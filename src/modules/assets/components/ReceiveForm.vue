@@ -114,7 +114,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
+import { classifyError, externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import {
   getCurrencyByTickerForNetwork,
@@ -318,7 +318,7 @@ watch(
           try {
             tempRoute.value = await getRoute();
           } catch (e: unknown) {
-            amountErrorMsg.value = e instanceof Error ? e.message : String(e);
+            amountErrorMsg.value = i18n.t(classifyError(e));
           }
         });
       }
@@ -350,7 +350,7 @@ async function onSubmitCosmos() {
       fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
     }
   } catch (e: unknown) {
-    amountErrorMsg.value = String(e);
+    amountErrorMsg.value = i18n.t(classifyError(e));
   }
 }
 
@@ -501,7 +501,7 @@ async function onSubmit() {
         walletStore.history[id].historyData.status = CONFIRM_STEP.SUCCESS;
       } catch (error) {
         step.value = CONFIRM_STEP.ERROR;
-        amountErrorMsg.value = error instanceof Error ? error.message : String(error);
+        amountErrorMsg.value = i18n.t(classifyError(error));
 
         if (walletStore.history[id]) {
           walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
