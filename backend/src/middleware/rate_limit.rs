@@ -74,7 +74,7 @@ struct IpEntry {
 
 impl IpEntry {
     fn new(limiter: IpRateLimiter) -> Self {
-        let ms = epoch().elapsed().as_millis() as u64;
+        let ms = u64::try_from(epoch().elapsed().as_millis()).unwrap_or(u64::MAX);
         Self {
             limiter,
             last_access_ms: AtomicU64::new(ms),
@@ -82,7 +82,7 @@ impl IpEntry {
     }
 
     fn touch(&self) {
-        let ms = epoch().elapsed().as_millis() as u64;
+        let ms = u64::try_from(epoch().elapsed().as_millis()).unwrap_or(u64::MAX);
         self.last_access_ms.store(ms, Ordering::Relaxed);
     }
 
@@ -153,13 +153,15 @@ impl RateLimitState {
     /// Remove entries that haven't been accessed within `max_age`
     pub async fn cleanup_stale(&self, max_age: Duration) {
         let now = epoch().elapsed();
-        let max_age_ms = max_age.as_millis() as u64;
+        let max_age_ms = u64::try_from(max_age.as_millis()).unwrap_or(u64::MAX);
         let mut limiters = self.limiters.write().await;
         let before = limiters.len();
         limiters.retain(|_, entry| {
-            let age_ms = now
-                .as_millis()
-                .saturating_sub(entry.last_access().as_millis()) as u64;
+            let age_ms = u64::try_from(
+                now.as_millis()
+                    .saturating_sub(entry.last_access().as_millis()),
+            )
+            .unwrap_or(u64::MAX);
             age_ms < max_age_ms
         });
         let removed = before - limiters.len();

@@ -86,7 +86,7 @@ codegen-units = 1
 strip = true
 
 [lints.clippy]
-as_conversions = "warn"
+as_conversions = "deny"
 too_many_lines = { level = "warn", priority = -1 }
 cognitive_complexity = { level = "warn", priority = -1 }
 unwrap_used = "warn"

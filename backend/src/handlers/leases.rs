@@ -301,7 +301,7 @@ pub async fn get_lease_config(
 // ============================================================================
 
 const PERMILLE: f64 = 1000.0;
-const INTEREST_DECIMALS: u32 = 7;
+const INTEREST_DECIMALS: i32 = 7;
 
 // ============================================================================
 // Handlers
@@ -629,8 +629,8 @@ pub async fn get_lease_quote(
         .await?;
 
     // Convert interest rates to percentage
-    let annual_interest = (quote.annual_interest_rate + quote.annual_interest_rate_margin) as f64
-        / 10f64.powi(INTEREST_DECIMALS as i32)
+    let annual_interest = f64::from(quote.annual_interest_rate + quote.annual_interest_rate_margin)
+        / 10f64.powi(INTEREST_DECIMALS)
         * 100.0;
 
     Ok(Json(LeaseQuoteResponse {
@@ -907,7 +907,7 @@ async fn fetch_lease_info(
             interest: LeaseInterestInfo {
                 loan_rate: opening.opening.loan_interest_rate,
                 margin_rate: 0,
-                annual_rate_percent: opening.opening.loan_interest_rate as f64 / PERMILLE,
+                annual_rate_percent: f64::from(opening.opening.loan_interest_rate) / PERMILLE,
             },
             liquidation_price: None,
             opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
@@ -1195,8 +1195,8 @@ fn calculate_interest_info(opened: &OpenedLeaseInfo) -> LeaseInterestInfo {
 
 fn calculate_annual_rate(loan_rate: u32, margin_rate: u32) -> f64 {
     // Both loan_rate and margin_rate are in permille (per 1000)
-    let loan_percent = loan_rate as f64 / PERMILLE;
-    let margin_percent = margin_rate as f64 / PERMILLE;
+    let loan_percent = f64::from(loan_rate) / PERMILLE;
+    let margin_percent = f64::from(margin_rate) / PERMILLE;
 
     // Return combined annual rate as percentage
     (loan_percent + margin_percent) * 100.0
@@ -1271,8 +1271,8 @@ fn calculate_pnl(
     let asset_key = format!("{}@{}", asset_ticker, protocol);
     let lpn_key = format!("{}@{}", lpn_ticker, protocol);
 
-    let asset_decimals = currencies.currencies.get(&asset_key)?.decimal_digits as i32;
-    let lpn_decimals = currencies.currencies.get(&lpn_key)?.decimal_digits as i32;
+    let asset_decimals = i32::from(currencies.currencies.get(&asset_key)?.decimal_digits);
+    let lpn_decimals = i32::from(currencies.currencies.get(&lpn_key)?.decimal_digits);
 
     // Look up prices — no price means no PnL (better than wrong PnL)
     let asset_price: f64 = prices
@@ -1305,7 +1305,7 @@ fn calculate_pnl(
             currencies
                 .currencies
                 .get(&cltr_key)
-                .map(|c| c.decimal_digits as i32)
+                .map(|c| i32::from(c.decimal_digits))
         })
         .unwrap_or(lpn_decimals);
 
@@ -1531,7 +1531,7 @@ async fn fetch_lease_monitor_info_internal(
             interest: Some(LeaseInterestInfo {
                 loan_rate: opening.opening.loan_interest_rate,
                 margin_rate: 0,
-                annual_rate_percent: opening.opening.loan_interest_rate as f64 / PERMILLE,
+                annual_rate_percent: f64::from(opening.opening.loan_interest_rate) / PERMILLE,
             }),
             liquidation_price: None,
             pnl: None,
@@ -1565,9 +1565,9 @@ async fn fetch_lease_monitor_info_internal(
                 interest: Some(LeaseInterestInfo {
                     loan_rate: info.loan_interest_rate,
                     margin_rate: info.margin_interest_rate,
-                    annual_rate_percent: (info.loan_interest_rate + info.margin_interest_rate)
-                        as f64
-                        / PERMILLE,
+                    annual_rate_percent: f64::from(
+                        info.loan_interest_rate + info.margin_interest_rate,
+                    ) / PERMILLE,
                 }),
                 liquidation_price: None,
                 pnl: None,
@@ -1603,9 +1603,9 @@ async fn fetch_lease_monitor_info_internal(
                 interest: Some(LeaseInterestInfo {
                     loan_rate: info.loan_interest_rate,
                     margin_rate: info.margin_interest_rate,
-                    annual_rate_percent: (info.loan_interest_rate + info.margin_interest_rate)
-                        as f64
-                        / PERMILLE,
+                    annual_rate_percent: f64::from(
+                        info.loan_interest_rate + info.margin_interest_rate,
+                    ) / PERMILLE,
                 }),
                 liquidation_price: None,
                 pnl: None,

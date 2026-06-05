@@ -143,7 +143,7 @@ pub async fn list_protocols(
                         .and_then(|config| {
                             config
                                 .currencies
-                                .get(*ticker as &str)
+                                .get(**ticker)
                                 .map(|c| c.is_configured())
                         })
                         .unwrap_or(false)

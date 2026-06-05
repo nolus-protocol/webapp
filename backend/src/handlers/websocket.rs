@@ -1380,17 +1380,21 @@ async fn check_skip_tx_status(
 
     // Count completed hops
     let transfer_sequence = status_response.transfer_sequence.as_ref();
-    let total_hops = transfer_sequence.map(|s| s.len() as u32).unwrap_or(1);
+    let total_hops = transfer_sequence
+        .map(|s| u32::try_from(s.len()).unwrap_or(u32::MAX))
+        .unwrap_or(1);
     let completed_hops = transfer_sequence
         .map(|seq| {
-            seq.iter()
+            let completed = seq
+                .iter()
                 .filter(|item| {
                     item.ibc_transfer
                         .as_ref()
                         .map(|t| t.state == "TRANSFER_SUCCESS" || t.state == "STATE_COMPLETED")
                         .unwrap_or(false)
                 })
-                .count() as u32
+                .count();
+            u32::try_from(completed).unwrap_or(u32::MAX)
         })
         .unwrap_or(0);
 

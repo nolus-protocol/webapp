@@ -237,7 +237,7 @@ pub async fn get_balances(
                 );
                 0.0
             });
-            let decimal_factor = 10_f64.powi(currency.decimal_digits as i32);
+            let decimal_factor = 10_f64.powi(i32::from(currency.decimal_digits));
             let human_amount = amount_f64 / decimal_factor;
 
             let price_usd = prices
@@ -286,9 +286,9 @@ pub fn calculate_price_with_decimals(
     let mut value = (quote / amt) * lpn;
 
     // Adjust for decimal difference between asset and LPN
-    let decimal_diff = asset_decimals as i16 - lpn_decimals as i16;
+    let decimal_diff = i16::from(asset_decimals) - i16::from(lpn_decimals);
     if decimal_diff != 0 {
-        let power = 10_f64.powi(decimal_diff.abs() as i32);
+        let power = 10_f64.powi(i32::from(decimal_diff.abs()));
         if decimal_diff > 0 {
             value *= power;
         } else {

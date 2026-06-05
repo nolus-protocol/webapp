@@ -18,6 +18,7 @@ use tracing::{debug, warn};
 use utoipa::ToSchema;
 
 use crate::error::AppError;
+use crate::num_utils::u128_to_f64;
 use crate::query_types::AddressQuery;
 use crate::AppState;
 
@@ -113,7 +114,7 @@ pub struct EarnStats {
 // Constants
 // ============================================================================
 
-const INTEREST_DECIMALS: u32 = 7;
+const INTEREST_DECIMALS: i32 = 7;
 
 // ============================================================================
 // Handlers
@@ -466,17 +467,17 @@ pub async fn get_earn_stats(
     // Dispatcher rewards from on-chain (optional - doesn't fail if unavailable)
     let dispatcher_rewards = dispatcher_rewards_result
         .ok()
-        .map(|r| r as f64 / 10f64.powi(INTEREST_DECIMALS as i32));
+        .map(|r| f64::from(r) / 10f64.powi(INTEREST_DECIMALS));
 
     // Calculate pool count and average APY from ETL data
-    let pool_count = etl_pools.len() as u32;
+    let pool_count = u32::try_from(etl_pools.len()).unwrap_or(u32::MAX);
     let total_apy: f64 = etl_pools
         .iter()
         .filter_map(|p| p.apr.as_ref()?.parse::<f64>().ok())
         .sum();
 
     let average_apy = if pool_count > 0 {
-        total_apy / pool_count as f64
+        total_apy / f64::from(pool_count)
     } else {
         0.0
     };
@@ -630,12 +631,21 @@ async fn fetch_position_info(
         ))
     })?;
     let lpp_price_ratio = if price_amount > 0 {
-        price_quote as f64 / price_amount as f64
+        u128_to_f64(price_quote) / u128_to_f64(price_amount)
     } else {
         1.0
     };
 
-    let deposited_lpn = (deposit_amount as f64 * lpp_price_ratio) as u128;
+    // Token amount uses exact integer arithmetic (multiply-before-divide) rather
+    // than the displayed f64 ratio, so the stored nLPN→LPN amount can't drift by
+    // a unit from float rounding. Matches the chain's integer settlement.
+    let deposited_lpn = if price_amount > 0 {
+        deposit_amount
+            .checked_mul(price_quote)
+            .map_or(u128::MAX, |scaled| scaled / price_amount)
+    } else {
+        deposit_amount
+    };
 
     // Get APY from ETL data
     let apy = etl_pools
@@ -765,13 +775,16 @@ async fn fetch_position_for_monitoring(
             protocol, lpp_price.amount.amount
         ))
     })?;
-    let lpp_price_ratio = if price_amount > 0 {
-        price_quote as f64 / price_amount as f64
+    // Exact integer arithmetic (multiply-before-divide) for the token amount —
+    // no f64 round-trip, so it can't drift by a unit. price_amount == 0 keeps
+    // the deposit unscaled, matching the prior 1.0 fallback ratio.
+    let deposited_lpn = if price_amount > 0 {
+        deposit_amount
+            .checked_mul(price_quote)
+            .map_or(u128::MAX, |scaled| scaled / price_amount)
     } else {
-        1.0
+        deposit_amount
     };
-
-    let deposited_lpn = (deposit_amount as f64 * lpp_price_ratio) as u128;
 
     // Calculate rewards (difference between current value and deposited value)
     // For now, rewards tracking would require historical data
