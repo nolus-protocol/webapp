@@ -63,7 +63,7 @@ const pagination = ref({
   total: 0,
   next_key: ""
 });
-const timeout = null as NodeJS.Timeout | null;
+let loadMoreTimer: NodeJS.Timeout | null = null;
 
 const proposals = ref([] as Proposal[]);
 const selectedProposal = ref({
@@ -89,15 +89,15 @@ watch(
 
 async function onInit() {
   await Promise.allSettled([
-    fetchGovernanceProposals({ timeout, pagination, proposals, initialLoad, showSkeleton }),
+    fetchGovernanceProposals({ timeout: null, pagination, proposals, initialLoad, showSkeleton }),
     loadBondedTokens(),
     loadTallying()
   ]);
 }
 
 onUnmounted(() => {
-  if (timeout) {
-    clearTimeout(timeout);
+  if (loadMoreTimer) {
+    clearTimeout(loadMoreTimer);
   }
 });
 
@@ -129,7 +129,7 @@ async function loadMoreProposals() {
   proposals.value = [...proposals.value, ...data.proposals];
   pagination.value = data.pagination;
 
-  setTimeout(() => {
+  loadMoreTimer = setTimeout(() => {
     loading.value = false;
   }, LOAD_TIMEOUT);
 }
