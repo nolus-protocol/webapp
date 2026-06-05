@@ -5,7 +5,7 @@
 
 use axum::{
     body::Body,
-    http::{Request, Response, StatusCode, Uri},
+    http::{HeaderValue, Request, Response, StatusCode, Uri},
 };
 use std::convert::Infallible;
 use std::future::Future;
@@ -36,8 +36,9 @@ impl Service<Request<Body>> for SpaFallback {
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        // Both `ServeDir` and this service use `Error = Infallible`, so the
+        // readiness result passes through unchanged.
         <ServeDir as Service<Request<Body>>>::poll_ready(&mut self.serve_dir, cx)
-            .map_err(|_| unreachable!())
     }
 
     fn call(&mut self, req: Request<Body>) -> Self::Future {
@@ -45,11 +46,13 @@ impl Service<Request<Body>> for SpaFallback {
         let static_dir = self.static_dir.clone();
 
         Box::pin(async move {
-            // Try to serve the static file first
-            let response = serve_dir
-                .call(req)
-                .await
-                .expect("ServeDir::Error is Infallible; cannot fail");
+            // Try to serve the static file first. `ServeDir::Error` is
+            // `Infallible`, so the `Err` arm is uninhabited — `match e {}`
+            // discharges it without an assertion.
+            let response = match serve_dir.call(req).await {
+                Ok(response) => response,
+                Err(e) => match e {},
+            };
 
             // If the file was not found (404) or ServeDir is trying to
             // redirect to a directory with a trailing slash (3xx), serve
@@ -59,29 +62,26 @@ impl Service<Request<Body>> for SpaFallback {
             // stripping trailing slashes causes an infinite loop:
             //   /assets → 307 /assets/ → nginx 301 /assets → …
             if response.status() == StatusCode::NOT_FOUND || response.status().is_redirection() {
-                // Create a new request for index.html
-                let index_req = Request::builder()
-                    .uri(Uri::from_static("/index.html"))
-                    .body(Body::empty())
-                    .expect("static /index.html URI and empty body are always valid");
+                // Build the index.html request directly: `Request::new` is
+                // infallible and `Uri::from_static` validates the static
+                // path at construction, so no builder `Result` to unwrap.
+                let mut index_req = Request::new(Body::empty());
+                *index_req.uri_mut() = Uri::from_static("/index.html");
 
                 // Create a new ServeDir to serve index.html
                 let mut index_serve = ServeDir::new(&static_dir);
-                let index_response = index_serve
-                    .call(index_req)
-                    .await
-                    .expect("ServeDir::Error is Infallible; cannot fail");
+                let index_response = match index_serve.call(index_req).await {
+                    Ok(response) => response,
+                    Err(e) => match e {},
+                };
 
                 // Return with 200 OK status instead of preserving the original status
                 let (mut parts, body) = index_response.into_parts();
                 parts.status = StatusCode::OK;
                 // Add cache control header to prevent caching of the fallback
-                parts.headers.insert(
-                    "cache-control",
-                    "no-cache"
-                        .parse()
-                        .expect("\"no-cache\" is a valid static HeaderValue"),
-                );
+                parts
+                    .headers
+                    .insert("cache-control", HeaderValue::from_static("no-cache"));
 
                 Ok(Response::from_parts(parts, Body::new(body)))
             } else {

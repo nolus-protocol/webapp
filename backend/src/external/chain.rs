@@ -163,7 +163,14 @@ impl ChainClient {
             backoff_ms *= 2;
         }
 
-        unreachable!()
+        // The `attempt == MAX_RETRIES` branch returns on the final iteration,
+        // so the loop never falls through here in practice. Return a typed
+        // error rather than panicking the request task if that invariant is
+        // ever broken (e.g. MAX_RETRIES being made 0).
+        Err(AppError::ChainRpc {
+            chain: "nolus".to_string(),
+            message: format!("retry loop exhausted after {} retries", MAX_RETRIES),
+        })
     }
 
     /// Query a CosmWasm contract
@@ -1368,6 +1375,35 @@ mod tests {
 
     fn create_test_client(base_url: &str) -> ChainClient {
         ChainClient::new(base_url.to_string(), Client::new())
+    }
+
+    #[tokio::test]
+    async fn chain_get_returns_typed_error_when_retries_exhausted() {
+        // A node that always answers 503 forces the bounded retry loop to
+        // exhaust every attempt. The exhausted path must return a typed
+        // `AppError::ChainRpc`, never panic the request task.
+        let mock_server = setup_mock_server().await;
+        let client = create_test_client(&mock_server.uri());
+
+        Mock::given(method("GET"))
+            .and(path("/always-503"))
+            .respond_with(ResponseTemplate::new(503))
+            .mount(&mock_server)
+            .await;
+
+        let url = format!("{}/always-503", mock_server.uri());
+        let result = client.chain_get(&url).await;
+
+        match result {
+            Err(AppError::ChainRpc { chain, message }) => {
+                assert_eq!(chain, "nolus");
+                assert!(
+                    message.contains(&format!("{} retries", MAX_RETRIES)),
+                    "expected retry-count in message, got: {message}"
+                );
+            }
+            other => panic!("expected AppError::ChainRpc after retry exhaustion, got {other:?}"),
+        }
     }
 
     #[tokio::test]

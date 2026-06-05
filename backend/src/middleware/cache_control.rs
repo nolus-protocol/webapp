@@ -4,7 +4,7 @@
 
 use axum::{
     body::Body,
-    http::{header, Request, Response},
+    http::{header, HeaderValue, Request, Response},
     middleware::Next,
 };
 
@@ -42,18 +42,26 @@ pub async fn cache_control_middleware(request: Request<Body>, next: Next) -> Res
     if max_age == 0 {
         response
             .headers_mut()
-            .insert(header::CACHE_CONTROL, "no-store".parse().unwrap());
+            .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
     } else {
-        response.headers_mut().insert(
-            header::CACHE_CONTROL,
-            format!(
-                "public, max-age={}, stale-while-revalidate={}",
-                max_age,
-                max_age / 2
-            )
-            .parse()
-            .unwrap(),
+        // The formatted value is always a valid header value (ASCII digits and
+        // a fixed template); skip insertion rather than panic if that ever
+        // changes.
+        let value = format!(
+            "public, max-age={}, stale-while-revalidate={}",
+            max_age,
+            max_age / 2
         );
+        match HeaderValue::from_str(&value) {
+            Ok(header_value) => {
+                response
+                    .headers_mut()
+                    .insert(header::CACHE_CONTROL, header_value);
+            }
+            Err(e) => {
+                tracing::error!("failed to build Cache-Control header from {value:?}: {e}");
+            }
+        }
     }
 
     response

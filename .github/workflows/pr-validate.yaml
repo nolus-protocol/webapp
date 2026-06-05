@@ -123,12 +123,10 @@ jobs:
       - name: Format check
         run: cargo fmt --all -- --check
 
-      - name: Clippy (deny warnings; pending restriction lints allowed until their fix-issues land — #170/#179/#186/#187/#188)
+      - name: Clippy (deny warnings; pending restriction lints allowed until their fix-issues land — #186/#187/#188)
         run: >-
           cargo clippy --all-targets --all-features --
           -D warnings
-          -A clippy::unwrap_used
-          -A clippy::expect_used
           -A clippy::too_many_lines
           -A clippy::cognitive_complexity
           -A clippy::missing_const_for_fn

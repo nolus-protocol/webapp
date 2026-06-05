@@ -120,7 +120,7 @@ impl ReferralClient {
         query: RewardsQuery,
     ) -> Result<RewardsResponse, AppError> {
         let endpoint = format!("api/referrers/{}/rewards", wallet_address);
-        let params = query.to_params();
+        let params = query.to_params()?;
         let param_refs: Vec<(&str, &str)> = params.iter().map(|(k, v)| (*k, v.as_str())).collect();
 
         let wrapper: ApiWrapper<RewardsResponse> = if param_refs.is_empty() {
@@ -139,7 +139,7 @@ impl ReferralClient {
         query: PayoutsQuery,
     ) -> Result<PayoutsResponse, AppError> {
         let endpoint = format!("api/referrers/{}/payouts", wallet_address);
-        let params = query.to_params();
+        let params = query.to_params()?;
         let param_refs: Vec<(&str, &str)> = params.iter().map(|(k, v)| (*k, v.as_str())).collect();
 
         let wrapper: ApiWrapper<PayoutsResponse> = if param_refs.is_empty() {
@@ -158,7 +158,7 @@ impl ReferralClient {
         query: ReferralsQuery,
     ) -> Result<ReferralsResponse, AppError> {
         let endpoint = format!("api/referrers/{}/referrals", wallet_address);
-        let params = query.to_params();
+        let params = query.to_params()?;
         let param_refs: Vec<(&str, &str)> = params.iter().map(|(k, v)| (*k, v.as_str())).collect();
 
         let wrapper: ApiWrapper<ReferralsResponse> = if param_refs.is_empty() {
@@ -442,16 +442,13 @@ pub struct RewardsQuery {
 }
 
 impl RewardsQuery {
-    fn to_params(&self) -> Vec<(&'static str, String)> {
+    fn to_params(&self) -> Result<Vec<(&'static str, String)>, AppError> {
         let mut params = vec![];
         if let Some(status) = &self.status {
-            params.push((
-                "status",
-                serde_json::to_string(status)
-                    .unwrap()
-                    .trim_matches('"')
-                    .to_string(),
-            ));
+            let serialized = serde_json::to_string(status).map_err(|e| {
+                AppError::Internal(format!("failed to serialize status filter: {e}"))
+            })?;
+            params.push(("status", serialized.trim_matches('"').to_string()));
         }
         if let Some(limit) = self.limit {
             params.push(("limit", limit.to_string()));
@@ -459,7 +456,7 @@ impl RewardsQuery {
         if let Some(offset) = self.offset {
             params.push(("offset", offset.to_string()));
         }
-        params
+        Ok(params)
     }
 }
 
@@ -471,16 +468,13 @@ pub struct PayoutsQuery {
 }
 
 impl PayoutsQuery {
-    fn to_params(&self) -> Vec<(&'static str, String)> {
+    fn to_params(&self) -> Result<Vec<(&'static str, String)>, AppError> {
         let mut params = vec![];
         if let Some(status) = &self.status {
-            params.push((
-                "status",
-                serde_json::to_string(status)
-                    .unwrap()
-                    .trim_matches('"')
-                    .to_string(),
-            ));
+            let serialized = serde_json::to_string(status).map_err(|e| {
+                AppError::Internal(format!("failed to serialize status filter: {e}"))
+            })?;
+            params.push(("status", serialized.trim_matches('"').to_string()));
         }
         if let Some(limit) = self.limit {
             params.push(("limit", limit.to_string()));
@@ -488,7 +482,7 @@ impl PayoutsQuery {
         if let Some(offset) = self.offset {
             params.push(("offset", offset.to_string()));
         }
-        params
+        Ok(params)
     }
 }
 
@@ -500,16 +494,13 @@ pub struct ReferralsQuery {
 }
 
 impl ReferralsQuery {
-    fn to_params(&self) -> Vec<(&'static str, String)> {
+    fn to_params(&self) -> Result<Vec<(&'static str, String)>, AppError> {
         let mut params = vec![];
         if let Some(status) = &self.status {
-            params.push((
-                "status",
-                serde_json::to_string(status)
-                    .unwrap()
-                    .trim_matches('"')
-                    .to_string(),
-            ));
+            let serialized = serde_json::to_string(status).map_err(|e| {
+                AppError::Internal(format!("failed to serialize status filter: {e}"))
+            })?;
+            params.push(("status", serialized.trim_matches('"').to_string()));
         }
         if let Some(limit) = self.limit {
             params.push(("limit", limit.to_string()));
@@ -517,7 +508,7 @@ impl ReferralsQuery {
         if let Some(offset) = self.offset {
             params.push(("offset", offset.to_string()));
         }
-        params
+        Ok(params)
     }
 }
 
