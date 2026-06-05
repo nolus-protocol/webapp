@@ -77,7 +77,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
+import { classifyError, Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
 import { useStakingStore } from "@/common/stores/staking";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
@@ -147,6 +147,9 @@ async function onNextClick() {
       await walletOperation(delegate);
     } catch (e) {
       Logger.error(e);
+      // Don't swallow: a delegate failure after validation (validator fetch /
+      // simulation / broadcast) must surface a localized message on the field.
+      validationError.value = i18n.t(classifyError(e));
     } finally {
       disabled.value = false;
     }

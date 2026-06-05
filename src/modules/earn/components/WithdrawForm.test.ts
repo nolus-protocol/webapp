@@ -119,7 +119,9 @@ vi.mock("@/common/utils", () => ({
   getMicroAmount: hoisted.getMicroAmountMock,
   validateAmountV2: hoisted.validateAmountV2Mock,
   walletOperation: hoisted.walletOperationMock,
-  WalletManager: { getWalletAddress: () => "nolus1fallback" }
+  WalletManager: { getWalletAddress: () => "nolus1fallback" },
+  classifyError: (e: unknown) =>
+    e instanceof Error && /liquidity/i.test(e.message) ? "message.no-liquidity" : "message.unexpected-error"
 }));
 
 vi.mock("@/common/utils/NumberFormatUtils", () => ({
@@ -245,6 +247,22 @@ describe("WithdrawForm.vue", () => {
   it("renders without throwing with at least one asset", () => {
     const wrapper = factory();
     expect(wrapper.exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("surfaces a localized message (not a silent stop) when the withdraw flow rejects — finding 8", async () => {
+    hoisted.walletOperationMock.mockRejectedValueOnce(new Error("lpp balance fetch failed"));
+    const wrapper = factory();
+    await new Promise((r) => setTimeout(r, 0));
+    await nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("50");
+    await nextTick();
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await new Promise((r) => setTimeout(r, 0));
+    await nextTick();
+    // onNextClick used to only Logger.error a failed pre-check/op, leaving the
+    // field blank and the button reset — it now shows a classified message.
+    expect(wrapper.find('[data-test="error"]').text()).toBe("message.unexpected-error");
     wrapper.unmount();
   });
 

@@ -298,15 +298,10 @@ function setHistory() {
   historyStore.addPendingTransfer(data, i18n);
 }
 
-watch(
-  () => [selectedCurrency.value, amount.value],
-  () => {
-    if (amount.value.length > 0) {
-      validateAmount();
-    }
-  }
-);
-
+// Reacts to: selected currency, amount, and wallet address. validateAmount()
+// runs first (idempotent — resets amountErrorMsg each call) and gates the
+// debounced route fetch. This subsumes the previous amount/currency-only watch,
+// which fired validateAmount() redundantly on the same dependency changes.
 watch(
   () => [selectedCurrency.value, amount.value, wallet.value],
   () => {
