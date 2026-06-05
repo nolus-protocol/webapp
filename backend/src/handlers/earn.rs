@@ -543,9 +543,9 @@ pub async fn fetch_pool_info(
         .unwrap_or(0.0);
 
     // Calculate available liquidity — parse failures are chain data errors, not safe to default
-    let total_balance: u128 = lpp_balance.balance.amount.parse().map_err(|_| {
+    let total_balance: u128 = lpp_balance.balance.amount.parse().map_err(|e| {
         AppError::Internal(format!(
-            "Unparseable LPP balance for {}: '{}'",
+            "Unparseable LPP balance for {}: '{}': {e}",
             protocol, lpp_balance.balance.amount
         ))
     })?;
@@ -553,9 +553,9 @@ pub async fn fetch_pool_info(
         .total_principal_due
         .amount
         .parse()
-        .map_err(|_| {
+        .map_err(|e| {
             AppError::Internal(format!(
-                "Unparseable LPP total_principal_due for {}: '{}'",
+                "Unparseable LPP total_principal_due for {}: '{}': {e}",
                 protocol, lpp_balance.total_principal_due.amount
             ))
         })?;
@@ -599,9 +599,9 @@ async fn fetch_position_info(
         .get_lender_deposit(lpp_address, owner)
         .await?;
 
-    let deposit_amount: u128 = deposit.amount.parse().map_err(|_| {
+    let deposit_amount: u128 = deposit.amount.parse().map_err(|e| {
         AppError::Internal(format!(
-            "Unparseable deposit amount for {} owner {}: '{}'",
+            "Unparseable deposit amount for {} owner {}: '{}': {e}",
             protocol, owner, deposit.amount
         ))
     })?;
@@ -618,15 +618,15 @@ async fn fetch_position_info(
     )?;
 
     // Calculate LPN value from nLPN — fallback to 1 inverts the price ratio
-    let price_quote: u128 = lpp_price.amount_quote.amount.parse().map_err(|_| {
+    let price_quote: u128 = lpp_price.amount_quote.amount.parse().map_err(|e| {
         AppError::Internal(format!(
-            "Unparseable LPP price_quote for {}: '{}'",
+            "Unparseable LPP price_quote for {}: '{}': {e}",
             protocol, lpp_price.amount_quote.amount
         ))
     })?;
-    let price_amount: u128 = lpp_price.amount.amount.parse().map_err(|_| {
+    let price_amount: u128 = lpp_price.amount.amount.parse().map_err(|e| {
         AppError::Internal(format!(
-            "Unparseable LPP price_amount for {}: '{}'",
+            "Unparseable LPP price_amount for {}: '{}': {e}",
             protocol, lpp_price.amount.amount
         ))
     })?;
@@ -747,9 +747,9 @@ async fn fetch_position_for_monitoring(
         .get_lender_deposit(lpp_address, owner)
         .await?;
 
-    let deposit_amount: u128 = deposit.amount.parse().map_err(|_| {
+    let deposit_amount: u128 = deposit.amount.parse().map_err(|e| {
         AppError::Internal(format!(
-            "Unparseable WS deposit amount for {} owner {}: '{}'",
+            "Unparseable WS deposit amount for {} owner {}: '{}': {e}",
             protocol, owner, deposit.amount
         ))
     })?;
@@ -763,15 +763,15 @@ async fn fetch_position_for_monitoring(
     let lpp_price = state.chain_client.get_lpp_price(lpp_address).await?;
 
     // Calculate LPN value from nLPN
-    let price_quote: u128 = lpp_price.amount_quote.amount.parse().map_err(|_| {
+    let price_quote: u128 = lpp_price.amount_quote.amount.parse().map_err(|e| {
         AppError::Internal(format!(
-            "Unparseable WS LPP price_quote for {}: '{}'",
+            "Unparseable WS LPP price_quote for {}: '{}': {e}",
             protocol, lpp_price.amount_quote.amount
         ))
     })?;
-    let price_amount: u128 = lpp_price.amount.amount.parse().map_err(|_| {
+    let price_amount: u128 = lpp_price.amount.amount.parse().map_err(|e| {
         AppError::Internal(format!(
-            "Unparseable WS LPP price_amount for {}: '{}'",
+            "Unparseable WS LPP price_amount for {}: '{}': {e}",
             protocol, lpp_price.amount.amount
         ))
     })?;

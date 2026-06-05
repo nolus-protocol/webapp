@@ -255,7 +255,7 @@ impl AppConfig {
             // Unauthenticated
             etl_api_url,
             skip_api_url: env::var("SKIP_API_URL")
-                .unwrap_or_else(|_| "https://api.skip.money".to_string()),
+                .unwrap_or_else(|_err| "https://api.skip.money".to_string()),
             skip_api_key: env::var("SKIP_API_KEY").ok(),
 
             // Chain RPCs & REST (only Nolus required)
@@ -263,28 +263,30 @@ impl AppConfig {
             nolus_rest_url,
 
             // Authenticated - Referral
-            referral_api_url: env::var("REFERRAL_API_URL").unwrap_or_else(|_| String::new()),
-            referral_api_token: env::var("REFERRAL_API_TOKEN").unwrap_or_else(|_| String::new()),
+            referral_api_url: env::var("REFERRAL_API_URL").unwrap_or_else(|_err| String::new()),
+            referral_api_token: env::var("REFERRAL_API_TOKEN").unwrap_or_else(|_err| String::new()),
 
             // Authenticated - Zero Interest
             zero_interest_api_url: env::var("ZERO_INTEREST_API_URL")
-                .unwrap_or_else(|_| String::new()),
+                .unwrap_or_else(|_err| String::new()),
             zero_interest_api_token: env::var("ZERO_INTEREST_API_TOKEN")
-                .unwrap_or_else(|_| String::new()),
+                .unwrap_or_else(|_err| String::new()),
 
             // Intercom
-            intercom_app_id: env::var("INTERCOM_APP_ID").unwrap_or_else(|_| "hbjifswh".to_string()),
-            intercom_secret_key: env::var("INTERCOM_SECRET_KEY").unwrap_or_else(|_| String::new()),
+            intercom_app_id: env::var("INTERCOM_APP_ID")
+                .unwrap_or_else(|_err| "hbjifswh".to_string()),
+            intercom_secret_key: env::var("INTERCOM_SECRET_KEY")
+                .unwrap_or_else(|_err| String::new()),
         };
 
         let port: u16 = env::var("PORT")
-            .unwrap_or_else(|_| "3000".to_string())
+            .unwrap_or_else(|_err| "3000".to_string())
             .parse()
             .map_err(|e| anyhow::anyhow!("PORT must be a valid port number (u16): {e}"))?;
 
         Ok(Self {
             server: ServerConfig {
-                host: env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
+                host: env::var("HOST").unwrap_or_else(|_err| "0.0.0.0".to_string()),
                 port,
                 cors_origins: env::var("CORS_ORIGINS").ok().map(|v| {
                     v.split(',')
@@ -296,10 +298,10 @@ impl AppConfig {
             external,
             admin: AdminConfig {
                 enabled: env::var("ADMIN_API_ENABLED")
-                    .unwrap_or_else(|_| "false".to_string())
+                    .unwrap_or_else(|_err| "false".to_string())
                     .parse()
                     .unwrap_or(false),
-                api_key: env::var("ADMIN_API_KEY").unwrap_or_else(|_| String::new()),
+                api_key: env::var("ADMIN_API_KEY").unwrap_or_else(|_err| String::new()),
             },
             protocols: ProtocolsConfig {
                 admin_contract: Self::get_required_env("ADMIN_CONTRACT", "Admin contract address")?,

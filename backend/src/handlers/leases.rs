@@ -1152,7 +1152,7 @@ fn build_empty_debt(ticker: &str) -> LeaseDebtInfo {
 /// Parse amount string to u128, returning an error if the value cannot be parsed.
 /// Financial amounts must never silently become 0 — that would understate debt.
 fn parse_amount(amount: &str, field_name: &str) -> Result<u128, AppError> {
-    amount.parse().map_err(|_| {
+    amount.parse().map_err(|_err| {
         AppError::Internal(format!(
             "Failed to parse {} amount: '{}'",
             field_name, amount
@@ -1311,7 +1311,7 @@ fn calculate_pnl(
 
     // None legitimately means 0 (no downpayment recorded); parse failure is a data issue
     let downpayment_raw: f64 = match etl.lease.downpayment_amount.as_deref() {
-        Some(s) => s.parse().unwrap_or_else(|_| {
+        Some(s) => s.parse().unwrap_or_else(|_err| {
             warn!(
                 "Unparseable downpayment for lease {}: '{}'",
                 opened.amount.ticker, s
@@ -1324,7 +1324,7 @@ fn calculate_pnl(
 
     // Fee uses asset decimals (matching frontend behavior)
     let fee_raw: f64 = match etl.fee.as_deref() {
-        Some(s) => s.parse().unwrap_or_else(|_| {
+        Some(s) => s.parse().unwrap_or_else(|_err| {
             warn!(
                 "Unparseable fee for lease {}: '{}'",
                 opened.amount.ticker, s
@@ -1337,7 +1337,7 @@ fn calculate_pnl(
 
     // repayment_value is already formatted as a decimal number
     let repayment_value: f64 = match etl.repayment_value.as_deref() {
-        Some(s) => s.parse().unwrap_or_else(|_| {
+        Some(s) => s.parse().unwrap_or_else(|_err| {
             warn!(
                 "Unparseable repayment_value for lease {}: '{}'",
                 opened.amount.ticker, s

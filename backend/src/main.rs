@@ -75,7 +75,7 @@ async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "nolus_backend=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_err| "nolus_backend=debug,tower_http=debug".into()),
         )
         .json()
         .init();
@@ -149,7 +149,7 @@ async fn main() -> anyhow::Result<()> {
     let ws_manager = WebSocketManager::new(ws_max_connections);
 
     // Initialize config store for webapp configuration
-    let config_dir = std::env::var("CONFIG_DIR").unwrap_or_else(|_| "./config".to_string());
+    let config_dir = std::env::var("CONFIG_DIR").unwrap_or_else(|_err| "./config".to_string());
     let config_store = ConfigStore::new(&config_dir);
     config_store.init().await?;
 
@@ -161,7 +161,7 @@ async fn main() -> anyhow::Result<()> {
     // Initialize LLM client for translations (via OpenRouter)
     let llm_api_key = std::env::var("OPENROUTER_API_KEY").unwrap_or_default();
     let llm_model = std::env::var("OPENROUTER_MODEL")
-        .unwrap_or_else(|_| "google/gemini-3-flash-preview".to_string());
+        .unwrap_or_else(|_err| "google/gemini-3-flash-preview".to_string());
     let llm_client = LlmClient::new(LlmConfig {
         api_key: llm_api_key,
         model: llm_model,
@@ -730,7 +730,7 @@ fn create_router(state: Arc<AppState>) -> Router {
     // Static file serving for the frontend SPA
     // Serves files from ../dist (relative to backend directory)
     // Falls back to index.html for SPA routing with 200 OK status
-    let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "../dist".to_string());
+    let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_err| "../dist".to_string());
     let index_path = format!("{}/index.html", static_dir);
 
     if !std::path::Path::new(&index_path).exists() {
