@@ -118,7 +118,7 @@
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
 import { Button, type AssetItemProps, AssetItem, type AdvancedCurrencyFieldOption, ToastType } from "web-components";
 import { NATIVE_NETWORK } from "../../../config/global/network";
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
@@ -477,6 +477,10 @@ async function setRoute(token: Coin, revert = false) {
     }
   }, timeOut);
 }
+
+onUnmounted(() => {
+  clearTimeout(time);
+});
 
 function validateInputs() {
   const first = selectedFirstCurrencyOption.value;

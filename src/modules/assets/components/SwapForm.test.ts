@@ -464,6 +464,27 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
       wrapper.unmount();
     });
 
+    it("clears the pending route-fetch debounce on unmount (no fetch after teardown)", async () => {
+      const wrapper = factory();
+      await flushPromises();
+
+      const mcc = wrapper.findComponent({ name: "MultipleCurrencyComponent" });
+      mcc.vm.$emit("on-first-change", {
+        input: { value: "5" },
+        currency: { value: "OSMO@OSMOSIS" },
+        type: "select"
+      });
+      await flushPromises();
+
+      // Unmount while the 600ms debounce is still pending, then let the clock
+      // pass the debounce window: the timer must have been cleared on unmount.
+      wrapper.unmount();
+      await vi.advanceTimersByTimeAsync(700);
+      await flushPromises();
+
+      expect(SkipRouter.getRoute).not.toHaveBeenCalled();
+    });
+
     it("updateSwapToRoute: input event on second currency triggers reverted route fetch", async () => {
       const wrapper = factory();
       await flushPromises();
