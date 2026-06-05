@@ -259,6 +259,10 @@ watch(
   () => [selectedCurrency.value, amount.value, selectedLoanCurrency.value, ltd.value],
   async () => {
     amountErrorMsg.value = "";
+    if (!validateAmountAgainstBalance()) {
+      leaseApply.value = null;
+      return;
+    }
     if (await validateMinMaxValues()) {
       calculate();
     } else {
@@ -495,45 +499,59 @@ async function validateMinMaxValues(): Promise<boolean> {
   }
 }
 
-function isDownPaymentAmountValid() {
-  let isValid = true;
-  amountErrorMsg.value = "";
-
+// Balance/amount validation that must run reactively (on every input change),
+// not only on submit. The contract quote in calculate() cannot stand in for it:
+// a zero-balance collateral has no denom, so the quote attempt throws and the
+// catch surfaces a generic "Unexpected error" instead of "Insufficient balance".
+function validateAmountAgainstBalance(): boolean {
   const selectedDownPaymentCurrency = currency.value;
   const downPaymentAmount = amount.value;
 
-  if (downPaymentAmount || downPaymentAmount !== "") {
-    const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-      downPaymentAmount,
-      "",
-      selectedDownPaymentCurrency.decimal_digits
-    );
-
-    const isLowerThanOrEqualsToZero = new Dec(downPaymentAmountInMinimalDenom.amount || "0").lte(new Dec(0));
-
-    const isGreaterThanWalletBalance = new Int(downPaymentAmountInMinimalDenom.amount.toString() || "0").gt(
-      new Int(selectedDownPaymentCurrency?.balance?.amount ?? "0")
-    );
-
-    if (isLowerThanOrEqualsToZero) {
-      amountErrorMsg.value = i18n.t("message.invalid-balance-low");
-      isValid = false;
-    }
-
-    if (isGreaterThanWalletBalance) {
-      amountErrorMsg.value = i18n.t("message.invalid-balance-big");
-      isValid = false;
-    }
-
-    if (!validateMinMaxValues()) {
-      isValid = false;
-    }
-  } else {
-    amountErrorMsg.value = i18n.t("message.missing-amount");
-    isValid = false;
+  if (!selectedDownPaymentCurrency || !downPaymentAmount) {
+    return true;
   }
 
-  return isValid;
+  const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
+    downPaymentAmount,
+    "",
+    selectedDownPaymentCurrency.decimal_digits
+  );
+
+  const isLowerThanOrEqualsToZero = new Dec(downPaymentAmountInMinimalDenom.amount || "0").lte(new Dec(0));
+  const isGreaterThanWalletBalance = new Int(downPaymentAmountInMinimalDenom.amount.toString() || "0").gt(
+    new Int(selectedDownPaymentCurrency?.balance?.amount ?? "0")
+  );
+
+  if (isLowerThanOrEqualsToZero) {
+    amountErrorMsg.value = i18n.t("message.invalid-balance-low");
+    return false;
+  }
+
+  if (isGreaterThanWalletBalance) {
+    amountErrorMsg.value = i18n.t("message.invalid-balance-big");
+    return false;
+  }
+
+  return true;
+}
+
+function isDownPaymentAmountValid() {
+  amountErrorMsg.value = "";
+
+  if (!amount.value) {
+    amountErrorMsg.value = i18n.t("message.missing-amount");
+    return false;
+  }
+
+  if (!validateAmountAgainstBalance()) {
+    return false;
+  }
+
+  if (!validateMinMaxValues()) {
+    return false;
+  }
+
+  return true;
 }
 
 async function calculate() {
