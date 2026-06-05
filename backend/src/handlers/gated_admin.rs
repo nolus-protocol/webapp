@@ -339,8 +339,13 @@ pub async fn upsert_currency_display(
     state.config_store.save_currency_display(&config).await?;
     trigger_gated_refresh(&state);
 
-    // Return the updated entry
-    let enrichment = config.currencies.get(&ticker).unwrap();
+    // Return the updated entry — present because it was just inserted above.
+    let enrichment = config
+        .currencies
+        .get(&ticker)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("currency display for {ticker}"),
+        })?;
     Ok(Json(AdminCurrencyResponse {
         ticker: ticker.clone(),
         denom: String::new(), // Would need ETL lookup
@@ -436,7 +441,13 @@ pub async fn upsert_network_config(
         .await?;
     trigger_gated_refresh(&state);
 
-    let net_config = config.networks.get(&network).unwrap();
+    // Present because it was just inserted above.
+    let net_config = config
+        .networks
+        .get(&network)
+        .ok_or_else(|| AppError::NotFound {
+            resource: format!("network config for {network}"),
+        })?;
     Ok(Json(AdminNetworkResponse {
         network: network.clone(),
         source: "config".to_string(),

@@ -3,22 +3,29 @@
 //! Ensures that template variables like {name}, {0}, {{count}} are preserved
 //! in translations.
 
-use lazy_static::lazy_static;
 use regex::Regex;
 use serde::Serialize;
 use std::collections::HashSet;
+use std::sync::LazyLock;
 
-lazy_static! {
-    /// Regex to match placeholders in translation strings
-    /// Matches:
-    /// - {name} - simple placeholder
-    /// - {0}, {1} - numbered placeholder
-    /// - {{name}} - double-braced placeholder
-    /// - %s, %d - printf-style placeholder
-    static ref PLACEHOLDER_REGEX: Regex = Regex::new(
-        r"\{\{?\w+\}?\}|%[sd]|\{[0-9]+\}"
-    ).expect("Invalid placeholder regex");
-}
+/// Source pattern for [`PLACEHOLDER_REGEX`]. A compile-time constant whose
+/// validity is pinned by `placeholder_regex_compiles` below.
+const PLACEHOLDER_PATTERN: &str = r"\{\{?\w+\}?\}|%[sd]|\{[0-9]+\}";
+
+/// Regex to match placeholders in translation strings.
+///
+/// Matches:
+/// - `{name}` - simple placeholder
+/// - `{0}`, `{1}` - numbered placeholder
+/// - `{{name}}` - double-braced placeholder
+/// - `%s`, `%d` - printf-style placeholder
+///
+/// The pattern is a constant, so compilation only fails if the constant
+/// above is edited to something invalid — a bug the compile-guard test
+/// catches. `None` is therefore unreachable at runtime; callers log loudly
+/// and degrade rather than panic if it ever occurs.
+static PLACEHOLDER_REGEX: LazyLock<Option<Regex>> =
+    LazyLock::new(|| Regex::new(PLACEHOLDER_PATTERN).ok());
 
 /// Result of placeholder validation
 #[derive(Debug, Clone, Serialize)]
@@ -37,7 +44,14 @@ pub struct ValidationResult {
 
 /// Extract all placeholders from a text string
 pub fn extract_placeholders(text: &str) -> Vec<String> {
-    PLACEHOLDER_REGEX
+    let Some(regex) = PLACEHOLDER_REGEX.as_ref() else {
+        tracing::error!(
+            "placeholder regex failed to compile from a constant pattern — \
+             returning no placeholders; this is a build-time bug"
+        );
+        return Vec::new();
+    };
+    regex
         .find_iter(text)
         .map(|m| m.as_str().to_string())
         .collect()
@@ -45,6 +59,20 @@ pub fn extract_placeholders(text: &str) -> Vec<String> {
 
 /// Validate that a translation preserves all placeholders from the source
 pub fn validate_placeholders(source: &str, translation: &str) -> ValidationResult {
+    // Fail closed: if the placeholder regex is unavailable we cannot prove
+    // placeholders were preserved, so report invalid rather than letting an
+    // empty extraction collapse to a spurious "valid". `None` is unreachable
+    // for the constant pattern (guarded by `placeholder_regex_compiles`).
+    if PLACEHOLDER_REGEX.is_none() {
+        return ValidationResult {
+            valid: false,
+            source_placeholders: Vec::new(),
+            translation_placeholders: Vec::new(),
+            missing: Vec::new(),
+            extra: Vec::new(),
+        };
+    }
+
     let source_placeholders = extract_placeholders(source);
     let translation_placeholders = extract_placeholders(translation);
 
@@ -78,6 +106,17 @@ pub fn validate_placeholders(source: &str, translation: &str) -> ValidationResul
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn placeholder_regex_compiles() {
+        // Guards the constant pattern: if an edit makes it invalid, the
+        // `LazyLock` resolves to `None` and this fails CI before the silent
+        // empty-placeholder degradation can ship.
+        assert!(
+            PLACEHOLDER_REGEX.is_some(),
+            "PLACEHOLDER_PATTERN must be a valid regex"
+        );
+    }
 
     #[test]
     fn test_extract_simple_placeholders() {

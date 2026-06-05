@@ -277,13 +277,15 @@ impl AppConfig {
             intercom_secret_key: env::var("INTERCOM_SECRET_KEY").unwrap_or_else(|_| String::new()),
         };
 
+        let port: u16 = env::var("PORT")
+            .unwrap_or_else(|_| "3000".to_string())
+            .parse()
+            .map_err(|e| anyhow::anyhow!("PORT must be a valid port number (u16): {e}"))?;
+
         Ok(Self {
             server: ServerConfig {
                 host: env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string()),
-                port: env::var("PORT")
-                    .unwrap_or_else(|_| "3000".to_string())
-                    .parse()
-                    .expect("PORT must be a number"),
+                port,
                 cors_origins: env::var("CORS_ORIGINS").ok().map(|v| {
                     v.split(',')
                         .map(|s| s.trim().to_string())

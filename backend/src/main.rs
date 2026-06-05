@@ -100,7 +100,13 @@ async fn main() -> anyhow::Result<()> {
     }
     let addr: SocketAddr = format!("{}:{}", config.server.host, config.server.port)
         .parse()
-        .expect("Invalid server address");
+        .map_err(|e| {
+            anyhow::anyhow!(
+                "invalid server address {}:{}: {e}",
+                config.server.host,
+                config.server.port
+            )
+        })?;
 
     // Create HTTP client for external APIs with optimized connection pooling
     let http_client = reqwest::Client::builder()
@@ -217,21 +223,24 @@ async fn main() -> anyhow::Result<()> {
     // Build router
     let app = create_router(state);
 
+    // Install the SIGTERM handler before serving so a failure propagates
+    // (and aborts startup) instead of panicking the shutdown task later.
+    let sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        .map_err(|e| anyhow::anyhow!("failed to install SIGTERM handler: {e}"))?;
+
     // Start server
     info!("Starting server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(shutdown_signal(sigterm))
         .await?;
     info!("Server shut down gracefully");
 
     Ok(())
 }
 
-async fn shutdown_signal() {
+async fn shutdown_signal(mut sigterm: tokio::signal::unix::Signal) {
     let ctrl_c = tokio::signal::ctrl_c();
-    let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-        .expect("failed to install SIGTERM handler");
 
     tokio::select! {
         _ = ctrl_c => { info!("Received SIGINT, shutting down"); }
