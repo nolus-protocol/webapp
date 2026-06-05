@@ -182,7 +182,9 @@ vi.mock("@/common/utils", async () => {
       coinMinimalDenom: "ibc/ALLBTC"
     }),
     Logger: { error: hoisted.loggerError },
-    walletOperation: vi.fn()
+    walletOperation: vi.fn(),
+    classifyError: (e: unknown) =>
+      e instanceof Error && /liquidity/i.test(e.message) ? "message.no-liquidity" : "message.unexpected-error"
   };
 });
 

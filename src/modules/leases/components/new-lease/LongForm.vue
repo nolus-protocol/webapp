@@ -193,7 +193,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
-import { getMicroAmount, Logger, walletOperation } from "@/common/utils";
+import { classifyError, getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
@@ -590,18 +590,9 @@ async function calculate() {
     }
   } catch (error) {
     Logger.error("LongForm calculate error:", error);
-    amountErrorMsg.value = classifyQuoteError(error);
+    amountErrorMsg.value = i18n.t(classifyError(error));
     leaseApply.value = null;
   }
-}
-
-// Only errors whose message references liquidity map to the "no-liquidity"
-// user message. Every other failure (RPC error, invalid ticker, contract
-// rejection) is surfaced as a generic error instead of being mislabelled —
-// historically this masked the root cause of bugs.
-function classifyQuoteError(error: unknown): string {
-  const msg = error instanceof Error ? error.message : String(error);
-  return /liquidity/i.test(msg) ? i18n.t("message.no-liquidity") : i18n.t("message.unexpected-error");
 }
 
 async function onOpenLease() {
@@ -609,7 +600,7 @@ async function onOpenLease() {
     isDisabled.value = true;
     await walletOperation(openLease);
   } catch (error: unknown) {
-    amountErrorMsg.value = String(error);
+    amountErrorMsg.value = i18n.t(classifyError(error));
     Logger.error(error);
   } finally {
     isDisabled.value = false;
@@ -660,7 +651,7 @@ async function openLease() {
 
       router.push(`/${RouteNames.LEASES}/${data.value}`);
     } catch (error: unknown) {
-      amountErrorMsg.value = String(error);
+      amountErrorMsg.value = i18n.t(classifyError(error));
       Logger.error(error);
     } finally {
       isLoading.value = false;
