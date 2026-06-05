@@ -129,7 +129,6 @@ jobs:
           -D warnings
           -A clippy::unwrap_used
           -A clippy::expect_used
-          -A clippy::as_conversions
           -A clippy::too_many_lines
           -A clippy::cognitive_complexity
           -A clippy::missing_const_for_fn

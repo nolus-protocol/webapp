@@ -6,6 +6,7 @@ use tracing::{debug, warn};
 use utoipa::ToSchema;
 
 use crate::error::AppError;
+use crate::num_utils::u128_to_f64;
 use crate::AppState;
 
 // ============================================================================
@@ -234,6 +235,11 @@ pub async fn detailed_health_check(
         "empty"
     };
 
+    // The cache field set is fixed (the `all_fields` array above), so these
+    // counts never saturate `u32`.
+    let populated = u32::try_from(populated_count).unwrap_or(u32::MAX);
+    let total = u32::try_from(total_count).unwrap_or(u32::MAX);
+
     Json(DetailedHealthResponse {
         status: overall_status.to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
@@ -248,9 +254,9 @@ pub async fn detailed_health_check(
         },
         cache: CacheHealth {
             status: cache_status.to_string(),
-            total_entries: populated_count as u64,
+            total_entries: u64::from(populated),
             hit_rate: if total_count > 0 {
-                populated_count as f64 / total_count as f64
+                f64::from(populated) / f64::from(total)
             } else {
                 0.0
             },
@@ -276,7 +282,7 @@ async fn check_etl_health(state: &AppState, timeout_duration: Duration) -> Servi
     .await
     {
         Ok(Ok(response)) => {
-            let latency = start.elapsed().as_millis() as u64;
+            let latency = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
             if response.status().is_success() {
                 ServiceStatus::healthy(latency)
             } else {
@@ -309,7 +315,7 @@ async fn check_nolus_rpc_health(state: &AppState, timeout_duration: Duration) ->
     .await
     {
         Ok(Ok(response)) => {
-            let latency = start.elapsed().as_millis() as u64;
+            let latency = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
             if response.status().is_success() {
                 ServiceStatus::healthy(latency)
             } else {
@@ -342,7 +348,7 @@ async fn check_nolus_rest_health(state: &AppState, timeout_duration: Duration) -
     .await
     {
         Ok(Ok(response)) => {
-            let latency = start.elapsed().as_millis() as u64;
+            let latency = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
             if response.status().is_success() {
                 ServiceStatus::healthy(latency)
             } else {
@@ -376,7 +382,7 @@ async fn check_skip_health(state: &AppState, timeout_duration: Duration) -> Serv
     .await
     {
         Ok(Ok(response)) => {
-            let latency = start.elapsed().as_millis() as u64;
+            let latency = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
             if response.status().is_success() {
                 ServiceStatus::healthy(latency)
             } else {
@@ -414,7 +420,7 @@ async fn check_referral_health(state: &AppState, timeout_duration: Duration) -> 
     .await
     {
         Ok(Ok(response)) => {
-            let latency = start.elapsed().as_millis() as u64;
+            let latency = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
             let status = response.status();
             // 200 = working, 404 = invalid code (expected for dummy), 401 = needs
             // auth (API is reachable). All three confirm connectivity.
@@ -454,7 +460,7 @@ async fn check_zero_interest_health(state: &AppState, timeout_duration: Duration
     .await
     {
         Ok(Ok(response)) => {
-            let latency = start.elapsed().as_millis() as u64;
+            let latency = u64::try_from(start.elapsed().as_millis()).unwrap_or(u64::MAX);
             // 401 means API is reachable but needs auth, which is fine for health check
             if response.status().is_success()
                 || response.status() == reqwest::StatusCode::UNAUTHORIZED
@@ -654,14 +660,14 @@ pub async fn intercom_hash(
         Vec::new()
     });
     let opened_leases: Vec<_> = leases.iter().filter(|l| l.status == "opened").collect();
-    let positions_count = opened_leases.len() as u32;
+    let positions_count = u32::try_from(opened_leases.len()).unwrap_or(u32::MAX);
 
     // Earn
     let (earn_positions, _) = earn_result.unwrap_or_else(|e| {
         warn!("[Intercom] Failed to fetch earn for {}: {}", wallet, e);
         (Vec::new(), "0.00".to_string())
     });
-    let earn_pools_count = earn_positions.len() as u32;
+    let earn_pools_count = u32::try_from(earn_positions.len()).unwrap_or(u32::MAX);
     let earn_deposited_usd = compute_earn_deposited_usd(&earn_positions, &state);
 
     // Staking
@@ -672,15 +678,17 @@ pub async fn intercom_hash(
         );
         Vec::new()
     });
-    let staking_validators_count = delegations.len() as u32;
+    let staking_validators_count = u32::try_from(delegations.len()).unwrap_or(u32::MAX);
     let total_staked_unls: u128 = delegations
         .iter()
         .filter_map(|d| d.balance.amount.parse::<u128>().ok())
         .sum();
-    let staking_delegated_nls = format!("{:.6}", total_staked_unls as f64 / 1_000_000.0);
+    let staking_delegated_nls = format!("{:.6}", u128_to_f64(total_staked_unls) / 1_000_000.0);
     let nls_price = compute_nls_price_usd(&state);
-    let staking_delegated_usd =
-        format!("{:.2}", total_staked_unls as f64 / 1_000_000.0 * nls_price);
+    let staking_delegated_usd = format!(
+        "{:.2}",
+        u128_to_f64(total_staked_unls) / 1_000_000.0 * nls_price
+    );
 
     // Vesting
     let (staking_vested_nls, is_vesting_account) = match account_result {
@@ -747,7 +755,7 @@ async fn compute_total_balance_usd(state: &AppState, address: &str) -> Result<St
                 continue;
             }
             let amount_f64: f64 = bank_balance.amount.parse().unwrap_or(0.0);
-            let decimal_factor = 10_f64.powi(currency.decimal_digits as i32);
+            let decimal_factor = 10_f64.powi(i32::from(currency.decimal_digits));
             let human_amount = amount_f64 / decimal_factor;
             let price_usd = prices_response
                 .prices
@@ -812,7 +820,7 @@ fn compute_earn_deposited_usd(
 
         if let Some(lpn) = lpn_currency {
             let deposited: f64 = position.deposited_lpn.parse().unwrap_or(0.0);
-            let decimal_factor = 10_f64.powi(lpn.decimal_digits as i32);
+            let decimal_factor = 10_f64.powi(i32::from(lpn.decimal_digits));
             let human_amount = deposited / decimal_factor;
             let price_usd = prices
                 .prices
@@ -837,7 +845,7 @@ fn extract_vesting(account: &serde_json::Value) -> (String, bool) {
                 .and_then(|a| a.as_str())
                 .and_then(|a| a.parse::<u128>().ok())
                 .unwrap_or(0);
-            let human_nls = amount as f64 / 1_000_000.0;
+            let human_nls = u128_to_f64(amount) / 1_000_000.0;
             (format!("{:.6}", human_nls), true)
         }
         None => ("0.000000".to_string(), false),

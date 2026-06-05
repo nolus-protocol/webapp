@@ -40,10 +40,12 @@ fn rand_jitter(max: u64) -> u64 {
     if max == 0 {
         return 0;
     }
-    let nanos = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .subsec_nanos() as u64;
+    let nanos = u64::from(
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .subsec_nanos(),
+    );
     nanos % max
 }
 

@@ -141,7 +141,7 @@ pub async fn get_proposals(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ProposalsQuery>,
 ) -> Result<(HeaderMap, Json<ProposalsListResponse>), AppError> {
-    let limit = query.limit.unwrap_or(10) as usize;
+    let limit = usize::try_from(query.limit.unwrap_or(10)).unwrap_or(usize::MAX);
     debug!("Fetching proposals from cache, limit: {}", limit);
 
     let cache = &state.data_cache.proposals_with_tally;

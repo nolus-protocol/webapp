@@ -103,10 +103,15 @@ impl IntercomClient {
         }
 
         // Calculate expiration: 15 minutes from now (short-lived for security)
-        let exp = chrono::Utc::now()
-            .checked_add_signed(chrono::Duration::minutes(15))
-            .ok_or_else(|| AppError::Internal("Failed to calculate token expiration".to_string()))?
-            .timestamp() as usize;
+        let exp = usize::try_from(
+            chrono::Utc::now()
+                .checked_add_signed(chrono::Duration::minutes(15))
+                .ok_or_else(|| {
+                    AppError::Internal("Failed to calculate token expiration".to_string())
+                })?
+                .timestamp(),
+        )
+        .map_err(|_| AppError::Internal("Token expiration timestamp out of range".to_string()))?;
 
         // Flatten attributes into a HashMap for the JWT payload
         let attributes_map: HashMap<String, serde_json::Value> = {
@@ -272,7 +277,7 @@ mod tests {
         .unwrap();
 
         // Expiration should be approximately 15 minutes from now
-        let now = chrono::Utc::now().timestamp() as usize;
+        let now = usize::try_from(chrono::Utc::now().timestamp()).unwrap_or(0);
         let fifteen_minutes = 15 * 60;
 
         assert!(token_data.claims.exp > now);
