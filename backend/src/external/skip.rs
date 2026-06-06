@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::base_client::ExternalApiClient;
@@ -152,7 +153,7 @@ pub struct SkipChainsResponse {
     pub chains: Vec<SkipChain>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct SkipChain {
     pub chain_name: String,
     pub chain_id: String,
@@ -171,6 +172,74 @@ pub struct SkipTrackResponse {
     pub tx_hash: String,
     #[serde(default)]
     pub explorer_link: Option<String>,
+}
+
+/// Skip `/v2/fungible/route` response.
+///
+/// Only the fields the swap flow consumes are typed and required; every other
+/// field Skip returns (price impact, estimated fees, USD amounts, route
+/// duration, …) is preserved verbatim through `additional` so the frontend
+/// keeps its display data. `operations` stays opaque and is echoed back to
+/// `/v2/fungible/msgs` unchanged, so it must round-trip byte-for-byte.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SkipRouteResponse {
+    pub amount_in: String,
+    pub amount_out: String,
+    pub source_asset_denom: String,
+    pub source_asset_chain_id: String,
+    pub dest_asset_denom: String,
+    pub dest_asset_chain_id: String,
+    pub chain_ids: Vec<String>,
+    #[schema(value_type = Vec<Object>)]
+    pub operations: Vec<serde_json::Value>,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
+}
+
+/// Skip `/v2/fungible/msgs` response.
+///
+/// `txs` is validated down to the cosmos message envelope the frontend signs
+/// and broadcasts; bridge-specific entries (`evm_tx`, `operations_indices`, …)
+/// and any other top-level keys are preserved through `additional`.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SkipMessagesResponse {
+    pub txs: Vec<SkipTx>,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
+}
+
+/// One transaction in a Skip messages response. A cosmos transaction is typed;
+/// other transaction kinds (e.g. `evm_tx`) and extra fields ride in `additional`.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SkipTx {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cosmos_tx: Option<SkipCosmosTx>,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
+}
+
+/// The cosmos transaction envelope the frontend signs and broadcasts.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SkipCosmosTx {
+    pub chain_id: String,
+    pub msgs: Vec<SkipMsg>,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
+}
+
+/// A single cosmos message: the type URL the frontend dispatches on and its
+/// encoded body.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SkipMsg {
+    pub msg: String,
+    pub msg_type_url: String,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
 }
 
 #[cfg(test)]
@@ -433,5 +502,104 @@ mod tests {
         let client = test_client(&server.uri(), None);
         let err = client.get_status("h", "c").await.unwrap_err();
         assert_skip_error(&err);
+    }
+
+    // ---- 107: route response validates envelope, keeps operations + extras ----
+
+    #[test]
+    fn skip_route_response_parses_and_preserves_unconsumed_fields() {
+        let raw = serde_json::json!({
+            "amount_in": "1000",
+            "amount_out": "990",
+            "source_asset_denom": "uatom",
+            "source_asset_chain_id": "cosmoshub-4",
+            "dest_asset_denom": "uosmo",
+            "dest_asset_chain_id": "osmosis-1",
+            "chain_ids": ["cosmoshub-4", "osmosis-1"],
+            "operations": [{ "transfer": { "port": "transfer", "channel": "channel-0" } }],
+            "does_swap": true,
+            "estimated_amount_out": "990",
+            "usd_amount_in": "10.00"
+        });
+
+        let parsed: SkipRouteResponse =
+            serde_json::from_value(raw.clone()).expect("valid route response deserializes");
+
+        assert_eq!(parsed.amount_in, "1000");
+        assert_eq!(parsed.chain_ids, ["cosmoshub-4", "osmosis-1"]);
+        // operations is opaque and echoed back to /msgs — it must round-trip verbatim.
+        assert_eq!(
+            parsed.operations,
+            raw["operations"].as_array().cloned().unwrap()
+        );
+        // Unconsumed display fields survive in `additional`, not dropped.
+        assert_eq!(
+            parsed.additional.get("does_swap"),
+            Some(&serde_json::json!(true))
+        );
+        // Re-serialization is shape-equal to the upstream payload (no field loss).
+        assert_eq!(serde_json::to_value(&parsed).expect("re-serializes"), raw);
+    }
+
+    #[test]
+    fn skip_route_response_rejects_missing_required_field() {
+        // `amount_in` omitted — a partial route must not reach the money path.
+        let raw = serde_json::json!({
+            "amount_out": "990",
+            "source_asset_denom": "uatom",
+            "source_asset_chain_id": "cosmoshub-4",
+            "dest_asset_denom": "uosmo",
+            "dest_asset_chain_id": "osmosis-1",
+            "chain_ids": ["osmosis-1"],
+            "operations": []
+        });
+        let err = serde_json::from_value::<SkipRouteResponse>(raw).unwrap_err();
+        assert!(err.to_string().contains("amount_in"), "err: {err}");
+    }
+
+    // ---- 108: messages response validates cosmos msgs, preserves other tx kinds ----
+
+    #[test]
+    fn skip_messages_response_validates_cosmos_msgs_and_preserves_evm() {
+        let raw = serde_json::json!({
+            "txs": [
+                {
+                    "cosmos_tx": {
+                        "chain_id": "osmosis-1",
+                        "msgs": [{ "msg": "{}", "msg_type_url": "/ibc.applications.transfer.v1.MsgTransfer" }],
+                        "signer_address": "osmo1abc"
+                    },
+                    "operations_indices": [0]
+                },
+                { "evm_tx": { "chain_id": "1", "to": "0xabc", "data": "0x" } }
+            ]
+        });
+
+        let parsed: SkipMessagesResponse =
+            serde_json::from_value(raw.clone()).expect("valid messages response deserializes");
+
+        let cosmos = parsed.txs[0]
+            .cosmos_tx
+            .as_ref()
+            .expect("first tx carries a cosmos_tx");
+        assert_eq!(cosmos.chain_id, "osmosis-1");
+        assert_eq!(
+            cosmos.msgs[0].msg_type_url,
+            "/ibc.applications.transfer.v1.MsgTransfer"
+        );
+        // The evm-only tx has no cosmos_tx but is preserved verbatim via `additional`.
+        assert!(parsed.txs[1].cosmos_tx.is_none());
+        assert!(parsed.txs[1].additional.contains_key("evm_tx"));
+        assert_eq!(serde_json::to_value(&parsed).expect("re-serializes"), raw);
+    }
+
+    #[test]
+    fn skip_messages_response_rejects_cosmos_tx_missing_msg_type_url() {
+        // A cosmos message without its type URL cannot be dispatched — reject it.
+        let raw = serde_json::json!({
+            "txs": [{ "cosmos_tx": { "chain_id": "osmosis-1", "msgs": [{ "msg": "{}" }] } }]
+        });
+        let err = serde_json::from_value::<SkipMessagesResponse>(raw).unwrap_err();
+        assert!(err.to_string().contains("msg_type_url"), "err: {err}");
     }
 }

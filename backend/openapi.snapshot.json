@@ -3351,13 +3351,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Opaque Skip API passthrough (list of chains)",
+            "description": "Supported swap chains",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "type": "object"
+                    "$ref": "#/components/schemas/SkipChain"
                   }
                 }
               }
@@ -3414,7 +3414,7 @@
           "swap"
         ],
         "summary": "Get Skip swap messages",
-        "description": "Enriches the slim request with slippage, timeout, and affiliates from\ngated config, then forwards to Skip API. Response is an opaque Skip API\npassthrough — shape is not fixed in this spec.",
+        "description": "Enriches the slim request with slippage, timeout, and affiliates from\ngated config, then forwards to Skip API. The upstream response is validated\nagainst `SkipMessagesResponse` at ingress — down to the cosmos message\nenvelope the frontend broadcasts — so a malformed payload is rejected rather\nthan forwarded. Bridge-specific and extra fields are preserved verbatim.",
         "operationId": "get_messages",
         "requestBody": {
           "content": {
@@ -3428,17 +3428,17 @@
         },
         "responses": {
           "200": {
-            "description": "Opaque Skip API passthrough",
+            "description": "Validated Skip messages response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/SkipMessagesResponse"
                 }
               }
             }
           },
           "502": {
-            "description": "Skip API call failed",
+            "description": "Skip API call failed or returned malformed messages",
             "content": {
               "application/json": {
                 "schema": {
@@ -3466,7 +3466,7 @@
           "swap"
         ],
         "summary": "Get Skip swap route",
-        "description": "Enriches the slim request with gated swap config (affiliates, venues,\nbridges) and forwards to Skip API. Response is an opaque Skip API\npassthrough — shape is not fixed in this spec.",
+        "description": "Enriches the slim request with gated swap config (affiliates, venues,\nbridges) and forwards to Skip API. The upstream response is validated\nagainst `SkipRouteResponse` at ingress — a malformed payload is rejected\nrather than forwarded onto the money path. Fields beyond the typed envelope\n(and the opaque `operations` blob) are preserved verbatim.",
         "operationId": "get_route",
         "requestBody": {
           "content": {
@@ -3480,17 +3480,17 @@
         },
         "responses": {
           "200": {
-            "description": "Opaque Skip API passthrough",
+            "description": "Validated Skip route response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/SkipRouteResponse"
                 }
               }
             }
           },
           "502": {
-            "description": "Skip API call failed",
+            "description": "Skip API call failed or returned a malformed route",
             "content": {
               "application/json": {
                 "schema": {
@@ -7132,6 +7132,210 @@
             ]
           }
         }
+      },
+      "SkipChain": {
+        "type": "object",
+        "required": [
+          "chain_name",
+          "chain_id",
+          "chain_type"
+        ],
+        "properties": {
+          "chain_name": {
+            "type": "string"
+          },
+          "chain_id": {
+            "type": "string"
+          },
+          "chain_type": {
+            "type": "string"
+          },
+          "pfm_enabled": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "cosmos_module_support": {},
+          "supports_memo": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "logo_uri": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bech32_prefix": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fee_assets": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {}
+          },
+          "is_testnet": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      },
+      "SkipCosmosTx": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "required": [
+              "chain_id",
+              "msgs"
+            ],
+            "properties": {
+              "chain_id": {
+                "type": "string"
+              },
+              "msgs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SkipMsg"
+                }
+              }
+            }
+          }
+        ],
+        "description": "The cosmos transaction envelope the frontend signs and broadcasts."
+      },
+      "SkipMessagesResponse": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "required": [
+              "txs"
+            ],
+            "properties": {
+              "txs": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/SkipTx"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Skip `/v2/fungible/msgs` response.\n\n`txs` is validated down to the cosmos message envelope the frontend signs\nand broadcasts; bridge-specific entries (`evm_tx`, `operations_indices`, …)\nand any other top-level keys are preserved through `additional`."
+      },
+      "SkipMsg": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "required": [
+              "msg",
+              "msg_type_url"
+            ],
+            "properties": {
+              "msg": {
+                "type": "string"
+              },
+              "msg_type_url": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "description": "A single cosmos message: the type URL the frontend dispatches on and its\nencoded body."
+      },
+      "SkipRouteResponse": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "required": [
+              "amount_in",
+              "amount_out",
+              "source_asset_denom",
+              "source_asset_chain_id",
+              "dest_asset_denom",
+              "dest_asset_chain_id",
+              "chain_ids",
+              "operations"
+            ],
+            "properties": {
+              "amount_in": {
+                "type": "string"
+              },
+              "amount_out": {
+                "type": "string"
+              },
+              "source_asset_denom": {
+                "type": "string"
+              },
+              "source_asset_chain_id": {
+                "type": "string"
+              },
+              "dest_asset_denom": {
+                "type": "string"
+              },
+              "dest_asset_chain_id": {
+                "type": "string"
+              },
+              "chain_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Skip `/v2/fungible/route` response.\n\nOnly the fields the swap flow consumes are typed and required; every other\nfield Skip returns (price impact, estimated fees, USD amounts, route\nduration, …) is preserved verbatim through `additional` so the frontend\nkeeps its display data. `operations` stays opaque and is echoed back to\n`/v2/fungible/msgs` unchanged, so it must round-trip byte-for-byte."
+      },
+      "SkipTx": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "cosmos_tx": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SkipCosmosTx"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "One transaction in a Skip messages response. A cosmos transaction is typed;\nother transaction kinds (e.g. `evm_tx`) and extra fields ride in `additional`."
       },
       "StakingParams": {
         "type": "object",
