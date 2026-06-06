@@ -1,4 +1,7 @@
-import type { Coin as UnitCoin } from "@keplr-wallet/unit";
+export interface CoinBalance {
+  denom: string;
+  amount: string;
+}
 
 export interface ExternalCurrency {
   name: string;
@@ -11,7 +14,7 @@ export interface ExternalCurrency {
   ibcData: string;
   icon: string;
   coingeckoId: string | null;
-  balance?: UnitCoin;
+  balance?: CoinBalance;
 }
 
 export interface ExternalCurrencies {

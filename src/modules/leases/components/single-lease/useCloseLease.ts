@@ -20,9 +20,7 @@ import {
 } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY } from "../../../../config/global/network";
-import type { ExternalCurrency } from "@/common/types";
 import { MAX_DECIMALS, minimumLeaseAmount, PERCENT } from "@/config/global";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 import type { NolusWallet } from "@nolus/nolusjs";
 import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
@@ -116,7 +114,7 @@ export function useCloseLease() {
         return data;
       }
 
-      const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
+      const denom = asset.ibcData;
 
       data.push({
         name: asset.name,
