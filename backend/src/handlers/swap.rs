@@ -19,7 +19,7 @@ use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::base_client::ExternalApiClient;
-use crate::external::skip::SkipChain;
+use crate::external::skip::{SkipChain, SkipMessagesResponse, SkipRouteResponse};
 use crate::AppState;
 
 // ============================================================================
@@ -42,23 +42,25 @@ pub struct RouteRequest {
 /// Get Skip swap route
 ///
 /// Enriches the slim request with gated swap config (affiliates, venues,
-/// bridges) and forwards to Skip API. Response is an opaque Skip API
-/// passthrough — shape is not fixed in this spec.
+/// bridges) and forwards to Skip API. The upstream response is validated
+/// against `SkipRouteResponse` at ingress — a malformed payload is rejected
+/// rather than forwarded onto the money path. Fields beyond the typed envelope
+/// (and the opaque `operations` blob) are preserved verbatim.
 #[utoipa::path(
     post,
     path = "/api/swap/route",
     tag = "swap",
     request_body = RouteRequest,
     responses(
-        (status = 200, description = "Opaque Skip API passthrough", content_type = "application/json", body = Object),
+        (status = 200, description = "Validated Skip route response", body = SkipRouteResponse),
         (status = 503, description = "Gated config not yet populated", body = crate::error::ErrorResponse),
-        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+        (status = 502, description = "Skip API call failed or returned a malformed route", body = crate::error::ErrorResponse),
     ),
 )]
 pub async fn get_route(
     State(state): State<Arc<AppState>>,
     Json(request): Json<RouteRequest>,
-) -> Result<Json<serde_json::Value>, AppError> {
+) -> Result<Json<SkipRouteResponse>, AppError> {
     debug!(
         "Getting swap route: {} -> {}",
         request.source_asset_denom, request.dest_asset_denom
@@ -117,7 +119,7 @@ pub async fn get_route(
     }
 
     let url = format!("{}/v2/fungible/route", state.skip_client.base_url());
-    let response =
+    let raw =
         state
             .skip_client
             .post_raw(&url, &body)
@@ -125,6 +127,10 @@ pub async fn get_route(
             .map_err(|e| AppError::SwapRouteFailed {
                 message: e.to_string(),
             })?;
+    let response: SkipRouteResponse =
+        serde_json::from_value(raw).map_err(|e| AppError::SwapRouteFailed {
+            message: format!("Malformed Skip route response: {e}"),
+        })?;
     Ok(Json(response))
 }
 
@@ -149,23 +155,25 @@ pub struct MessagesRequest {
 /// Get Skip swap messages
 ///
 /// Enriches the slim request with slippage, timeout, and affiliates from
-/// gated config, then forwards to Skip API. Response is an opaque Skip API
-/// passthrough — shape is not fixed in this spec.
+/// gated config, then forwards to Skip API. The upstream response is validated
+/// against `SkipMessagesResponse` at ingress — down to the cosmos message
+/// envelope the frontend broadcasts — so a malformed payload is rejected rather
+/// than forwarded. Bridge-specific and extra fields are preserved verbatim.
 #[utoipa::path(
     post,
     path = "/api/swap/messages",
     tag = "swap",
     request_body = MessagesRequest,
     responses(
-        (status = 200, description = "Opaque Skip API passthrough", content_type = "application/json", body = Object),
+        (status = 200, description = "Validated Skip messages response", body = SkipMessagesResponse),
         (status = 503, description = "Gated config not yet populated", body = crate::error::ErrorResponse),
-        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+        (status = 502, description = "Skip API call failed or returned malformed messages", body = crate::error::ErrorResponse),
     ),
 )]
 pub async fn get_messages(
     State(state): State<Arc<AppState>>,
     Json(request): Json<MessagesRequest>,
-) -> Result<Json<serde_json::Value>, AppError> {
+) -> Result<Json<SkipMessagesResponse>, AppError> {
     debug!(
         "Getting swap messages: {} -> {}",
         request.source_asset_denom, request.dest_asset_denom
@@ -225,7 +233,12 @@ pub async fn get_messages(
     });
 
     let url = format!("{}/v2/fungible/msgs", state.skip_client.base_url());
-    let response = state.skip_client.post_raw(&url, &body).await?;
+    let raw = state.skip_client.post_raw(&url, &body).await?;
+    let response: SkipMessagesResponse =
+        serde_json::from_value(raw).map_err(|e| AppError::ExternalApi {
+            api: "Skip".to_string(),
+            message: format!("Malformed Skip messages response: {e}"),
+        })?;
     Ok(Json(response))
 }
 
@@ -299,7 +312,7 @@ fn default_true() -> bool {
     tag = "swap",
     params(ChainsQuery),
     responses(
-        (status = 200, description = "Opaque Skip API passthrough (list of chains)", content_type = "application/json", body = Vec<Object>),
+        (status = 200, description = "Supported swap chains", body = Vec<SkipChain>),
         (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
     ),
 )]

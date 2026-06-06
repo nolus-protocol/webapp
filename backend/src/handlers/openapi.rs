@@ -275,11 +275,18 @@ use crate::handlers::{
         gated_networks::NetworksResponse,
         gated_networks::PoolResponse,
         gated_networks::NetworkPoolsResponse,
-        // Swap typed bodies (responses remain opaque)
+        // Swap typed bodies
         swap::RouteRequest,
         swap::MessagesRequest,
         swap::TrackRequest,
         swap::TrackResponse,
+        // Skip ingress responses validated at the boundary
+        external::skip::SkipRouteResponse,
+        external::skip::SkipMessagesResponse,
+        external::skip::SkipTx,
+        external::skip::SkipCosmosTx,
+        external::skip::SkipMsg,
+        external::skip::SkipChain,
         // ETL batch passthroughs (fields opaque)
         etl_proxy::StatsOverviewBatch,
         etl_proxy::LoansStatsBatch,
