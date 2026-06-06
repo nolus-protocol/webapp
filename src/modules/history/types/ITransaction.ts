@@ -43,6 +43,8 @@ export type HistoryData = {
     route?: SmallStepperProps;
     routeDetails?: MediumStepperProps;
     skipRoute?: IObjectKeys;
-    status: CONFIRM_STEP;
+    // Optional: ETL/history-loaded entries are created without a status (it stays
+    // undefined and renders as "completed"); the live pending-transfer flow sets it.
+    status?: CONFIRM_STEP;
   };
 };
