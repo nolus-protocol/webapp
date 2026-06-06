@@ -26,3 +26,4 @@ export * from "./walletProtocolFilter";
 export * from "./NetworkUtils";
 export * from "./IntercomService";
 export * from "./classifyError";
+export * from "./typeGuards";

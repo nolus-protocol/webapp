@@ -22,6 +22,8 @@ import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
 import { useWebSocketLifecycle } from "@/common/composables/useWebSocketLifecycle";
 import { LeaseCalculator, type LeaseDisplayData } from "@/common/utils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
+import { LeaseInfoSchema } from "@/common/api/schemas";
+import type { ZodType } from "zod";
 
 // Re-export LeaseDisplayData from LeaseCalculator for convenience
 export type { LeaseDisplayData } from "@/common/utils";
@@ -296,7 +298,6 @@ export const useLeasesStore = defineStore("leases", () => {
     address: owner,
     subscribe: (addr) =>
       WebSocketClient.subscribeLeases(addr, (wsLease) => {
-        // Merge with existing data (WebSocket sends partial data, no ETL)
         const existing = leaseDetails.value.get(wsLease.address);
 
         // Don't let a stale WebSocket event regress a lease whose status
@@ -305,7 +306,23 @@ export const useLeasesStore = defineStore("leases", () => {
           return;
         }
 
-        const merged = existing ? { ...existing, ...wsLease } : (wsLease as LeaseInfo);
+        let merged: LeaseInfo;
+        if (existing) {
+          // Existing record: WS updates may be partial; merge so ETL-only fields
+          // (not sent over WS) survive. The existing record was already validated.
+          merged = { ...existing, ...wsLease };
+        } else {
+          // No prior record: a brand-new lease must arrive as a complete LeaseInfo
+          // (the same shape the REST path validates) before it reaches the money
+          // path. A malformed payload is dropped, not crashing the subscription.
+          const parsed = (LeaseInfoSchema as ZodType<LeaseInfo>).safeParse(wsLease);
+          if (!parsed.success) {
+            const fields = parsed.error.issues.map((issue) => issue.path.join(".")).join(", ");
+            console.error(`[LeasesStore] Discarding malformed WebSocket lease payload (invalid: ${fields})`);
+            return;
+          }
+          merged = parsed.data;
+        }
 
         // Update in main list, or add if not yet present
         const index = leases.value.findIndex((l) => l.address === merged.address);

@@ -7,7 +7,8 @@ import {
   LeasesResponseSchema,
   EarnPoolSchema,
   EarnPositionsResponseSchema,
-  GasFeeConfigResponseSchema
+  GasFeeConfigResponseSchema,
+  SkipRouteConfigSchema
 } from "./index";
 
 // These tests exercise the Zod runtime validation schemas that guard the
@@ -363,6 +364,62 @@ describe("GasFeeConfigResponseSchema", () => {
     const result = GasFeeConfigResponseSchema.safeParse({
       gas_prices: { uusdc: "" },
       gas_multiplier: 1
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ===========================================================================
+// SkipRouteConfigSchema
+// ===========================================================================
+
+describe("SkipRouteConfigSchema", () => {
+  const validConfig = () => ({
+    blacklist: ["BADTKN"],
+    swap_currency_osmosis: "USDC",
+    swap_currency_neutron: "USDC_NOBLE",
+    swap_to_currency: "USDC",
+    fee: 0.001,
+    transfers: {
+      OSMOSIS: {
+        currencies: [{ from: "uatom", to: "uosmo", native: true, visible: "ATOM" }]
+      }
+    }
+  });
+
+  it("should accept a valid swap config", () => {
+    const result = SkipRouteConfigSchema.safeParse(validConfig());
+    expect(result.success).toBe(true);
+  });
+
+  it("should tolerate extra backend fields (passthrough)", () => {
+    const result = SkipRouteConfigSchema.safeParse({ ...validConfig(), new_field: 123 });
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept a transfer currency without the optional visible field", () => {
+    const result = SkipRouteConfigSchema.safeParse({
+      ...validConfig(),
+      transfers: { OSMOSIS: { currencies: [{ from: "uatom", to: "uosmo", native: false }] } }
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject when fee is a numeric string instead of a number", () => {
+    const result = SkipRouteConfigSchema.safeParse({ ...validConfig(), fee: "0.001" });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject when blacklist is missing", () => {
+    const { blacklist: _blacklist, ...rest } = validConfig();
+    const result = SkipRouteConfigSchema.safeParse(rest);
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject a malformed transfer currency (native not boolean)", () => {
+    const result = SkipRouteConfigSchema.safeParse({
+      ...validConfig(),
+      transfers: { OSMOSIS: { currencies: [{ from: "a", to: "b", native: "yes" }] } }
     });
     expect(result.success).toBe(false);
   });

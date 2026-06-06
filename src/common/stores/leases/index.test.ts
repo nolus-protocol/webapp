@@ -456,6 +456,20 @@ describe("useLeasesStore", () => {
     expect(store.leases.find((l) => l.address === "new1")).toBeDefined();
   });
 
+  it("ws callback discards a malformed payload when no existing lease to merge into", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([]);
+    await store.setOwner("nolus1x");
+
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    // Incomplete partial (missing required amount/debt/interest) with no prior record.
+    emitLeases({ address: "bad1", status: "opened" });
+
+    expect(store.leases.find((l) => l.address === "bad1")).toBeUndefined();
+    expect(errSpy).toHaveBeenCalled();
+    errSpy.mockRestore();
+  });
+
   it("refresh calls fetchLeases", async () => {
     const store = useLeasesStore();
     BackendApi.getLeases.mockResolvedValueOnce([]);

@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from "vue-router";
 import { RouteNames } from "@/router/RouteNames";
 import { EarnAssetsDialog } from "./enums";
+import { isEnumValue } from "@/common/utils/typeGuards";
 
 export const EarnRouter: RouteRecordRaw = {
   path: `/${RouteNames.EARN}`,
@@ -11,8 +12,7 @@ export const EarnRouter: RouteRecordRaw = {
       path: ":tab",
       component: () => import("./components/EarnAssetsDialog.vue"),
       beforeEnter: (to, from, next) => {
-        const validTabs = Object.values(EarnAssetsDialog);
-        if (validTabs.includes(to.params.tab as EarnAssetsDialog)) {
+        if (isEnumValue(EarnAssetsDialog, to.params.tab)) {
           next();
         } else {
           next({ path: "/" }); // Redirect to home if tab is not valid

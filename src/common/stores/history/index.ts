@@ -269,18 +269,20 @@ export const useHistoryStore = defineStore("history", () => {
       const currentAddress = address.value ?? "";
 
       // Process each transaction with message formatting
-      const promises = transformedTxs.map(async (d) => {
+      const promises = transformedTxs.map(async (d): Promise<TransactionEntry> => {
         const [msg, coin, route, routeDetails] = await message(d, currentAddress, i18n.global, voteMessages);
-        d.historyData = {
-          msg,
-          coin,
-          action: action(d, i18n.global).toLowerCase(),
-          icon: iconFn(d, i18n.global).toLowerCase(),
-          timestamp: getCreatedAtForHuman(d.timestamp),
-          route,
-          routeDetails
+        return {
+          ...d,
+          historyData: {
+            msg,
+            coin,
+            action: action(d, i18n.global).toLowerCase(),
+            icon: iconFn(d, i18n.global).toLowerCase(),
+            timestamp: getCreatedAtForHuman(d.timestamp),
+            route,
+            routeDetails
+          }
         };
-        return d as unknown as TransactionEntry;
       });
 
       const res = await Promise.all(promises);
@@ -340,18 +342,20 @@ export const useHistoryStore = defineStore("history", () => {
       const transformedTxs = transformTransactions(rawTxs, address.value);
       const currentAddress = address.value ?? "";
 
-      const promises = transformedTxs.map(async (d) => {
+      const promises = transformedTxs.map(async (d): Promise<TransactionEntry> => {
         const [msg, coin, route, routeDetails] = await message(d, currentAddress, i18n.global, voteMessages);
-        d.historyData = {
-          msg,
-          coin,
-          action: action(d, i18n.global).toLowerCase(),
-          icon: iconFn(d, i18n.global).toLowerCase(),
-          timestamp: getCreatedAtForHuman(d.timestamp),
-          route,
-          routeDetails
+        return {
+          ...d,
+          historyData: {
+            msg,
+            coin,
+            action: action(d, i18n.global).toLowerCase(),
+            icon: iconFn(d, i18n.global).toLowerCase(),
+            timestamp: getCreatedAtForHuman(d.timestamp),
+            route,
+            routeDetails
+          }
         };
-        return d as unknown as TransactionEntry;
       });
 
       const res = await Promise.all(promises);
