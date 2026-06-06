@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -195,10 +195,6 @@ describe("DelegateForm.vue", () => {
     hoisted.walletOperationMock.mockImplementation(async (op: () => Promise<void> | void) => {
       await op();
     });
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("renders without throwing", () => {

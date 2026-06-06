@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as VueRouter from "vue-router";
 
 vi.hoisted(() => {
@@ -61,10 +61,6 @@ describe("NewLease.vue", () => {
     localStorage.clear();
     vi.clearAllMocks();
     hoisted.routeRef.meta.action = "long";
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("renders without throwing", () => {

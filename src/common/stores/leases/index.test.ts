@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -178,10 +178,6 @@ describe("useLeasesStore", () => {
     configState.currenciesData = {};
     configState.getPositionType = vi.fn(() => "Long");
     setActivePinia(createPinia());
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("returns initial state defaults", () => {

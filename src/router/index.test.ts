@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as VueRouter from "vue-router";
 
 // Mock every module the router imports so the router module can be loaded
@@ -73,10 +73,6 @@ describe("router/index.ts", () => {
       meta.setAttribute("content", "");
       document.head.appendChild(meta);
     }
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("router module loads and exports RouteNames + router instance", async () => {

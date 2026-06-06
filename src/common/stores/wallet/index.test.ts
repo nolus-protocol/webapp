@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 // ThemeManager (pulled in via the utils barrel from wallet actions) reads
@@ -63,10 +63,6 @@ describe("useWalletStore", () => {
     localStorage.clear();
     vi.resetAllMocks();
     setActivePinia(createPinia());
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("should return initial state defaults", () => {

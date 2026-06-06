@@ -93,7 +93,6 @@ describe("WalletUtils.getKeplr", () => {
 
   afterEach(() => {
     delete w.keplr;
-    vi.restoreAllMocks();
   });
 
   it("should return window.keplr when extension is already set", async () => {

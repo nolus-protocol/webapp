@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 // Shim window.matchMedia before store import: ThemeManager (via @/common/utils)
@@ -67,10 +67,6 @@ describe("usePricesStore", () => {
       return captured.unsubscribe;
     });
     setActivePinia(createPinia());
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("returns initial state defaults", () => {

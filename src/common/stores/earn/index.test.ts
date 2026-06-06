@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -82,10 +82,6 @@ describe("useEarnStore", () => {
     connectionState.walletAddress = null;
     connectionState.wsReconnectCount = 0;
     setActivePinia(createPinia());
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("returns initial state defaults", () => {

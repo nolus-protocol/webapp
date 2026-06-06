@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as VueRouter from "vue-router";
 import type * as NolusJs from "@nolus/nolusjs";
 import { setActivePinia, createPinia } from "pinia";
@@ -312,10 +312,6 @@ describe("RepayDialog.vue", () => {
       "USDC@osmosis-1": { price: "1" },
       "ATOM@osmosis-1": { price: "10" }
     };
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("renders without throwing when lease is loaded", async () => {

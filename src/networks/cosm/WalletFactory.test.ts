@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Shared state for the mocks — hoisted so they exist before the vi.mock
 // factories (which are themselves hoisted to the top of the module).
@@ -118,10 +118,6 @@ describe("WalletFactory", () => {
     walletUtilsMock.getKeplr.mockReset();
     fetchEndpointsMock.mockReset();
     fetchEndpointsMock.mockResolvedValue({ rpc: "r", api: "a" });
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe("authenticateKeplr", () => {

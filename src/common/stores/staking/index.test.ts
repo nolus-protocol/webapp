@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 // ThemeManager needs window.matchMedia at module import time.
@@ -80,10 +80,6 @@ describe("useStakingStore", () => {
     connectionState.walletAddress = null;
     connectionState.wsReconnectCount = 0;
     setActivePinia(createPinia());
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("returns initial state defaults", () => {
