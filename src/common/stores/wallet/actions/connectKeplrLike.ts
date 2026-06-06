@@ -49,6 +49,10 @@ export async function connectKeplrLike(
       const offlineSigner = extension.getOfflineSignerOnlyAmino(chainId, {
         preferNoSetFee: true
       });
+      // Keplr-like extensions expose an amino-only signer (`OfflineAminoSigner`),
+      // structurally distinct from `OfflineDirectSigner`. NolusWallet handles amino
+      // signers at runtime, but nolusjs types the factory parameter as direct-only —
+      // a third-party signature gap the compiler cannot bridge on its own.
       const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(
         offlineSigner as unknown as OfflineDirectSigner
       );
