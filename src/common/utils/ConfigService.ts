@@ -8,7 +8,9 @@
  */
 
 import type { SkipRouteConfigType, ProposalsConfigType } from "@/common/types";
+import type { ZodType } from "zod";
 import { BackendApi } from "@/common/api";
+import { SkipRouteConfigSchema } from "@/common/api/schemas";
 import { CONTRACTS } from "@/config/global";
 import { EnvNetworkUtils } from "./EnvNetworkUtils";
 
@@ -74,7 +76,15 @@ export async function fetchNetworkStatus(): Promise<{
 
 async function fetchSkipRouteConfig(): Promise<SkipRouteConfigType> {
   const response = await BackendApi.getSwapConfig();
-  return response as SkipRouteConfigType;
+  // The schema mirrors SkipRouteConfigType, matching how BackendApi bridges its
+  // other endpoints (`Schema as ZodType<T>`); the parse is the real validation.
+  const result = (SkipRouteConfigSchema as ZodType<SkipRouteConfigType>).safeParse(response);
+  if (!result.success) {
+    const fields = result.error.issues.map((issue) => issue.path.join(".")).join(", ");
+    console.error(`[ConfigService] Invalid swap config response (invalid: ${fields})`);
+    throw new Error("Invalid swap config response");
+  }
+  return result.data;
 }
 
 async function fetchProposalsConfig(): Promise<ProposalsConfigType> {

@@ -167,3 +167,34 @@ export const BalancesResponseSchema = z
     total_value_usd: numericString
   })
   .passthrough();
+
+// =============================================================================
+// Swap (Skip route) config
+// =============================================================================
+
+const SkipRouteTransferCurrencySchema = z
+  .object({
+    from: z.string(),
+    to: z.string(),
+    native: z.boolean(),
+    visible: z.string().optional()
+  })
+  .passthrough();
+
+export const SkipRouteConfigSchema = z
+  .object({
+    blacklist: z.array(z.string()),
+    swap_currency_osmosis: z.string(),
+    swap_currency_neutron: z.string(),
+    swap_to_currency: z.string(),
+    fee: z.number(),
+    transfers: z.record(
+      z.string(),
+      z
+        .object({
+          currencies: z.array(SkipRouteTransferCurrencySchema)
+        })
+        .passthrough()
+    )
+  })
+  .passthrough();
