@@ -1,4 +1,24 @@
 import type { NolusWallet } from "@nolus/nolusjs";
+import type { CoinBalance } from "@/common/types/Currencies";
+
+/**
+ * A currency entry for a non-native (cross-chain) network, sourced from the
+ * Skip transfer config and hydrated with the user's on-chain balance. Mirrors
+ * an `ExternalCurrency` but carries the source denom as `from` (instead of
+ * `ibcData`); the asset forms treat the two as an `ExternalCurrency | AssetBalance`
+ * union and narrow on whichever denom field is present.
+ */
+export type AssetBalance = {
+  balance?: CoinBalance;
+  name: string;
+  shortName: string;
+  symbol: string;
+  ticker: string;
+  icon: string;
+  decimal_digits: number;
+  native: boolean;
+  from: string;
+};
 
 export type State = {
   wallet?: NolusWallet;

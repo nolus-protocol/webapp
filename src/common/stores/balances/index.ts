@@ -92,13 +92,13 @@ export const useBalancesStore = defineStore("balances", () => {
         continue;
       }
 
-      const entry = {
+      const entry: ExternalCurrency = {
         ...currency,
         balance: {
           denom: balance.denom,
           amount: balance.amount
         }
-      } as ExternalCurrency;
+      };
 
       const existingIndex = seenTickers.get(ticker);
       if (existingIndex !== undefined) {
