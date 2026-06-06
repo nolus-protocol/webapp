@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from "vue-router";
 import { RouteNames } from "@/router/RouteNames";
 import { AssetsDialog } from "@/modules/assets/enums";
+import { isEnumValue } from "@/common/utils/typeGuards";
 
 export const AssetsRouter: RouteRecordRaw = {
   path: `/${RouteNames.ASSETS}`,
@@ -16,8 +17,7 @@ export const AssetsRouter: RouteRecordRaw = {
       path: ":tab",
       component: () => import("./components/TransferDialog.vue"),
       beforeEnter: (to, from, next) => {
-        const validTabs = Object.values(AssetsDialog);
-        if (validTabs.includes(to.params.tab as AssetsDialog)) {
+        if (isEnumValue(AssetsDialog, to.params.tab)) {
           next();
         } else {
           next({ path: "/" }); // Redirect to home if tab is not valid

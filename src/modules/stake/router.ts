@@ -1,6 +1,7 @@
 import type { RouteRecordRaw } from "vue-router";
 import { RouteNames } from "@/router/RouteNames";
 import { StakeDialog } from "@/modules/stake/enums";
+import { isEnumValue } from "@/common/utils/typeGuards";
 
 export const StakeRouter: RouteRecordRaw = {
   path: `/${RouteNames.STAKE}`,
@@ -15,8 +16,7 @@ export const StakeRouter: RouteRecordRaw = {
         key: RouteNames.STAKE
       },
       beforeEnter: (to, from, next) => {
-        const validTabs = Object.values(StakeDialog);
-        if (validTabs.includes(to.params.tab as StakeDialog)) {
+        if (isEnumValue(StakeDialog, to.params.tab)) {
           next();
         } else {
           next({ path: "/" }); // Redirect to home if tab is not valid
