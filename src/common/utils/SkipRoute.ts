@@ -1,7 +1,8 @@
 import type { Chain, RouteRequest, RouteResponse, MessagesRequest, MessagesResponse } from "../types/skipRoute";
-import type { SkipRouteRequest, SkipMessagesRequest, SkipMsg } from "@/common/api/types/swap";
+import type { SkipMsg } from "@/common/api/types/swap";
 
 import { fetchNetworkStatus } from "./ConfigService";
+import { assertChainList, assertRouteResponse, assertMessagesResponse } from "./skipResponseGuards";
 import { BackendApi } from "@/common/api";
 import { i18n } from "@/i18n";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
@@ -34,15 +35,20 @@ enum Messages {
 class Swap {
   async getChains(): Promise<Chain[]> {
     const chains = await BackendApi.getSkipChains(true, true);
-    return chains as Chain[];
+    assertChainList(chains);
+    return chains;
   }
 
   async getRoute(request: RouteRequest): Promise<RouteResponse> {
-    return BackendApi.getSkipRoute(request as SkipRouteRequest) as Promise<RouteResponse>;
+    const route = await BackendApi.getSkipRoute(request);
+    assertRouteResponse(route);
+    return route;
   }
 
   async getMessages(request: MessagesRequest): Promise<MessagesResponse> {
-    return BackendApi.getSkipMessages(request as SkipMessagesRequest) as Promise<MessagesResponse>;
+    const messages = await BackendApi.getSkipMessages(request);
+    assertMessagesResponse(messages);
+    return messages;
   }
 
   async getTransactionStatus({
@@ -91,7 +97,7 @@ export class SkipRouter {
     ]);
 
     SkipRouter.chainId = status;
-    SkipRouter.client = client as Swap;
+    SkipRouter.client = client;
 
     return SkipRouter.client;
   }
@@ -119,7 +125,7 @@ export class SkipRouter {
       request.amount_in = amount;
     }
 
-    const route = await client.getRoute(request as RouteRequest);
+    const route = await client.getRoute(request);
     route.revert = true;
     return route;
   }
@@ -185,7 +191,7 @@ export class SkipRouter {
       ...add
     };
 
-    const response = await client.getMessages(request as MessagesRequest);
+    const response = await client.getMessages(request);
 
     for (const tx of response?.txs ?? []) {
       const chainId = tx?.cosmos_tx?.chain_id;
@@ -295,7 +301,7 @@ export class SkipRouter {
       return SkipRouter.chains;
     }
     const client = await SkipRouter.getClient();
-    SkipRouter.chains = client.getChains() as Promise<Chain[]>;
+    SkipRouter.chains = client.getChains();
     return SkipRouter.chains;
   }
 

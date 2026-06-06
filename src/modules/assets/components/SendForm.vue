@@ -311,7 +311,8 @@ function destroyClient() {
 }
 
 function setHistory() {
-  const chains = getChainIds(tempRoute.value as RouteResponse);
+  if (!tempRoute.value) return;
+  const chains = getChainIds(tempRoute.value);
 
   const data = {
     id,
@@ -400,7 +401,7 @@ async function setCosmosNetwork() {
   disablePicker.value = true;
   const ntwrk = NETWORK_DATA;
   const currencies = [];
-  const data = (skipRouteConfig as SkipRouteConfigType)?.transfers?.[network.value.key].currencies;
+  const data = skipRouteConfig?.transfers?.[network.value.key]?.currencies;
   for (const c of data ?? []) {
     if (c.visible && configStore.protocolFilter !== c.visible) continue;
 
