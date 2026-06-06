@@ -70,6 +70,34 @@ npm run serve
 | Lint frontend | `npm run lint` |
 | Lint backend | `cd backend && cargo clippy` |
 
+## Updating the web-components UI library
+
+The UI primitives (buttons, inputs, dialogs, dropdowns, toasts) come from [`nolus-protocol/web-components`](https://github.com/nolus-protocol/web-components), pinned by git tag in `package.json`. Because it is a git dependency, the tag and the lockfile must be bumped **together** — a tag bump alone leaves `package-lock.json` (and every `npm ci` in CI and the deploy workflows) on the old commit, silently shipping a stale library whose components can differ from what the app expects.
+
+To bump the library:
+
+1. Edit the pin in `package.json`:
+
+   ```json
+   "web-components": "github:nolus-protocol/web-components#vX.Y.Z"
+   ```
+
+2. Refresh the lockfile (do **not** hand-edit it):
+
+   ```sh
+   npm install
+   ```
+
+3. Commit **both** `package.json` and `package-lock.json` in the same change and open a PR, so `pr-validate` reinstalls from the new lockfile.
+
+4. Verify the installed version matches the pin:
+
+   ```sh
+   npm ls web-components
+   ```
+
+Never float the version at deploy time — both deploy workflows run `npm ci`, which installs strictly from the committed lockfile.
+
 ## License
 
 [Apache-2.0](LICENSE)
