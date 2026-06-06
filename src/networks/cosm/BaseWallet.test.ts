@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Stub window.matchMedia BEFORE any imports (utils barrel pulls in ThemeManager
 // which reads matchMedia at module load in jsdom).
@@ -138,10 +138,6 @@ describe("BaseWallet", () => {
     superGetSequence.mockReset();
     superGetChainId.mockReset();
     withExtensionsMock.mockClear();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   describe("constructor", () => {

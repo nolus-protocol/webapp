@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -238,10 +238,6 @@ describe("WithdrawForm.vue", () => {
     });
     hoisted.broadcastTx.mockResolvedValue({});
     hoisted.fetchBalances.mockResolvedValue(undefined);
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("renders without throwing with at least one asset", () => {

@@ -289,10 +289,6 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
     });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it("renders without throwing", async () => {
     const wrapper = factory();
     await flushPromises();

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -109,10 +109,6 @@ describe("useBalancesStore", () => {
     configState.getActiveProtocolsForNetwork = vi.fn(() => []);
     configState.getCurrencyByDenom = vi.fn(() => undefined);
     setActivePinia(createPinia());
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("returns initial state defaults", () => {

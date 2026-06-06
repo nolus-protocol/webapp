@@ -58,6 +58,12 @@ export default mergeConfig(
             functions: 100,
             statements: 100
           },
+          "src/common/utils/CurrencyLookup.ts": {
+            lines: 100,
+            branches: 100,
+            functions: 100,
+            statements: 100
+          },
           "src/common/utils/WalletUtils.ts": {
             lines: 55,
             branches: 45,

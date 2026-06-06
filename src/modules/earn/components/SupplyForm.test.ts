@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -256,10 +256,6 @@ describe("SupplyForm.vue", () => {
     hoisted.getBalance.mockReturnValue("0");
     hoisted.getProtocolApr.mockReturnValue(5);
     hoisted.validateAmountV2Mock.mockReturnValue("");
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
   });
 
   it("renders without throwing with at least one asset", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { Dec } from "@keplr-wallet/unit";
 
@@ -39,7 +39,18 @@ vi.mock("@/common/api", () => ({
 import { BackendApi } from "@/common/api";
 import { useConfigStore } from "../stores/config";
 import { usePricesStore } from "../stores/prices";
-import { getPriceForCurrency } from "./CurrencyLookup";
+import {
+  getCurrencyByTicker,
+  getCurrencyBySymbol,
+  getCurrencyByDenom,
+  getCurrencyByTickerForNetwork,
+  getCurrencyByTickerForProtocol,
+  getProtocolByContract,
+  getLpnByProtocol,
+  tryGetCurrencyByDenom,
+  tryGetCurrencyBySymbol,
+  getPriceForCurrency
+} from "./CurrencyLookup";
 
 const api = BackendApi as unknown as Record<string, ReturnType<typeof vi.fn>>;
 
@@ -150,10 +161,6 @@ describe("getPriceForCurrency", () => {
     }
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   it("returns the currency's own price when its key is published", async () => {
     await primedStores();
     expect(getPriceForCurrency(USDC_OSMOSIS as any)).toBe("1.0001");
@@ -190,5 +197,155 @@ describe("getPriceForCurrency", () => {
     ].sort((a, b) => Number(b.stable.sub(a.stable).toString(8)));
 
     expect(sorted[0].ticker).toBe("USDC");
+  });
+});
+
+// Distinct per-protocol contract addresses so getProtocolByContract resolves
+// unambiguously (the shared configFixture reuses one address across protocols).
+function helperConfigFixture() {
+  return {
+    protocols: {
+      OSMOSIS: {
+        is_active: true,
+        network: "Osmosis",
+        position_type: "long",
+        contracts: { oracle: "osmo-oracle", lpp: "osmo-lpp", leaser: "osmo-leaser", profit: "osmo-profit" }
+      },
+      NEUTRON: {
+        is_active: true,
+        network: "Neutron",
+        position_type: "short",
+        contracts: { oracle: "ntrn-oracle", lpp: "ntrn-lpp", leaser: "ntrn-leaser", profit: "ntrn-profit" }
+      }
+    },
+    networks: [
+      {
+        key: "OSMOSIS",
+        chain_id: "osmosis-1",
+        name: "Osmosis",
+        prefix: "osmo",
+        value: "osmosis",
+        primary_protocol: "OSMOSIS",
+        icon: "/icons/osmosis.svg",
+        native: false
+      }
+    ],
+    native_asset: { ticker: "NLS", denom: "unls", decimals: 6 }
+  };
+}
+
+async function primeHelpers() {
+  api.getConfig.mockResolvedValueOnce(helperConfigFixture());
+  api.getCurrencies.mockResolvedValueOnce(currenciesFixture());
+
+  const configStore = useConfigStore();
+  await configStore.fetchConfig();
+  await configStore.fetchCurrencies();
+  configStore.setProtocolFilter("OSMOSIS");
+
+  return { configStore };
+}
+
+describe("CurrencyLookup config-store delegation", () => {
+  beforeEach(async () => {
+    setActivePinia(createPinia());
+    localStorage.clear();
+    for (const fn of Object.values(api)) {
+      fn.mockReset();
+    }
+    await primeHelpers();
+  });
+
+  describe("getCurrencyByTicker", () => {
+    it("returns the active-protocol currency for a known ticker", () => {
+      expect(getCurrencyByTicker("WBTC")).toEqual(WBTC_OSMOSIS);
+    });
+
+    it("throws on an unknown ticker", () => {
+      expect(() => getCurrencyByTicker("NOPE")).toThrow("Currency not found: NOPE");
+    });
+  });
+
+  describe("getCurrencyBySymbol", () => {
+    it("returns the currency for a known symbol", () => {
+      expect(getCurrencyBySymbol("WBTC")).toEqual(WBTC_OSMOSIS);
+    });
+
+    it("throws on an unknown symbol", () => {
+      expect(() => getCurrencyBySymbol("NOPE")).toThrow("Currency not found: NOPE");
+    });
+  });
+
+  describe("getCurrencyByDenom", () => {
+    it("returns the currency for a known IBC denom", () => {
+      expect(getCurrencyByDenom("ibc/WBTC_OSMO")).toEqual(WBTC_OSMOSIS);
+    });
+
+    it("throws on an unknown denom", () => {
+      expect(() => getCurrencyByDenom("ibc/NOPE")).toThrow("Currency not found: ibc/NOPE");
+    });
+  });
+
+  describe("getCurrencyByTickerForNetwork", () => {
+    it("resolves the ticker against the active network filter", () => {
+      expect(getCurrencyByTickerForNetwork("WBTC")).toEqual(WBTC_OSMOSIS);
+    });
+
+    it("throws when the ticker is absent on the active network", () => {
+      expect(() => getCurrencyByTickerForNetwork("NOPE")).toThrow("Currency not found: NOPE for network OSMOSIS");
+    });
+  });
+
+  describe("getCurrencyByTickerForProtocol", () => {
+    it("returns the currency for a resolvable ticker@protocol key", () => {
+      expect(getCurrencyByTickerForProtocol("WBTC", "OSMOSIS")).toEqual(WBTC_OSMOSIS);
+    });
+
+    it("throws when the ticker is not present on the given protocol", () => {
+      expect(() => getCurrencyByTickerForProtocol("WBTC", "NEUTRON")).toThrow(
+        "Currency not found: WBTC for protocol NEUTRON"
+      );
+    });
+  });
+
+  describe("getProtocolByContract", () => {
+    it("returns the protocol owning the contract address", () => {
+      expect(getProtocolByContract("osmo-leaser")).toBe("OSMOSIS");
+      expect(getProtocolByContract("ntrn-oracle")).toBe("NEUTRON");
+    });
+
+    it("throws on an unknown contract address", () => {
+      expect(() => getProtocolByContract("no-such-contract")).toThrow("Contract not found no-such-contract");
+    });
+  });
+
+  describe("getLpnByProtocol", () => {
+    it("returns the LPN currency for a known protocol", () => {
+      expect(getLpnByProtocol("OSMOSIS")).toEqual(USDC_OSMOSIS);
+    });
+
+    it("returns null for a protocol with no LPN", () => {
+      expect(getLpnByProtocol("MARS")).toBeNull();
+    });
+  });
+
+  describe("tryGetCurrencyByDenom", () => {
+    it("returns the currency for a known denom", () => {
+      expect(tryGetCurrencyByDenom("ibc/WBTC_OSMO")).toEqual(WBTC_OSMOSIS);
+    });
+
+    it("returns null instead of throwing on a miss", () => {
+      expect(tryGetCurrencyByDenom("ibc/NOPE")).toBeNull();
+    });
+  });
+
+  describe("tryGetCurrencyBySymbol", () => {
+    it("returns the currency for a known symbol", () => {
+      expect(tryGetCurrencyBySymbol("WBTC")).toEqual(WBTC_OSMOSIS);
+    });
+
+    it("returns null instead of throwing on a miss", () => {
+      expect(tryGetCurrencyBySymbol("NOPE")).toBeNull();
+    });
   });
 });

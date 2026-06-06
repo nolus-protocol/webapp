@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as CommonUtils from "@/common/utils";
 import { setActivePinia, createPinia } from "pinia";
 
@@ -88,10 +88,6 @@ beforeEach(() => {
   for (const fn of Object.values(api)) {
     fn.mockReset();
   }
-});
-
-afterEach(() => {
-  vi.restoreAllMocks();
 });
 
 // -----------------------------------------------------------------------------

@@ -76,6 +76,27 @@ jobs:
 
           echo "OK — WebMCP scope guard passed."
 
+      - name: Test hygiene guard — no vi.hoisted + restoreAllMocks() combination
+        run: |
+          set -e
+          # Policy: a spec that re-installs vi.hoisted mocks every beforeEach must
+          # NOT also call vi.restoreAllMocks() in afterEach. restoreAllMocks resets
+          # the hoisted implementations to undefined, so a pending timer firing after
+          # teardown sees undefined where the mock was — an unhandled-rejection flake
+          # that loses deterministically under coverage instrumentation. The
+          # beforeEach re-install + vi.clearAllMocks() is sufficient on its own.
+          bad=0
+          while IFS= read -r f; do
+            if grep -q 'restoreAllMocks' "$f"; then
+              echo "FAIL: $f mixes vi.hoisted mocks with vi.restoreAllMocks() — remove the restoreAllMocks() call."
+              bad=1
+            fi
+          done < <(grep -rlE --include='*.test.ts' --include='*.spec.ts' 'vi\.hoisted' src)
+          if [ "$bad" -ne 0 ]; then
+            exit 1
+          fi
+          echo "OK — no vi.hoisted + restoreAllMocks() combination."
+
       - name: Validate .well-known JSON files in dist/
         run: |
           set -e
