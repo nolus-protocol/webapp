@@ -159,7 +159,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { nextTick } from "vue";
 import DelegateForm from "./DelegateForm.vue";
 
@@ -226,7 +226,7 @@ describe("DelegateForm.vue", () => {
     const wrapper = factory();
     await wrapper.find('[data-test="amount"]').setValue("9999999");
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
 
     expect(hoisted.simulateDelegateTx).not.toHaveBeenCalled();
     expect(hoisted.walletOperationMock).not.toHaveBeenCalled();
@@ -237,9 +237,9 @@ describe("DelegateForm.vue", () => {
     const wrapper = factory();
     await wrapper.find('[data-test="amount"]').setValue("100");
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await nextTick();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
 
     expect(hoisted.walletOperationMock).toHaveBeenCalledTimes(1);
     expect(hoisted.simulateDelegateTx).toHaveBeenCalledTimes(1);
@@ -252,7 +252,7 @@ describe("DelegateForm.vue", () => {
     const wrapper = factory();
     await wrapper.find('[data-test="amount"]').setValue("100");
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await nextTick();
     // The failure used to be swallowed (Logger.error only) — the field now shows
     // a classified message instead of staying blank.
@@ -264,9 +264,9 @@ describe("DelegateForm.vue", () => {
     const wrapper = factory();
     await wrapper.find('[data-test="amount"]').setValue("100");
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await nextTick();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
 
     expect(hoisted.fetchPositions).toHaveBeenCalled();
     expect(hoisted.fetchBalances).toHaveBeenCalled();
@@ -285,9 +285,9 @@ describe("DelegateForm.vue", () => {
       const wrapper = factory();
       await wrapper.find('[data-test="amount"]').setValue("100");
       await wrapper.find('[data-test="submit"]').trigger("click");
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
 
       // Form should still be mounted and button re-enabled
       expect(wrapper.find('[data-test="submit"]').exists()).toBe(true);
@@ -298,9 +298,9 @@ describe("DelegateForm.vue", () => {
       const wrapper = factory();
       await wrapper.find('[data-test="amount"]').setValue("100");
       await wrapper.find('[data-test="submit"]').trigger("click");
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
 
       expect(hoisted.simulateDelegateTx).not.toHaveBeenCalled();
       expect(hoisted.broadcastTx).not.toHaveBeenCalled();
@@ -312,9 +312,9 @@ describe("DelegateForm.vue", () => {
       const wrapper = factory(toast);
       await wrapper.find('[data-test="amount"]').setValue("100");
       await wrapper.find('[data-test="submit"]').trigger("click");
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
 
       expect(toast).toHaveBeenCalledExactlyOnceWith({
         type: "error",
@@ -327,9 +327,9 @@ describe("DelegateForm.vue", () => {
       const wrapper = factory();
       await wrapper.find('[data-test="amount"]').setValue("100");
       await wrapper.find('[data-test="submit"]').trigger("click");
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
 
       expect(hoisted.routerPush).not.toHaveBeenCalled();
       wrapper.unmount();

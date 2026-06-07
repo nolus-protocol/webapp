@@ -246,12 +246,8 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import LongForm from "./LongForm.vue";
-
-function flushMicrotasks() {
-  return new Promise((r) => setTimeout(r, 0));
-}
 
 function factory() {
   return mount(LongForm, {
@@ -292,9 +288,9 @@ describe("LongForm.vue — reactive balance validation", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="amount"]').setValue("0.5");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.invalid-balance-big");
     expect(wrapper.find('[data-test="err"]').text()).not.toBe("message.unexpected-error");
@@ -308,9 +304,9 @@ describe("LongForm.vue — reactive balance validation", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="amount"]').setValue("0");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.invalid-balance-low");
     expect(hoisted.leaseQuote).not.toHaveBeenCalled();
@@ -324,9 +320,9 @@ describe("LongForm.vue — reactive balance validation", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="amount"]').setValue("0.5");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(wrapper.find('[data-test="err"]').text()).toBe("");
     expect(hoisted.leaseQuote).toHaveBeenCalled();

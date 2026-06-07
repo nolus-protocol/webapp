@@ -210,7 +210,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { nextTick } from "vue";
 import WithdrawForm from "./WithdrawForm.vue";
 
@@ -249,12 +249,12 @@ describe("WithdrawForm.vue", () => {
   it("surfaces a localized message (not a silent stop) when the withdraw flow rejects — finding 8", async () => {
     hoisted.walletOperationMock.mockRejectedValueOnce(new Error("lpp balance fetch failed"));
     const wrapper = factory();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await nextTick();
     await wrapper.find('[data-test="amount"]').setValue("50");
     await nextTick();
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await nextTick();
     // onNextClick used to only Logger.error a failed pre-check/op, leaving the
     // field blank and the button reset — it now shows a classified message.
@@ -312,7 +312,7 @@ describe("WithdrawForm.vue", () => {
       // onNextClick → validateInputs (bug #5a) → onValidateAmount (bug #5b).
       // Without the guards, either would throw reading `assets[selected].value`.
       await expect(wrapper.find('[data-test="submit"]').trigger("click")).resolves.not.toThrow();
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
       expect(hoisted.broadcastTx).not.toHaveBeenCalled();
       wrapper.unmount();
@@ -326,9 +326,9 @@ describe("WithdrawForm.vue", () => {
 
       // Wait for the immediate wallet watcher + fetchDepositBalance to settle,
       // so we can stomp the populated lpnBalances back to [].
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
 
       const vm = wrapper.vm as unknown as {
@@ -341,9 +341,9 @@ describe("WithdrawForm.vue", () => {
 
       await wrapper.find('[data-test="submit"]').trigger("click");
       // Allow microtasks to drain
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       await nextTick();
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
 
       expect(toast).toHaveBeenCalledWith({
         type: "error",

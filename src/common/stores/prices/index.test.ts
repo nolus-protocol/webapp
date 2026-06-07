@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 
 // Shim window.matchMedia before store import: ThemeManager (via @/common/utils)
@@ -67,6 +67,10 @@ describe("usePricesStore", () => {
       return captured.unsubscribe;
     });
     setActivePinia(createPinia());
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("returns initial state defaults", () => {
@@ -194,14 +198,15 @@ describe("usePricesStore", () => {
   });
 
   it("ws callback refreshes lastUpdated", async () => {
+    vi.useFakeTimers();
     getPricesMock.mockResolvedValueOnce({});
     const store = usePricesStore();
     await store.initialize();
 
     const before = store.lastUpdated;
     expect(before).toBeTruthy();
-    // Force a measurable time gap
-    await new Promise((r) => setTimeout(r, 5));
+    // Force a measurable time gap on the faked clock so the refreshed timestamp is strictly later.
+    await vi.advanceTimersByTimeAsync(5);
     emitPrices({ "A@P": "1" });
     expect(store.lastUpdated).not.toBe(before);
     const after = store.lastUpdated;

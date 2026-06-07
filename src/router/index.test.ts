@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type * as VueRouter from "vue-router";
 
 // Mock every module the router imports so the router module can be loaded
@@ -75,6 +75,10 @@ describe("router/index.ts", () => {
     }
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("router module loads and exports RouteNames + router instance", async () => {
     const mod = await import("./index");
     expect(mod.router).toBeDefined();
@@ -110,21 +114,24 @@ describe("router/index.ts", () => {
     // Regression: a rejecting setLang used to bubble through the guard's
     // bare `await`, so next() was never called and navigation hung silently.
     // The guard must now catch and still call next() so the router resolves.
+    vi.useFakeTimers();
     const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     hoisted.setLangMock.mockRejectedValueOnce(new Error("locale fetch failed"));
 
     const mod = await import("./index");
 
-    // If the guard hangs, this push never resolves — give it a finite race.
+    // Drive the navigation on the faked clock. The it()-level timeout below is the
+    // hang guard: a regressed guard that never calls next() leaves this push pending,
+    // so the test fails fast instead of stalling the suite.
     const push = mod.router.push("/dashboard");
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("navigation hung")), 1000));
-    await expect(Promise.race([push, timeout])).resolves.not.toThrow();
+    await vi.runAllTimersAsync();
+    await expect(push).resolves.not.toThrow();
 
     expect(hoisted.setLangMock).toHaveBeenCalledWith("en");
     expect(consoleErrorSpy).toHaveBeenCalled();
     // Current route should actually be the target — navigation completed.
     expect(mod.router.currentRoute.value.path).toBe("/dashboard");
-  });
+  }, 1000);
 });
 
 describe("handleChunkLoadError", () => {

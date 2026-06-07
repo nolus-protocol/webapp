@@ -97,6 +97,22 @@ jobs:
           fi
           echo "OK — no vi.hoisted + restoreAllMocks() combination."
 
+      - name: Test hygiene guard — no arbitrary setTimeout waits in tests
+        run: |
+          set -e
+          # Policy: tests must not wait on a real-clock setTimeout. The microtask-flush
+          # idiom `await new Promise(r => setTimeout(r, 0))` belongs as flushPromises();
+          # genuine time-dependent behavior uses vi.useFakeTimers() + advanceTimersByTime.
+          # Catches the zero/single-digit (,0) / (,5)) forms as well as multi-digit delays.
+          if grep -rnE --include='*.test.ts' --include='*.spec.ts' \
+                  'setTimeout\([^,]*,[[:space:]]*[0-9]+\)' src; then
+            echo "FAIL: a test schedules a real-clock setTimeout wait."
+            echo "      Use flushPromises() for microtask flushes, or vi.useFakeTimers()"
+            echo "      + vi.advanceTimersByTimeAsync() for time-dependent behavior."
+            exit 1
+          fi
+          echo "OK — no arbitrary setTimeout waits in tests."
+
       - name: Validate .well-known JSON files in dist/
         run: |
           set -e

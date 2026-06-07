@@ -122,7 +122,7 @@ vi.mock("./VotingLine.vue", () => ({
   default: { name: "VotingLine", props: ["voting", "labels"], template: "<div />" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { Dec } from "@keplr-wallet/unit";
 import VoteDialog from "./VoteDialog.vue";
 
@@ -216,7 +216,7 @@ describe("VoteDialog.vue", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="message.yes"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await wrapper.vm.$nextTick();
 
     expect(hoisted.walletOperationMock).toHaveBeenCalledTimes(1);
@@ -229,7 +229,7 @@ describe("VoteDialog.vue", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="message.no"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await wrapper.vm.$nextTick();
 
     expect(hoisted.loadActivities).toHaveBeenCalled();
@@ -242,7 +242,7 @@ describe("VoteDialog.vue", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="message.veto"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await wrapper.vm.$nextTick();
 
     expect(hoisted.loggerError).toHaveBeenCalled();

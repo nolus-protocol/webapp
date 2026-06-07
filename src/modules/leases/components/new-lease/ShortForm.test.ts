@@ -279,12 +279,8 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import ShortForm from "./ShortForm.vue";
-
-function flushMicrotasks() {
-  return new Promise((r) => setTimeout(r, 0));
-}
 
 function factory() {
   return mount(ShortForm, {
@@ -322,9 +318,9 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     await wrapper.vm.$nextTick();
 
     await wrapper.find('[data-test="amount"]').setValue("0.001");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(hoisted.leaseQuote).toHaveBeenCalled();
     const args = hoisted.leaseQuote.mock.calls[0];
@@ -343,9 +339,9 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     // check passes and the quote (the subject of this test) is attempted.
     await wrapper.find('[data-test="pick-usdc"]').trigger("click");
     await wrapper.find('[data-test="amount"]').setValue("1");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(hoisted.leaseQuote).toHaveBeenCalled();
     const args = hoisted.leaseQuote.mock.calls[0];
@@ -372,9 +368,9 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="amount"]').setValue("0.001");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(hoisted.leaseQuote).not.toHaveBeenCalled();
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
@@ -387,9 +383,9 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="amount"]').setValue("0.001");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.no-liquidity");
     wrapper.unmount();
@@ -401,9 +397,9 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="amount"]').setValue("0.001");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
     wrapper.unmount();
@@ -414,9 +410,9 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="amount"]').setValue("1");
-    await flushMicrotasks();
+    await flushPromises();
     await wrapper.vm.$nextTick();
-    await flushMicrotasks();
+    await flushPromises();
 
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.invalid-balance-big");
     expect(hoisted.leaseQuote).not.toHaveBeenCalled();

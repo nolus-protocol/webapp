@@ -18,6 +18,7 @@ vi.mock("@/common/api", () => ({
 
 import { BackendApi } from "@/common/api";
 import { useConfigStore } from "./index";
+import { flushPromises } from "@vue/test-utils";
 
 // Minimal typed-any accessor to the mocked BackendApi members.
 // Using `as any` is acceptable in test code to access vi.fn() helpers.
@@ -561,9 +562,9 @@ describe("ConfigStore", () => {
 
       store.setProtocolFilter("SOLANA");
       // Let the watcher run + the rejected promise settle.
-      await new Promise((r) => setTimeout(r, 0));
-      await new Promise((r) => setTimeout(r, 0));
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
+      await flushPromises();
+      await flushPromises();
 
       const callsAfterFirstFail = api.getNetworkAssets.mock.calls.filter((c) => c[0] === "SOLANA").length;
       expect(callsAfterFirstFail).toBe(1);
@@ -571,10 +572,10 @@ describe("ConfigStore", () => {
       // Bounce away and back. The watcher must not re-fetch SOLANA — it has
       // been recorded as failed.
       store.setProtocolFilter("OSMOSIS");
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
       store.setProtocolFilter("SOLANA");
-      await new Promise((r) => setTimeout(r, 0));
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
+      await flushPromises();
 
       const callsAfterBounce = api.getNetworkAssets.mock.calls.filter((c) => c[0] === "SOLANA").length;
       expect(callsAfterBounce).toBe(1);
@@ -591,9 +592,9 @@ describe("ConfigStore", () => {
       api.getNetworkAssets.mockRejectedValueOnce(cause);
 
       store.setProtocolFilter("SOLANA");
-      await new Promise((r) => setTimeout(r, 0));
-      await new Promise((r) => setTimeout(r, 0));
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
+      await flushPromises();
+      await flushPromises();
 
       expect(consoleErr).toHaveBeenCalled();
       // At least one call must mention SOLANA and carry the error.
@@ -628,9 +629,9 @@ describe("ConfigStore", () => {
     try {
       api.getNetworkAssets.mockRejectedValueOnce(new Error("solana down"));
       store.setProtocolFilter("SOLANA");
-      await new Promise((r) => setTimeout(r, 0));
-      await new Promise((r) => setTimeout(r, 0));
-      await new Promise((r) => setTimeout(r, 0));
+      await flushPromises();
+      await flushPromises();
+      await flushPromises();
 
       expect(store.assetsResponse).toBeNull();
     } finally {

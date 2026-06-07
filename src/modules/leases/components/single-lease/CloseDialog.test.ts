@@ -380,7 +380,7 @@ describe("CloseDialog.vue", () => {
   it("loads lease position spec via getLeasePositionSpec", async () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     expect(hoisted.getLeasePositionSpec).toHaveBeenCalledWith("osmosis-1");
     wrapper.unmount();
   });
@@ -398,7 +398,7 @@ describe("CloseDialog.vue", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     expect(hoisted.walletOperationMock).toHaveBeenCalledTimes(1);
     wrapper.unmount();
   });
@@ -408,7 +408,7 @@ describe("CloseDialog.vue", () => {
     const wrapper = factory();
     await wrapper.vm.$nextTick();
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     expect(hoisted.loggerError).toHaveBeenCalled();
     // The raw "boom" must not leak onto the field — it is classified instead.
     expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
@@ -512,7 +512,7 @@ describe("CloseDialog.vue", () => {
     expect(wrapper.exists()).toBe(true);
     // Attempt to submit — action must bail out with error toast, walletOperation must not proceed.
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({ type: "error", message: "message.close-invalid-price" })
     );

@@ -158,7 +158,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { nextTick } from "vue";
 import UndelegateForm from "./UndelegateForm.vue";
 
@@ -216,7 +216,7 @@ describe("UndelegateForm.vue", () => {
     const wrapper = factory();
     await wrapper.find('[data-test="amount"]').setValue("999999");
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     expect(hoisted.simulateUndelegateTx).not.toHaveBeenCalled();
     wrapper.unmount();
   });
@@ -226,9 +226,9 @@ describe("UndelegateForm.vue", () => {
     // 800 NLS should hit both delegations (600 + 400)
     await wrapper.find('[data-test="amount"]').setValue("800");
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await nextTick();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
 
     expect(hoisted.simulateUndelegateTx).toHaveBeenCalledTimes(1);
     const txs = hoisted.simulateUndelegateTx.mock.calls[0][0] as Array<{
@@ -245,9 +245,9 @@ describe("UndelegateForm.vue", () => {
     const wrapper = factory();
     await wrapper.find('[data-test="amount"]').setValue("100");
     await wrapper.find('[data-test="submit"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await nextTick();
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
 
     expect(hoisted.broadcastTx).toHaveBeenCalledTimes(1);
     expect(hoisted.fetchPositions).toHaveBeenCalled();
