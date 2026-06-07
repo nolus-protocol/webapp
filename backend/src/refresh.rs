@@ -2893,13 +2893,14 @@ mod tests {
         assert!(!state.data_cache.staking_pool.is_populated());
     }
 
-    #[tokio::test]
+    #[tokio::test(start_paused = true)]
     async fn start_all_spawns_tasks_without_panic() {
         let state = crate::test_utils::test_app_state().await;
         let event_channels = crate::chain_events::EventChannels::new();
         start_all(state.clone(), &event_channels);
-        // Give the spawned tasks a chance to register with the runtime.
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        // Drive the paused clock so the spawned tasks are polled and reach their
+        // first await — deterministic and instant, no real wall-clock wait.
+        tokio::time::advance(std::time::Duration::from_millis(100)).await;
         // Dropping `state` here (via scope end) is implicit — if any spawned
         // task held a problematic strong ref, clippy/miri would catch it in CI.
     }
