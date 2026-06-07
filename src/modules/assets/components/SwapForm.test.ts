@@ -329,6 +329,37 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
     wrapper.unmount();
   });
 
+  it("populates Osmosis when the config omits a deprecated network's swap currency", async () => {
+    // Regression: Neutron was deprecated and swap_currency_neutron deleted from the
+    // backend config. The schema no longer requires it, so the Osmosis swap form must
+    // still populate when neutron is absent rather than failing on a global throw.
+    hoisted.getSkipRouteConfigMock.mockResolvedValue({
+      blacklist: [],
+      swap_currency_osmosis: "ibc/OSMO",
+      swap_to_currency: "ibc/USDC",
+      fee: 25,
+      transfers: {
+        OSMOSIS: {
+          currencies: [
+            { from: "ibc/OSMO", to: "ibc/OSMO", native: true },
+            { from: "ibc/USDC", to: "ibc/USDC", native: false }
+          ]
+        }
+      }
+    });
+
+    const toast = vi.fn();
+    const wrapper = factory(toast);
+    await flushPromises();
+
+    const mcc = wrapper.findComponent({ name: "MultipleCurrencyComponent" });
+    expect((mcc.props("currencyOptions") as unknown[]).length).toBe(2);
+    // The selected network's from-currency (swap_currency_osmosis) and swap_to_currency
+    // both resolved — point-of-use validation passed, so no mismatch toast fired.
+    expect(toast).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
+
   describe("onLoadConfig: swap_to_currency has no match in assets", () => {
     beforeEach(() => {
       hoisted.getSkipRouteConfigMock.mockResolvedValue({
