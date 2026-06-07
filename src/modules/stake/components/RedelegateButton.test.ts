@@ -103,7 +103,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import RedelegateButton from "./RedelegateButton.vue";
 
 function factory(props: { src?: string; amount?: string } = {}) {
@@ -176,7 +176,7 @@ describe("RedelegateButton.vue", () => {
     const wrapper = factory({ amount: "1000" });
     await wrapper.find('[data-test="svg-icon"]').trigger("click");
     // allow async chain to settle
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await wrapper.vm.$nextTick();
 
     expect(hoisted.simulateRedelegateTx).toHaveBeenCalledTimes(1);
@@ -201,7 +201,7 @@ describe("RedelegateButton.vue", () => {
 
     const wrapper = factory({ amount: "1000" });
     await wrapper.find('[data-test="svg-icon"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await wrapper.vm.$nextTick();
 
     expect(hoisted.simulateRedelegateTx).not.toHaveBeenCalled();
@@ -226,13 +226,13 @@ describe("RedelegateButton.vue", () => {
     await icon.trigger("click");
     // fire second click while loading — should be ignored
     await icon.trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
 
     expect(hoisted.simulateRedelegateTx).toHaveBeenCalledTimes(1);
 
     // resolve first
     resolveSim({ txBytes: new Uint8Array([1]) });
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     wrapper.unmount();
   });
 
@@ -244,7 +244,7 @@ describe("RedelegateButton.vue", () => {
 
     const wrapper = factory({ amount: "1000" });
     await wrapper.find('[data-test="svg-icon"]').trigger("click");
-    await new Promise((r) => setTimeout(r, 0));
+    await flushPromises();
     await wrapper.vm.$nextTick();
 
     expect(hoisted.loggerError).toHaveBeenCalled();
