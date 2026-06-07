@@ -253,8 +253,13 @@ const selectedAsset = computed(() => {
   );
 });
 
+// Repopulate when the store is ready AND whenever the wallet-driven network
+// filter changes. protocolFilter starts "" and is set to the owned network
+// (e.g. "OSMOSIS") only after the async wallet reconnect completes — later than
+// `initialized` flips — so reacting to `initialized` alone snapshots an empty
+// `config.transfers[""]` and never recovers.
 watch(
-  () => configStore.initialized,
+  [() => configStore.initialized, () => configStore.protocolFilter],
   () => {
     if (configStore.initialized) {
       onInit();
