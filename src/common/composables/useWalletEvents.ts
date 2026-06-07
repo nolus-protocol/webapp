@@ -3,7 +3,8 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useConfigStore } from "@/common/stores/config";
 import { useConnectionStore } from "@/common/stores/connection";
 import { useEarnStore } from "@/common/stores/earn";
-import { IntercomService, Logger, walletOperation } from "@/common/utils";
+import { IntercomService, Logger, WalletManager, walletOperation, applyWalletProtocolFilter } from "@/common/utils";
+import type { WalletConnectMechanism } from "@/common/types";
 
 /**
  * Composable that manages wallet lifecycle events:
@@ -54,6 +55,12 @@ export function useWalletEvents(): void {
     () => configStore.initialized,
     async (initialized) => {
       if (!initialized) return;
+      // Seed the wallet-owned network filter from the stored mechanism before the
+      // (slow) reconnect chain resolves. Otherwise protocolFilter stays "" — and
+      // the transfer forms key config.transfers[""] → empty — until a later tx
+      // submit eventually runs a full connect. A null mechanism (disconnected)
+      // maps to "", which the config-store watcher treats as a no-op.
+      applyWalletProtocolFilter(WalletManager.getWalletConnectMechanism() as WalletConnectMechanism | null);
       await walletOperation(() => {});
       if (wallet.wallet?.address) {
         await connectionStore.connectWallet(wallet.wallet.address);
