@@ -359,9 +359,17 @@ mod tests {
 
     #[tokio::test]
     async fn cached_age_secs_returns_elapsed() {
+        // `age_secs` derives from `std::time::Instant::elapsed`, which a tokio
+        // paused clock cannot drive. Stamp a backdated `updated_at` directly so
+        // the elapsed assertion is deterministic and instant — no wall-clock wait.
         let cache: Cached<TestVal> = Cached::new();
-        cache.store(TestVal::new(42, "aged"));
-        tokio::time::sleep(Duration::from_millis(1_100)).await;
+        let aged_at = Instant::now()
+            .checked_sub(Duration::from_secs(2))
+            .expect("test host monotonic clock is at least 2s past its epoch");
+        cache.inner.store(Arc::new(CachedInner {
+            value: Some(TestVal::new(42, "aged")),
+            updated_at: Some(aged_at),
+        }));
         let age = cache.age_secs().expect("age_secs must be Some after store");
         assert!(age >= 1, "expected age >= 1, got {}", age);
     }

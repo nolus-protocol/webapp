@@ -152,7 +152,13 @@ impl RateLimitState {
 
     /// Remove entries that haven't been accessed within `max_age`
     pub async fn cleanup_stale(&self, max_age: Duration) {
-        let now = epoch().elapsed();
+        self.cleanup_stale_at(epoch().elapsed(), max_age).await;
+    }
+
+    /// Eviction core taking an explicit `now` (elapsed since the process epoch).
+    /// `cleanup_stale` supplies `epoch().elapsed()`; splitting it out lets tests
+    /// drive entry ages deterministically without waiting on the wall clock.
+    async fn cleanup_stale_at(&self, now: Duration, max_age: Duration) {
         let max_age_ms = u64::try_from(max_age.as_millis()).unwrap_or(u64::MAX);
         let mut limiters = self.limiters.write().await;
         let before = limiters.len();
@@ -466,15 +472,30 @@ mod tests {
         state.cleanup_stale(Duration::ZERO).await;
         assert_eq!(state.limiters.read().await.len(), 0);
 
-        // Re-create ip2 only, then touch ip1 so it's fresh
+        // Re-create both entries, then stamp their ages directly and drive
+        // eviction through the injectable `now` seam — deterministic and
+        // instant, with no real wall-clock wait.
         state.check_rate_limit(ip1).await;
-        // Small sleep so ip1 ages a tiny bit, then add ip2 which is newer
-        tokio::time::sleep(tokio::time::Duration::from_millis(20)).await;
         state.check_rate_limit(ip2).await;
+        {
+            let limiters = state.limiters.read().await;
+            limiters
+                .get(&ip1)
+                .expect("ip1 entry exists after check_rate_limit")
+                .last_access_ms
+                .store(0, Ordering::Relaxed);
+            limiters
+                .get(&ip2)
+                .expect("ip2 entry exists after check_rate_limit")
+                .last_access_ms
+                .store(100, Ordering::Relaxed);
+        }
         assert_eq!(state.limiters.read().await.len(), 2);
 
-        // Cleanup with 10ms max age — ip1 (>20ms old) should be evicted, ip2 (fresh) kept
-        state.cleanup_stale(Duration::from_millis(10)).await;
+        // now=105ms, max_age=10ms: ip1 (105ms old) evicted, ip2 (5ms old) kept.
+        state
+            .cleanup_stale_at(Duration::from_millis(105), Duration::from_millis(10))
+            .await;
 
         let limiters = state.limiters.read().await;
         assert_eq!(limiters.len(), 1);
