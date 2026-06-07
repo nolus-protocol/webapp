@@ -181,11 +181,16 @@ const SkipRouteTransferCurrencySchema = z
   })
   .passthrough();
 
+// Per-network swap currencies (`swap_currency_<network>`) are intentionally NOT
+// validated here. They are a per-network resource read only when that network is
+// the selected one; validating them globally lets an absent network (e.g. Neutron,
+// deprecated and deleted from the backend config) reject the entire swap config and
+// break every other network's transfer forms. They pass through and are validated
+// strictly at point of use (SwapForm) for the selected network only. `swap_to_currency`
+// may be empty for the same reason — its presence is checked where the swap is routed.
 export const SkipRouteConfigSchema = z
   .object({
     blacklist: z.array(z.string()),
-    swap_currency_osmosis: z.string(),
-    swap_currency_neutron: z.string(),
     swap_to_currency: z.string(),
     fee: z.number(),
     transfers: z.record(

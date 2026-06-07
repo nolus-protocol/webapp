@@ -423,4 +423,28 @@ describe("SkipRouteConfigSchema", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("should accept a config missing a deprecated network's swap currency", () => {
+    // Regression: Neutron was deprecated and swap_currency_neutron deleted from the
+    // backend config. Per-network swap currencies are validated at point of use, not
+    // globally — a single absent network must not reject the whole config and break
+    // every other network's transfer forms.
+    const { swap_currency_neutron: _neutron, ...rest } = validConfig();
+    const result = SkipRouteConfigSchema.safeParse(rest);
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept a config with no per-network swap currencies at all", () => {
+    const { swap_currency_osmosis: _osmosis, swap_currency_neutron: _neutron, ...rest } = validConfig();
+    const result = SkipRouteConfigSchema.safeParse(rest);
+    expect(result.success).toBe(true);
+  });
+
+  it("should preserve per-network swap currency keys through passthrough", () => {
+    const result = SkipRouteConfigSchema.safeParse(validConfig());
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect((result.data as Record<string, unknown>).swap_currency_osmosis).toBe("USDC");
+    }
+  });
 });
