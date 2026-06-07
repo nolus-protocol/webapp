@@ -33,11 +33,14 @@ const hoisted = vi.hoisted(() => {
     "USDC@OSMOSIS": { price: "1.0" },
     "NLS@NOLUS": { price: "0.5" }
   };
-  const configStoreState: { initialized: boolean; protocolFilter: string; supportedNetworksData: unknown } = {
+  const configStoreState: { initialized: boolean; supportedNetworksData: unknown } = {
     initialized: true,
-    protocolFilter: "OSMOSIS",
     supportedNetworksData: {}
   };
+  // protocolFilter is backed by a real Vue ref (created in the config-store mock
+  // via importActual("vue")) so the component's watch reacts to changes exactly
+  // as it does against the live Pinia store.
+  const protocolFilterControl: { ref: { value: string } | null } = { ref: null };
   const balancesState = { ignoredCurrencies: [] as string[] };
 
   return {
@@ -49,6 +52,7 @@ const hoisted = vi.hoisted(() => {
     walletRef,
     pricesState,
     configStoreState,
+    protocolFilterControl,
     balancesState
   };
 });
@@ -80,19 +84,23 @@ vi.mock("@/common/stores/prices", () => ({
   })
 }));
 
-vi.mock("@/common/stores/config", () => ({
-  useConfigStore: () => ({
-    get initialized() {
-      return hoisted.configStoreState.initialized;
-    },
-    get protocolFilter() {
-      return hoisted.configStoreState.protocolFilter;
-    },
-    get supportedNetworksData() {
-      return hoisted.configStoreState.supportedNetworksData;
-    }
-  })
-}));
+vi.mock("@/common/stores/config", async () => {
+  const { ref } = (await vi.importActual("vue")) as { ref: (value: string) => { value: string } };
+  hoisted.protocolFilterControl.ref = ref("OSMOSIS");
+  return {
+    useConfigStore: () => ({
+      get initialized() {
+        return hoisted.configStoreState.initialized;
+      },
+      get protocolFilter() {
+        return hoisted.protocolFilterControl.ref?.value ?? "";
+      },
+      get supportedNetworksData() {
+        return hoisted.configStoreState.supportedNetworksData;
+      }
+    })
+  };
+});
 
 vi.mock("@/common/stores/history", () => ({
   useHistoryStore: () => ({ loadActivities: vi.fn() })
@@ -240,7 +248,9 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
     setActivePinia(createPinia());
 
     hoisted.configStoreState.initialized = true;
-    hoisted.configStoreState.protocolFilter = "OSMOSIS";
+    if (hoisted.protocolFilterControl.ref) {
+      hoisted.protocolFilterControl.ref.value = "OSMOSIS";
+    }
     hoisted.balancesState.ignoredCurrencies = [];
     hoisted.walletRef.value = { signer: { type: "cosm", chainId: "nolus-1" } };
     hoisted.validateAmountV2Mock.mockReturnValue("");
@@ -293,6 +303,29 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
     const wrapper = factory();
     await flushPromises();
     expect(wrapper.exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("repopulates the currency list when protocolFilter flips from empty to a network", async () => {
+    // Regression: the wallet-driven protocolFilter is "" until the async wallet
+    // reconnect resolves, which lands later than `configStore.initialized`. The
+    // form must repopulate when the filter flips, not snapshot the empty
+    // config.transfers[""] once and stay empty.
+    const pf = hoisted.protocolFilterControl.ref;
+    expect(pf).toBeTruthy();
+    if (!pf) return;
+
+    pf.value = "";
+    const wrapper = factory();
+    await flushPromises();
+
+    const mcc = wrapper.findComponent({ name: "MultipleCurrencyComponent" });
+    expect((mcc.props("currencyOptions") as unknown[]).length).toBe(0);
+
+    pf.value = "OSMOSIS";
+    await flushPromises();
+
+    expect((mcc.props("currencyOptions") as unknown[]).length).toBe(2);
     wrapper.unmount();
   });
 

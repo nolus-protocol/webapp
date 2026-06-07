@@ -242,8 +242,14 @@ const walletRef = computed(() => {
   return wallet.value;
 });
 
+// Repopulate when the store is ready AND whenever the wallet-driven network
+// filter changes. protocolFilter starts "" and is set to the owned network
+// (e.g. "OSMOSIS") only after the async wallet reconnect completes — later than
+// `initialized` flips. Reacting to it also lands the form on the destination
+// network so the Recipient resolves to the derived destination address
+// (e.g. osmo1…) instead of falling back to the native Nolus account.
 watch(
-  () => configStore.initialized,
+  [() => configStore.initialized, () => configStore.protocolFilter],
   () => {
     if (configStore.initialized) {
       onInit();
@@ -399,41 +405,44 @@ async function setCosmosNetwork() {
   destroyClient();
 
   disablePicker.value = true;
-  const ntwrk = NETWORK_DATA;
-  const currencies = [];
-  const data = skipRouteConfig?.transfers?.[network.value.key]?.currencies;
-  for (const c of data ?? []) {
-    if (c.visible && configStore.protocolFilter !== c.visible) continue;
+  try {
+    const ntwrk = NETWORK_DATA;
+    const currencies = [];
+    const data = skipRouteConfig?.transfers?.[network.value.key]?.currencies;
+    for (const c of data ?? []) {
+      if (c.visible && configStore.protocolFilter !== c.visible) continue;
 
-    const currency = tryGetCurrencyByDenom(c.from);
-    if (!currency) continue; // Skip deprecated/removed denoms
+      const currency = tryGetCurrencyByDenom(c.from);
+      if (!currency) continue; // Skip deprecated/removed denoms
 
-    const balance = balancesStore.getBalanceInfo(c.from);
-    currency.balance = coin(balance?.amount?.toString() ?? 0, c.to);
-    currencies.push(currency);
+      const balance = balancesStore.getBalanceInfo(c.from);
+      currency.balance = coin(balance?.amount?.toString() ?? 0, c.to);
+      currencies.push(currency);
+    }
+
+    const mappedCurrencies = currencies.map((item) => {
+      return {
+        balance: item.balance,
+        shortName: item.shortName,
+        ticker: item.ticker,
+        name: item.shortName,
+        icon: item.icon,
+        decimal_digits: item.decimal_digits,
+        symbol: item.symbol,
+        native: item.native,
+        from: item.ibcData
+      };
+    });
+    const networkData = ntwrk?.supportedNetworks[network.value.key];
+    client = await WalletUtils.getWallet(network.value.key);
+    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+    wallet.value = baseWallet?.address as string;
+
+    networkCurrencies.value = mappedCurrencies;
+    selectedCurrency.value = 0;
+  } finally {
+    disablePicker.value = false;
   }
-
-  const mappedCurrencies = currencies.map((item) => {
-    return {
-      balance: item.balance,
-      shortName: item.shortName,
-      ticker: item.ticker,
-      name: item.shortName,
-      icon: item.icon,
-      decimal_digits: item.decimal_digits,
-      symbol: item.symbol,
-      native: item.native,
-      from: item.ibcData
-    };
-  });
-  const networkData = ntwrk?.supportedNetworks[network.value.key];
-  client = await WalletUtils.getWallet(network.value.key);
-  const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-  wallet.value = baseWallet?.address as string;
-
-  networkCurrencies.value = mappedCurrencies;
-  disablePicker.value = false;
-  selectedCurrency.value = 0;
 }
 
 function validateAmount() {

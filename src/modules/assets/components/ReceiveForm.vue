@@ -204,8 +204,13 @@ let skipRouteConfig: SkipRouteConfigType | null;
 const id = Date.now();
 const onClose = inject("close", () => {});
 
+// Repopulate when the store is ready AND whenever the wallet-driven network
+// filter changes. protocolFilter starts "" and is set to the owned network
+// (e.g. "OSMOSIS") only after the async wallet reconnect completes — later than
+// `initialized` flips — so reacting to `initialized` alone snapshots an empty
+// list and never recovers.
 watch(
-  () => configStore.initialized,
+  [() => configStore.initialized, () => configStore.protocolFilter],
   () => {
     if (configStore.initialized) {
       onInit();
@@ -357,55 +362,58 @@ async function setCosmosNetwork() {
   destroyClient();
 
   disablePicker.value = true;
-  const ntwrk = NETWORK_DATA;
+  try {
+    const ntwrk = NETWORK_DATA;
 
-  const currencies = [];
-  const promises = [];
-  const data = skipRouteConfig?.transfers?.[network.value.key]?.currencies;
-  for (const c of data ?? []) {
-    if (c.visible && configStore.protocolFilter !== c.visible) continue;
+    const currencies = [];
+    const promises = [];
+    const data = skipRouteConfig?.transfers?.[network.value.key]?.currencies;
+    for (const c of data ?? []) {
+      if (c.visible && configStore.protocolFilter !== c.visible) continue;
 
-    const currency = tryGetCurrencyByDenom(c.from);
-    if (!currency) continue; // Skip deprecated/removed denoms
+      const currency = tryGetCurrencyByDenom(c.from);
+      if (!currency) continue; // Skip deprecated/removed denoms
 
-    currency.balance = coin(0, c.to);
-    currencies.push(currency);
-  }
-
-  const mappedCurrencies = currencies.map((item) => {
-    return {
-      balance: item.balance,
-      shortName: item.shortName,
-      ticker: item.ticker,
-      name: item.shortName,
-      icon: item.icon,
-      decimal_digits: item.decimal_digits,
-      symbol: item.symbol,
-      native: item.native,
-      from: item.ibcData
-    };
-  });
-
-  const networkData = ntwrk?.supportedNetworks[network.value.key];
-  client = await WalletUtils.getWallet(network.value.key);
-  const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
-  wallet.value = baseWallet?.address as string;
-
-  if (WalletUtils.isAuth()) {
-    for (const c of mappedCurrencies) {
-      async function fn() {
-        const balance = await client.getBalance(wallet.value as string, c.balance.denom);
-        c.balance = balance;
-      }
-      promises.push(fn());
+      currency.balance = coin(0, c.to);
+      currencies.push(currency);
     }
+
+    const mappedCurrencies = currencies.map((item) => {
+      return {
+        balance: item.balance,
+        shortName: item.shortName,
+        ticker: item.ticker,
+        name: item.shortName,
+        icon: item.icon,
+        decimal_digits: item.decimal_digits,
+        symbol: item.symbol,
+        native: item.native,
+        from: item.ibcData
+      };
+    });
+
+    const networkData = ntwrk?.supportedNetworks[network.value.key];
+    client = await WalletUtils.getWallet(network.value.key);
+    const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
+    wallet.value = baseWallet?.address as string;
+
+    if (WalletUtils.isAuth()) {
+      for (const c of mappedCurrencies) {
+        async function fn() {
+          const balance = await client.getBalance(wallet.value as string, c.balance.denom);
+          c.balance = balance;
+        }
+        promises.push(fn());
+      }
+    }
+
+    await Promise.all(promises);
+
+    networkCurrencies.value = mappedCurrencies;
+    selectedCurrency.value = 0;
+  } finally {
+    disablePicker.value = false;
   }
-
-  await Promise.all(promises);
-
-  networkCurrencies.value = mappedCurrencies;
-  disablePicker.value = false;
-  selectedCurrency.value = 0;
 }
 
 function validateAmount() {
