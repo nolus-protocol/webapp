@@ -47,6 +47,9 @@ const openPositionValue = computed(() => statsStore.loansStats.openPositionValue
 const openInterest = computed(() => statsStore.loansStats.openInterest?.open_interest ?? "0");
 const loading = computed(() => statsStore.loansStatsLoading && !statsStore.hasLoansStats);
 
+// Reacts to: configStore.initialized.
+// Idempotency: the `!statsStore.initialized` guard means initialize() runs at most
+// once; the immediate run handles the already-initialized case.
 watch(
   () => configStore.initialized,
   () => {

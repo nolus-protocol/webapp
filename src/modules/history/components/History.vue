@@ -153,7 +153,10 @@ const txsSkip = computed(() => {
   });
 });
 
-// Initialize when config is ready
+// Reacts to: configStore.initialized.
+// Idempotency: initializeHistory() only loads when a wallet address is present and
+// re-seeds the address each call; the immediate run covers the already-initialized
+// case. Safe to re-fire.
 watch(
   () => configStore.initialized,
   () => {
@@ -164,7 +167,10 @@ watch(
   { immediate: true }
 );
 
-// Reset and reload when wallet changes
+// Reacts to: wallet.wallet (connect / disconnect / account switch).
+// Side effect: resets pagination and clears the history store, then reloads for the
+// new address. Idempotency: the reset runs unconditionally so a re-fire rebuilds
+// from a clean slate; the load only runs when an address is present.
 watch(
   () => wallet.wallet,
   () => {

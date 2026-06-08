@@ -45,7 +45,9 @@ const i18n = useI18n();
 const chart = ref<typeof Chart>();
 const statsStore = useStatsStore();
 
-// Watch for supplyBorrowHistory changes from store
+// Reacts to: statsStore.supplyBorrowHistory (polled store data).
+// Idempotency: rebuilds the local series from the response each fire and repaints
+// the chart; safe to re-fire.
 watch(
   () => statsStore.supplyBorrowHistory,
   (response) => {
@@ -63,7 +65,9 @@ watch(
   { immediate: true }
 );
 
-// Re-fetch when period changes from parent
+// Reacts to: props.period (user-selected range from parent).
+// Side effect: loadData() fetches supply/borrow history for the new period.
+// Idempotency: each fire issues one fetch for the current period.
 watch(
   () => props.period,
   () => loadData()

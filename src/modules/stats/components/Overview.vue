@@ -129,6 +129,9 @@ const realized_pnl = computed(() => statsStore.overview.realizedPnlStats);
 const protocolRevenue = computed(() => statsStore.overview.revenue);
 const loading = computed(() => statsStore.overviewLoading && !statsStore.hasOverviewData);
 
+// Reacts to: configStore.initialized.
+// Idempotency: the `!statsStore.initialized` guard means initialize() runs at most
+// once; the immediate run handles the already-initialized case.
 watch(
   () => configStore.initialized,
   () => {

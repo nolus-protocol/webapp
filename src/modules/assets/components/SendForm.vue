@@ -248,6 +248,10 @@ const walletRef = computed(() => {
 // `initialized` flips. Reacting to it also lands the form on the destination
 // network so the Recipient resolves to the derived destination address
 // (e.g. osmo1…) instead of falling back to the native Nolus account.
+//
+// Reacts to: configStore.initialized + configStore.protocolFilter.
+// Idempotency: onInit() recomputes form/network state from the current store
+// snapshot, so the immediate run and every re-fire are safe.
 watch(
   [() => configStore.initialized, () => configStore.protocolFilter],
   () => {
@@ -332,6 +336,10 @@ function setHistory() {
   historyStore.addPendingTransfer(data, i18n);
 }
 
+// Reacts to: selected currency, amount, and wallet address.
+// Idempotency: validateAmount() runs first (resets amountErrorMsg each call) and
+// gates a debounced route fetch; the clearTimeout collapses rapid re-fires into a
+// single getRoute() call.
 watch(
   () => [selectedCurrency.value, amount.value, wallet.value],
   () => {
@@ -351,6 +359,9 @@ watch(
   }
 );
 
+// Reacts to: receiverAddress (user input).
+// Idempotency: recomputes amountErrorMsg via validateAddress on each change; pure
+// validation, safe to re-fire.
 watch(
   () => receiverAddress.value,
   () => {

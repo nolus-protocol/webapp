@@ -209,6 +209,10 @@ const onClose = inject("close", () => {});
 // (e.g. "OSMOSIS") only after the async wallet reconnect completes — later than
 // `initialized` flips — so reacting to `initialized` alone snapshots an empty
 // list and never recovers.
+//
+// Reacts to: configStore.initialized + configStore.protocolFilter.
+// Idempotency: onInit() recomputes the receive currency list from the current
+// store snapshot, so the immediate run and every re-fire are safe.
 watch(
   [() => configStore.initialized, () => configStore.protocolFilter],
   () => {
