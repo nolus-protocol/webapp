@@ -41,7 +41,9 @@ const i18n = useI18n();
 const loans = ref<{ amount: number; date: Date }[]>([]);
 const statsStore = useStatsStore();
 
-// Watch for monthlyLeases changes from store
+// Reacts to: statsStore.monthlyLeases (polled store data).
+// Idempotency: rebuilds the local loans series from the response each fire and
+// repaints the chart; safe to re-fire.
 watch(
   () => statsStore.monthlyLeases,
   (response) => {
@@ -58,7 +60,9 @@ watch(
   { immediate: true }
 );
 
-// Re-fetch when period changes from parent
+// Reacts to: props.period (user-selected range from parent).
+// Side effect: setStats() fetches monthly leases for the new period. Idempotency:
+// each fire issues one fetch for the current period; the store replaces its data.
 watch(
   () => props.period,
   () => setStats()

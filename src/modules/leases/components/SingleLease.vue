@@ -193,14 +193,19 @@ onUnmounted(() => {
   clearInterval(timeOut);
 });
 
-// On route params change, fetch the new lease into the store.
-// The watchEffect handles syncing store → lease.value.
+// Reacts to: route.params.id (navigation between leases).
+// Idempotency: fetchLease() reads the current id and replaces the store entry, so
+// re-firing on the same id is harmless. The watchEffect syncs store → lease.value.
 watch(
   () => route.params.id,
   () => fetchLease()
 );
 
-// Redirect to positions list when lease reaches a terminal state
+// Reacts to: lease.value?.status (polled via the store refresh interval).
+// Side effect: on a terminal status it refetches balances + leases and navigates
+// away (router.replace). Idempotency: the terminal-status guard makes a repeat of
+// the same non-terminal status a no-op; reaching a terminal status redirects once,
+// after which the component unmounts so it cannot re-fire.
 watch(
   () => lease.value?.status,
   (newStatus) => {

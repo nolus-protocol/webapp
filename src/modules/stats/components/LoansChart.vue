@@ -30,8 +30,10 @@ const loans = ref<{ ticker: string; loan: number }[]>([]);
 const configStore = useConfigStore();
 const statsStore = useStatsStore();
 
-// Watch both leasedAssets and configStore.initialized — currency names
-// require the config store to be populated for friendly name resolution
+// Reacts to: statsStore.leasedAssets (polled) + configStore.initialized — currency
+// names require the config store populated for friendly-name resolution.
+// Idempotency: processLeasedAssets() rebuilds the local list from the current items
+// each fire; safe on the immediate run and re-fires.
 watch(
   [() => statsStore.leasedAssets, () => configStore.initialized],
   ([items]) => {

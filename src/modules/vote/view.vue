@@ -75,6 +75,9 @@ const { fetchGovernanceProposals, fetchProposalData, fetchData, LOAD_TIMEOUT, li
 const { loadBondedTokens, bondedTokens } = useLoadBondedTokens();
 const { loadTallying, quorum } = useLoadTallying();
 
+// Reacts to: configStore.initialized.
+// Idempotency: onInit() runs a Promise.allSettled over the proposal / bonded-token
+// / tally fetches, each safe to repeat; the immediate run performs the initial load.
 watch(
   () => configStore.initialized,
   () => {

@@ -88,7 +88,10 @@ const walletConnected = useWalletConnected();
 
 const vestedTokens = ref([] as { endTime: string; amount: { amount: string; denom: string } }[]);
 
-// Watch for wallet connection changes (staking store is managed by connectionStore)
+// Reacts to: wallet.wallet?.address (wallet connect / disconnect).
+// Idempotency: loads vested tokens when an address is present, clears them when
+// absent; re-firing with the same address re-loads idempotently, and the immediate
+// run seeds the initial state. (Staking store itself is managed by connectionStore.)
 watch(
   () => wallet.wallet?.address,
   async (address) => {
