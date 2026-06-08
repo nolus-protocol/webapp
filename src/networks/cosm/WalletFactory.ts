@@ -11,7 +11,7 @@ import { makeCosmoshubPath, type OfflineAminoSigner } from "@cosmjs/amino";
 
 import { createBankAminoConverters, createIbcAminoConverters } from "@cosmjs/stargate";
 import { AminoTypes } from "@cosmjs/stargate";
-import { WalletManager, WalletUtils, Logger } from "@/common/utils";
+import { WalletStorage, WalletAccess, Logger } from "@/common/utils";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { BaseWallet } from "./BaseWallet";
 import { SolanaWallet } from "../sol";
@@ -90,7 +90,7 @@ async function authenticateKeplrLike(
 }
 
 async function authenticateKeplr(wallet: Wallet, network: NetworkData) {
-  return authenticateKeplrLike(wallet, network, WalletUtils.getKeplr, "Keplr");
+  return authenticateKeplrLike(wallet, network, WalletAccess.getKeplr, "Keplr");
 }
 
 export async function authenticateSolFlare(wallet: Wallet, network: NetworkData) {
@@ -131,7 +131,7 @@ async function authenticateLedger(wallet: Wallet, network: NetworkData) {
 
 async function getLedgerTransport() {
   const isConnectedViaLedgerBluetooth =
-    WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
+    WalletStorage.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
 
   if (isConnectedViaLedgerBluetooth) {
     return await BluetoothTransport.create();

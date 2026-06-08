@@ -91,11 +91,11 @@ vi.mock("@/common/stores/prices", () => ({
 
 vi.mock("@/common/utils", () => ({
   Logger: { error: vi.fn() },
-  NetworkUtils: {
+  StakingQueries: {
     loadDelegatorValidators: hoisted.loadDelegatorValidators,
     loadValidators: hoisted.loadValidators
   },
-  Utils: { getRandomInt: () => 0 },
+  randomInt: () => 0,
   validateAmountV2: hoisted.validateAmountV2Mock,
   walletOperation: hoisted.walletOperationMock,
   classifyError: (e: unknown) =>

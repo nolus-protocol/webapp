@@ -134,7 +134,7 @@ import { MONTHS, NATIVE_CURRENCY } from "@/config/global";
 import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
 import { usePricesStore } from "@/common/stores/prices";
 import { useConfigStore } from "@/common/stores/config";
-import { LeaseUtils } from "@/common/utils";
+import { LeaseMath } from "@/common/utils";
 import { getCurrencyByTicker, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 
 import { Dec } from "@keplr-wallet/unit";
@@ -290,7 +290,7 @@ function getLquidation() {
     const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo.decimal_digits));
 
     const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo.decimal_digits));
-    return LeaseUtils.calculateLiquidation(unitAsset, stableAsset);
+    return LeaseMath.calculateLiquidation(unitAsset, stableAsset);
   }
 
   return new Dec(0);

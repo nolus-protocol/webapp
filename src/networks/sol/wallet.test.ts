@@ -20,7 +20,7 @@ vi.mock("@/common/utils/EndpointService", () => ({
 }));
 
 vi.mock("@/common/utils", () => ({
-  EnvNetworkUtils: {
+  NetworkEnv: {
     getStoredNetworkName: vi.fn(() => "mainnet")
   }
 }));

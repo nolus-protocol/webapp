@@ -11,19 +11,20 @@ export * from "./CurrencyLookup";
 
 export * from "./IbcUtils";
 
-export * from "./EnvNetworkUtils";
+export * from "./NetworkEnv";
 export * from "./ThemeManager";
-export * from "./WalletManager";
-export * from "./WalletUtils";
-export * from "./StringUtils";
+export * from "./WalletStorage";
+export * from "./WalletAccess";
+export * from "./TextFormat";
 export * from "./dateParser";
-export * from "./Utils";
+export * from "./device";
+export * from "./random";
 export * from "./Logger";
-export * from "./LeaseUtils";
+export * from "./LeaseMath";
 export * from "./LeaseCalculator";
 export * from "./WalletConnect";
 export * from "./walletProtocolFilter";
-export * from "./NetworkUtils";
+export * from "./StakingQueries";
 export * from "./IntercomService";
 export * from "./classifyError";
 export * from "./typeGuards";

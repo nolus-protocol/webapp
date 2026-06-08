@@ -50,7 +50,7 @@ import { inject, ref } from "vue";
 import { Button, Popover, ToastType } from "web-components";
 import type { ITransactionData } from "@/modules/history/types";
 import type { HistoryData } from "@/modules/history/types/ITransaction";
-import { StringUtils } from "../../../common/utils";
+import { TextFormat } from "../../../common/utils";
 import { useI18n } from "vue-i18n";
 
 export type IAction = { transaction: ITransactionData & HistoryData };
@@ -64,7 +64,7 @@ const emitter = defineEmits(["click"]);
 
 function copyHash() {
   if (props.transaction) {
-    StringUtils.copyToClipboard(props.transaction?.tx_hash);
+    TextFormat.copyToClipboard(props.transaction?.tx_hash);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-copied-successfully") });
   }
   popoverRef.value?.close();
@@ -79,7 +79,7 @@ function copyTxRaw() {
     }
 
     const data = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));
-    StringUtils.copyToClipboard(data);
+    TextFormat.copyToClipboard(data);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-raw-copied-successfully") });
   }
   popoverRef.value?.close();

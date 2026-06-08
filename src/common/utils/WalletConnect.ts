@@ -5,7 +5,7 @@ import { Dec } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { WalletManager } from ".";
+import { WalletStorage } from ".";
 import { getCurrencyByDenom } from "./CurrencyLookup";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
 import { authenticateKeplr, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
@@ -73,7 +73,7 @@ const externalWalletMap: Record<
 
 export const walletOperation = async (operation: () => void | Promise<void>) => {
   const walletStore = useWalletStore();
-  const mechanism = WalletManager.getWalletConnectMechanism();
+  const mechanism = WalletStorage.getWalletConnectMechanism();
   if (mechanism) {
     const action = walletActionMap[mechanism];
     await walletStore[action]();
@@ -82,7 +82,7 @@ export const walletOperation = async (operation: () => void | Promise<void>) => 
 };
 
 export const externalWallet = async (wallet: Wallet, networkData: NetworkData) => {
-  const mechanism = WalletManager.getWalletConnectMechanism();
+  const mechanism = WalletStorage.getWalletConnectMechanism();
   if (mechanism) {
     return await externalWalletMap[mechanism](wallet, networkData);
   }

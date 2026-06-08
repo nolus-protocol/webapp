@@ -12,7 +12,7 @@ import type { ZodType } from "zod";
 import { BackendApi } from "@/common/api";
 import { SkipRouteConfigSchema } from "@/common/api/schemas";
 import { CONTRACTS } from "@/config/global";
-import { EnvNetworkUtils } from "./EnvNetworkUtils";
+import { NetworkEnv } from "./NetworkEnv";
 
 // Cached promises for configurations
 let skipRouteConfigCache: Promise<SkipRouteConfigType> | null = null;
@@ -50,7 +50,7 @@ export async function getProposalsConfig(): Promise<ProposalsConfigType> {
  * Get available protocols for the current network
  */
 export function getProtocols(): Record<string, string> {
-  return CONTRACTS[EnvNetworkUtils.getStoredNetworkName()].protocols;
+  return CONTRACTS[NetworkEnv.getStoredNetworkName()].protocols;
 }
 
 /**

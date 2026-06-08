@@ -129,7 +129,7 @@ import {
   transferCurrency,
   validateAddress,
   walletOperation,
-  WalletUtils
+  WalletAccess
 } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
@@ -434,7 +434,7 @@ async function setCosmosNetwork() {
       };
     });
     const networkData = ntwrk?.supportedNetworks[network.value.key];
-    client = await WalletUtils.getWallet(network.value.key);
+    client = await WalletAccess.getWallet(network.value.key);
     const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
     wallet.value = baseWallet?.address as string;
 
@@ -448,7 +448,7 @@ async function setCosmosNetwork() {
 function validateAmount() {
   amountErrorMsg.value = "";
 
-  if (!WalletUtils.isAuth()) {
+  if (!WalletAccess.isAuth()) {
     return false;
   }
 
@@ -600,7 +600,7 @@ async function transferAmount() {
 }
 
 async function onSwapCosmos() {
-  if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
+  if (!route || !WalletAccess.isAuth() || amountErrorMsg.value.length > 0) {
     return false;
   }
 
@@ -706,7 +706,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
   for (const chain in chainToParse) {
     const fn = async function () {
       if (chain !== NATIVE_NETWORK.key) {
-        const client = await WalletUtils.getWallet(chain);
+        const client = await WalletAccess.getWallet(chain);
         const network = NETWORK_DATA;
         const networkData = network?.supportedNetworks[chain];
         const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;

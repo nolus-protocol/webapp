@@ -24,7 +24,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
 import { useStakingStore } from "@/common/stores/staking";
-import { Logger, NetworkUtils, Utils } from "@/common/utils";
+import { Logger, StakingQueries, randomInt } from "@/common/utils";
 import { NATIVE_ASSET, STAKING } from "@/config/global";
 import { inject, ref } from "vue";
 import { Label, SvgIcon, Tooltip, ToastType } from "web-components";
@@ -124,12 +124,12 @@ async function delegate() {
 }
 
 async function getValidators() {
-  const delegatorValidators = (await NetworkUtils.loadDelegatorValidators()).filter((e) => !e.jailed);
+  const delegatorValidators = (await StakingQueries.loadDelegatorValidators()).filter((e) => !e.jailed);
   if (delegatorValidators.length > 0) {
     return delegatorValidators;
   }
 
-  let validators = await NetworkUtils.loadValidators();
+  let validators = await StakingQueries.loadValidators();
   const loadedValidators = [];
   if (validators.length > STAKING.SLICE) {
     validators = validators
@@ -154,7 +154,7 @@ async function getValidators() {
   }
 
   for (let i = 0; i < STAKING.VALIDATORS_NUMBER; i++) {
-    const index = Utils.getRandomInt(0, validators.length);
+    const index = randomInt(0, validators.length);
     loadedValidators.push(validators[index]);
     validators.splice(index, 1);
   }

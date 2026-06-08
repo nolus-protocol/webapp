@@ -2,7 +2,7 @@ import type { IObjectKeys } from "@/common/types";
 import { type Coin, parseCoins } from "@cosmjs/proto-signing";
 
 import { Messages } from "./types";
-import { Logger, StringUtils } from "@/common/utils";
+import { Logger, TextFormat } from "@/common/utils";
 import {
   getCurrencyByTicker,
   getCurrencyByTickerForProtocol,
@@ -576,7 +576,7 @@ function formatMessageType(typeUrl: string): string {
 }
 
 function truncateString(text: string) {
-  return StringUtils.truncateString(text, 6, 6);
+  return TextFormat.truncateString(text, 6, 6);
 }
 
 function getCurrency(amount: Coin) {

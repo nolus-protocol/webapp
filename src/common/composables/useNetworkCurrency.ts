@@ -10,7 +10,7 @@
  * - resolveForProtocol(ticker, protocol): "resolve USDC_NOBLE for this specific protocol"
  *
  * Replaces duplicated isEarn/getApr/balance-matching logic scattered across
- * AssetsTable, DashboardAssets, LeaseUtils, history, PnlLog, etc.
+ * AssetsTable, DashboardAssets, LeaseMath, history, PnlLog, etc.
  */
 
 import type { CurrencyInfo } from "@/common/api";

@@ -3,7 +3,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useConfigStore } from "@/common/stores/config";
 import { useConnectionStore } from "@/common/stores/connection";
 import { useEarnStore } from "@/common/stores/earn";
-import { IntercomService, Logger, WalletManager, walletOperation, applyWalletProtocolFilter } from "@/common/utils";
+import { IntercomService, Logger, WalletStorage, walletOperation, applyWalletProtocolFilter } from "@/common/utils";
 import type { WalletConnectMechanism } from "@/common/types";
 
 /**
@@ -22,7 +22,7 @@ export function useWalletEvents(): void {
 
   let keystoreInFlight = false;
 
-  function createKeystoreHandler(connectAction: () => Promise<void>) {
+  function createKeystoreListener(connectAction: () => Promise<void>) {
     return async () => {
       if (keystoreInFlight) return;
       keystoreInFlight = true;
@@ -41,7 +41,7 @@ export function useWalletEvents(): void {
     };
   }
 
-  const updateKeplr = createKeystoreHandler(() => wallet.CONNECT_KEPLR());
+  const updateKeplr = createKeystoreListener(() => wallet.CONNECT_KEPLR());
 
   async function loadNetwork() {
     try {
@@ -60,7 +60,7 @@ export function useWalletEvents(): void {
       // the transfer forms key config.transfers[""] → empty — until a later tx
       // submit eventually runs a full connect. A null mechanism (disconnected)
       // maps to "", which the config-store watcher treats as a no-op.
-      applyWalletProtocolFilter(WalletManager.getWalletConnectMechanism() as WalletConnectMechanism | null);
+      applyWalletProtocolFilter(WalletStorage.getWalletConnectMechanism() as WalletConnectMechanism | null);
       await walletOperation(() => {});
       if (wallet.wallet?.address) {
         await connectionStore.connectWallet(wallet.wallet.address);

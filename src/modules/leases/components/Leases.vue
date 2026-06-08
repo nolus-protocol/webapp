@@ -111,7 +111,7 @@ import SharePnLDialog from "@/modules/leases/components/single-lease/SharePnLDia
 
 import { useI18n } from "vue-i18n";
 import { computed, defineComponent, h, markRaw, onMounted, onUnmounted, provide, ref, watch } from "vue";
-import { isMobile, isTablet, IntercomService, Logger, WalletManager } from "@/common/utils";
+import { isMobile, isTablet, IntercomService, Logger, WalletStorage } from "@/common/utils";
 import { formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 
@@ -151,7 +151,7 @@ const router = useRouter();
 const wallet = useWalletStore();
 const configStore = useConfigStore();
 const i18n = useI18n();
-const hide = ref(WalletManager.getHideBalances());
+const hide = ref(WalletStorage.getHideBalances());
 const mobile = isMobile();
 const search = ref("");
 const sharePnlDialog = ref<typeof SharePnLDialog | null>(null);
@@ -543,7 +543,7 @@ function setLeases() {
 
 function onHide(data: boolean) {
   hide.value = data;
-  WalletManager.setHideBalances(data);
+  WalletStorage.setHideBalances(data);
 }
 
 function onSearch(data: string) {

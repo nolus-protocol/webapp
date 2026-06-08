@@ -111,7 +111,7 @@ vi.mock("@/common/utils", () => ({
   validateAmountV2: hoisted.validateAmountV2Mock,
   walletOperation: hoisted.walletOperationMock,
   externalWallet: vi.fn(),
-  WalletUtils: { isAuth: () => true, getWallet: vi.fn() }
+  WalletAccess: { isAuth: () => true, getWallet: vi.fn() }
 }));
 
 vi.mock("@/common/utils/ConfigService", () => ({

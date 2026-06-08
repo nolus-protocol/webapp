@@ -98,7 +98,7 @@ import {
   getMicroAmount,
   Logger,
   validateAmountV2,
-  WalletManager,
+  WalletStorage,
   walletOperation
 } from "@/common/utils";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
@@ -215,7 +215,7 @@ async function fetchDepositBalance() {
     for (const lpn of lpns ?? []) {
       async function fn() {
         try {
-          const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
+          const walletAddress = walletStore.wallet?.address ?? WalletStorage.getWalletAddress();
           const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
           const [_currency, protocol] = lpn.key.split("@");
 
@@ -316,7 +316,7 @@ async function transferAmount() {
       const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));
 
       if (microAmount.mAmount.amount.equals(asset.coin.amount as Int)) {
-        const walletAddress = walletStore.wallet?.address ?? WalletManager.getWalletAddress();
+        const walletAddress = walletStore.wallet?.address ?? WalletStorage.getWalletAddress();
         const amount = await lppClient.getLenderDeposit(walletAddress as string);
         microAmount.mAmount.amount = new Dec(amount.amount).truncate();
       } else {

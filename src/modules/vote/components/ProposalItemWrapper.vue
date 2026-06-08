@@ -5,7 +5,7 @@
     :quorum="quorumState"
     :read-more-button-text="$t('message.read-more')"
     :status="state.status"
-    :summary="StringUtils.truncateText(`${summary}`, 256)"
+    :summary="TextFormat.truncateText(`${summary}`, 256)"
     :tally="state.tally"
     :title="state.title"
     :turnout="turnout"
@@ -24,7 +24,7 @@
 import { type FinalTallyResult, type Proposal } from "@/modules/vote/types";
 import { computed, ref, type PropType } from "vue";
 import { Dec } from "@keplr-wallet/unit";
-import { formatDateTime, StringUtils } from "@/common/utils";
+import { formatDateTime, TextFormat } from "@/common/utils";
 
 import { Proposal as ProposalItem } from "web-components";
 import { parseMarkdownSafe } from "@/common/utils/sanitize";

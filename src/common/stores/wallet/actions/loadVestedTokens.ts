@@ -1,5 +1,5 @@
 import type { Store } from "../types";
-import { WalletManager, WalletUtils } from "@/common/utils";
+import { WalletStorage, WalletAccess } from "@/common/utils";
 import { BackendApi } from "@/common/api";
 
 export async function loadVestedTokens(this: Store): Promise<
@@ -8,14 +8,14 @@ export async function loadVestedTokens(this: Store): Promise<
     amount: { amount: string; denom: string };
   }[]
 > {
-  if (!WalletUtils.isAuth()) {
+  if (!WalletAccess.isAuth()) {
     this.vest = [];
     this.delegated_vesting = undefined;
     this.delegated_free = undefined;
     return [];
   }
 
-  const address = WalletManager.getWalletAddress();
+  const address = WalletStorage.getWalletAddress();
   if (!address) {
     this.vest = [];
     this.delegated_vesting = undefined;

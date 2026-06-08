@@ -85,14 +85,14 @@ vi.mock("@nolus/nolusjs", () => ({
   }
 }));
 
-// WalletManager has localStorage side-effects. Stub the static surface we
+// WalletStorage has localStorage side-effects. Stub the static surface we
 // touch so we don't pollute jsdom localStorage between tests.
 vi.mock("@/common/utils", async () => {
   const actual = await vi.importActual<typeof CommonUtils>("@/common/utils");
   return {
     ...actual,
-    WalletManager: {
-      ...actual.WalletManager,
+    WalletStorage: {
+      ...actual.WalletStorage,
       saveWalletConnectMechanism: vi.fn(),
       setPubKey: vi.fn(),
       getWalletConnectMechanism: vi.fn().mockReturnValue(null)

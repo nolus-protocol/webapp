@@ -72,7 +72,7 @@ import { Dec } from "@keplr-wallet/unit";
 
 import { useWalletStore } from "@/common/stores/wallet";
 import { useLeasesStore } from "@/common/stores/leases";
-import { IntercomService, isMobile, WalletManager } from "@/common/utils";
+import { IntercomService, isMobile, WalletStorage } from "@/common/utils";
 import { useWalletConnected } from "@/common/composables";
 import { useConfigStore } from "@/common/stores/config";
 import { NATIVE_CURRENCY } from "@/config/global";
@@ -85,7 +85,7 @@ const leasesStore = useLeasesStore();
 const configStore = useConfigStore();
 const walletConnected = useWalletConnected();
 
-const hide = ref(WalletManager.getHideBalances());
+const hide = ref(WalletStorage.getHideBalances());
 
 // Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
 

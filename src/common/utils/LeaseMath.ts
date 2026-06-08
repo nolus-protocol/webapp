@@ -2,7 +2,7 @@ import type { OpenedLeaseInfo } from "@nolus/nolusjs/build/contracts";
 import { Dec } from "@keplr-wallet/unit";
 import { PERCENT, PERMILLE } from "@/config/global";
 
-export class LeaseUtils {
+export class LeaseMath {
   public static calculateLiquidation(unit: Dec, price: Dec) {
     return unit.quo(price).quo(new Dec(0.9));
   }
@@ -23,7 +23,7 @@ export class LeaseUtils {
       const loanInterest = new Dec(data.loan_interest_rate / PERMILLE).add(
         new Dec(data.margin_interest_rate / PERCENT)
       );
-      const debt = LeaseUtils.calculateAditionalDebt(principal_due, loanInterest);
+      const debt = LeaseMath.calculateAditionalDebt(principal_due, loanInterest);
 
       return debt;
     }

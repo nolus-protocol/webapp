@@ -1,5 +1,5 @@
 import { type Store } from "../types";
-import { WalletManager } from "@/common/utils";
+import { WalletStorage } from "@/common/utils";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { ChainConstants, NolusClient, NolusWalletFactory } from "@nolus/nolusjs";
 import { WalletConnectMechanism } from "@/common/types";
@@ -27,7 +27,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
       let transport = null;
       try {
         const isConnectedViaLedgerBluetooth =
-          WalletManager.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
+          WalletStorage.getWalletConnectMechanism() === WalletConnectMechanism.LEDGER_BLUETOOTH;
         transport =
           payload.isBluetooth || isConnectedViaLedgerBluetooth
             ? await BluetoothTransport.create()
@@ -44,10 +44,10 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
         this.wallet = ledgerWallet;
         applyNolusWalletOverrides(this.wallet);
 
-        WalletManager.saveWalletConnectMechanism(
+        WalletStorage.saveWalletConnectMechanism(
           payload.isBluetooth ? WalletConnectMechanism.LEDGER_BLUETOOTH : WalletConnectMechanism.LEDGER
         );
-        WalletManager.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
+        WalletStorage.setPubKey(Buffer.from(this.wallet?.pubKey ?? "").toString("hex"));
       } catch (e: unknown) {
         if (transport) {
           try {
