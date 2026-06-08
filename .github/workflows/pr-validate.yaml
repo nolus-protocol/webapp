@@ -29,6 +29,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Style check (house TS conventions)
+        run: npm run lint:style
+
       - name: Format check
         run: npm run format:check
 
