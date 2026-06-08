@@ -148,7 +148,7 @@ const hasDelegatedTokens = computed(() => {
 // props.quorumTokens, which is deliberately NOT in the dependency set — it is the
 // load-once-stable chain quorum param, so re-deriving only on a proposal change is
 // intentional (a fresh quorumTokens arriving after a dialog is already open would
-// not refresh quorum; tracked as a follow-up on #184).
+// not refresh quorum; tracked in #231).
 // Idempotency: voting-period flag, description, and quorum are pure derivations of
 // the current props; safe on the immediate run and re-fires.
 watch(
