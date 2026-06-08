@@ -46,7 +46,7 @@ export default mergeConfig(
             functions: 95,
             statements: 85
           },
-          "src/common/utils/LeaseUtils.ts": {
+          "src/common/utils/LeaseMath.ts": {
             lines: 90,
             branches: 85,
             functions: 100,
@@ -64,7 +64,7 @@ export default mergeConfig(
             functions: 100,
             statements: 100
           },
-          "src/common/utils/WalletUtils.ts": {
+          "src/common/utils/WalletAccess.ts": {
             lines: 55,
             branches: 45,
             functions: 65,

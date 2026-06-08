@@ -73,13 +73,11 @@ vi.mock("@/common/stores/staking", () => ({
 
 vi.mock("@/common/utils", () => ({
   Logger: { error: hoisted.loggerError },
-  NetworkUtils: {
+  StakingQueries: {
     loadDelegatorValidators: hoisted.loadDelegatorValidators,
     loadValidators: hoisted.loadValidators
   },
-  Utils: {
-    getRandomInt: (_min: number, _max: number) => 0
-  }
+  randomInt: (_min: number, _max: number) => 0
 }));
 
 vi.mock("vue-i18n", () => ({

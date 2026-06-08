@@ -57,8 +57,8 @@ vi.mock("@/common/utils", async (importOriginal) => {
   return {
     ...actual,
     getCreatedAtForHuman: vi.fn(() => "just now"),
-    StringUtils: {
-      ...actual.StringUtils,
+    TextFormat: {
+      ...actual.TextFormat,
       truncateString: vi.fn((s: string) => s.slice(0, 12))
     }
   };

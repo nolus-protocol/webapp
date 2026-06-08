@@ -100,7 +100,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
-import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { isMobile, Logger, WalletStorage } from "@/common/utils";
 import {
   formatPercent,
   formatTokenBalance,
@@ -122,7 +122,7 @@ const { getNetworkAssets } = useNetworkCurrency();
 const walletConnected = useWalletConnected();
 const router = useRouter();
 const total = ref(new Dec(0));
-const hide = ref(WalletManager.getHideBalances());
+const hide = ref(WalletStorage.getHideBalances());
 
 const columns = computed<TableColumnProps[]>(() => [
   { label: i18n.t("message.assets"), variant: "left" },

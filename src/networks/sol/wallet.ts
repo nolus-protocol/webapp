@@ -13,7 +13,7 @@ import {
   type SignDoc as ProtoSignDoc
 } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 import type { Wallet } from "../wallet";
-import { EnvNetworkUtils } from "@/common/utils";
+import { NetworkEnv } from "@/common/utils";
 import { fetchEndpoints } from "@/common/utils/EndpointService";
 import { KeplrEmbedChainInfo } from "@/config/global";
 import type { AccountData, DirectSignResponse, OfflineDirectSigner, Algo, Registry } from "@cosmjs/proto-signing";
@@ -87,7 +87,7 @@ export class SolanaWallet implements Wallet {
     NolusClient.setInstance(networkConfig.rpc);
     const chainId = await NolusClient.getInstance().getChainId();
     const chainInfo = KeplrEmbedChainInfo(
-      EnvNetworkUtils.getStoredNetworkName(),
+      NetworkEnv.getStoredNetworkName(),
       chainId,
       networkConfig.rpc as string,
       networkConfig.api as string

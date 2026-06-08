@@ -164,7 +164,7 @@ vi.mock("@/common/utils", () => ({
     coinMinimalDenom: "ibc/USDC"
   }),
   Logger: { error: hoisted.loggerError },
-  LeaseUtils: {
+  LeaseMath: {
     calculateLiquidation: () => ({ toString: () => "0" }),
     calculateLiquidationShort: () => ({ toString: () => "0" })
   },

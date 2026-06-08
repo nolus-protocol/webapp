@@ -67,7 +67,7 @@ import Chart from "@/common/components/Chart.vue";
 import BigNumber from "@/common/components/BigNumber.vue";
 
 import { barX, gridX, plot, ruleX } from "@observablehq/plot";
-import { isMobile, WalletManager } from "@/common/utils";
+import { isMobile, WalletStorage } from "@/common/utils";
 import { CHART_AXIS, getChartWidth, computeMarginLeftForLabels } from "@/common/utils/ChartUtils";
 import { color, select, pointer, type Selection } from "d3";
 import { NATIVE_CURRENCY, NORMAL_DECIMALS } from "@/config/global";
@@ -93,7 +93,7 @@ const win_rate = computed(() => analyticsStore.historyStats?.win_rate?.toString(
 const loading = computed(() => analyticsStore.historyDataLoading && !analyticsStore.hasHistoryData);
 
 const hasChartData = computed(() => chart_data.value.some((d) => d.percentage !== 0));
-const disabled = () => (WalletManager.getWalletConnectMechanism() ? false : true);
+const disabled = () => (WalletStorage.getWalletConnectMechanism() ? false : true);
 
 // Watch for history stats changes to update chart data
 watch(

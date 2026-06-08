@@ -121,7 +121,7 @@ import { NATIVE_NETWORK } from "../../../config/global/network";
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
-import { classifyError, externalWallet, Logger, validateAmountV2, walletOperation, WalletUtils } from "@/common/utils";
+import { classifyError, externalWallet, Logger, validateAmountV2, walletOperation, WalletAccess } from "@/common/utils";
 import { getSkipRouteConfig } from "@/common/utils/ConfigService";
 import { getPriceForCurrency, tryGetCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
@@ -507,7 +507,7 @@ function validateSwapToInputs() {
 }
 
 async function onSwap() {
-  if (!WalletUtils.isAuth() || !route) {
+  if (!WalletAccess.isAuth() || !route) {
     return false;
   }
 
@@ -594,7 +594,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   for (const chain in chainToParse) {
     const fn = async function () {
-      const client = await WalletUtils.getWallet(chain);
+      const client = await WalletAccess.getWallet(chain);
       const network = NETWORK_DATA;
       const networkData = network?.supportedNetworks[chain];
       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;

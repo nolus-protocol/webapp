@@ -4,7 +4,7 @@
     class="h-full"
     :class="popoverRef?.isOpen ? 'active' : ''"
     size="small"
-    :label="StringUtils.truncateString(wallet?.wallet?.address ?? '', 8, 4)"
+    :label="TextFormat.truncateString(wallet?.wallet?.address ?? '', 8, 4)"
     severity="secondary"
     icon="wallet"
     icon-position="left"
@@ -40,8 +40,8 @@
               <span class="text-14 font-semibold">
                 {{
                   isMobile()
-                    ? StringUtils.truncateString(wallet?.wallet?.address ?? "", 8, 8)
-                    : StringUtils.truncateString(wallet?.wallet?.address ?? "", 16, 16)
+                    ? TextFormat.truncateString(wallet?.wallet?.address ?? "", 8, 8)
+                    : TextFormat.truncateString(wallet?.wallet?.address ?? "", 16, 16)
                 }}
               </span>
               <span class="text-12 font-normal">{{ NATIVE_NETWORK.label }}</span>
@@ -73,7 +73,7 @@
 <script lang="ts" setup>
 import { type FunctionalComponent, inject, ref } from "vue";
 import { Button, Popover, ToastType } from "web-components";
-import { isMobile, StringUtils, WalletManager } from "@/common/utils";
+import { isMobile, TextFormat, WalletStorage } from "@/common/utils";
 import { NATIVE_NETWORK } from "@/config/global";
 import { useI18n } from "vue-i18n";
 
@@ -92,7 +92,7 @@ const popoverParent = ref();
 const wallet = useWalletStore();
 
 const i18n = useI18n();
-const type = WalletManager.getWalletConnectMechanism();
+const type = WalletStorage.getWalletConnectMechanism();
 const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const emitter = defineEmits(["onDisconnect"]);
 
@@ -130,7 +130,7 @@ function onClickDisconnect() {
 }
 
 async function onCopy() {
-  StringUtils.copyToClipboard(wallet?.wallet?.address ?? "");
+  TextFormat.copyToClipboard(wallet?.wallet?.address ?? "");
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.address-coppied")

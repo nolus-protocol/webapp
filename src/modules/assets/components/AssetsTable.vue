@@ -45,7 +45,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { usePricesStore } from "@/common/stores/prices";
 import { computed, ref, watch } from "vue";
 import { Dec } from "@keplr-wallet/unit";
-import { isMobile, Logger, WalletManager } from "@/common/utils";
+import { isMobile, Logger, WalletStorage } from "@/common/utils";
 import {
   formatPercent,
   formatTokenBalance,
@@ -63,9 +63,9 @@ const balancesStore = useBalancesStore();
 const pricesStore = usePricesStore();
 const { getNetworkAssets } = useNetworkCurrency();
 const mobile = isMobile();
-const hide = ref(WalletManager.getHideBalances());
+const hide = ref(WalletStorage.getHideBalances());
 const total = ref(new Dec(0));
-const smBalances = ref(WalletManager.getSmallBalances());
+const smBalances = ref(WalletStorage.getSmallBalances());
 
 const showSmallBalances = computed(() => {
   if (!wallet.wallet) {
@@ -115,7 +115,7 @@ watch(
 
 function onHide(data: boolean) {
   hide.value = data;
-  WalletManager.setHideBalances(data);
+  WalletStorage.setHideBalances(data);
 }
 
 function onSearch(data: string) {
@@ -198,6 +198,6 @@ const assets = computed<TableRowItemProps[]>(() => {
 
 function setSmallBalancesState(event: boolean) {
   smBalances.value = event;
-  WalletManager.setSmallBalances(event);
+  WalletStorage.setSmallBalances(event);
 }
 </script>

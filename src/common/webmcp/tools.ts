@@ -25,7 +25,7 @@ import {
   WalletActions
 } from "@/common/stores";
 import { RouteNames } from "@/router/RouteNames";
-import { WalletManager } from "@/common/utils/WalletManager";
+import { WalletStorage } from "@/common/utils/WalletStorage";
 import { WalletConnectMechanism } from "@/common/types";
 
 interface ToolAnnotations {
@@ -226,7 +226,7 @@ export function buildTools(router: Router): WebMcpTool[] {
             throw new Error(`Unknown mechanism: ${requested}. Valid: ${MECHANISM_LABELS.join(", ")}`);
           }
         } else {
-          const previous = WalletManager.getWalletConnectMechanism();
+          const previous = WalletStorage.getWalletConnectMechanism();
           if (!previous) {
             throw new Error(
               `No previously-used wallet found. Pass mechanism (${MECHANISM_LABELS.join(", ")}) to choose one.`

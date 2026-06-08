@@ -119,7 +119,7 @@ vi.mock("@/common/utils", () => ({
   getMicroAmount: hoisted.getMicroAmountMock,
   validateAmountV2: hoisted.validateAmountV2Mock,
   walletOperation: hoisted.walletOperationMock,
-  WalletManager: { getWalletAddress: () => "nolus1fallback" },
+  WalletStorage: { getWalletAddress: () => "nolus1fallback" },
   classifyError: (e: unknown) =>
     e instanceof Error && /liquidity/i.test(e.message) ? "message.no-liquidity" : "message.unexpected-error"
 }));

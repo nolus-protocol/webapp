@@ -137,7 +137,7 @@ import { useConfigStore } from "@/common/stores/config";
 import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
-import { classifyError, getMicroAmount, LeaseUtils, Logger, walletOperation } from "@/common/utils";
+import { classifyError, getMicroAmount, LeaseMath, Logger, walletOperation } from "@/common/utils";
 import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
@@ -639,9 +639,9 @@ const liquidation = computed(() => {
   const positionType = configStore.getPositionType(lease.value.protocol);
   let liquidationVal: Dec;
   if (positionType === "Long") {
-    liquidationVal = LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+    liquidationVal = LeaseMath.calculateLiquidation(stableAsset, unitAsset);
   } else {
-    liquidationVal = LeaseUtils.calculateLiquidationShort(unitAsset, stableAsset);
+    liquidationVal = LeaseMath.calculateLiquidationShort(unitAsset, stableAsset);
   }
 
   return formatNumber(liquidationVal.toString(), lpn?.decimal_digits ?? 6, NATIVE_CURRENCY.symbol);

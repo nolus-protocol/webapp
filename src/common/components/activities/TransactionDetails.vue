@@ -48,7 +48,7 @@
                 title=""
                 :src="nlsIcon"
               />
-              {{ StringUtils.truncateString(wallet.wallet?.address ?? "", 6, 6) }}</span
+              {{ TextFormat.truncateString(wallet.wallet?.address ?? "", 6, 6) }}</span
             >
           </div>
 
@@ -119,7 +119,7 @@ import TokenAmount from "@/common/components/TokenAmount.vue";
 import { computed, inject, onBeforeUnmount, ref } from "vue";
 import { Button, Dialog, ToastType } from "web-components";
 import type { TransactionEntry } from "@/modules/history/types/ITransaction";
-import { StringUtils } from "@/common/utils";
+import { TextFormat } from "@/common/utils";
 import { getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
 import { useI18n } from "vue-i18n";
 import { CONFIRM_STEP } from "@/common/types";
@@ -179,7 +179,7 @@ const status = computed(() => {
 
 function copyHash() {
   if (data.value) {
-    StringUtils.copyToClipboard(data.value.tx_hash);
+    TextFormat.copyToClipboard(data.value.tx_hash);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-copied-successfully") });
   }
 }
@@ -193,7 +193,7 @@ function copyTxRaw() {
     }
 
     const params = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));
-    StringUtils.copyToClipboard(params);
+    TextFormat.copyToClipboard(params);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-raw-copied-successfully") });
   }
 }

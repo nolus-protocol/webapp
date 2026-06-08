@@ -18,7 +18,7 @@ import { formatTokenBalance, formatCoinPretty } from "@/common/utils/NumberForma
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { BackendApi } from "@/common/api";
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
-import { getCreatedAtForHuman, StringUtils } from "@/common/utils";
+import { getCreatedAtForHuman, TextFormat } from "@/common/utils";
 import { action, icon as iconFn, message } from "@/modules/history/common";
 import { i18n } from "@/i18n";
 import { Dec } from "@keplr-wallet/unit";
@@ -99,7 +99,7 @@ export const useHistoryStore = defineStore("history", () => {
         );
         historyData.msg = i18nInstance.t("message.receive-action", {
           amount: formatCoinPretty(token),
-          address: StringUtils.truncateString(historyData.fromAddress, 6, 6)
+          address: TextFormat.truncateString(historyData.fromAddress, 6, 6)
         });
         historyData.coin = token;
         break;
@@ -113,7 +113,7 @@ export const useHistoryStore = defineStore("history", () => {
         );
         historyData.msg = i18nInstance.t("message.send-action", {
           amount: formatCoinPretty(token),
-          address: StringUtils.truncateString(historyData.receiverAddress, 6, 6)
+          address: TextFormat.truncateString(historyData.receiverAddress, 6, 6)
         });
         historyData.coin = token;
         break;

@@ -1,5 +1,5 @@
 import { ref, type Ref } from "vue";
-import { Logger, WalletManager } from "@/common/utils";
+import { Logger, WalletStorage } from "@/common/utils";
 import { type Proposal } from "@/modules/vote/types";
 import type { ProposalStatus } from "web-components";
 import { BackendApi } from "@/common/api";
@@ -21,7 +21,7 @@ export const useFetchGovernanceProposals = () => {
     initialLoad: Ref<boolean>;
     showSkeleton: Ref<boolean>;
   }) => {
-    const address = WalletManager.getWalletAddress();
+    const address = WalletStorage.getWalletAddress();
 
     const [proposalsResponse, proposalsConfig] = await Promise.all([
       BackendApi.getProposals(limit.value, address || undefined),
@@ -80,7 +80,7 @@ export const useFetchGovernanceProposals = () => {
   };
 
   const fetchProposalData = async (proposal: Proposal) => {
-    const address = WalletManager.getWalletAddress();
+    const address = WalletStorage.getWalletAddress();
     try {
       const promises: Promise<void>[] = [
         BackendApi.getProposalTally(proposal.id).then((response) => {

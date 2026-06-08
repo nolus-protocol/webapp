@@ -54,8 +54,8 @@ vi.mock("@/common/utils/EndpointService", () => ({
 }));
 
 vi.mock("@/common/utils", () => ({
-  WalletManager: walletManagerMock,
-  WalletUtils: walletUtilsMock,
+  WalletStorage: walletManagerMock,
+  WalletAccess: walletUtilsMock,
   Logger: { error: vi.fn() }
 }));
 

@@ -22,8 +22,8 @@
               <span class="text-14 font-semibold">
                 {{
                   isMobile()
-                    ? StringUtils.truncateString(wallet?.wallet?.address ?? "", 8, 8)
-                    : StringUtils.truncateString(wallet?.wallet?.address ?? "", 16, 16)
+                    ? TextFormat.truncateString(wallet?.wallet?.address ?? "", 8, 8)
+                    : TextFormat.truncateString(wallet?.wallet?.address ?? "", 16, 16)
                 }}
               </span>
               <span class="text-12 font-normal">{{ NATIVE_NETWORK.label }}</span>
@@ -71,7 +71,7 @@ import { inject, onBeforeUnmount, ref } from "vue";
 import { Dialog, ToastType, SvgIcon, Button } from "web-components";
 import { NATIVE_NETWORK } from "@/config/global";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
-import { Logger, StringUtils, WalletManager, isMobile } from "@/common/utils";
+import { Logger, TextFormat, WalletStorage, isMobile } from "@/common/utils";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
@@ -100,7 +100,7 @@ function close() {
 }
 
 async function onCopy() {
-  StringUtils.copyToClipboard(wallet?.wallet?.address ?? "");
+  TextFormat.copyToClipboard(wallet?.wallet?.address ?? "");
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.address-coppied")
@@ -111,7 +111,7 @@ async function onClickDisconnect() {
   try {
     close();
     router.push({ name: RouteNames.DASHBOARD });
-    WalletManager.eraseWalletInfo();
+    WalletStorage.eraseWalletInfo();
     wallet[WalletActions.DISCONNECT]();
     connectionStore.disconnectWallet();
     onShowToast({

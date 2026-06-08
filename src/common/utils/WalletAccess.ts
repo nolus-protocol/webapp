@@ -1,7 +1,7 @@
 import type { Keplr } from "@keplr-wallet/types";
 
 import { KeyUtils } from "@nolus/nolusjs";
-import { WalletManager } from ".";
+import { WalletStorage } from ".";
 import { Wallet, NETWORK_DATA } from "@/networks";
 import { fetchEndpoints } from "./EndpointService";
 
@@ -33,14 +33,14 @@ function getKeplrExtension(): Promise<Keplr | undefined> {
   });
 }
 
-export class WalletUtils {
+export class WalletAccess {
   public static getKeplr(): Promise<Keplr | undefined> {
     return getKeplrExtension();
   }
 
   public static isAuth(): boolean {
     return (
-      KeyUtils.isAddressValid(WalletManager.getWalletAddress()) && WalletManager.getWalletConnectMechanism() !== null
+      KeyUtils.isAddressValid(WalletStorage.getWalletAddress()) && WalletStorage.getWalletConnectMechanism() !== null
     );
   }
 

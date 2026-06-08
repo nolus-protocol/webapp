@@ -9,18 +9,18 @@ const mocks = vi.hoisted(() => ({
   walletGetInstance: vi.fn()
 }));
 
-// @nolus/nolusjs — only KeyUtils.isAddressValid is used by WalletUtils.
+// @nolus/nolusjs — only KeyUtils.isAddressValid is used by WalletAccess.
 vi.mock("@nolus/nolusjs", () => ({
   KeyUtils: {
     isAddressValid: mocks.isAddressValid
   }
 }));
 
-// WalletUtils.ts imports `{ WalletManager }` from "." (the utils barrel index.ts).
+// WalletAccess.ts imports `{ WalletStorage }` from "." (the utils barrel index.ts).
 // Loading the barrel pulls in ThemeManager which calls window.matchMedia at import time
 // (not available in jsdom by default). We mock the barrel with just the one symbol we need.
 vi.mock(".", () => ({
-  WalletManager: {
+  WalletStorage: {
     getWalletAddress: mocks.getWalletAddress,
     getWalletConnectMechanism: mocks.getWalletConnectMechanism
   }
@@ -45,9 +45,9 @@ vi.mock("@/networks", () => ({
 }));
 
 // Import under test AFTER mocks are declared.
-import { WalletUtils } from "./WalletUtils";
+import { WalletAccess } from "./WalletAccess";
 
-describe("WalletUtils.isAuth", () => {
+describe("WalletAccess.isAuth", () => {
   beforeEach(() => {
     mocks.isAddressValid.mockReset();
     mocks.getWalletAddress.mockReset();
@@ -58,7 +58,7 @@ describe("WalletUtils.isAuth", () => {
     mocks.getWalletAddress.mockReturnValue("nolus1abc");
     mocks.isAddressValid.mockReturnValue(true);
     mocks.getWalletConnectMechanism.mockReturnValue("keplr");
-    expect(WalletUtils.isAuth()).toBe(true);
+    expect(WalletAccess.isAuth()).toBe(true);
     expect(mocks.isAddressValid).toHaveBeenCalledWith("nolus1abc");
   });
 
@@ -66,25 +66,25 @@ describe("WalletUtils.isAuth", () => {
     mocks.getWalletAddress.mockReturnValue("");
     mocks.isAddressValid.mockReturnValue(false);
     mocks.getWalletConnectMechanism.mockReturnValue("keplr");
-    expect(WalletUtils.isAuth()).toBe(false);
+    expect(WalletAccess.isAuth()).toBe(false);
   });
 
   it("should return false when connect mechanism is null", () => {
     mocks.getWalletAddress.mockReturnValue("nolus1abc");
     mocks.isAddressValid.mockReturnValue(true);
     mocks.getWalletConnectMechanism.mockReturnValue(null);
-    expect(WalletUtils.isAuth()).toBe(false);
+    expect(WalletAccess.isAuth()).toBe(false);
   });
 
   it("should return false when both checks fail", () => {
     mocks.getWalletAddress.mockReturnValue("");
     mocks.isAddressValid.mockReturnValue(false);
     mocks.getWalletConnectMechanism.mockReturnValue(null);
-    expect(WalletUtils.isAuth()).toBe(false);
+    expect(WalletAccess.isAuth()).toBe(false);
   });
 });
 
-describe("WalletUtils.getKeplr", () => {
+describe("WalletAccess.getKeplr", () => {
   const w = window as unknown as { keplr?: unknown };
 
   beforeEach(() => {
@@ -98,7 +98,7 @@ describe("WalletUtils.getKeplr", () => {
   it("should return window.keplr when extension is already set", async () => {
     const fakeKeplr = { marker: "keplr-instance" };
     w.keplr = fakeKeplr;
-    const result = await WalletUtils.getKeplr();
+    const result = await WalletAccess.getKeplr();
     expect(result).toBe(fakeKeplr);
   });
 
@@ -106,7 +106,7 @@ describe("WalletUtils.getKeplr", () => {
     // No w.keplr set; document.readyState in jsdom is "complete" by default.
     // The code path then does Promise.resolve(w[prop]) — returns undefined here.
     expect(document.readyState).toBe("complete");
-    const result = await WalletUtils.getKeplr();
+    const result = await WalletAccess.getKeplr();
     expect(result).toBeUndefined();
   });
 
@@ -119,7 +119,7 @@ describe("WalletUtils.getKeplr", () => {
     });
 
     try {
-      const promise = WalletUtils.getKeplr();
+      const promise = WalletAccess.getKeplr();
 
       // Flip readyState to "complete" and dispatch the event that the listener watches.
       Object.defineProperty(document, "readyState", {
@@ -141,7 +141,7 @@ describe("WalletUtils.getKeplr", () => {
   });
 });
 
-describe("WalletUtils.getWallet", () => {
+describe("WalletAccess.getWallet", () => {
   beforeEach(() => {
     mocks.fetchEndpoints.mockReset();
     mocks.walletGetInstance.mockReset();
@@ -153,7 +153,7 @@ describe("WalletUtils.getWallet", () => {
     mocks.fetchEndpoints.mockResolvedValue(fakeNode);
     mocks.walletGetInstance.mockResolvedValue(fakeWallet);
 
-    const result = await WalletUtils.getWallet("NOLUS");
+    const result = await WalletAccess.getWallet("NOLUS");
 
     expect(mocks.fetchEndpoints).toHaveBeenCalledWith("NOLUS");
     expect(mocks.walletGetInstance).toHaveBeenCalledWith(fakeNode.rpc, fakeNode.api);

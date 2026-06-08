@@ -13,7 +13,7 @@
  *   Short: (collateral * 0.9) / debt
  */
 import { Dec } from "@keplr-wallet/unit";
-import { LeaseUtils } from "@/common/utils/LeaseUtils";
+import { LeaseMath } from "@/common/utils/LeaseMath";
 import type { LeaseInfo } from "@/common/api";
 
 export interface LiquidationPriceInputs {
@@ -50,8 +50,8 @@ export function computeChartLiquidationPrice(
 
   const liquidation =
     inputs.positionType === "Short"
-      ? LeaseUtils.calculateLiquidationShort(unitAsset, stableAsset)
-      : LeaseUtils.calculateLiquidation(stableAsset, unitAsset);
+      ? LeaseMath.calculateLiquidationShort(unitAsset, stableAsset)
+      : LeaseMath.calculateLiquidation(stableAsset, unitAsset);
 
   return Number(liquidation.toString());
 }

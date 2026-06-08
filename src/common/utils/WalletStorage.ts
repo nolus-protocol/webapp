@@ -1,7 +1,7 @@
 import { WalletConnectMechanism } from "@/common/types";
 import { useWalletStore } from "../stores/wallet";
 
-export class WalletManager {
+export class WalletStorage {
   public static WALLET_CONNECT_MECHANISM = "wallet_connect_mechanism";
   public static WALLET_ADDRESS = "wallet_address";
   public static WALLET_PUBKEY = "wallet_pubkey";
@@ -44,26 +44,26 @@ export class WalletManager {
 
   public static setSmallBalances(bool: boolean) {
     if (!bool) {
-      localStorage.setItem(WalletManager.SHOW_SMALL_BALANCES, "false");
+      localStorage.setItem(WalletStorage.SHOW_SMALL_BALANCES, "false");
     } else {
-      localStorage.removeItem(WalletManager.SHOW_SMALL_BALANCES);
+      localStorage.removeItem(WalletStorage.SHOW_SMALL_BALANCES);
     }
   }
 
   public static getSmallBalances() {
-    return !localStorage.getItem(WalletManager.SHOW_SMALL_BALANCES);
+    return !localStorage.getItem(WalletStorage.SHOW_SMALL_BALANCES);
   }
 
   public static setHideBalances(bool: boolean) {
     if (!bool) {
-      localStorage.setItem(WalletManager.HIDE_BALANCES, "0");
+      localStorage.setItem(WalletStorage.HIDE_BALANCES, "0");
     } else {
-      localStorage.setItem(WalletManager.HIDE_BALANCES, "1");
+      localStorage.setItem(WalletStorage.HIDE_BALANCES, "1");
     }
   }
 
   public static getHideBalances() {
-    const item = Number(localStorage.getItem(WalletManager.HIDE_BALANCES));
+    const item = Number(localStorage.getItem(WalletStorage.HIDE_BALANCES));
     if (item) {
       return true;
     }

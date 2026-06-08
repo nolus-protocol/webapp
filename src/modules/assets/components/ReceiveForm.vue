@@ -114,7 +114,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, h, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { classifyError, externalWallet, Logger, walletOperation, WalletUtils } from "@/common/utils";
+import { classifyError, externalWallet, Logger, walletOperation, WalletAccess } from "@/common/utils";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import {
   getCurrencyByTickerForNetwork,
@@ -393,11 +393,11 @@ async function setCosmosNetwork() {
     });
 
     const networkData = ntwrk?.supportedNetworks[network.value.key];
-    client = await WalletUtils.getWallet(network.value.key);
+    client = await WalletAccess.getWallet(network.value.key);
     const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
     wallet.value = baseWallet?.address as string;
 
-    if (WalletUtils.isAuth()) {
+    if (WalletAccess.isAuth()) {
       for (const c of mappedCurrencies) {
         async function fn() {
           const balance = await client.getBalance(wallet.value as string, c.balance.denom);
@@ -419,7 +419,7 @@ async function setCosmosNetwork() {
 function validateAmount() {
   amountErrorMsg.value = "";
 
-  if (!WalletUtils.isAuth()) {
+  if (!WalletAccess.isAuth()) {
     return false;
   }
 
@@ -471,7 +471,7 @@ async function onSwap() {
 }
 
 async function onSubmit() {
-  if (!route || !WalletUtils.isAuth() || amountErrorMsg.value.length > 0) {
+  if (!route || !WalletAccess.isAuth() || amountErrorMsg.value.length > 0) {
     return false;
   }
 
@@ -573,7 +573,7 @@ async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
 
   for (const chain in chainToParse) {
     const fn = async function () {
-      const client = await WalletUtils.getWallet(chain);
+      const client = await WalletAccess.getWallet(chain);
       const network = NETWORK_DATA;
       const networkData = network?.supportedNetworks[chain];
       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;

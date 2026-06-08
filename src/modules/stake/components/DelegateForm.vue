@@ -77,7 +77,7 @@ import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { classifyError, Logger, NetworkUtils, Utils, validateAmountV2, walletOperation } from "@/common/utils";
+import { classifyError, Logger, StakingQueries, randomInt, validateAmountV2, walletOperation } from "@/common/utils";
 import { useStakingStore } from "@/common/stores/staking";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
@@ -220,13 +220,13 @@ async function delegate() {
 }
 
 async function getValidators() {
-  const delegatorValidators = await NetworkUtils.loadDelegatorValidators();
+  const delegatorValidators = await StakingQueries.loadDelegatorValidators();
 
   if (delegatorValidators.length > 0) {
     return delegatorValidators;
   }
 
-  let validators = await NetworkUtils.loadValidators();
+  let validators = await StakingQueries.loadValidators();
   const loadedValidators = [];
   if (validators.length > STAKING.SLICE) {
     validators = validators
@@ -251,7 +251,7 @@ async function getValidators() {
   }
 
   for (let i = 0; i < STAKING.VALIDATORS_NUMBER; i++) {
-    const index = Utils.getRandomInt(0, validators.length);
+    const index = randomInt(0, validators.length);
     loadedValidators.push(validators[index]);
     validators.splice(index, 1);
   }

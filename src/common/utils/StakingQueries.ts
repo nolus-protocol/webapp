@@ -1,4 +1,4 @@
-import { Logger, WalletManager, WalletUtils } from ".";
+import { Logger, WalletStorage, WalletAccess } from ".";
 import { ChainConstants } from "@nolus/nolusjs";
 import { BackendApi } from "@/common/api";
 import type { ValidatorInfo } from "@/common/api/types/staking";
@@ -28,9 +28,9 @@ function transformValidator(v: ValidatorInfo) {
   };
 }
 
-export class NetworkUtils {
+export class StakingQueries {
   static async loadDelegatorValidators() {
-    const walletAddress = WalletManager.getWalletAddress() || "";
+    const walletAddress = WalletStorage.getWalletAddress() || "";
     if (!walletAddress) {
       return [];
     }
@@ -58,11 +58,11 @@ export class NetworkUtils {
   }
 
   static async loadDelegations() {
-    if (!WalletUtils.isAuth()) {
+    if (!WalletAccess.isAuth()) {
       return [];
     }
 
-    const walletAddress = WalletManager.getWalletAddress() || "";
+    const walletAddress = WalletStorage.getWalletAddress() || "";
     if (!walletAddress) {
       return [];
     }
@@ -85,11 +85,11 @@ export class NetworkUtils {
   }
 
   static async loadDelegator() {
-    if (!WalletUtils.isAuth()) {
+    if (!WalletAccess.isAuth()) {
       return { rewards: [], total: [] };
     }
 
-    const walletAddress = WalletManager.getWalletAddress() || "";
+    const walletAddress = WalletStorage.getWalletAddress() || "";
     if (!walletAddress) {
       return { rewards: [], total: [] };
     }
@@ -111,11 +111,11 @@ export class NetworkUtils {
   }
 
   static async loadUnboundingDelegations() {
-    if (!WalletUtils.isAuth()) {
+    if (!WalletAccess.isAuth()) {
       return [];
     }
 
-    const walletAddress = WalletManager.getWalletAddress() || "";
+    const walletAddress = WalletStorage.getWalletAddress() || "";
     if (!walletAddress) {
       return [];
     }
