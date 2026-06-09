@@ -193,7 +193,8 @@ vi.mock("web-components", () => ({
     name: "Button",
     props: ["size", "severity", "label", "loading", "disabled", "icon"],
     emits: ["click"],
-    template: '<button data-test="submit" :disabled="loading || disabled" @click="$emit(\'click\')">{{ label }}</button>'
+    template:
+      '<button data-test="submit" :disabled="loading || disabled" @click="$emit(\'click\')">{{ label }}</button>'
   },
   Input: {
     name: "Input",
