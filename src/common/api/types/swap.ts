@@ -93,11 +93,20 @@ export interface SkipStatusRequest {
 
 export interface SkipStatusResponse {
   state: string;
-  error?: string;
-  transfer_sequence?: SkipTransferSequence[];
+  error?: SkipStatusError;
+  transfer_sequence?: SkipTransferEvent[];
 }
 
-export interface SkipTransferSequence {
+export interface SkipStatusError {
+  message?: string;
+}
+
+/** One hop in a Skip transfer sequence; each entry wraps exactly one transfer kind. */
+export interface SkipTransferEvent {
+  ibc_transfer?: SkipIbcTransferStatus;
+}
+
+export interface SkipIbcTransferStatus {
   src_chain_id: string;
   dst_chain_id: string;
   state: string;

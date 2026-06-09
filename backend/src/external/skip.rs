@@ -73,11 +73,6 @@ impl SkipClient {
         self.post_url(url, body).await
     }
 
-    /// Make a raw GET request to a URL and return JSON response
-    pub async fn get_raw(&self, url: &str) -> Result<serde_json::Value, AppError> {
-        self.get_url(url).await
-    }
-
     /// Get transaction status
     pub async fn get_status(
         &self,
@@ -125,26 +120,60 @@ impl SkipClient {
 // Skip Request/Response Types
 // ============================================================================
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Skip `/v2/tx/status` response.
+///
+/// `state` drives the frontend tracking loop and `error.message` is what it
+/// surfaces — both are validated at ingress. Every other field Skip returns
+/// (`transfers`, `next_blocking_transfer`, `transfer_asset_release`, …) is
+/// preserved verbatim through `additional`.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct SkipStatusResponse {
-    pub status: String,
-    #[serde(default)]
-    pub state: Option<String>,
-    pub transfer_sequence: Option<Vec<SkipTransferSequenceItem>>,
-    #[serde(default)]
-    pub error: Option<serde_json::Value>,
+    /// Overall transaction state (`STATE_SUBMITTED`, `STATE_PENDING`,
+    /// `STATE_COMPLETED_SUCCESS`, `STATE_COMPLETED_ERROR`,
+    /// `STATE_PENDING_ERROR`, `STATE_ABANDONED`)
+    pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<SkipStatusError>,
+    /// Per-hop transfer events; each entry wraps exactly one transfer kind
+    /// (`ibc_transfer`, `cctp_transfer`, `axelar_transfer`, …)
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transfer_sequence: Option<Vec<SkipTransferEvent>>,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SkipTransferSequenceItem {
+/// Structured Skip status error. Only `message` is consumed; `type` and
+/// `details` ride in `additional`.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SkipStatusError {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
+}
+
+/// One hop in a Skip transfer sequence. IBC hops are typed; every other
+/// transfer kind (`cctp_transfer`, `axelar_transfer`, `go_fast_transfer`, …)
+/// is preserved through `additional`.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub struct SkipTransferEvent {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ibc_transfer: Option<SkipIbcTransferStatus>,
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub additional: serde_json::Map<String, serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// IBC transfer hop status.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct SkipIbcTransferStatus {
     pub src_chain_id: String,
     pub dst_chain_id: String,
     pub state: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schema(value_type = Object)]
     pub packet_txs: Option<serde_json::Value>,
 }
 
@@ -254,8 +283,7 @@ mod tests {
 
     fn status_body() -> serde_json::Value {
         serde_json::json!({
-            "status": "STATE_COMPLETED",
-            "state": "STATE_COMPLETED",
+            "state": "STATE_COMPLETED_SUCCESS",
             "transfer_sequence": [],
             "error": null
         })
@@ -285,7 +313,7 @@ mod tests {
 
         let client = test_client(&server.uri(), None);
         let resp = client.get_status("abc+/=", "osmosis/1").await.unwrap();
-        assert_eq!(resp.status, "STATE_COMPLETED");
+        assert_eq!(resp.state, "STATE_COMPLETED_SUCCESS");
     }
 
     // ---- 96-98: get_status success/malformed/500 ----
@@ -300,7 +328,7 @@ mod tests {
             .await;
         let client = test_client(&server.uri(), None);
         let resp = client.get_status("h", "c").await.unwrap();
-        assert_eq!(resp.status, "STATE_COMPLETED");
+        assert_eq!(resp.state, "STATE_COMPLETED_SUCCESS");
     }
 
     #[tokio::test]
@@ -396,7 +424,7 @@ mod tests {
 
         let client = test_client(&server.uri(), Some("secret".to_string()));
         let resp = client.get_status("h", "c").await.unwrap();
-        assert_eq!(resp.status, "STATE_COMPLETED");
+        assert_eq!(resp.state, "STATE_COMPLETED_SUCCESS");
     }
 
     #[tokio::test]
@@ -444,35 +472,15 @@ mod tests {
         assert_eq!(resp, serde_json::json!({ "ok": true }));
     }
 
-    // ---- 104: get_raw ----
+    // ---- 105: null optional fields accepted, state required ----
 
     #[tokio::test]
-    async fn skip_get_raw_forwards_and_parses() {
-        let server = MockServer::start().await;
-        Mock::given(method("GET"))
-            .and(path("/v2/raw-get"))
-            .respond_with(
-                ResponseTemplate::new(200).set_body_json(serde_json::json!({ "hello": "world" })),
-            )
-            .mount(&server)
-            .await;
-
-        let client = test_client(&server.uri(), None);
-        let url = format!("{}/v2/raw-get", server.uri());
-        let resp = client.get_raw(&url).await.unwrap();
-        assert_eq!(resp["hello"], "world");
-    }
-
-    // ---- 105: null fields accepted ----
-
-    #[tokio::test]
-    async fn skip_status_response_accepts_null_fields() {
+    async fn skip_status_response_accepts_null_optional_fields() {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
             .and(path("/v2/tx/status"))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-                "status": "STATE_PENDING",
-                "state": null,
+                "state": "STATE_PENDING",
                 "transfer_sequence": null,
                 "error": null
             })))
@@ -481,9 +489,28 @@ mod tests {
 
         let client = test_client(&server.uri(), None);
         let resp = client.get_status("h", "c").await.unwrap();
-        assert_eq!(resp.status, "STATE_PENDING");
-        assert!(resp.state.is_none());
+        assert_eq!(resp.state, "STATE_PENDING");
         assert!(resp.transfer_sequence.is_none());
+        assert!(resp.error.is_none());
+    }
+
+    #[tokio::test]
+    async fn skip_status_response_missing_state_rejected() {
+        // The frontend tracking loop dispatches on `state`; a payload without
+        // it would spin the 60-retry poll to exhaustion. Fail loud instead.
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/v2/tx/status"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "status": "STATE_PENDING",
+                "transfer_sequence": []
+            })))
+            .mount(&server)
+            .await;
+
+        let client = test_client(&server.uri(), None);
+        let err = client.get_status("h", "c").await.unwrap_err();
+        assert_skip_error(&err);
     }
 
     // ---- 106: rejects wrong types ----
@@ -494,7 +521,7 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/v2/tx/status"))
             .respond_with(
-                ResponseTemplate::new(200).set_body_json(serde_json::json!({ "status": 123 })),
+                ResponseTemplate::new(200).set_body_json(serde_json::json!({ "state": 123 })),
             )
             .mount(&server)
             .await;
@@ -502,6 +529,53 @@ mod tests {
         let client = test_client(&server.uri(), None);
         let err = client.get_status("h", "c").await.unwrap_err();
         assert_skip_error(&err);
+    }
+
+    #[test]
+    fn skip_status_response_parses_and_preserves_unconsumed_fields() {
+        // Shape per https://docs.skip.build /v2/tx/status: wrapped per-hop
+        // transfer events, structured error, extra top-level tracking fields.
+        let raw = serde_json::json!({
+            "state": "STATE_COMPLETED_ERROR",
+            "error": { "type": "STATUS_ERROR_TRANSACTION_EXECUTION", "message": "out of gas" },
+            "transfer_sequence": [
+                {
+                    "ibc_transfer": {
+                        "src_chain_id": "pirin-1",
+                        "dst_chain_id": "osmosis-1",
+                        "state": "TRANSFER_FAILURE",
+                        "packet_txs": { "send_tx": { "tx_hash": "AA" } }
+                    }
+                },
+                { "cctp_transfer": { "src_chain_id": "1", "state": "CCTP_TRANSFER_SENT" } }
+            ],
+            "transfers": [{ "state": "STATE_COMPLETED_ERROR" }],
+            "transfer_asset_release": { "chain_id": "pirin-1", "denom": "unls", "released": true }
+        });
+
+        let parsed: SkipStatusResponse =
+            serde_json::from_value(raw.clone()).expect("valid status response deserializes");
+
+        assert_eq!(parsed.state, "STATE_COMPLETED_ERROR");
+        assert_eq!(
+            parsed.error.as_ref().and_then(|e| e.message.as_deref()),
+            Some("out of gas")
+        );
+        let sequence = parsed
+            .transfer_sequence
+            .as_ref()
+            .expect("transfer_sequence present");
+        let ibc = sequence[0]
+            .ibc_transfer
+            .as_ref()
+            .expect("first hop is an ibc_transfer");
+        assert_eq!(ibc.dst_chain_id, "osmosis-1");
+        // Non-IBC hops and extra tracking fields survive verbatim.
+        assert!(sequence[1].additional.contains_key("cctp_transfer"));
+        assert!(parsed.additional.contains_key("transfers"));
+        assert!(parsed.additional.contains_key("transfer_asset_release"));
+        // Re-serialization is shape-equal to the upstream payload (no field loss).
+        assert_eq!(serde_json::to_value(&parsed).expect("re-serializes"), raw);
     }
 
     // ---- 107: route response validates envelope, keeps operations + extras ----

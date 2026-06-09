@@ -290,6 +290,10 @@ use crate::handlers::{
         external::skip::SkipCosmosTx,
         external::skip::SkipMsg,
         external::skip::SkipChain,
+        external::skip::SkipStatusResponse,
+        external::skip::SkipStatusError,
+        external::skip::SkipTransferEvent,
+        external::skip::SkipIbcTransferStatus,
         // ETL batch passthroughs (fields opaque)
         etl_proxy::StatsOverviewBatch,
         etl_proxy::LoansStatsBatch,

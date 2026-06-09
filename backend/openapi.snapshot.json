@@ -3518,7 +3518,7 @@
           "swap"
         ],
         "summary": "Get swap status",
-        "description": "Forwards to Skip API `/v2/tx/status`. Response is an opaque Skip API\npassthrough — shape is not fixed in this spec.",
+        "description": "Forwards to Skip API `/v2/tx/status`. The upstream response is validated\nagainst `SkipStatusResponse` at ingress — `state` and the error envelope\nare typed; unconsumed tracking fields are preserved verbatim.",
         "operationId": "get_status",
         "parameters": [
           {
@@ -3542,17 +3542,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Opaque Skip API passthrough",
+            "description": "Validated Skip status response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/SkipStatusResponse"
                 }
               }
             }
           },
           "502": {
-            "description": "Skip API call failed",
+            "description": "Skip API call failed or returned a malformed status",
             "content": {
               "application/json": {
                 "schema": {
@@ -7252,6 +7252,29 @@
         ],
         "description": "The cosmos transaction envelope the frontend signs and broadcasts."
       },
+      "SkipIbcTransferStatus": {
+        "type": "object",
+        "description": "IBC transfer hop status.",
+        "required": [
+          "src_chain_id",
+          "dst_chain_id",
+          "state"
+        ],
+        "properties": {
+          "src_chain_id": {
+            "type": "string"
+          },
+          "dst_chain_id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "packet_txs": {
+            "type": "object"
+          }
+        }
+      },
       "SkipMessagesResponse": {
         "allOf": [
           {
@@ -7349,6 +7372,88 @@
           }
         ],
         "description": "Skip `/v2/fungible/route` response.\n\nOnly the fields the swap flow consumes are typed and required; every other\nfield Skip returns (price impact, estimated fees, USD amounts, route\nduration, …) is preserved verbatim through `additional` so the frontend\nkeeps its display data. `operations` stays opaque and is echoed back to\n`/v2/fungible/msgs` unchanged, so it must round-trip byte-for-byte."
+      },
+      "SkipStatusError": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Structured Skip status error. Only `message` is consumed; `type` and\n`details` ride in `additional`."
+      },
+      "SkipStatusResponse": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "required": [
+              "state"
+            ],
+            "properties": {
+              "state": {
+                "type": "string",
+                "description": "Overall transaction state (`STATE_SUBMITTED`, `STATE_PENDING`,\n`STATE_COMPLETED_SUCCESS`, `STATE_COMPLETED_ERROR`,\n`STATE_PENDING_ERROR`, `STATE_ABANDONED`)"
+              },
+              "error": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SkipStatusError"
+                  }
+                ]
+              },
+              "transfer_sequence": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "$ref": "#/components/schemas/SkipTransferEvent"
+                },
+                "description": "Per-hop transfer events; each entry wraps exactly one transfer kind\n(`ibc_transfer`, `cctp_transfer`, `axelar_transfer`, …)"
+              }
+            }
+          }
+        ],
+        "description": "Skip `/v2/tx/status` response.\n\n`state` drives the frontend tracking loop and `error.message` is what it\nsurfaces — both are validated at ingress. Every other field Skip returns\n(`transfers`, `next_blocking_transfer`, `transfer_asset_release`, …) is\npreserved verbatim through `additional`."
+      },
+      "SkipTransferEvent": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ibc_transfer": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SkipIbcTransferStatus"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "One hop in a Skip transfer sequence. IBC hops are typed; every other\ntransfer kind (`cctp_transfer`, `axelar_transfer`, `go_fast_transfer`, …)\nis preserved through `additional`."
       },
       "SkipTx": {
         "allOf": [

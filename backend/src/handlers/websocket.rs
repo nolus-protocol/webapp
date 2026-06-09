@@ -281,7 +281,7 @@ pub struct CachedLeaseState {
 /// Cached Skip transaction state for tracking
 #[derive(Debug, Clone, PartialEq)]
 pub struct CachedSkipTxState {
-    pub status: String,
+    pub state: String,
     pub completed_hops: u32,
     pub total_hops: u32,
 }
@@ -1400,7 +1400,7 @@ async fn check_skip_tx_status(
 
     // Create current state
     let current_state = CachedSkipTxState {
-        status: status_response.status.clone(),
+        state: status_response.state.clone(),
         completed_hops,
         total_hops,
     };
@@ -1411,14 +1411,12 @@ async fn check_skip_tx_status(
         .update_skip_tx_state(tx_hash, current_state.clone());
 
     if changed {
-        // Determine status value for frontend
-        let is_complete = matches!(
-            status_response.status.as_str(),
-            "STATE_COMPLETED" | "STATE_COMPLETED_SUCCESS"
-        );
+        // Determine status value for frontend, per Skip's documented
+        // TransactionState enum (matches the REST polling path's mapping)
+        let is_complete = status_response.state == "STATE_COMPLETED_SUCCESS";
         let is_failed = matches!(
-            status_response.status.as_str(),
-            "STATE_FAILED" | "STATE_ABANDONED"
+            status_response.state.as_str(),
+            "STATE_COMPLETED_ERROR" | "STATE_PENDING_ERROR" | "STATE_ABANDONED"
         );
 
         let status = if is_complete {
@@ -1429,12 +1427,16 @@ async fn check_skip_tx_status(
             TxStatusValue::Pending
         };
 
-        // Extract error message if failed (status itself describes the failure)
         let error = if is_failed {
-            Some(format!(
-                "Transaction failed with status: {}",
-                status_response.status
-            ))
+            Some(
+                status_response
+                    .error
+                    .as_ref()
+                    .and_then(|e| e.message.clone())
+                    .unwrap_or_else(|| {
+                        format!("Transaction failed with state: {}", status_response.state)
+                    }),
+            )
         } else {
             None
         };
@@ -2260,7 +2262,7 @@ mod tests {
     async fn test_update_skip_tx_state_tracks_old_and_new() {
         let m = WebSocketManager::new(16);
         let s1 = CachedSkipTxState {
-            status: "STATE_PENDING".to_string(),
+            state: "STATE_PENDING".to_string(),
             completed_hops: 0,
             total_hops: 3,
         };
@@ -2271,11 +2273,11 @@ mod tests {
         // Idempotent update
         let (changed, old) = m.update_skip_tx_state("TX", s1.clone());
         assert!(!changed);
-        assert_eq!(old.unwrap().status, "STATE_PENDING");
+        assert_eq!(old.unwrap().state, "STATE_PENDING");
 
         // Change hops → changed=true with old state returned
         let s2 = CachedSkipTxState {
-            status: "STATE_PENDING".to_string(),
+            state: "STATE_PENDING".to_string(),
             completed_hops: 1,
             total_hops: 3,
         };
@@ -2322,7 +2324,7 @@ mod tests {
         m.update_skip_tx_state(
             "TX",
             CachedSkipTxState {
-                status: "STATE_PENDING".to_string(),
+                state: "STATE_PENDING".to_string(),
                 completed_hops: 0,
                 total_hops: 1,
             },
@@ -2350,7 +2352,7 @@ mod tests {
         m.update_skip_tx_state(
             "TX",
             CachedSkipTxState {
-                status: "STATE_PENDING".to_string(),
+                state: "STATE_PENDING".to_string(),
                 completed_hops: 0,
                 total_hops: 1,
             },

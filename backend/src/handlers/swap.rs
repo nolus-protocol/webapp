@@ -20,7 +20,9 @@ use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::base_client::ExternalApiClient;
-use crate::external::skip::{SkipChain, SkipMessagesResponse, SkipRouteResponse};
+use crate::external::skip::{
+    SkipChain, SkipMessagesResponse, SkipRouteResponse, SkipStatusResponse,
+};
 use crate::AppState;
 
 // ============================================================================
@@ -249,8 +251,9 @@ pub async fn get_messages(
 
 /// Get swap status
 ///
-/// Forwards to Skip API `/v2/tx/status`. Response is an opaque Skip API
-/// passthrough — shape is not fixed in this spec.
+/// Forwards to Skip API `/v2/tx/status`. The upstream response is validated
+/// against `SkipStatusResponse` at ingress — `state` and the error envelope
+/// are typed; unconsumed tracking fields are preserved verbatim.
 #[utoipa::path(
     get,
     path = "/api/swap/status/{tx_hash}",
@@ -260,25 +263,21 @@ pub async fn get_messages(
         StatusQuery,
     ),
     responses(
-        (status = 200, description = "Opaque Skip API passthrough", content_type = "application/json", body = Object),
-        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+        (status = 200, description = "Validated Skip status response", body = SkipStatusResponse),
+        (status = 502, description = "Skip API call failed or returned a malformed status", body = crate::error::ErrorResponse),
     ),
 )]
 pub async fn get_status(
     State(state): State<Arc<AppState>>,
     Path(tx_hash): Path<String>,
     Query(query): Query<StatusQuery>,
-) -> Result<Json<serde_json::Value>, AppError> {
+) -> Result<Json<SkipStatusResponse>, AppError> {
     debug!("Getting swap status for tx: {}", tx_hash);
 
-    let url = format!(
-        "{}/v2/tx/status?tx_hash={}&chain_id={}",
-        state.skip_client.base_url(),
-        urlencoding::encode(&tx_hash),
-        urlencoding::encode(&query.chain_id)
-    );
-
-    let response = state.skip_client.get_raw(&url).await?;
+    let response = state
+        .skip_client
+        .get_status(&tx_hash, &query.chain_id)
+        .await?;
     Ok(Json(response))
 }
 

@@ -513,8 +513,7 @@ describe("SkipRouter.fetchStatus", () => {
 
   it("returns status on STATE_COMPLETED_SUCCESS", async () => {
     (BackendApi.getSkipStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
-      state: "STATE_COMPLETED_SUCCESS",
-      error: ""
+      state: "STATE_COMPLETED_SUCCESS"
     });
     const res = await SkipRouter.fetchStatus("hash", "chain");
     expect(res.state).toBe("STATE_COMPLETED_SUCCESS");
@@ -522,25 +521,23 @@ describe("SkipRouter.fetchStatus", () => {
 
   it("throws on STATE_ABANDONED", async () => {
     (BackendApi.getSkipStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
-      state: "STATE_ABANDONED",
-      error: ""
+      state: "STATE_ABANDONED"
     });
     await expect(SkipRouter.fetchStatus("h", "c")).rejects.toThrow();
   });
 
   it("throws on STATE_COMPLETED_ERROR", async () => {
     (BackendApi.getSkipStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
-      state: "STATE_COMPLETED_ERROR",
-      error: ""
+      state: "STATE_COMPLETED_ERROR"
     });
     await expect(SkipRouter.fetchStatus("h", "c")).rejects.toThrow();
   });
 
-  it("throws when the backend returns an error string", async () => {
+  it("throws the structured error's message when the backend returns one", async () => {
     (BackendApi.getSkipStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
       state: "STATE_PENDING",
-      error: "rate limited"
+      error: { message: "rate limited" }
     });
-    await expect(SkipRouter.fetchStatus("h", "c")).rejects.toBe("rate limited");
+    await expect(SkipRouter.fetchStatus("h", "c")).rejects.toThrow("rate limited");
   });
 });
