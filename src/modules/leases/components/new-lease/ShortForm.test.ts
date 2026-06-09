@@ -419,3 +419,34 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
     wrapper.unmount();
   });
 });
+
+describe("ShortForm.vue — reactive balance validation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setActivePinia(createPinia());
+
+    hoisted.getDownpaymentRange.mockResolvedValue({ ALL_BTC: { min: "1", max: "1000000000" } });
+    hoisted.getCachedProtocolCurrencies.mockReturnValue(hoisted.protocolCurrencies);
+    hoisted.getProtocolCurrencies.mockResolvedValue(hoisted.protocolCurrencies);
+
+    hoisted.leaseQuote.mockResolvedValue({
+      borrow: { ticker: "ALL_BTC", amount: "100000" },
+      total: { ticker: "USDC_NOBLE", amount: "400000000" },
+      annual_interest_rate: 100,
+      annual_interest_rate_margin: 80
+    });
+  });
+
+  it("flags a zero amount as invalid before attempting a quote", async () => {
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("0");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.invalid-balance-low");
+    expect(hoisted.leaseQuote).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
+});

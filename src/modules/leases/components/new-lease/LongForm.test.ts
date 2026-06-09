@@ -329,3 +329,48 @@ describe("LongForm.vue — reactive balance validation", () => {
     wrapper.unmount();
   });
 });
+
+describe("LongForm.vue — quote error classification", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setActivePinia(createPinia());
+    // 1 WETH balance and a permissive range so the reactive validation passes
+    // and calculate() reaches the quote — the path under test here.
+    hoisted.state.balances = [{ denom: "ibc/WETH", amount: "1000000000000000000" }];
+
+    hoisted.getDownpaymentRange.mockResolvedValue({
+      WETH: { min: "1", max: "1000000000" },
+      ALL_BTC: { min: "1", max: "1000000000" }
+    });
+    hoisted.getCachedProtocolCurrencies.mockReturnValue(hoisted.protocolCurrencies);
+    hoisted.getActiveProtocolsForNetwork.mockReturnValue([hoisted.LONG_PROTOCOL]);
+  });
+
+  it("maps contract 'No liquidity' errors to the no-liquidity i18n key", async () => {
+    hoisted.leaseQuote.mockRejectedValueOnce(new Error("query wasm: No liquidity for the requested loan"));
+
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("0.5");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.no-liquidity");
+    wrapper.unmount();
+  });
+
+  it("maps non-liquidity errors to unexpected-error (stops masking the true cause)", async () => {
+    hoisted.leaseQuote.mockRejectedValueOnce(new Error("invalid downpayment ticker"));
+
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("0.5");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
+    wrapper.unmount();
+  });
+});
