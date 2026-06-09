@@ -83,7 +83,7 @@ class Swap {
 export class SkipRouter {
   private static client: Swap;
   private static chainId: string;
-  private static chains: Promise<Chain[]>;
+  private static chains: Promise<Chain[]> | undefined;
 
   static async getClient(): Promise<Swap> {
     if (SkipRouter.client) {
@@ -297,11 +297,18 @@ export class SkipRouter {
   }
 
   static async getChains() {
-    if (SkipRouter.chains) {
+    if (SkipRouter.chains !== undefined) {
       return SkipRouter.chains;
     }
     const client = await SkipRouter.getClient();
-    SkipRouter.chains = client.getChains();
+    // Cache the in-flight promise to dedupe concurrent callers, but drop it on
+    // rejection so a failed fetch doesn't poison the cache permanently — a
+    // retry must be able to re-issue the request (see "Cache services" in the
+    // project CLAUDE.md).
+    SkipRouter.chains = client.getChains().catch((error: unknown) => {
+      SkipRouter.chains = undefined;
+      throw error;
+    });
     return SkipRouter.chains;
   }
 
