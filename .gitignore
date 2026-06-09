@@ -37,6 +37,9 @@ docs/
 # Claude Code instructions
 CLAUDE.md
 
+# Claude Code local working state (handoffs, scratch, review artifacts)
+.claude/
+
 # Backend build artifacts
 backend/target/
 backend/.env
