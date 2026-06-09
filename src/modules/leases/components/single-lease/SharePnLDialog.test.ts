@@ -126,6 +126,7 @@ function factory() {
 
 describe("SharePnLDialog.vue — characterization (pre-composable extraction)", () => {
   let toDataURLSpy = vi.spyOn(HTMLCanvasElement.prototype, "toDataURL");
+  let getContextSpy = vi.spyOn(HTMLCanvasElement.prototype, "getContext");
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -135,11 +136,17 @@ describe("SharePnLDialog.vue — characterization (pre-composable extraction)", 
     // jsdom canvas has no real 2d context / toDataURL — stub the bits the
     // component touches so render attempts and download() don't throw.
     toDataURLSpy = vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockReturnValue("data:image/png;base64,xxx");
-    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    getContextSpy = vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
   });
 
+  // Restore the prototype spies individually rather than via the global
+  // restore-all helper: that helper would reset the vi.hoisted mock
+  // implementations to undefined (see the pr-validate test-hygiene guard and
+  // the Vitest teardown note in CLAUDE.md). vi.clearAllMocks() in beforeEach
+  // handles the hoisted mocks on its own.
   afterEach(() => {
-    vi.restoreAllMocks();
+    toDataURLSpy.mockRestore();
+    getContextSpy.mockRestore();
   });
 
   it("renders the dialog with three cover options and three info checkboxes", async () => {
@@ -206,6 +213,7 @@ describe("SharePnLDialog.vue — characterization (pre-composable extraction)", 
 
     expect(toDataURLSpy).toHaveBeenCalledWith("image/png");
     expect(clickSpy).toHaveBeenCalled();
+    clickSpy.mockRestore();
     wrapper.unmount();
   });
 
