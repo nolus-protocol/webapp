@@ -161,7 +161,7 @@ watch(
   () => configStore.initialized,
   () => {
     if (configStore.initialized) {
-      initializeHistory();
+      void initializeHistory();
     }
   },
   { immediate: true }
@@ -179,7 +179,7 @@ watch(
 
     if (wallet.wallet?.address) {
       historyStore.setAddress(wallet.wallet.address);
-      loadTransactions(true);
+      void loadTransactions(true);
     }
   }
 );
@@ -216,6 +216,6 @@ async function loadMoreTransactions(): Promise<void> {
 function onFilter(f: IObjectKeys): void {
   skip = 0;
   filters.value = f as TransactionFilters;
-  loadTransactions(true);
+  void loadTransactions(true);
 }
 </script>

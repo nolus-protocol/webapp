@@ -147,7 +147,7 @@ export function useSwapForm() {
     [() => configStore.initialized, () => configStore.protocolFilter],
     () => {
       if (configStore.initialized) {
-        onInit();
+        void onInit();
       }
     },
     {
@@ -183,7 +183,7 @@ export function useSwapForm() {
       selectedFirstCurrencyOption.value = firstCurrency;
       selectedSecondCurrencyOption.value = secondCurrency;
 
-      setSwapFee();
+      void setSwapFee();
     } catch (error) {
       Logger.error(error);
     }
@@ -291,7 +291,7 @@ export function useSwapForm() {
         first.decimal_digits
       );
       if (token.amount.gt(new Int(0))) {
-        setRoute(token, false);
+        void setRoute(token, false);
       }
     }
   }
@@ -307,7 +307,7 @@ export function useSwapForm() {
         second.decimal_digits
       );
       if (token.amount.gt(new Int(0))) {
-        setRoute(token, true);
+        void setRoute(token, true);
       }
     }
   }
@@ -315,51 +315,53 @@ export function useSwapForm() {
   async function setRoute(token: Coin, revert = false) {
     clearTimeout(time);
 
-    time = setTimeout(async () => {
-      try {
-        loading.value = true;
-        error.value = "";
+    time = setTimeout(() => {
+      void (async () => {
+        try {
+          loading.value = true;
+          error.value = "";
 
-        const first = selectedFirstCurrencyOption.value;
-        const second = selectedSecondCurrencyOption.value;
-        if (!first || !second) return;
+          const first = selectedFirstCurrencyOption.value;
+          const second = selectedSecondCurrencyOption.value;
+          if (!first || !second) return;
 
-        const network = configStore.protocolFilter.toLowerCase();
+          const network = configStore.protocolFilter.toLowerCase();
 
-        if (revert) {
-          route = await SkipRouter.getRoute(
-            first.ibcData,
-            second.ibcData,
-            token.amount.toString(),
-            revert,
-            undefined,
-            undefined,
-            network
-          );
-          firstInputAmount.value = new Dec(route?.amount_in, first.decimal_digits).toString(first.decimal_digits);
-          amount.value = secondInputAmount.value;
-        } else {
-          route = await SkipRouter.getRoute(
-            first.ibcData,
-            second.ibcData,
-            token.amount.toString(),
-            revert,
-            undefined,
-            undefined,
-            network
-          );
-          secondInputAmount.value = new Dec(route?.amount_out, second.decimal_digits).toString(second.decimal_digits);
-          swapToAmount.value = secondInputAmount.value;
+          if (revert) {
+            route = await SkipRouter.getRoute(
+              first.ibcData,
+              second.ibcData,
+              token.amount.toString(),
+              revert,
+              undefined,
+              undefined,
+              network
+            );
+            firstInputAmount.value = new Dec(route?.amount_in, first.decimal_digits).toString(first.decimal_digits);
+            amount.value = secondInputAmount.value;
+          } else {
+            route = await SkipRouter.getRoute(
+              first.ibcData,
+              second.ibcData,
+              token.amount.toString(),
+              revert,
+              undefined,
+              undefined,
+              network
+            );
+            secondInputAmount.value = new Dec(route?.amount_out, second.decimal_digits).toString(second.decimal_digits);
+            swapToAmount.value = secondInputAmount.value;
+          }
+          priceImapact.value = Number(route?.swap_price_impact_percent ?? "0");
+          void setSwapFee();
+        } catch (e) {
+          error.value = i18n.t(classifyError(e));
+          route = null;
+          Logger.error(e);
+        } finally {
+          loading.value = false;
         }
-        priceImapact.value = Number(route?.swap_price_impact_percent ?? "0");
-        setSwapFee();
-      } catch (e) {
-        error.value = i18n.t(classifyError(e));
-        route = null;
-        Logger.error(e);
-      } finally {
-        loading.value = false;
-      }
+      })();
     }, timeOut);
   }
 
@@ -428,7 +430,7 @@ export function useSwapForm() {
 
         element.status = SwapStatus.success;
         await balancesStore.fetchBalances();
-        historyStore.loadActivities();
+        void historyStore.loadActivities();
       });
 
       onClose();

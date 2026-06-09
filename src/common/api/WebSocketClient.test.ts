@@ -355,7 +355,7 @@ describe("WebSocketClientImpl", () => {
       callback.mockClear();
       unsubscribe();
 
-      client.connect();
+      void client.connect();
       expect(callback).not.toHaveBeenCalled();
     });
   });

@@ -23,5 +23,5 @@ export async function connectPhantom(this: Store) {
   this.wallet = nolusWalletOfflineSigner;
   applyNolusWalletOverrides(this.wallet);
 
-  IntercomService.load(this.wallet.address, "phantom");
+  void IntercomService.load(this.wallet.address, "phantom");
 }

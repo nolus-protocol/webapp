@@ -30,6 +30,6 @@ const route = useRoute();
 const router = useRouter();
 
 function goBack() {
-  router.push({ path: `/${RouteNames.LEASES}` });
+  void router.push({ path: `/${RouteNames.LEASES}` });
 }
 </script>

@@ -206,7 +206,7 @@ watch(
   () => configStore.initialized,
   () => {
     if (configStore.initialized) {
-      onInit();
+      void onInit();
     }
   },
   {
@@ -215,7 +215,7 @@ watch(
 );
 
 async function onInit() {
-  fetchDepositCapacity();
+  void fetchDepositCapacity();
 }
 
 const apr = computed(() => {
@@ -282,7 +282,7 @@ async function transferAmount() {
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       await Promise.all([balancesStore.fetchBalances(), loadLPNCurrency()]);
-      historyStore.loadActivities();
+      void historyStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

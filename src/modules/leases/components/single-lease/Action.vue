@@ -66,7 +66,7 @@ const router = useRouter();
 
 function navigate(path: string) {
   popoverRef.value?.close();
-  router.push(path);
+  void router.push(path);
 }
 
 function sharePnl() {

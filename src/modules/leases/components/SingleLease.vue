@@ -143,8 +143,8 @@ async function fetchLease() {
 }
 
 function reload() {
-  fetchLease();
-  balancesStore.fetchBalances();
+  void fetchLease();
+  void balancesStore.fetchBalances();
 }
 
 const status = computed(() => {
@@ -185,8 +185,8 @@ const openingSubState = computed(() => {
 });
 
 onMounted(() => {
-  fetchLease();
-  timeOut = setInterval(fetchLease, UPDATE_LEASES);
+  void fetchLease();
+  timeOut = setInterval(() => void fetchLease(), UPDATE_LEASES);
 });
 
 onUnmounted(() => {
@@ -210,8 +210,8 @@ watch(
   () => lease.value?.status,
   (newStatus) => {
     if (newStatus === "closed" || newStatus === "liquidated" || newStatus === "paid_off") {
-      balancesStore.fetchBalances();
-      leasesStore.refresh().then(() => router.replace(`/${RouteNames.LEASES}`));
+      void balancesStore.fetchBalances();
+      void leasesStore.refresh().then(() => router.replace(`/${RouteNames.LEASES}`));
     }
   }
 );

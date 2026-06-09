@@ -173,7 +173,7 @@ onUnmounted(() => {
 watch(
   () => [props.lease],
   (_value) => {
-    setSwapFee();
+    void setSwapFee();
   }
 );
 
@@ -346,53 +346,55 @@ const setSwapFee = async () => {
   clearTimeout(time);
   const lease = props.lease;
   if (!lease) return;
-  time = setTimeout(async () => {
-    const currency = downPaymentAsset.value;
-    const [_, p] = asset.value.key.split("@");
+  time = setTimeout(() => {
+    void (async () => {
+      const currency = downPaymentAsset.value;
+      const [_, p] = asset.value.key.split("@");
 
-    // For a Short position the on-chain flow swaps both the down payment and
-    // the borrowed LPN to the stable the position settles in (lease.total.ticker,
-    // e.g. USDC_NOBLE) — NOT to asset.value (the borrowed/shorted asset, which
-    // on a Short protocol is the same as the LPN). Routing source→source is a
-    // no-op and Skip returns a zero fee, so the UI showed 0.00 BTC.
-    const stableTicker = lease.total?.ticker;
-    const stable = stableTicker ? configStore.currenciesData?.[`${stableTicker}@${p}`] : null;
-    if (!stable) return;
+      // For a Short position the on-chain flow swaps both the down payment and
+      // the borrowed LPN to the stable the position settles in (lease.total.ticker,
+      // e.g. USDC_NOBLE) — NOT to asset.value (the borrowed/shorted asset, which
+      // on a Short protocol is the same as the LPN). Routing source→source is a
+      // no-op and Skip returns a zero fee, so the UI showed 0.00 BTC.
+      const stableTicker = lease.total?.ticker;
+      const stable = stableTicker ? configStore.currenciesData?.[`${stableTicker}@${p}`] : null;
+      if (!stable) return;
 
-    const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-      props.downpaymenAmount,
-      currency.ibcData,
-      currency.decimal_digits
-    ).amount.toString();
+      const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+        props.downpaymenAmount,
+        currency.ibcData,
+        currency.decimal_digits
+      ).amount.toString();
 
-    const lpn = getLpnByProtocol(p);
-    let amountIn = 0;
-    let amountOut = 0;
-    await Promise.all([
-      SkipRouter.getRoute(currency.ibcData, stable.ibcData, microAmount).then((data) => {
-        amountIn += Number(data.usd_amount_in ?? 0);
-        amountOut += Number(data.usd_amount_out ?? 0);
+      const lpn = getLpnByProtocol(p);
+      let amountIn = 0;
+      let amountOut = 0;
+      await Promise.all([
+        SkipRouter.getRoute(currency.ibcData, stable.ibcData, microAmount).then((data) => {
+          amountIn += Number(data.usd_amount_in ?? 0);
+          amountOut += Number(data.usd_amount_out ?? 0);
 
-        return Number(data?.swap_price_impact_percent ?? 0);
-      }),
-      SkipRouter.getRoute(lpn.ibcData, stable.ibcData, lease.borrow.amount).then((data) => {
-        amountIn += Number(data.usd_amount_in ?? 0);
-        amountOut += Number(data.usd_amount_out ?? 0);
+          return Number(data?.swap_price_impact_percent ?? 0);
+        }),
+        SkipRouter.getRoute(lpn.ibcData, stable.ibcData, lease.borrow.amount).then((data) => {
+          amountIn += Number(data.usd_amount_in ?? 0);
+          amountOut += Number(data.usd_amount_out ?? 0);
 
-        return Number(data?.swap_price_impact_percent ?? 0);
-      })
-    ]);
-    const out_a = Math.max(amountOut, amountIn);
-    const in_a = Math.min(amountOut, amountIn);
+          return Number(data?.swap_price_impact_percent ?? 0);
+        })
+      ]);
+      const out_a = Math.max(amountOut, amountIn);
+      const in_a = Math.min(amountOut, amountIn);
 
-    const diff = out_a - in_a;
-    swapStableFee.value = diff;
-    let fee = 0;
+      const diff = out_a - in_a;
+      swapStableFee.value = diff;
+      let fee = 0;
 
-    if (in_a > 0) {
-      fee = diff / in_a;
-    }
-    swapFee.value = fee;
+      if (in_a > 0) {
+        fee = diff / in_a;
+      }
+      swapFee.value = fee;
+    })();
   }, timeOut);
 };
 </script>

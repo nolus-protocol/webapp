@@ -76,7 +76,7 @@ export function useCloseLease() {
       lease.value = cached;
       displayData.value = leasesStore.getLeaseDisplayData(cached);
       if (cached.status === "closed") {
-        router.push(`/${RouteNames.LEASES}`);
+        void router.push(`/${RouteNames.LEASES}`);
         return;
       }
       try {
@@ -90,7 +90,7 @@ export function useCloseLease() {
 
   onMounted(() => {
     dialog?.value?.show();
-    initLease();
+    void initLease();
   });
 
   onBeforeUnmount(() => {
@@ -474,58 +474,60 @@ export function useCloseLease() {
 
   async function setSwapFee() {
     clearTimeout(time);
-    time = setTimeout(async () => {
-      const lease_currency = currency.value;
-      const lpnCurrency = getLpnByProtocol(lease.value?.protocol as string);
-      const debtValue = debt.value;
-      if (!debtValue || !lpnCurrency || !lease_currency) {
-        return;
-      }
-      // The Skip route call (and the Dec conversions) run inside a debounced timer
-      // detached from the render cycle: an unhandled rejection here would surface
-      // as a console error and leave the preview fee silently stale. Catch and log
-      // so a transient route/price failure degrades gracefully instead.
-      try {
-        let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-          debtValue.amount.toDec().toString(),
-          lease_currency.ibcData,
-          lease_currency.decimal_digits
-        ).amount.toString();
-
-        let amountIn = 0;
-        let amountOut = 0;
-
-        const positionType = configStore.getPositionType(lease.value?.protocol as string);
-        if (positionType === "Short") {
-          microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+    time = setTimeout(() => {
+      void (async () => {
+        const lease_currency = currency.value;
+        const lpnCurrency = getLpnByProtocol(lease.value?.protocol as string);
+        const debtValue = debt.value;
+        if (!debtValue || !lpnCurrency || !lease_currency) {
+          return;
+        }
+        // The Skip route call (and the Dec conversions) run inside a debounced timer
+        // detached from the render cycle: an unhandled rejection here would surface
+        // as a console error and leave the preview fee silently stale. Catch and log
+        // so a transient route/price failure degrades gracefully instead.
+        try {
+          let microAmount = CurrencyUtils.convertDenomToMinimalDenom(
             debtValue.amount.toDec().toString(),
-            lpnCurrency.ibcData,
-            lpnCurrency.decimal_digits
+            lease_currency.ibcData,
+            lease_currency.decimal_digits
           ).amount.toString();
+
+          let amountIn = 0;
+          let amountOut = 0;
+
+          const positionType = configStore.getPositionType(lease.value?.protocol as string);
+          if (positionType === "Short") {
+            microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+              debtValue.amount.toDec().toString(),
+              lpnCurrency.ibcData,
+              lpnCurrency.decimal_digits
+            ).amount.toString();
+          }
+
+          await Promise.all([
+            SkipRouter.getRoute(lease_currency.ibcData, lpnCurrency.ibcData, microAmount).then((data) => {
+              amountIn += Number(data.usd_amount_in ?? 0);
+              amountOut += Number(data.usd_amount_out ?? 0);
+
+              return Number(data?.swap_price_impact_percent ?? 0);
+            })
+          ]);
+
+          const out_a = Math.max(amountOut, amountIn);
+          const in_a = Math.min(amountOut, amountIn);
+
+          const diff = out_a - in_a;
+          let fee = 0;
+          if (in_a > 0) {
+            fee = diff / in_a;
+          }
+
+          swapFee.value = fee;
+        } catch (e) {
+          Logger.error(e);
         }
-
-        await Promise.all([
-          SkipRouter.getRoute(lease_currency.ibcData, lpnCurrency.ibcData, microAmount).then((data) => {
-            amountIn += Number(data.usd_amount_in ?? 0);
-            amountOut += Number(data.usd_amount_out ?? 0);
-
-            return Number(data?.swap_price_impact_percent ?? 0);
-          })
-        ]);
-
-        const out_a = Math.max(amountOut, amountIn);
-        const in_a = Math.min(amountOut, amountIn);
-
-        const diff = out_a - in_a;
-        let fee = 0;
-        if (in_a > 0) {
-          fee = diff / in_a;
-        }
-
-        swapFee.value = fee;
-      } catch (e) {
-        Logger.error(e);
-      }
+      })();
     }, timeOut);
   }
 
@@ -719,10 +721,10 @@ export function useCloseLease() {
         } = await leaseClient.simulateClosePositionLeaseTx(wallet, getCurrency(), funds);
         await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
         leasesStore.markLeaseInProgress(lease.value.address, "close");
-        balancesStore.fetchBalances();
+        void balancesStore.fetchBalances();
         reload();
         dialog?.value?.close();
-        historyStore.loadActivities();
+        void historyStore.loadActivities();
         onShowToast({
           type: ToastType.success,
           message: i18n.t("message.toast-closed")
@@ -773,7 +775,7 @@ export function useCloseLease() {
   watch(
     () => [currency.value?.key],
     () => {
-      setSwapFee();
+      void setSwapFee();
     },
     {
       deep: true
@@ -846,7 +848,7 @@ export function useCloseLease() {
       route.matched[2].path === `/${RouteNames.LEASES}`
         ? `/${RouteNames.LEASES}`
         : `/${RouteNames.LEASES}/${route.params.id}`;
-    router.push(path);
+    void router.push(path);
   }
 
   return {

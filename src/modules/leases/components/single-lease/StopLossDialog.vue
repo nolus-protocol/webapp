@@ -156,7 +156,7 @@ function initLease() {
     lease.value = cached;
     displayData.value = leasesStore.getLeaseDisplayData(cached);
     if (cached.status === "closed") {
-      router.push(`/${RouteNames.LEASES}`);
+      void router.push(`/${RouteNames.LEASES}`);
     }
   }
 }
@@ -356,8 +356,8 @@ async function operation() {
         usedFee: _usedFee
       } = await leaseClient.simulateChangeClosePolicyTx(wallet, stopLoss, takeProfit, funds);
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-      balancesStore.fetchBalances();
-      historyStore.loadActivities();
+      void balancesStore.fetchBalances();
+      void historyStore.loadActivities();
       reload();
       dialog?.value?.close();
       onShowToast({

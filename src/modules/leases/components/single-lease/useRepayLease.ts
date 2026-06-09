@@ -63,7 +63,7 @@ export function useRepayLease() {
       lease.value = cached;
       displayData.value = leasesStore.getLeaseDisplayData(cached);
       if (cached.status === "closed") {
-        router.push(`/${RouteNames.LEASES}`);
+        void router.push(`/${RouteNames.LEASES}`);
       }
     }
   }
@@ -415,8 +415,8 @@ export function useRepayLease() {
         const { txBytes } = await leaseClient.simulateRepayLeaseTx(wallet, funds);
         await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
         leasesStore.markLeaseInProgress(lease.value.address, "repayment");
-        balancesStore.fetchBalances();
-        historyStore.loadActivities();
+        void balancesStore.fetchBalances();
+        void historyStore.loadActivities();
         reload();
         dialog?.value?.close();
         onShowToast({
@@ -534,7 +534,7 @@ export function useRepayLease() {
       route.matched[2].path === `/${RouteNames.LEASES}`
         ? `/${RouteNames.LEASES}`
         : `/${RouteNames.LEASES}/${route.params.id}`;
-    router.push(path);
+    void router.push(path);
   }
 
   return {

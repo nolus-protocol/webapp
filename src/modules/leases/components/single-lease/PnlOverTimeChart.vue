@@ -82,7 +82,7 @@ async function setData() {
 watch(
   () => [props.lease?.address, props.lease?.status, chartTimeRange.value],
   () => {
-    setData();
+    void setData();
   }
 );
 

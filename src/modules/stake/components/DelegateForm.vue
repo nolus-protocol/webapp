@@ -211,8 +211,8 @@ async function delegate() {
 
   await wallet.wallet?.broadcastTx(txBytes as Uint8Array);
   await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
-  historyStore.loadActivities();
-  router.push(`/${RouteNames.STAKE}`);
+  void historyStore.loadActivities();
+  void router.push(`/${RouteNames.STAKE}`);
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.delegate-successful")

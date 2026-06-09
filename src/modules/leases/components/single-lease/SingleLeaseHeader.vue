@@ -240,7 +240,7 @@ const stable = computed(() => {
 });
 
 function goBack() {
-  router.push(`/${RouteNames.LEASES}`);
+  void router.push(`/${RouteNames.LEASES}`);
 }
 
 const status = computed(() => {

@@ -57,7 +57,7 @@ const currency = computed(() => {
 watch(
   () => [wallet?.apr, props.amount, currency.value],
   () => {
-    loadData();
+    void loadData();
   },
   {
     immediate: true

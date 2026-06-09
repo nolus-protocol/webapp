@@ -136,7 +136,7 @@ watch(
   () => configStore.initialized,
   () => {
     if (configStore.initialized && !statsStore.initialized) {
-      statsStore.initialize();
+      void statsStore.initialize();
     }
   },
   {

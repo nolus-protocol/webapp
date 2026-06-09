@@ -213,7 +213,7 @@ async function onVoteEmit(vote: VoteOption) {
 
       await connectedWallet.broadcastTx(txBytes as Uint8Array);
       hide();
-      historyStore.loadActivities();
+      void historyStore.loadActivities();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.vote-successful", {

@@ -200,7 +200,7 @@ const isEmpty = computed(() => {
 watch(
   () => walletStore.wallet,
   async () => {
-    fetchDepositBalance();
+    void fetchDepositBalance();
   },
   {
     immediate: true
@@ -327,7 +327,7 @@ async function transferAmount() {
 
       await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
       await Promise.all([loadLPNCurrency(), balancesStore.fetchBalances()]);
-      historyStore.loadActivities();
+      void historyStore.loadActivities();
       onClose();
       onShowToast({
         type: ToastType.success,

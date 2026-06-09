@@ -144,7 +144,7 @@ async function requestClaim() {
       }
     }
 
-    historyStore.loadActivities();
+    void historyStore.loadActivities();
     await balancesStore.fetchBalances();
   } catch (error: unknown) {
     Logger.error(error);

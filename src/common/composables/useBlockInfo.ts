@@ -29,9 +29,9 @@ export function useBlockInfo() {
   let intervalId: ReturnType<typeof setInterval> | null = null;
 
   onMounted(() => {
-    setBlock();
-    setVersion();
-    intervalId = setInterval(setBlock, UPDATE_BLOCK_INTERVAL);
+    void setBlock();
+    void setVersion();
+    intervalId = setInterval(() => void setBlock(), UPDATE_BLOCK_INTERVAL);
   });
 
   onUnmounted(() => {

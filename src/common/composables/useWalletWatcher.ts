@@ -2,18 +2,18 @@ import { watch } from "vue";
 import { useConnectionStore } from "@/common/stores/connection";
 
 export function useWalletWatcher(
-  onConnect: (address: string) => void,
-  onDisconnect: () => void,
-  onReconnect?: () => void
+  onConnect: (address: string) => void | Promise<void>,
+  onDisconnect: () => void | Promise<void>,
+  onReconnect?: () => void | Promise<void>
 ): void {
   const connectionStore = useConnectionStore();
   watch(
     () => connectionStore.walletAddress,
     (newAddress, oldAddress) => {
       if (newAddress && newAddress !== oldAddress) {
-        onConnect(newAddress);
+        void onConnect(newAddress);
       } else if (!newAddress && oldAddress) {
-        onDisconnect();
+        void onDisconnect();
       }
     },
     { immediate: true }
@@ -24,7 +24,7 @@ export function useWalletWatcher(
       () => connectionStore.wsReconnectCount,
       () => {
         if (connectionStore.walletAddress) {
-          onReconnect();
+          void onReconnect();
         }
       }
     );

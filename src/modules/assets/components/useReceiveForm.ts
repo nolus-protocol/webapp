@@ -116,7 +116,7 @@ export function useReceiveForm() {
     [() => configStore.initialized, () => configStore.protocolFilter],
     () => {
       if (configStore.initialized) {
-        onInit();
+        void onInit();
       }
     },
     {
@@ -218,12 +218,14 @@ export function useReceiveForm() {
         if (validateAmount() && wallet.value?.length > 0) {
           clearTimeout(timeOut);
           tempRoute.value = null;
-          timeOut = setTimeout(async () => {
-            try {
-              tempRoute.value = await getRoute();
-            } catch (e: unknown) {
-              amountErrorMsg.value = i18n.t(classifyError(e));
-            }
+          timeOut = setTimeout(() => {
+            void (async () => {
+              try {
+                tempRoute.value = await getRoute();
+              } catch (e: unknown) {
+                amountErrorMsg.value = i18n.t(classifyError(e));
+              }
+            })();
           });
         }
       }
@@ -404,7 +406,7 @@ export function useReceiveForm() {
           await submit(wallets);
           await balancesStore.fetchBalances();
 
-          historyStore.loadActivities();
+          void historyStore.loadActivities();
           step.value = CONFIRM_STEP.SUCCESS;
           walletStore.history[id].historyData.route.activeStep = walletStore.history[id].historyData.route.steps.length;
           walletStore.history[id].historyData.routeDetails.activeStep =

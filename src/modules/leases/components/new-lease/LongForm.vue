@@ -242,7 +242,7 @@ watch(
   () => configStore.initialized,
   () => {
     if (configStore.initialized) {
-      onInit();
+      void onInit();
     }
   },
   {
@@ -264,7 +264,7 @@ watch(
       return;
     }
     if (await validateMinMaxValues(currency.value, coinList.value[selectedLoanCurrency.value])) {
-      calculate();
+      void calculate();
     } else {
       leaseApply.value = null;
     }
@@ -511,15 +511,15 @@ async function openLease() {
       });
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
-      balancesStore.fetchBalances();
-      historyStore.loadActivities();
+      void balancesStore.fetchBalances();
+      void historyStore.loadActivities();
       reload();
       onShowToast({
         type: ToastType.success,
         message: i18n.t("message.currently-opening")
       });
 
-      router.push(`/${RouteNames.LEASES}/${data.value}`);
+      void router.push(`/${RouteNames.LEASES}/${data.value}`);
     } catch (error: unknown) {
       amountErrorMsg.value = i18n.t(classifyError(error));
       Logger.error(error);

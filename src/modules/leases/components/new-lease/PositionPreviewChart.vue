@@ -65,7 +65,7 @@ watch(
     props.borrowAsset
   ],
   () => {
-    setStats();
+    void setStats();
     chart.value?.update();
   }
 );
