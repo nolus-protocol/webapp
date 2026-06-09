@@ -111,7 +111,8 @@ export default tseslint.config(
       "@typescript-eslint/no-misused-promises": ["error", { checksConditionals: true, checksVoidReturn: true }],
       "no-console": ["error", { allow: ["warn", "error"] }],
 
-      "vue/multi-word-component-names": "off"
+      "vue/multi-word-component-names": "off",
+      "vue/define-props-declaration": ["error", "type-based"]
     }
   },
 
