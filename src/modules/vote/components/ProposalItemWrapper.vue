@@ -22,7 +22,7 @@
 
 <script lang="ts" setup>
 import { type FinalTallyResult, type Proposal } from "@/modules/vote/types";
-import { computed, ref, type PropType } from "vue";
+import { computed, ref } from "vue";
 import { Dec } from "@keplr-wallet/unit";
 import { formatDateTime, TextFormat } from "@/common/utils";
 
@@ -30,20 +30,11 @@ import { Proposal as ProposalItem } from "web-components";
 import { parseMarkdownSafe } from "@/common/utils/sanitize";
 import { useI18n } from "vue-i18n";
 
-const props = defineProps({
-  state: {
-    type: Object as PropType<Proposal>,
-    required: true
-  },
-  bondedTokens: {
-    type: Object as PropType<Dec>,
-    required: true
-  },
-  quorum: {
-    type: Object as PropType<Dec>,
-    required: true
-  }
-});
+const props = defineProps<{
+  state: Proposal;
+  bondedTokens: Dec;
+  quorum: Dec;
+}>();
 const i18n = useI18n();
 
 const labels = ref({

@@ -248,4 +248,31 @@ describe("VoteDialog.vue", () => {
     expect(hoisted.loggerError).toHaveBeenCalled();
     wrapper.unmount();
   });
+
+  it("refreshes quorum when quorumTokens resolves after the dialog is open", async () => {
+    const wrapper = mount(VoteDialog, {
+      props: {
+        proposal: makeProposal(),
+        bondedTokens: new Dec("1000000"),
+        quorumTokens: new Dec("0")
+      },
+      global: {
+        mocks: { $t: (k: string) => k },
+        provide: { onShowToast: hoisted.onShowToast }
+      }
+    });
+    await wrapper.vm.$nextTick();
+    expect(quorumValue(wrapper)).toContain("0.00");
+
+    await wrapper.setProps({ quorumTokens: new Dec("0.334") });
+    await wrapper.vm.$nextTick();
+    expect(quorumValue(wrapper)).toContain("33.40");
+
+    wrapper.unmount();
+  });
 });
+
+function quorumValue(wrapper: ReturnType<typeof factory>): string {
+  const block = wrapper.findAll(".flex.gap-3 > div").find((b) => b.text().startsWith("message.quorum"));
+  return block?.text() ?? "";
+}

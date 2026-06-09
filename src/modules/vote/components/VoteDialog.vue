@@ -144,15 +144,13 @@ const hasDelegatedTokens = computed(() => {
   return totalStaked.isPositive();
 });
 
-// Reacts to: props.proposal (immediate). The quorum line also reads
-// props.quorumTokens, which is deliberately NOT in the dependency set — it is the
-// load-once-stable chain quorum param, so re-deriving only on a proposal change is
-// intentional (a fresh quorumTokens arriving after a dialog is already open would
-// not refresh quorum; tracked in #231).
+// Reacts to: props.proposal + props.quorumTokens (immediate). quorumTokens is the
+// load-once-stable chain quorum param but stays in the dependency set so a tally
+// fetch resolving after the dialog is already open refreshes quorum (#231).
 // Idempotency: voting-period flag, description, and quorum are pure derivations of
 // the current props; safe on the immediate run and re-fires.
 watch(
-  () => props.proposal,
+  () => [props.proposal, props.quorumTokens],
   async () => {
     isVotingPeriod.value = (props.proposal.status as ProposalStatus) === ProposalStatus.PROPOSAL_STATUS_VOTING_PERIOD;
     description.value = parseMarkdownSafe(props.proposal.summary);
