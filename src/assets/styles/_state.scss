@@ -6,6 +6,7 @@
   border-radius: 4px;
   width: 100%;
   overflow: hidden;
+  contain: layout paint;
 
   &::before {
     content: "";
@@ -16,6 +17,16 @@
     animation: skeleton 800ms infinite;
     background: rgb(201 201 201 / 15%);
     filter: blur(8px);
+    will-change: left;
+  }
+}
+
+@keyframes skeleton {
+  0% {
+    left: 0;
+  }
+  100% {
+    left: calc(100% - 20px);
   }
 }
 

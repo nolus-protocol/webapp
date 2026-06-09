@@ -237,6 +237,8 @@ defineProps<{
     animation: blink 7s linear 3s infinite;
     transform-origin: center;
     transform-box: border-box;
+    will-change: transform;
+    contain: layout paint;
   }
 }
 
