@@ -200,7 +200,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         dot
           .attr("cx", xPixel)
           .attr("cy", yScale.apply(closestData.amount))
-          .attr("fill", closestData.amount >= 0 ? "#19A96C" : "#DF294D")
+          .attr(
+            "fill",
+            closestData.amount >= 0
+              ? styles.getPropertyValue("--color-icon-success").trim()
+              : styles.getPropertyValue("--color-icon-error").trim()
+          )
           .style("display", null);
 
         tooltip.html(`<strong>${i18n.t("message.amount")}:</strong> ${formatUsd(closestData.amount)}`);
@@ -234,6 +239,6 @@ function getClosestDataPoint(cPosition: number) {
 </script>
 <style lang="scss" scoped>
 .btn-gradient {
-  background: linear-gradient(270deg, #19a96c 0%, #df294d 100%);
+  background: linear-gradient(270deg, var(--color-icon-success) 0%, var(--color-icon-error) 100%);
 }
 </style>

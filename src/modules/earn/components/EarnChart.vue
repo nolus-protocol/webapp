@@ -30,6 +30,8 @@ import { Dec, Int } from "@keplr-wallet/unit";
 import { useConfigStore } from "@/common/stores/config";
 import { useEarnStore } from "@/common/stores/earn";
 
+const styles = window.getComputedStyle(document.documentElement);
+
 type ChartData = { amount: number; date: number };
 
 const data = ref<ChartData[]>([]);
@@ -97,7 +99,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       lineY(data.value, {
         x: "date",
         y: "amount",
-        stroke: "#3470E2",
+        stroke: styles.getPropertyValue("--color-primary-default").trim(),
         curve: "basis",
         clip: "frame"
       })

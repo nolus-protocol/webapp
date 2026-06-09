@@ -23,11 +23,11 @@ const props = defineProps<{
   labels: Record<string, string>;
 }>();
 
-const colors: Record<string, { bg: string; before: string; hex: string }> = {
-  yes_count: { bg: "bg-[#1AB171]", before: "before:bg-[#1AB171]", hex: "#1AB171" },
-  abstain_count: { bg: "bg-[#C1CAD7]", before: "before:bg-[#C1CAD7]", hex: "#C1CAD7" },
-  no_count: { bg: "bg-[#E42929]", before: "before:bg-[#E42929]", hex: "#E42929" },
-  no_with_veto_count: { bg: "bg-[#082D63]", before: "before:bg-[#082D63]", hex: "#082D63" }
+const colors: Record<string, { bg: string; before: string; text: string }> = {
+  yes_count: { bg: "bg-success-100", before: "before:bg-success-100", text: "text-success-100" },
+  abstain_count: { bg: "bg-neutral-200", before: "before:bg-neutral-200", text: "text-neutral-200" },
+  no_count: { bg: "bg-danger-100", before: "before:bg-danger-100", text: "text-danger-100" },
+  no_with_veto_count: { bg: "bg-blue-900", before: "before:bg-blue-900", text: "text-blue-900" }
 };
 
 const barClasses =
@@ -47,7 +47,7 @@ const segments = computed(() =>
 );
 
 function tooltipContent(segment: { key: string; label: string; percent: string }) {
-  const color = colors[segment.key].hex;
-  return `<span style="color:${color}">${segment.label} ${segment.percent}%</span>`;
+  const textClass = colors[segment.key].text;
+  return `<span class="${textClass}">${segment.label} ${segment.percent}%</span>`;
 }
 </script>

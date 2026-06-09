@@ -125,7 +125,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     .attr("x2", chartWidth)
     .style("display", "none");
 
-  const baseColor = "#3470E2";
+  const baseColor = styles.getPropertyValue("--color-primary-default").trim();
   const hoverColor = color(baseColor)?.brighter(0.4)?.formatHex() ?? baseColor;
 
   const rects = select(plotChart).select('g[aria-label="bar"]').selectAll("path");

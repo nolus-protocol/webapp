@@ -28,15 +28,15 @@
         >
           <path
             :d="arcPath(0, yellowEndAngle)"
+            class="stroke-red-500"
             fill="none"
-            stroke="#DF294D"
             stroke-width="12"
           />
 
           <path
             :d="arcPath(yellowEndAngle, greenEndAngle)"
+            class="stroke-yellow-200"
             fill="none"
-            stroke="#FFBF34"
             stroke-width="12"
           />
 
@@ -44,8 +44,8 @@
           <path
             v-if="greenEndAngle > 0"
             :d="arcPath(greenEndAngle, 180)"
+            class="stroke-green-400"
             fill="none"
-            stroke="#19A96C"
             stroke-width="12"
             stroke-linecap="round"
           />

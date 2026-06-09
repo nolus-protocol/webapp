@@ -37,6 +37,19 @@ if grep -rnE '(export )?(class|const|function|type|interface) [A-Za-z0-9_]*(Mana
   report "parasite-word abstraction — rename to an intent-revealing name (no Manager/Helper/Util(s)/Handler suffix)"
 fi
 
+# Raw hex colors in .vue: markup and chart code must reference the web-components
+# design tokens (--color-* / Tailwind utilities) instead of literal hex that
+# duplicates a token, so light/dark theming cannot silently diverge from the
+# palette. See ~/.claude/kit tailwind-style "No magic colors / sizes". Markup uses
+# bg-/text-<token> or var(--color-…); D3/Plot/canvas charts read the token at
+# render time via getComputedStyle(...).getPropertyValue('--color-…'). 8-digit
+# (alpha) hex is caught too. TermsDialog.vue (static legal-text + link colors) is
+# a pre-existing exception owned by a separate issue.
+if grep -rnE '#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?\b' --include='*.vue' "$src_dir" \
+     | grep -v '/TermsDialog\.vue:'; then
+  report "raw hex color in .vue — use a --color-* design token (bg-/text-<token>, var(--color-…), or getPropertyValue('--color-…')) instead"
+fi
+
 if [ "$fail" -ne 0 ]; then
   echo "TypeScript style checks FAILED." >&2
   exit 1
