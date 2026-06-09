@@ -107,6 +107,8 @@ export default tseslint.config(
       eqeqeq: ["error", "always", { null: "ignore" }],
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/consistent-type-imports": ["error", { fixStyle: "separate-type-imports" }],
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": ["error", { checksConditionals: true, checksVoidReturn: true }],
       "no-console": ["error", { allow: ["warn", "error"] }],
 
       "vue/multi-word-component-names": "off"

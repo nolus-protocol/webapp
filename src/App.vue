@@ -37,7 +37,7 @@ BackendApi.onRateLimited = () => {
 };
 
 onMounted(() => {
-  initWorker();
+  void initWorker();
   const language = getCookie(LANGUAGE_KEY);
   if (!language) {
     const locale = i18n.locale.value;

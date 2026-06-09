@@ -23,5 +23,5 @@ export async function connectSolflare(this: Store) {
   this.wallet = nolusWalletOfflineSigner;
   applyNolusWalletOverrides(this.wallet);
 
-  IntercomService.load(this.wallet.address, "solflare");
+  void IntercomService.load(this.wallet.address, "solflare");
 }

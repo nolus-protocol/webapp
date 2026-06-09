@@ -149,7 +149,7 @@ export function useSendForm() {
     [() => configStore.initialized, () => configStore.protocolFilter],
     () => {
       if (configStore.initialized) {
-        onInit();
+        void onInit();
       }
     },
     {
@@ -240,12 +240,14 @@ export function useSendForm() {
         if (validateAmount() && wallet.value?.length > 0) {
           clearTimeout(timeOut);
           tempRoute.value = null;
-          timeOut = setTimeout(async () => {
-            try {
-              tempRoute.value = await getRoute();
-            } catch (e: unknown) {
-              amountErrorMsg.value = i18n.t(classifyError(e));
-            }
+          timeOut = setTimeout(() => {
+            void (async () => {
+              try {
+                tempRoute.value = await getRoute();
+              } catch (e: unknown) {
+                amountErrorMsg.value = i18n.t(classifyError(e));
+              }
+            })();
           });
         }
       }
@@ -408,14 +410,14 @@ export function useSendForm() {
     if (network.value.native) {
       return onSubmitNative();
     }
-    onSubmitCosmos();
+    void onSubmitCosmos();
   }
 
   function onSubmitNative() {
     const isValid = validateAmount() && validateAddress(receiverAddress.value).length === 0;
 
     if (isValid) {
-      onSwap();
+      void onSwap();
     }
   }
 
@@ -502,7 +504,7 @@ export function useSendForm() {
         }
       }
 
-      historyStore.loadActivities();
+      void historyStore.loadActivities();
       onClose();
     } catch (e: unknown) {
       amountErrorMsg.value = i18n.t(classifyError(e));
@@ -538,7 +540,7 @@ export function useSendForm() {
           await submit(wallets);
           await balancesStore.fetchBalances();
 
-          historyStore.loadActivities();
+          void historyStore.loadActivities();
 
           step.value = CONFIRM_STEP.SUCCESS;
           walletStore.history[id].historyData.route.activeStep = walletStore.history[id].historyData.route.steps.length;

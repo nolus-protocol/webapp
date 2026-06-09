@@ -64,7 +64,7 @@ const emitter = defineEmits(["click"]);
 
 function copyHash() {
   if (props.transaction) {
-    TextFormat.copyToClipboard(props.transaction?.tx_hash);
+    void TextFormat.copyToClipboard(props.transaction?.tx_hash);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-copied-successfully") });
   }
   popoverRef.value?.close();
@@ -79,7 +79,7 @@ function copyTxRaw() {
     }
 
     const data = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));
-    TextFormat.copyToClipboard(data);
+    void TextFormat.copyToClipboard(data);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-raw-copied-successfully") });
   }
   popoverRef.value?.close();

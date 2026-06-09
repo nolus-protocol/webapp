@@ -131,7 +131,7 @@ async function requestClaim() {
     await wallet.wallet.broadcastTx(txBytes as Uint8Array);
 
     await Promise.all([stakingStore.fetchPositions(), balancesStore.fetchBalances()]);
-    historyStore.loadActivities();
+    void historyStore.loadActivities();
     onShowToast({
       type: ToastType.success,
       message: i18n.t("message.rewards-claimed-successful")

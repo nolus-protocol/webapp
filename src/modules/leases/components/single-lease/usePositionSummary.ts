@@ -335,7 +335,7 @@ export function usePositionSummary(props: PositionSummaryProps) {
         const takeProfitValue = props.lease.close_policy?.take_profit;
         const { txBytes } = await leaseClient.simulateChangeClosePolicyTx(wallet, null, takeProfitValue);
         await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-        historyStore.loadActivities();
+        void historyStore.loadActivities();
         reload();
         onShowToast({
           type: ToastType.success,
@@ -365,7 +365,7 @@ export function usePositionSummary(props: PositionSummaryProps) {
         const stopLossValue = props.lease.close_policy?.stop_loss;
         const { txBytes } = await leaseClient.simulateChangeClosePolicyTx(wallet, stopLossValue, null);
         await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-        historyStore.loadActivities();
+        void historyStore.loadActivities();
         reload();
         onShowToast({
           type: ToastType.success,
@@ -380,11 +380,11 @@ export function usePositionSummary(props: PositionSummaryProps) {
   }
 
   function onEditStopLoss() {
-    router.push({ path: `/${RouteNames.LEASES}/${props.lease?.address}/${SingleLeaseDialog.STOP_LOSS}` });
+    void router.push({ path: `/${RouteNames.LEASES}/${props.lease?.address}/${SingleLeaseDialog.STOP_LOSS}` });
   }
 
   function onEditTakeProfit() {
-    router.push({ path: `/${RouteNames.LEASES}/${props.lease?.address}/${SingleLeaseDialog.TAKE_PROFIT}` });
+    void router.push({ path: `/${RouteNames.LEASES}/${props.lease?.address}/${SingleLeaseDialog.TAKE_PROFIT}` });
   }
 
   return {

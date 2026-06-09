@@ -179,7 +179,7 @@ const status = computed(() => {
 
 function copyHash() {
   if (data.value) {
-    TextFormat.copyToClipboard(data.value.tx_hash);
+    void TextFormat.copyToClipboard(data.value.tx_hash);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-copied-successfully") });
   }
 }
@@ -193,7 +193,7 @@ function copyTxRaw() {
     }
 
     const params = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));
-    TextFormat.copyToClipboard(params);
+    void TextFormat.copyToClipboard(params);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-raw-copied-successfully") });
   }
 }

@@ -57,7 +57,7 @@ export function useLeaseOpen() {
 
   const handleParentClick = (index: number) => {
     const tab = tabs[index];
-    router.push({ path: `/${RouteNames.LEASES}/open/${tab.action}` });
+    void router.push({ path: `/${RouteNames.LEASES}/open/${tab.action}` });
   };
 
   function onDrag(event: number) {

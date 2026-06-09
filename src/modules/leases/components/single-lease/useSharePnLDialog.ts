@@ -151,14 +151,14 @@ export function useSharePnLDialog() {
 
   function setBackgroundIndex(index: number) {
     imageIndex.value = index;
-    generateCanvas();
+    void generateCanvas();
   }
 
   watch([showPnlAmount, showPrice, showPositionSize], () => {
-    generateCanvas();
+    void generateCanvas();
     for (const key in canvasRefs.value) {
       const img = images[key as keyof typeof images];
-      generateSmallCanvas(canvasRefs.value[key], img as string);
+      void generateSmallCanvas(canvasRefs.value[key], img as string);
     }
   });
 
@@ -445,22 +445,24 @@ export function useSharePnLDialog() {
     }
 
     const canvasElement = canvas.value as HTMLCanvasElement;
-    canvasElement.toBlob(async (blob) => {
-      try {
-        const filesArray = [
-          new File([blob as Blob], "position.png", {
-            type: blob?.type,
-            lastModified: new Date().getTime()
-          })
-        ];
-        const shareData = {
-          files: filesArray
-        };
+    canvasElement.toBlob((blob) => {
+      void (async () => {
+        try {
+          const filesArray = [
+            new File([blob as Blob], "position.png", {
+              type: blob?.type,
+              lastModified: new Date().getTime()
+            })
+          ];
+          const shareData = {
+            files: filesArray
+          };
 
-        await navigator.share(shareData);
-      } catch (error) {
-        Logger.error(error);
-      }
+          await navigator.share(shareData);
+        } catch (error) {
+          Logger.error(error);
+        }
+      })();
     }, "image/png");
   }
 
@@ -469,11 +471,11 @@ export function useSharePnLDialog() {
     leaseDisplayData = displayData ?? null;
     dialog?.value?.show();
     await nextTick();
-    generateCanvas();
+    void generateCanvas();
 
     for (const key in canvasRefs.value) {
       const img = images[key as keyof typeof images];
-      generateSmallCanvas(canvasRefs.value[key], img as string);
+      void generateSmallCanvas(canvasRefs.value[key], img as string);
     }
   };
 

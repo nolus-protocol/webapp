@@ -166,7 +166,7 @@ export function useLeases() {
 
           if (mobile) {
             const navigate = () => {
-              router.push(`/${RouteNames.LEASES}/${item.address}`);
+              void router.push(`/${RouteNames.LEASES}/${item.address}`);
             };
             const isOpened = item.status === "opened";
 
@@ -233,7 +233,7 @@ export function useLeases() {
                 subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start",
                 variant: "left",
                 click: () => {
-                  router.push(`/${RouteNames.LEASES}/${item.address}`);
+                  void router.push(`/${RouteNames.LEASES}/${item.address}`);
                 },
                 class: "text-typography-link font-semibold flex-[1.1_1_0%] cursor-pointer"
               },
@@ -293,9 +293,9 @@ export function useLeases() {
   });
 
   onMounted(() => {
-    leasesStore.refresh();
+    void leasesStore.refresh();
     timeOut = setInterval(() => {
-      leasesStore.refresh();
+      void leasesStore.refresh();
     }, UPDATE_LEASES);
   });
 
@@ -304,8 +304,8 @@ export function useLeases() {
   });
 
   function reload() {
-    leasesStore.refresh();
-    balancesStore.fetchBalances();
+    void leasesStore.refresh();
+    void balancesStore.fetchBalances();
   }
 
   function getTitle(item: LeaseInfo) {

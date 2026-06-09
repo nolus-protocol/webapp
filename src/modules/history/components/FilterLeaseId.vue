@@ -135,7 +135,7 @@ function setupObserver(): void {
     (entries) => {
       const entry = entries[0];
       if (entry.isIntersecting) {
-        loadMore();
+        void loadMore();
       }
     },
     {
@@ -169,11 +169,13 @@ watch(
   () => search.value,
   async () => {
     clearTimeout(timer);
-    timer = setTimeout(async () => {
-      skip = 0;
-      positions.value = [];
-      loaded.value = false;
-      await loadMore();
+    timer = setTimeout(() => {
+      void (async () => {
+        skip = 0;
+        positions.value = [];
+        loaded.value = false;
+        await loadMore();
+      })();
     }, throttle);
   }
 );

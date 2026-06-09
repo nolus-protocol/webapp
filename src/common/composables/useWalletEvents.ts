@@ -42,6 +42,7 @@ export function useWalletEvents(): void {
   }
 
   const updateKeplr = createKeystoreListener(() => wallet.CONNECT_KEPLR());
+  const onKeystoreChange = () => void updateKeplr();
 
   async function loadNetwork() {
     try {
@@ -65,13 +66,13 @@ export function useWalletEvents(): void {
       if (wallet.wallet?.address) {
         await connectionStore.connectWallet(wallet.wallet.address);
       }
-      window.addEventListener("keplr_keystorechange", updateKeplr);
-      wallet.LOAD_APR();
+      window.addEventListener("keplr_keystorechange", onKeystoreChange);
+      void wallet.LOAD_APR();
     },
     { immediate: true }
   );
 
   onUnmounted(() => {
-    window.removeEventListener("keplr_keystorechange", updateKeplr);
+    window.removeEventListener("keplr_keystorechange", onKeystoreChange);
   });
 }

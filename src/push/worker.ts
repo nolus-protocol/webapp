@@ -140,7 +140,7 @@ async function parseNotification(payload: IObjectKeys): Promise<[string, Notific
   return ["Notification", notification];
 }
 
-self.addEventListener("push", async (event) => {
+self.addEventListener("push", (event) => {
   event.waitUntil(handlePushEvent(event));
 });
 
@@ -166,7 +166,7 @@ self.addEventListener("pushsubscriptionchange", (event: ExtendableEvent) => {
 });
 
 self.addEventListener("install", () => {
-  self.skipWaiting();
+  void self.skipWaiting();
 });
 
 self.addEventListener("activate", (evt) => {

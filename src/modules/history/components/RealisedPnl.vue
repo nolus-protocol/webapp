@@ -114,7 +114,7 @@ watch(
 );
 
 onMounted(() => {
-  setStats();
+  void setStats();
 });
 
 async function setStats() {

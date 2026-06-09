@@ -130,7 +130,7 @@ function onClickDisconnect() {
 }
 
 async function onCopy() {
-  TextFormat.copyToClipboard(wallet?.wallet?.address ?? "");
+  void TextFormat.copyToClipboard(wallet?.wallet?.address ?? "");
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.address-coppied")

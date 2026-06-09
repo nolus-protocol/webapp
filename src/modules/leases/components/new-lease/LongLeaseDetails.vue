@@ -171,7 +171,7 @@ onUnmounted(() => {
 watch(
   () => [props.lease],
   () => {
-    setSwapFee();
+    void setSwapFee();
   }
 );
 
@@ -316,44 +316,46 @@ async function setSwapFee() {
   clearTimeout(time);
   const lease = props.lease;
   if (lease) {
-    time = setTimeout(async () => {
-      const currency = downPaymentAsset.value;
-      const [_, p] = asset.value.key.split("@");
+    time = setTimeout(() => {
+      void (async () => {
+        const currency = downPaymentAsset.value;
+        const [_, p] = asset.value.key.split("@");
 
-      const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-        props.downpaymenAmount,
-        currency.ibcData,
-        currency.decimal_digits
-      ).amount.toString();
+        const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
+          props.downpaymenAmount,
+          currency.ibcData,
+          currency.decimal_digits
+        ).amount.toString();
 
-      const lpn = getLpnByProtocol(p);
-      let amountIn = 0;
-      let amountOut = 0;
-      await Promise.all([
-        SkipRouter.getRoute(currency.ibcData, asset.value.ibcData, microAmount).then((data) => {
-          amountIn += Number(data.usd_amount_in ?? 0);
-          amountOut += Number(data.usd_amount_out ?? 0);
+        const lpn = getLpnByProtocol(p);
+        let amountIn = 0;
+        let amountOut = 0;
+        await Promise.all([
+          SkipRouter.getRoute(currency.ibcData, asset.value.ibcData, microAmount).then((data) => {
+            amountIn += Number(data.usd_amount_in ?? 0);
+            amountOut += Number(data.usd_amount_out ?? 0);
 
-          return Number(data?.swap_price_impact_percent ?? 0);
-        }),
-        SkipRouter.getRoute(lpn.ibcData, asset.value.ibcData, lease.borrow.amount).then((data) => {
-          amountIn += Number(data.usd_amount_in ?? 0);
-          amountOut += Number(data.usd_amount_out ?? 0);
+            return Number(data?.swap_price_impact_percent ?? 0);
+          }),
+          SkipRouter.getRoute(lpn.ibcData, asset.value.ibcData, lease.borrow.amount).then((data) => {
+            amountIn += Number(data.usd_amount_in ?? 0);
+            amountOut += Number(data.usd_amount_out ?? 0);
 
-          return Number(data?.swap_price_impact_percent ?? 0);
-        })
-      ]);
-      const out_a = Math.max(amountOut, amountIn);
-      const in_a = Math.min(amountOut, amountIn);
+            return Number(data?.swap_price_impact_percent ?? 0);
+          })
+        ]);
+        const out_a = Math.max(amountOut, amountIn);
+        const in_a = Math.min(amountOut, amountIn);
 
-      const diff = out_a - in_a;
-      swapStableFee.value = diff;
-      let fee = 0;
+        const diff = out_a - in_a;
+        swapStableFee.value = diff;
+        let fee = 0;
 
-      if (in_a > 0) {
-        fee = diff / in_a;
-      }
-      swapFee.value = fee;
+        if (in_a > 0) {
+          fee = diff / in_a;
+        }
+        swapFee.value = fee;
+      })();
     }, timeOut);
   }
 }

@@ -68,5 +68,5 @@ export async function connectKeplrLike(
     }
   }
 
-  IntercomService.load(store.wallet?.address as string, label.toLowerCase());
+  void IntercomService.load(store.wallet?.address as string, label.toLowerCase());
 }

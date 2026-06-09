@@ -163,14 +163,14 @@ watch(
       skip = 0;
       loans.value = [];
       loaded.value = false;
-      loadMore();
+      void loadMore();
     }
   },
   { immediate: true }
 );
 
 function goBack() {
-  router.push({ path: `/${RouteNames.HISTORY}` });
+  void router.push({ path: `/${RouteNames.HISTORY}` });
 }
 
 async function loadMore() {

@@ -61,7 +61,7 @@ export async function connectLedger(this: Store, payload: { isBluetooth?: boolea
       }
     }
 
-    IntercomService.load(this.wallet?.address as string, "ledger");
+    void IntercomService.load(this.wallet?.address as string, "ledger");
   } finally {
     clearTimeout(to);
   }

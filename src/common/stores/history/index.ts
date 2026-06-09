@@ -413,7 +413,7 @@ export const useHistoryStore = defineStore("history", () => {
   // connected will still load data (the watcher fires with current value).
   useWalletWatcher((addr) => {
     setAddress(addr);
-    loadActivities();
+    void loadActivities();
   }, cleanup);
 
   // ==========================================================================

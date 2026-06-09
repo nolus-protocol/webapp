@@ -82,7 +82,7 @@ watch(
   () => configStore.initialized,
   () => {
     if (configStore.initialized) {
-      onInit();
+      void onInit();
     }
   },
   {

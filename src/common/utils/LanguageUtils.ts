@@ -37,5 +37,5 @@ export function getLanguage(): (typeof languages)[keyof typeof languages] {
  * Store language preference in IndexedDB (for service worker/push notifications)
  */
 export function setLanguageDb(lang: string): void {
-  idbPut(LANGUAGE_KEY, lang);
+  void idbPut(LANGUAGE_KEY, lang);
 }

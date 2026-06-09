@@ -100,7 +100,7 @@ function close() {
 }
 
 async function onCopy() {
-  TextFormat.copyToClipboard(wallet?.wallet?.address ?? "");
+  void TextFormat.copyToClipboard(wallet?.wallet?.address ?? "");
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.address-coppied")
@@ -110,7 +110,7 @@ async function onCopy() {
 async function onClickDisconnect() {
   try {
     close();
-    router.push({ name: RouteNames.DASHBOARD });
+    void router.push({ name: RouteNames.DASHBOARD });
     WalletStorage.eraseWalletInfo();
     wallet[WalletActions.DISCONNECT]();
     connectionStore.disconnectWallet();
