@@ -173,7 +173,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, watch } from "vue";
 import {
   AdvancedFormControl,
   Button,
@@ -196,27 +196,18 @@ import { usePricesStore } from "@/common/stores/prices";
 import { useHistoryStore } from "@/common/stores/history";
 import { classifyError, getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
-import { getDownpaymentRange } from "@/common/utils/LeaseConfigService";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
 import type { ExternalCurrency, IObjectKeys } from "@/common/types";
-import {
-  INTEREST_DECIMALS,
-  MAX_POSITION,
-  MIN_POSITION,
-  PERCENT,
-  PERMILLE,
-  POSITIONS,
-  SORT_LEASE,
-  WASM_EVENTS
-} from "@/config/global";
+import { INTEREST_DECIMALS, MAX_POSITION, MIN_POSITION, POSITIONS, SORT_LEASE, WASM_EVENTS } from "@/config/global";
 import type { AssetBalance } from "@/common/stores/wallet/types";
-import { Dec, Int } from "@keplr-wallet/unit";
+import { Dec } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { useI18n } from "vue-i18n";
 import type { NolusWallet } from "@nolus/nolusjs";
-import { CurrencyUtils, NolusClient } from "@nolus/nolusjs";
-import { Leaser, type LeaseApply } from "@nolus/nolusjs/build/contracts";
+import { NolusClient } from "@nolus/nolusjs";
+import { Leaser } from "@nolus/nolusjs/build/contracts";
 import { useRouter } from "vue-router";
+import { useLeaseOpen } from "./useLeaseOpen";
 
 const activeTabIdx = 1;
 const walletStore = useWalletStore();
@@ -229,16 +220,23 @@ const router = useRouter();
 const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const reload = inject("reload", () => {});
 
-const selectedCurrency = ref(0);
-const selectedLoanCurrency = ref(0);
-const isLoading = ref(false);
-const isDisabled = ref(false);
-
-const amount = ref("");
-const amountErrorMsg = ref("");
-const errorInsufficientBalance = computed(() => amountErrorMsg.value === i18n.t("message.invalid-balance-big"));
-const ltd = ref((MAX_POSITION / PERCENT) * PERMILLE);
-const leaseApply = ref<LeaseApply | null>();
+const {
+  selectedCurrency,
+  selectedLoanCurrency,
+  isLoading,
+  isDisabled,
+  amount,
+  amountErrorMsg,
+  ltd,
+  leaseApply,
+  errorInsufficientBalance,
+  handleAmountChange,
+  handleParentClick,
+  onDrag,
+  validateMinMaxValues,
+  validateAmountAgainstBalance,
+  isDownPaymentAmountValid
+} = useLeaseOpen();
 
 watch(
   () => configStore.initialized,
@@ -261,11 +259,11 @@ watch(
   () => [selectedCurrency.value, amount.value, selectedLoanCurrency.value, ltd.value],
   async () => {
     amountErrorMsg.value = "";
-    if (!validateAmountAgainstBalance()) {
+    if (!validateAmountAgainstBalance(currency.value)) {
       leaseApply.value = null;
       return;
     }
-    if (await validateMinMaxValues()) {
+    if (await validateMinMaxValues(currency.value, coinList.value[selectedLoanCurrency.value])) {
       calculate();
     } else {
       leaseApply.value = null;
@@ -397,20 +395,6 @@ const calculatedBalance = computed(() => {
   return formatDecAsUsd(stable);
 });
 
-function handleAmountChange(event: string) {
-  amount.value = event;
-}
-
-const handleParentClick = (index: number) => {
-  const tab = tabs[index];
-  router.push({ path: `/${RouteNames.LEASES}/open/${tab.action}` });
-};
-
-function onDrag(event: number) {
-  const pos = new Dec(event / PERCENT);
-  ltd.value = Number(pos.mul(new Dec(PERMILLE)).truncate().toString());
-}
-
 // For a Short protocol the contract's `leaseTicker` is the stable currency the
 // position is denominated in (e.g., USDC_NOBLE) — NOT the user's down payment.
 // It's exposed in the protocol currencies list with group="lease" (the only one
@@ -422,122 +406,6 @@ async function resolveShortLeaseTicker(protocol: string): Promise<string> {
     throw new Error(`Short protocol ${protocol} has no stable (group="lease") currency`);
   }
   return stable.ticker;
-}
-
-async function validateMinMaxValues(): Promise<boolean> {
-  try {
-    let isValid = true;
-    const selectedDownPaymentCurrency = currency.value;
-    const selectedCurrency = coinList.value[selectedLoanCurrency.value];
-
-    const downPaymentAmount = amount.value;
-    const currentBalance = selectedDownPaymentCurrency;
-
-    const [c, p] = selectedCurrency.key.split("@");
-    const range = (await getDownpaymentRange(p))[c];
-
-    if (currentBalance) {
-      if (downPaymentAmount || downPaymentAmount !== "") {
-        const priceData = pricesStore.prices[selectedDownPaymentCurrency.key as string];
-        const priceAmount = priceData?.price ?? "0";
-
-        const max = new Dec(range?.max ?? 0);
-        const min = new Dec(range?.min ?? 0);
-
-        const leaseMax = max.quo(new Dec(priceAmount));
-        const leaseMin = min.quo(new Dec(priceAmount));
-
-        const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-          downPaymentAmount,
-          currentBalance.ibcData,
-          currentBalance.decimal_digits
-        );
-        const balance = CurrencyUtils.calculateBalance(
-          priceAmount,
-          downPaymentAmountInMinimalDenom,
-          currentBalance.decimal_digits
-        ).toDec();
-
-        if (balance.lt(min)) {
-          amountErrorMsg.value = i18n.t("message.lease-min-error", {
-            minAmount: formatTokenBalance(leaseMin),
-            maxAmount: formatTokenBalance(leaseMax),
-            symbol: selectedDownPaymentCurrency.shortName
-          });
-          isValid = false;
-        }
-
-        if (balance.gt(max)) {
-          amountErrorMsg.value = i18n.t("message.lease-max-error", {
-            minAmount: formatTokenBalance(leaseMin),
-            maxAmount: formatTokenBalance(leaseMax),
-            symbol: selectedDownPaymentCurrency.shortName
-          });
-          isValid = false;
-        }
-      }
-    }
-
-    return isValid;
-  } catch {
-    amountErrorMsg.value = i18n.t("message.integer-out-of-range");
-    return false;
-  }
-}
-
-// Balance/amount validation that must run reactively (on every input change),
-// not only on submit. The contract quote in calculate() cannot stand in for it:
-// a zero-balance collateral has no denom, so the quote attempt throws and the
-// catch surfaces a generic "Unexpected error" instead of "Insufficient balance".
-function validateAmountAgainstBalance(): boolean {
-  const selectedDownPaymentCurrency = currency.value;
-  const downPaymentAmount = amount.value;
-
-  if (!selectedDownPaymentCurrency || !downPaymentAmount) {
-    return true;
-  }
-
-  const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
-    downPaymentAmount,
-    "",
-    selectedDownPaymentCurrency.decimal_digits
-  );
-
-  const isLowerThanOrEqualsToZero = new Dec(downPaymentAmountInMinimalDenom.amount || "0").lte(new Dec(0));
-  const isGreaterThanWalletBalance = new Int(downPaymentAmountInMinimalDenom.amount.toString() || "0").gt(
-    new Int(selectedDownPaymentCurrency?.balance?.amount ?? "0")
-  );
-
-  if (isLowerThanOrEqualsToZero) {
-    amountErrorMsg.value = i18n.t("message.invalid-balance-low");
-    return false;
-  }
-
-  if (isGreaterThanWalletBalance) {
-    amountErrorMsg.value = i18n.t("message.invalid-balance-big");
-    return false;
-  }
-
-  return true;
-}
-
-function isDownPaymentAmountValid() {
-  amountErrorMsg.value = "";
-
-  if (!amount.value) {
-    amountErrorMsg.value = i18n.t("message.missing-amount");
-    return false;
-  }
-
-  if (!validateAmountAgainstBalance()) {
-    return false;
-  }
-
-  if (!validateMinMaxValues()) {
-    return false;
-  }
-
-  return true;
 }
 
 async function calculate() {
@@ -595,7 +463,7 @@ async function onOpenLease() {
 
 async function openLease() {
   const wallet = walletStore.wallet as NolusWallet;
-  if (wallet && isDownPaymentAmountValid()) {
+  if (wallet && isDownPaymentAmountValid(currency.value, coinList.value[selectedLoanCurrency.value])) {
     try {
       isLoading.value = true;
 
