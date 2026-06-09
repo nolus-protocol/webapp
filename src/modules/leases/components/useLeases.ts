@@ -1,0 +1,469 @@
+import { type ButtonProps, Button, type TableColumnProps, type TableRowItemProps } from "web-components";
+
+import { RouteNames } from "@/router";
+
+import { buildLeaseSizeCell } from "./leaseSize";
+
+import { useI18n } from "vue-i18n";
+import { computed, defineComponent, h, markRaw, onMounted, onUnmounted, provide, ref, watch } from "vue";
+import { isMobile, Logger, WalletStorage } from "@/common/utils";
+import { formatPriceUsd } from "@/common/utils/NumberFormatUtils";
+import { getCurrencyByTicker, getCurrencyByDenom } from "@/common/utils/CurrencyLookup";
+
+import { Dec } from "@keplr-wallet/unit";
+
+import { useWalletStore } from "@/common/stores/wallet";
+import { useLeasesStore, type LeaseDisplayData } from "@/common/stores/leases";
+import { useBalancesStore } from "@/common/stores/balances";
+import { usePricesStore } from "@/common/stores/prices";
+import { useConfigStore } from "@/common/stores/config";
+import { UPDATE_LEASES } from "@/config/global";
+import { formatUsd, formatMobileAmount, formatMobileUsd } from "@/common/utils/NumberFormatUtils";
+import { useRouter } from "vue-router";
+import type { IAction } from "./single-lease/Action.vue";
+import Action from "./single-lease/Action.vue";
+import type { LeaseInfo } from "@/common/api";
+
+export function useLeases() {
+  const leasesStore = useLeasesStore();
+  const balancesStore = useBalancesStore();
+  const pricesStore = usePricesStore();
+  const leaseLoaded = computed(() => !leasesStore.loading || leasesStore.leases.length > 0);
+  const leases = computed(() => leasesStore.leases);
+
+  const networkFilteredLeases = computed(() => {
+    const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
+    return leases.value.filter((lease) => {
+      if (activeProtocols.includes(lease.protocol)) return true;
+      const protocol = configStore.protocols[lease.protocol];
+      return protocol?.network?.toUpperCase() === configStore.protocolFilter;
+    });
+  });
+  const activeLeases = ref(new Dec(0));
+  const pnl = ref(new Dec(0));
+  const debt = ref(new Dec(0));
+  const pnl_percent = ref(new Dec(0));
+  const router = useRouter();
+  const wallet = useWalletStore();
+  const configStore = useConfigStore();
+  const i18n = useI18n();
+  const hide = ref(WalletStorage.getHideBalances());
+  const mobile = isMobile();
+  const search = ref("");
+  const sharePnlDialog = ref<{ show(lease: LeaseInfo, displayData: LeaseDisplayData): void } | null>(null);
+
+  // Stable component reference — defined once so Vue doesn't unmount/remount when
+  // the parent computed re-runs (e.g. on price updates or the 10-second refresh).
+  const LeasesActionsCell = markRaw(
+    defineComponent({
+      props: ["lease", "displayData"],
+      setup(props) {
+        return () => {
+          const lease = props.lease as LeaseInfo;
+          const displayData = props.displayData as LeaseDisplayData;
+          const isOpened = lease.status === "opened";
+          const detailsButton = h<ButtonProps>(Button, {
+            label: i18n.t("message.details"),
+            severity: "secondary",
+            size: "medium",
+            key: `details-${lease.address}`,
+            onClick: () => router.push(`/${RouteNames.LEASES}/${lease.address}`)
+          });
+          if (isOpened && displayData.inProgressType) {
+            return [detailsButton];
+          }
+          return [
+            detailsButton,
+            h<IAction>(Action, {
+              lease,
+              showClose: isOpened,
+              key: `action-${lease.address}`,
+              onSharePnl: () => sharePnlDialog.value?.show(lease, displayData)
+            })
+          ];
+        };
+      }
+    })
+  );
+
+  let timeOut: NodeJS.Timeout;
+
+  const columns = computed<TableColumnProps[]>(() =>
+    isMobile()
+      ? [
+          { label: i18n.t("message.asset"), variant: "left" },
+          { label: i18n.t("message.lease-size") },
+          { label: i18n.t("message.pnl") },
+          { label: "", class: "!flex-none w-[40px]" }
+        ]
+      : [
+          { label: i18n.t("message.lease"), variant: "left", class: "flex-[1.1_1_0%]" },
+          { label: i18n.t("message.asset"), variant: "left", class: "flex-[1.7_1_0%]" },
+          { label: i18n.t("message.type"), variant: "left", class: "flex-[0.6_1_0%]" },
+          { label: i18n.t("message.pnl"), class: "flex-[1.6_1_0%]" },
+          { label: i18n.t("message.lease-size"), class: "flex-[1.7_1_0%]" },
+          { label: i18n.t("message.liquidation-lease-table"), class: "flex-[1.5_1_0%]" },
+          { label: "", class: "!flex-none w-[180px]" }
+        ]
+  );
+
+  const isProtocolDisabled = computed(() => {
+    return configStore.isProtocolFilterDisabled(configStore.protocolFilter);
+  });
+
+  const leasesData = computed<TableRowItemProps[]>(() => {
+    const param = search.value.toLowerCase();
+    const mobile = isMobile();
+    const items = networkFilteredLeases.value
+      .filter((item) => {
+        if (param.length === 0) {
+          return true;
+        }
+        const positionTicker = item.etl_data?.lease_position_ticker ?? item.amount.ticker;
+        const c = configStore.currenciesData?.[`${positionTicker}@${item.protocol}`];
+        if (
+          item.address.toLowerCase().includes(param) ||
+          positionTicker?.toLowerCase().includes(param) ||
+          c?.shortName?.toLowerCase()?.includes(param)
+        ) {
+          return true;
+        }
+
+        return false;
+      })
+      .map((item) => {
+        try {
+          const displayData = leasesStore.getLeaseDisplayData(item);
+          const pnlData = {
+            percent: displayData.pnlPercent.toString(2),
+            amount: formatUsd(displayData.pnlAmount.toString(2)),
+            status: displayData.pnlPositive
+          };
+          const loading = isLeaseInProgress(item);
+          const asset = getAsset(item);
+          const amount = displayData.unitAsset;
+          const stable = displayData.assetValueUsd;
+          const rawPositionType = configStore.getPositionType(item.protocol);
+          const positionType = i18n.t(`message.${rawPositionType.toLowerCase()}`);
+          const isShort = rawPositionType === "Short";
+          const cryptoPriceUsd = isShort
+            ? new Dec(pricesStore.prices[`${item.debt.ticker}@${item.protocol}`]?.price ?? "0")
+            : new Dec(0);
+
+          const value = buildLeaseSizeCell({
+            positionType: rawPositionType,
+            unitAsset: amount,
+            assetValueUsd: stable,
+            cryptoAsset: asset,
+            cryptoPriceUsd
+          });
+          const cryptoDec = isShort && cryptoPriceUsd.isPositive() ? amount.quo(cryptoPriceUsd) : new Dec(0);
+
+          if (hide.value) {
+            value.value = "****";
+            value.subValue = "****";
+          }
+
+          if (mobile) {
+            const navigate = () => {
+              router.push(`/${RouteNames.LEASES}/${item.address}`);
+            };
+            const isOpened = item.status === "opened";
+
+            return {
+              items: [
+                {
+                  image: getAssetIcon(item),
+                  imageClass: "w-[32px] h-[32px]",
+                  value: asset?.shortName ?? "",
+                  subValue: positionType,
+                  variant: "left",
+                  click: navigate,
+                  class: "cursor-pointer"
+                },
+                {
+                  value: hide.value ? "****" : isShort ? formatMobileUsd(stable) : formatMobileAmount(amount),
+                  subValue: hide.value ? "****" : isShort ? formatMobileAmount(cryptoDec) : formatMobileUsd(stable),
+                  variant: "right",
+                  click: navigate,
+                  class: "cursor-pointer"
+                },
+                {
+                  component: () =>
+                    loading
+                      ? h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" })
+                      : h(
+                          "span",
+                          {
+                            class: `text-14 font-normal ${pnlData.status ? "text-typography-success" : "text-typography-error"}`
+                          },
+                          `${pnlData.status ? "+" : ""}${pnlData.percent}%`
+                        ),
+                  click: navigate,
+                  class: "cursor-pointer"
+                },
+                {
+                  component: markRaw(Action),
+                  componentProps: {
+                    lease: item,
+                    showClose: isOpened && !displayData.inProgressType,
+                    showDetails: true,
+                    onSharePnl: () => sharePnlDialog.value?.show(item, displayData)
+                  },
+                  class: "!flex-none w-[40px]"
+                }
+              ]
+            };
+          }
+
+          const liquidation = loading
+            ? {
+                component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }),
+                class: "flex-[1.5_1_0%]"
+              }
+            : {
+                value: formatPriceUsd(displayData.liquidationPrice.toString()),
+                class: "flex-[1.5_1_0%]"
+              };
+
+          return {
+            items: [
+              {
+                value: getTitle(item),
+                subValueClass: "text-typography-secondary rounded border-[1px] px-2 py-1 self-start",
+                variant: "left",
+                click: () => {
+                  router.push(`/${RouteNames.LEASES}/${item.address}`);
+                },
+                class: "text-typography-link font-semibold flex-[1.1_1_0%] cursor-pointer"
+              },
+              {
+                image: getAssetIcon(item),
+                imageClass: "w-[32px] h-[32px]",
+                value: asset?.shortName ?? "",
+                subValue: asset?.name ?? "",
+                variant: "left",
+                textClass: "line-clamp-1 [display:-webkit-box]",
+                class: "flex-[1.7_1_0%]"
+              },
+              {
+                value: positionType,
+                variant: "left",
+                class: "flex-[0.6_1_0%]"
+              },
+              loading
+                ? {
+                    component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }),
+                    class: "flex-[1.6_1_0%]"
+                  }
+                : {
+                    value: `${pnlData.status ? "+" : ""}${pnlData.percent}%`,
+                    subValue: hide.value ? "****" : pnlData.amount,
+                    textClass: pnlData.status ? "text-typography-success" : "text-typography-error",
+                    subValueClass: pnlData.status ? "text-typography-success" : "text-typography-error",
+                    variant: "right",
+                    class: "flex-[1.6_1_0%] text-14"
+                  },
+              loading
+                ? {
+                    component: () => h("div", { class: "skeleton-box mb-2 rounded-[4px] w-[70px] h-[20px]" }),
+                    class: "flex-[1.7_1_0%]"
+                  }
+                : {
+                    value: value.value,
+                    subValue: value.subValue,
+                    variant: "right",
+                    class: "flex-[1.7_1_0%] font-semibold"
+                  },
+              liquidation,
+              {
+                component: LeasesActionsCell,
+                componentProps: { lease: item, displayData },
+                class: "!flex-none w-[180px] pr-4 cursor-pointer"
+              }
+            ]
+          };
+        } catch (e) {
+          Logger.error("[Leases] Error processing lease:", item.address, e);
+          return null;
+        }
+      })
+      .filter((item): item is TableRowItemProps => item !== null);
+    return items;
+  });
+
+  onMounted(() => {
+    leasesStore.refresh();
+    timeOut = setInterval(() => {
+      leasesStore.refresh();
+    }, UPDATE_LEASES);
+  });
+
+  onUnmounted(() => {
+    clearInterval(timeOut);
+  });
+
+  function reload() {
+    leasesStore.refresh();
+    balancesStore.fetchBalances();
+  }
+
+  function getTitle(item: LeaseInfo) {
+    if (item.status === "opening") {
+      return `${i18n.t("message.opening")}...`;
+    }
+
+    if (item.status === "closing") {
+      return `${i18n.t("message.closing")}...`;
+    }
+
+    if (item.status === "opened") {
+      if (item.in_progress && "close" in item.in_progress) {
+        return `${i18n.t("message.closing")}...`;
+      }
+
+      if (item.in_progress && "repayment" in item.in_progress) {
+        return `${i18n.t("message.repaying")}...`;
+      }
+
+      if (item.in_progress && "liquidation" in item.in_progress) {
+        return `${i18n.t("message.liquidating")}...`;
+      }
+
+      if (item.in_progress && "slippage_protection" in item.in_progress) {
+        return `${i18n.t("message.slippage-protection")}...`;
+      }
+    }
+
+    return `#${item.address.slice(-8)}`;
+  }
+
+  function getAssetIcon(item: LeaseInfo) {
+    const positionTicker = item.etl_data?.lease_position_ticker ?? item.amount.ticker;
+    const positionType = configStore.getPositionType(item.protocol);
+
+    if (positionType === "Long") {
+      if (item.status === "opening" && item.opening_info) {
+        return configStore.assetIcons?.[`${item.opening_info.currency}@${item.protocol}`] as string;
+      }
+    } else if (positionType === "Short") {
+      if (item.status === "opening" && item.opening_info) {
+        return configStore.assetIcons?.[`${item.opening_info.loan.ticker}@${item.protocol}`] as string;
+      }
+      return configStore.assetIcons?.[`${item.debt.ticker}@${item.protocol}`] as string;
+    }
+    return configStore.assetIcons?.[`${positionTicker}@${item.protocol}`] as string;
+  }
+
+  function getAsset(lease: LeaseInfo) {
+    try {
+      const positionType = configStore.getPositionType(lease.protocol);
+
+      if (positionType === "Long") {
+        const ticker = lease.amount.ticker || lease.opening_info?.currency;
+        if (!ticker) return null;
+        const item = getCurrencyByTicker(ticker as string);
+        const asset = getCurrencyByDenom(item?.ibcData as string);
+        return asset;
+      } else if (positionType === "Short") {
+        const debtTicker = lease.debt.ticker;
+        if (!debtTicker) return null;
+        const item = getCurrencyByTicker(debtTicker as string);
+        const asset = getCurrencyByDenom(item?.ibcData as string);
+        return asset;
+      }
+      return null;
+    } catch (e) {
+      Logger.error("[Leases] Error getting asset for lease:", lease.address, e);
+      return null;
+    }
+  }
+
+  function isLeaseInProgress(lease: LeaseInfo): boolean {
+    if (lease.status === "opening" || lease.status === "closing") {
+      return true;
+    }
+    if (lease.in_progress) {
+      return true;
+    }
+    return false;
+  }
+
+  watch(
+    [networkFilteredLeases, () => pricesStore.prices],
+    () => {
+      setLeases();
+    },
+    { deep: true, immediate: true }
+  );
+
+  // Wallet changes are handled by connectionStore.connectWallet() in entry-client.ts
+
+  function setLeases() {
+    try {
+      let db = new Dec(0);
+      let ls = new Dec(0);
+      let pl = new Dec(0);
+
+      let am = new Dec(0);
+      let dp = new Dec(0);
+      let rp = new Dec(0);
+
+      for (const lease of networkFilteredLeases.value) {
+        const displayData = leasesStore.getLeaseDisplayData(lease);
+
+        if (lease.status === "opened") {
+          ls = ls.add(displayData.assetValueUsd);
+          am = am.add(displayData.pnlAmount);
+          dp = dp.add(displayData.downPayment);
+          rp = rp.add(displayData.repaymentValue);
+        }
+
+        db = db.add(displayData.totalDebtUsd);
+        pl = pl.add(displayData.pnlAmount);
+      }
+
+      pnl.value = pl;
+      activeLeases.value = ls;
+      debt.value = db;
+
+      const amount = dp.add(rp);
+
+      if (!(amount.isZero() || am.isZero())) {
+        pnl_percent.value = am.quo(dp.add(rp)).mul(new Dec(100));
+      }
+    } catch (e) {
+      Logger.error(e);
+    }
+  }
+
+  function onHide(data: boolean) {
+    hide.value = data;
+    WalletStorage.setHideBalances(data);
+  }
+
+  function onSearch(data: string) {
+    search.value = data;
+  }
+
+  provide("reload", reload);
+
+  return {
+    wallet,
+    isProtocolDisabled,
+    router,
+    leaseLoaded,
+    networkFilteredLeases,
+    leasesData,
+    columns,
+    mobile,
+    pnl,
+    pnl_percent,
+    activeLeases,
+    debt,
+    hide,
+    onHide,
+    onSearch,
+    sharePnlDialog
+  };
+}
