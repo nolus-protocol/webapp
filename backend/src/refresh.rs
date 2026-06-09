@@ -4,7 +4,7 @@
 //! `start_all()` spawns them on appropriate intervals.
 //! `warm_essential_data()` runs blocking at startup before the server accepts requests.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -49,6 +49,7 @@ use crate::handlers::gated_assets::{get_price_for_asset, AssetResponse, AssetsRe
 use crate::handlers::gated_networks::NetworksResponse;
 use crate::handlers::leases::LeaseConfigResponse;
 use crate::handlers::staking::Validator;
+use crate::handlers::swap::{NetworkTransfers, SwapConfigResponse, TransferCurrency};
 use crate::propagation::user_data_filter::UserDataFilterContext;
 use crate::propagation::{PropagationFilter, PropagationMerger};
 use crate::AppState;
@@ -1209,7 +1210,7 @@ pub async fn refresh_swap_config(state: &Arc<AppState>) {
     }
 
     // Build transfers
-    let mut transfers: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
+    let mut transfers: BTreeMap<String, Vec<TransferCurrency>> = BTreeMap::new();
     let mut seen: HashMap<String, std::collections::HashSet<String>> = HashMap::new();
 
     for currency in &currencies_response.currencies {
@@ -1228,39 +1229,28 @@ pub async fn refresh_swap_config(state: &Arc<AppState>) {
             if !network_seen.insert(protocol_mapping.bank_symbol.clone()) {
                 continue;
             }
-            let entry = serde_json::json!({
-                "from": protocol_mapping.bank_symbol,
-                "to": protocol_mapping.dex_symbol,
-                "native": false,
-            });
+            let entry = TransferCurrency {
+                from: protocol_mapping.bank_symbol.clone(),
+                to: protocol_mapping.dex_symbol.clone(),
+                native: false,
+            };
             transfers.entry(network.clone()).or_default().push(entry);
         }
     }
 
-    let mut transfers_map = serde_json::Map::new();
-    for (network, currencies) in transfers {
-        transfers_map.insert(network, serde_json::json!({ "currencies": currencies }));
-    }
+    let transfers = transfers
+        .into_iter()
+        .map(|(network, currencies)| (network, NetworkTransfers { currencies }))
+        .collect();
 
-    // Build public config response (UI-only fields)
-    let mut response = serde_json::Map::new();
-    response.insert(
-        "blacklist".to_string(),
-        serde_json::json!(swap_settings.blacklist),
-    );
-    response.insert("fee".to_string(), serde_json::json!(swap_settings.fee));
-
-    let swap_to_denom = swap_settings
+    let swap_to_currency = swap_settings
         .swap_to_currency
         .as_deref()
         .and_then(|ticker| ticker_to_denom.get(ticker))
         .cloned()
         .unwrap_or_default();
-    response.insert(
-        "swap_to_currency".to_string(),
-        serde_json::json!(swap_to_denom),
-    );
 
+    let mut swap_currencies: BTreeMap<String, String> = BTreeMap::new();
     for (network, ticker) in &swap_settings.swap_currencies {
         let network_upper = network.to_uppercase();
         let denom = ticker_network_to_denom
@@ -1268,21 +1258,16 @@ pub async fn refresh_swap_config(state: &Arc<AppState>) {
             .or_else(|| ticker_to_denom.get(ticker))
             .cloned()
             .unwrap_or_default();
-        response.insert(
-            format!("swap_currency_{}", network),
-            serde_json::json!(denom),
-        );
+        swap_currencies.insert(format!("swap_currency_{}", network), denom);
     }
 
-    response.insert(
-        "transfers".to_string(),
-        serde_json::Value::Object(transfers_map),
-    );
-
-    state
-        .data_cache
-        .swap_config
-        .store(serde_json::Value::Object(response));
+    state.data_cache.swap_config.store(SwapConfigResponse {
+        blacklist: swap_settings.blacklist.clone(),
+        fee: swap_settings.fee,
+        swap_to_currency,
+        transfers,
+        swap_currencies,
+    });
 }
 
 /// Refresh lease configs for all protocols
@@ -2636,10 +2621,13 @@ mod tests {
         state.data_cache.gated_config.store(sample_gated_bundle());
 
         // Pre-seed swap_config with a sentinel.
-        state
-            .data_cache
-            .swap_config
-            .store(json!({"sentinel": true}));
+        state.data_cache.swap_config.store(SwapConfigResponse {
+            blacklist: vec!["SENTINEL".to_string()],
+            fee: 0,
+            swap_to_currency: String::new(),
+            transfers: BTreeMap::new(),
+            swap_currencies: BTreeMap::new(),
+        });
 
         Mock::given(method("GET"))
             .and(path("/api/protocols"))
@@ -2655,13 +2643,19 @@ mod tests {
         refresh_swap_config(&state).await;
 
         let loaded = state.data_cache.swap_config.load().expect("stale retained");
-        assert_eq!(loaded, json!({"sentinel": true}));
+        assert_eq!(loaded.blacklist, ["SENTINEL"]);
     }
 
     #[tokio::test]
     async fn refresh_swap_config_populates_on_success() {
         let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
-        state.data_cache.gated_config.store(sample_gated_bundle());
+        let mut bundle = sample_gated_bundle();
+        bundle
+            .swap_settings
+            .swap_currencies
+            .insert("osmosis".to_string(), "USDC".to_string());
+        bundle.swap_settings.swap_to_currency = Some("USDC".to_string());
+        state.data_cache.gated_config.store(bundle);
 
         Mock::given(method("GET"))
             .and(path("/api/protocols"))
@@ -2677,11 +2671,20 @@ mod tests {
         refresh_swap_config(&state).await;
 
         let loaded = state.data_cache.swap_config.load().expect("populated");
-        let obj = loaded.as_object().expect("object");
-        assert!(obj.contains_key("blacklist"));
-        assert!(obj.contains_key("fee"));
-        assert!(obj.contains_key("swap_to_currency"));
-        assert!(obj.contains_key("transfers"));
+        assert_eq!(loaded.fee, 35);
+        assert_eq!(loaded.swap_to_currency, "ibc/USDC-NOLUS");
+        let osmosis = loaded
+            .transfers
+            .get("OSMOSIS")
+            .expect("OSMOSIS transfers present");
+        assert_eq!(osmosis.currencies[0].from, "ibc/USDC-NOLUS");
+        assert_eq!(osmosis.currencies[0].to, "ibc/USDC-DEX");
+
+        // Wire contract: per-network currencies flatten to dynamic
+        // `swap_currency_<network>` top-level keys, never named fields.
+        let wire = serde_json::to_value(&loaded).expect("swap config serializes");
+        assert_eq!(wire["swap_currency_osmosis"], "ibc/USDC-NOLUS");
+        assert_eq!(wire["blacklist"], json!([]));
     }
 
     #[tokio::test]
@@ -2748,12 +2751,7 @@ mod tests {
         refresh_swap_config(&state).await;
 
         let loaded = state.data_cache.swap_config.load().expect("populated");
-        let transfers = loaded
-            .as_object()
-            .and_then(|o| o.get("transfers"))
-            .and_then(|t| t.as_object())
-            .expect("transfers object");
-        assert!(!transfers.contains_key("NOLUS"));
+        assert!(!loaded.transfers.contains_key("NOLUS"));
     }
 
     // =======================================================================

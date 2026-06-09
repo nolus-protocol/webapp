@@ -280,6 +280,9 @@ use crate::handlers::{
         swap::MessagesRequest,
         swap::TrackRequest,
         swap::TrackResponse,
+        swap::SwapConfigResponse,
+        swap::NetworkTransfers,
+        swap::TransferCurrency,
         // Skip ingress responses validated at the boundary
         external::skip::SkipRouteResponse,
         external::skip::SkipMessagesResponse,

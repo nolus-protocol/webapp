@@ -3382,15 +3382,15 @@
           "swap"
         ],
         "summary": "Get swap UI config",
-        "description": "Returns UI-only swap configuration (blacklist, defaults, transfers) from\nbackground-refreshed cache. Response is an opaque JSON object — shape is\nnot fixed in this spec.",
+        "description": "Returns UI-only swap configuration (blacklist, defaults, transfers) from\nbackground-refreshed cache. Per-network `swap_currency_<network>` keys are\ndynamic — the set of networks is data-driven.",
         "operationId": "get_swap_config",
         "responses": {
           "200": {
-            "description": "Opaque swap UI config",
+            "description": "Swap UI config",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/SwapConfigResponse"
                 }
               }
             }
@@ -6034,6 +6034,21 @@
           }
         }
       },
+      "NetworkTransfers": {
+        "type": "object",
+        "description": "Currencies transferable on one network.",
+        "required": [
+          "currencies"
+        ],
+        "properties": {
+          "currencies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferCurrency"
+            }
+          }
+        }
+      },
       "NetworksResponse": {
         "type": "object",
         "description": "Response for all networks",
@@ -7593,6 +7608,53 @@
           }
         }
       },
+      "SwapConfigResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "description": "Dynamic `swap_currency_<network>` keys → resolved denom"
+          },
+          {
+            "type": "object",
+            "required": [
+              "blacklist",
+              "fee",
+              "swap_to_currency",
+              "transfers"
+            ],
+            "properties": {
+              "blacklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Blacklisted currency tickers excluded from swap routes"
+              },
+              "fee": {
+                "type": "integer",
+                "format": "int32",
+                "description": "Affiliate fee in basis points",
+                "minimum": 0
+              },
+              "swap_to_currency": {
+                "type": "string",
+                "description": "Resolved denom of the swap target currency; empty when unconfigured"
+              },
+              "transfers": {
+                "type": "object",
+                "description": "Transferable currencies per network (uppercase network key)",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/NetworkTransfers"
+                },
+                "propertyNames": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Swap UI configuration assembled by `refresh_swap_config` from gated\nsettings + ETL denom resolution.\n\nPer-network swap currencies are served as dynamic `swap_currency_<network>`\nkeys via the flattened map — a network must be able to disappear (protocol\ndeprecation) without changing this type, so no network is ever a named\nfield. The frontend validates per-network keys at point of use only."
+      },
       "TallyResponse": {
         "type": "object",
         "required": [
@@ -7690,6 +7752,26 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "TransferCurrency": {
+        "type": "object",
+        "description": "One transferable currency: bank denom on Nolus and its DEX-side denom.",
+        "required": [
+          "from",
+          "to",
+          "native"
+        ],
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "native": {
+            "type": "boolean"
           }
         }
       },
