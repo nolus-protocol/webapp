@@ -242,6 +242,17 @@ pub struct LeaseHistoryEntry {
     pub amount: Option<String>,
     pub symbol: Option<String>,
     pub timestamp: Option<String>,
+    /// Outstanding debt principal in stable after this event (whole units).
+    /// `None` for shorts / missing-registry rows.
+    pub debt_stable: Option<String>,
+    /// Remaining collateral in the leased asset after this event (whole units).
+    /// `None` for shorts / missing-registry rows.
+    pub collateral_asset: Option<String>,
+    /// Reconstructed liquidation trigger effective from this event, stable per
+    /// unit of the leased asset (whole units). `None` for shorts; `"0"` once
+    /// debt is fully repaid. Consumed by the single-lease price chart's stepped
+    /// liquidation line.
+    pub liquidation_price: Option<String>,
 }
 
 // ============================================================================
@@ -574,6 +585,9 @@ pub async fn get_lease_history(
                     amount: entry.amount,
                     symbol: entry.symbol,
                     timestamp: entry.timestamp,
+                    debt_stable: entry.debt_stable,
+                    collateral_asset: entry.collateral_asset,
+                    liquidation_price: entry.liquidation_price,
                 })
                 .collect()
         }
@@ -887,6 +901,9 @@ async fn fetch_lease_info(
                     amount: entry.amount.clone(),
                     symbol: entry.symbol.clone(),
                     timestamp: entry.timestamp.clone(),
+                    debt_stable: entry.debt_stable.clone(),
+                    collateral_asset: entry.collateral_asset.clone(),
+                    liquidation_price: entry.liquidation_price.clone(),
                 })
                 .collect()
         }),

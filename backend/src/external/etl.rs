@@ -416,6 +416,16 @@ pub struct EtlLeaseHistoryEntry {
     #[serde(rename = "time")]
     pub timestamp: Option<String>,
     pub additional: Option<String>,
+    /// Outstanding debt principal in stable after this event (whole units).
+    /// `None` for shorts / missing-registry rows (ETL `LS_History.debt_stable`).
+    pub debt_stable: Option<String>,
+    /// Remaining collateral in the leased asset after this event (whole units).
+    /// `None` for shorts / missing-registry rows (ETL `LS_History.collateral_asset`).
+    pub collateral_asset: Option<String>,
+    /// Reconstructed liquidation trigger effective from this event, stable per
+    /// unit of the leased asset (whole units). `None` for shorts; `"0"` once
+    /// debt is fully repaid (ETL `LS_History.liquidation_price`).
+    pub liquidation_price: Option<String>,
 }
 
 /// PnL data point from ETL API
@@ -726,6 +736,37 @@ mod tests {
         let client = test_client(&server.uri());
         let err = client.fetch_pools().await.unwrap_err();
         assert_etl_error(&err);
+    }
+
+    // ---- lease history entry: stepped-liquidation fields (#196 / #236) ----
+
+    #[test]
+    fn etl_history_entry_captures_stepped_liquidation_fields() {
+        let entry: EtlLeaseHistoryEntry = serde_json::from_value(serde_json::json!({
+            "type": "liquidation",
+            "time": "2026-01-01T00:00:00Z",
+            "debt_stable": "80.23",
+            "collateral_asset": "0.00120254",
+            "liquidation_price": "74000.00"
+        }))
+        .expect("history entry with stepped-liquidation fields deserialises");
+
+        assert_eq!(entry.debt_stable.as_deref(), Some("80.23"));
+        assert_eq!(entry.collateral_asset.as_deref(), Some("0.00120254"));
+        assert_eq!(entry.liquidation_price.as_deref(), Some("74000.00"));
+    }
+
+    #[test]
+    fn etl_history_entry_stepped_fields_default_to_none_when_absent() {
+        let entry: EtlLeaseHistoryEntry = serde_json::from_value(serde_json::json!({
+            "type": "open",
+            "time": "2026-01-01T00:00:00Z"
+        }))
+        .expect("history entry without stepped-liquidation fields deserialises (backwards-compat)");
+
+        assert_eq!(entry.debt_stable, None);
+        assert_eq!(entry.collateral_asset, None);
+        assert_eq!(entry.liquidation_price, None);
     }
 
     // ---- fetch_lease_opening (84-85) ----
