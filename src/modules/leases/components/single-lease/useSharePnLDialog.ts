@@ -42,6 +42,9 @@ export function useSharePnLDialog() {
     { text: "#082D63", muted: "#5E7699" } // light lavender
   ];
 
+  // Fixed brand hex, NOT design tokens: the cover is rendered to a downloadable
+  // PNG that must look identical regardless of the viewer's light/dark theme, so
+  // these cannot resolve a theme-dependent CSS variable.
   const PNL_POSITIVE = "#1AB171";
   const PNL_NEGATIVE = "#AB1F3B";
 

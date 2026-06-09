@@ -92,6 +92,7 @@ async function setStats() {
 function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
   if (!plotContainer) return;
 
+  const styles = window.getComputedStyle(document.documentElement);
   const values = responses.value.map((d) => d.value);
   const yDomain: [number, number] = [0, Math.max(...values)];
   const yTicks = computeYTicks(yDomain);
@@ -107,7 +108,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       barY([responses.value[1]], {
         x: "name",
         y: "value",
-        fill: "#C1CAD7",
+        fill: styles.getPropertyValue("--color-background-200").trim(),
         rx: 6,
         insetBottom: 0,
         clip: "frame"
@@ -115,7 +116,7 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
       barY([responses.value[0]], {
         x: "name",
         y: "value",
-        fill: "#19A96C",
+        fill: styles.getPropertyValue("--color-icon-success").trim(),
         rx: 6,
         insetBottom: 0,
         clip: "frame"

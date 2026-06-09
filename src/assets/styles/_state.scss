@@ -1,7 +1,7 @@
 .state-loading {
   position: relative;
   height: 24px;
-  background-color: #ebeff5;
+  background-color: var(--color-progress);
   display: block;
   border-radius: 4px;
   width: 100%;
@@ -33,14 +33,10 @@
 body.dark,
 body.sync {
   div.status {
-    background-color: #2b384b;
+    background-color: var(--color-progress);
   }
 
-  .state-loading {
-    background-color: #2b384b;
-
-    &::before {
-      background: #c9c9c917;
-    }
+  .state-loading::before {
+    background: rgb(201 201 201 / 9%);
   }
 }
