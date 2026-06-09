@@ -5294,6 +5294,27 @@
               "string",
               "null"
             ]
+          },
+          "debt_stable": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Outstanding debt principal in stable after this event (whole units).\n`None` for shorts / missing-registry rows."
+          },
+          "collateral_asset": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Remaining collateral in the leased asset after this event (whole units).\n`None` for shorts / missing-registry rows."
+          },
+          "liquidation_price": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Reconstructed liquidation trigger effective from this event, stable per\nunit of the leased asset (whole units). `None` for shorts; `\"0\"` once\ndebt is fully repaid. Consumed by the single-lease price chart's stepped\nliquidation line."
           }
         }
       },

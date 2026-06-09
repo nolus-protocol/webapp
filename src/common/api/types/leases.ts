@@ -113,6 +113,13 @@ export interface LeaseHistoryEntry {
   amount?: string;
   symbol?: string;
   timestamp?: string;
+  /** Outstanding debt principal in stable after this event, whole units. `null` for shorts/missing-registry. */
+  debt_stable?: string;
+  /** Remaining collateral in the leased asset after this event, whole units. `null` for shorts/missing-registry. */
+  collateral_asset?: string;
+  /** Reconstructed liquidation trigger effective from this event (debt/collateral/0.9), whole units stable-per-unit.
+   * `null` for shorts/missing-registry; `"0"` once debt is fully repaid. */
+  liquidation_price?: string;
 }
 
 export interface LeaseQuoteRequest {

@@ -33,7 +33,7 @@ import Chart from "@/common/components/Chart.vue";
 import { Tooltip } from "web-components";
 
 import type { LeaseInfo } from "@/common/api";
-import { computeChartLiquidationPrice } from "./liquidationLine";
+import { buildLiquidationSteps, computeChartLiquidationPrice, liquidationLabelFor } from "./liquidationLine";
 import { formatPriceUsd, formatUsd } from "@/common/utils/NumberFormatUtils";
 import {
   CHART_AXIS,
@@ -103,17 +103,21 @@ const currency = computed(() => {
 async function setData() {
   if (props.lease) {
     const chartData = await loadData(props.interval);
-    const liquidation = resolveLiquidationPrice();
-    // computeChartLiquidationPrice returns 0 for any non-opened / zero-value lease.
-    const liquidationLabel = liquidation <= 0 ? null : liquidation.toString();
+
+    // Stepped historical trigger from ETL's per-event series when available;
+    // otherwise the flat current value (shorts, missing data). See liquidationLine.ts.
+    const steps = buildLiquidationSteps(props.lease.etl_data?.history);
+    const active = props.lease.status === "opened";
+    const flat = resolveLiquidationPrice();
 
     data.value = (chartData ?? [])
       .map((item) => {
         const [date, price] = item;
+        const parsedDate = new Date(date);
         return {
-          Date: new Date(date),
+          Date: parsedDate,
           Price: price,
-          Liquidation: liquidationLabel
+          Liquidation: liquidationLabelFor(steps, flat, parsedDate.getTime(), active)
         };
       })
       .reverse();
@@ -122,7 +126,8 @@ async function setData() {
 }
 
 // Current liquidation trigger, resolved with the same decimals the position
-// widgets use. Rendered as a flat line across the series — see liquidationLine.ts.
+// widgets use. Used as the flat fallback line when no per-event ETL series
+// exists (shorts, missing data) — see liquidationLine.ts.
 function resolveLiquidationPrice(): number {
   const protocolKey = props.lease?.protocol as string;
   const unitAssetInfo = configStore.currenciesData?.[`${props.lease?.amount.ticker}@${protocolKey}`];
@@ -173,16 +178,19 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
 
-  // Include liquidation in domain only if it's close enough to the price range.
-  // When liquidation is far away (e.g. BTC at $67K, liquidation at $22K) including
-  // it squashes the price line flat. We include it when it's within 50% of the
-  // mid-price — works for both Long (liquidation below) and Short (liquidation above).
-  const firstLiquidation = Number(chartData[0]?.Liquidation ?? 0);
+  // Include liquidation in domain only for the trigger values close enough to the
+  // price range. When a trigger is far away (e.g. BTC at $67K, liquidation at $22K)
+  // including it squashes the price line flat. A stepped series can span several
+  // values, so we consider every visible trigger and keep those within 50% of the
+  // mid-price — works for both Long (below) and Short (above).
   const midPrice = (minPrice + maxPrice) / 2;
-  const closeness = midPrice > 0 ? Math.abs(firstLiquidation - midPrice) / midPrice : Infinity;
-  const includeLiq = firstLiquidation > 0 && closeness <= 0.5;
-  const domainMin = includeLiq ? Math.min(minPrice, firstLiquidation) : minPrice;
-  const domainMax = includeLiq ? Math.max(maxPrice, firstLiquidation) : maxPrice;
+  const liqValues = chartData
+    .map((d) => (d.Liquidation === null ? NaN : Number(d.Liquidation)))
+    .filter((v) => Number.isFinite(v) && v > 0);
+  const inBand = midPrice > 0 ? liqValues.filter((v) => Math.abs(v - midPrice) / midPrice <= 0.5) : [];
+  const includeLiq = inBand.length > 0;
+  const domainMin = includeLiq ? Math.min(minPrice, ...inBand) : minPrice;
+  const domainMax = includeLiq ? Math.max(maxPrice, ...inBand) : maxPrice;
   const range = domainMax - domainMin;
   const padding = range * 0.2 || domainMax * 0.05;
   const yDomain: [number, number] = [Math.max(0, domainMin - padding), domainMax + padding];
@@ -234,7 +242,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
         strokeWidth: 2,
         strokeLinecap: "round",
         strokeDasharray: "6, 4",
-        curve: "catmull-rom",
+        // Discrete trigger: hold each value until the next event, then step.
+        // Null rows (before open / after close) render as gaps, not a $0 line.
+        curve: "step-after",
         clip: "frame"
       })
     ]
