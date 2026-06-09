@@ -41,6 +41,8 @@ svg {
 .skeleton-box {
   background-color: var(--color-background-300);
   animation: blink 1.2s linear infinite;
+  will-change: opacity;
+  contain: layout paint;
 }
 
 @keyframes blink {
