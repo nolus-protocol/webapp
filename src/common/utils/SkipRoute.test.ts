@@ -458,6 +458,50 @@ describe("SkipRouter.submitRoute / transaction()", () => {
   });
 });
 
+describe("SkipRouter.getChains — caching", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Reset the private static caches between tests.
+    (SkipRouter as unknown as { chains: unknown }).chains = undefined;
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    (SkipRouter as unknown as { chains: unknown }).chains = undefined;
+    (SkipRouter as unknown as { client: unknown }).client = undefined;
+  });
+
+  function stubClient(getChainsImpl: ReturnType<typeof vi.fn>) {
+    // Pre-seed the resolved client so getClient() returns it without a network call.
+    (SkipRouter as unknown as { client: unknown }).client = { getChains: getChainsImpl };
+  }
+
+  it("memoizes a successful fetch — the underlying client is called once", async () => {
+    const getChainsImpl = vi.fn().mockResolvedValue([{ chain_id: "nolus-1" }]);
+    stubClient(getChainsImpl);
+
+    const first = await SkipRouter.getChains();
+    const second = await SkipRouter.getChains();
+
+    expect(first).toBe(second);
+    expect(getChainsImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("drops the cache on rejection so a later call retries instead of replaying the failure", async () => {
+    const getChainsImpl = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("chains fetch failed"))
+      .mockResolvedValueOnce([{ chain_id: "nolus-1" }]);
+    stubClient(getChainsImpl);
+
+    await expect(SkipRouter.getChains()).rejects.toThrow("chains fetch failed");
+
+    const chains = await SkipRouter.getChains();
+    expect(chains).toEqual([{ chain_id: "nolus-1" }]);
+    expect(getChainsImpl).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("SkipRouter.fetchStatus", () => {
   beforeEach(() => {
     vi.clearAllMocks();
