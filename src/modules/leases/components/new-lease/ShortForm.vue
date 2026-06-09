@@ -463,7 +463,7 @@ async function onOpenLease() {
 
 async function openLease() {
   const wallet = walletStore.wallet as NolusWallet;
-  if (wallet && isDownPaymentAmountValid(currency.value, coinList.value[selectedLoanCurrency.value])) {
+  if (wallet && (await isDownPaymentAmountValid(currency.value, coinList.value[selectedLoanCurrency.value]))) {
     try {
       isLoading.value = true;
 

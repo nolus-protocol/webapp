@@ -161,10 +161,10 @@ export function useLeaseOpen() {
     return true;
   }
 
-  function isDownPaymentAmountValid(
+  async function isDownPaymentAmountValid(
     selectedDownPaymentCurrency: DownPaymentOption | undefined,
     selectedLoan: LoanOption
-  ) {
+  ): Promise<boolean> {
     amountErrorMsg.value = "";
 
     if (!amount.value) {
@@ -176,7 +176,7 @@ export function useLeaseOpen() {
       return false;
     }
 
-    if (!validateMinMaxValues(selectedDownPaymentCurrency, selectedLoan)) {
+    if (!(await validateMinMaxValues(selectedDownPaymentCurrency, selectedLoan))) {
       return false;
     }
 
