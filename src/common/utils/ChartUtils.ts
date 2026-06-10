@@ -119,7 +119,8 @@ export function findClosestPoint<T>(
   marginRight: number,
   cPosition: number
 ): T | null {
-  if (data.length === 0) return null;
+  const first = data[0];
+  if (first === undefined) return null;
 
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
@@ -129,7 +130,7 @@ export function findClosestPoint<T>(
   const xScale = plotAreaWidth / (maxX - minX || 1);
   const targetX = adjustedX / xScale + minX;
 
-  let closest = data[0];
+  let closest: T = first;
   let minDiff = Math.abs(targetX - getX(closest));
 
   for (const point of data) {

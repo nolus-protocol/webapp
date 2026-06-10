@@ -9,5 +9,6 @@ export function setCookie(name: string, value: string, days = 4 * 365) {
 export function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(new RegExp("(^|;\\s*)" + encodeURIComponent(name) + "=([^;]*)"));
-  return match ? decodeURIComponent(match[2]) : null;
+  const value = match?.[2];
+  return value === undefined ? null : decodeURIComponent(value);
 }

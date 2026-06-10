@@ -8,6 +8,15 @@ import type { CoinPretty } from "@keplr-wallet/unit";
 import { Dec } from "@keplr-wallet/unit";
 import { DECIMALS_AMOUNT, MAX_DECIMALS, NATIVE_CURRENCY } from "@/config/global";
 
+/**
+ * Intl.NumberFormatOptions with `notation` narrowed to the values AnimateNumber's
+ * `:format` prop accepts, so the same options object drives both Intl.NumberFormat
+ * and the animated display without divergence.
+ */
+export type AnimateNumberFormatOptions = Omit<Intl.NumberFormatOptions, "notation"> & {
+  notation?: "standard" | "compact";
+};
+
 // Intl.NumberFormat construction is expensive — cache instances by options signature.
 const formatterCache = new Map<string, Intl.NumberFormat>();
 
@@ -43,7 +52,7 @@ export function formatNumber(amount: number | string, decimals: number, symbol?:
  * Intl.NumberFormatOptions for standard currency display.
  * Use with AnimateNumber :format prop to keep animated and static formatting in sync.
  */
-export function currencyFormatOptions(decimals: number): Intl.NumberFormatOptions {
+export function currencyFormatOptions(decimals: number): AnimateNumberFormatOptions {
   return { minimumFractionDigits: decimals, maximumFractionDigits: decimals };
 }
 
@@ -52,7 +61,7 @@ export function currencyFormatOptions(decimals: number): Intl.NumberFormatOption
  * Trims trailing zeros unlike currencyFormatOptions which pads to exact decimals.
  * Use with AnimateNumber :format prop for TOKEN type displays.
  */
-export function tokenFormatOptions(maxDecimals: number): Intl.NumberFormatOptions {
+export function tokenFormatOptions(maxDecimals: number): AnimateNumberFormatOptions {
   return { minimumFractionDigits: 2, maximumFractionDigits: maxDecimals };
 }
 
@@ -68,7 +77,7 @@ export function formatToken(amount: number, maxDecimals: number): string {
  * Intl.NumberFormatOptions for compact currency display (K, M, B).
  * Use with AnimateNumber :format prop.
  */
-export const compactFormatOptions: Intl.NumberFormatOptions = {
+export const compactFormatOptions: AnimateNumberFormatOptions = {
   notation: "compact",
   compactDisplay: "short",
   minimumFractionDigits: 2,

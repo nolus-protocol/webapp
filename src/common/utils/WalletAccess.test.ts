@@ -159,4 +159,9 @@ describe("WalletAccess.getWallet", () => {
     expect(mocks.walletGetInstance).toHaveBeenCalledWith(fakeNode.rpc, fakeNode.api);
     expect(result).toBe(fakeWallet);
   });
+
+  it("should throw for a network key that is not in supportedNetworks", async () => {
+    await expect(WalletAccess.getWallet("UNKNOWN")).rejects.toThrow("Unsupported network: UNKNOWN");
+    expect(mocks.fetchEndpoints).not.toHaveBeenCalled();
+  });
 });

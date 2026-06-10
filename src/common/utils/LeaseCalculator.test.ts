@@ -19,7 +19,7 @@ import { LEASE_DUE } from "@/config/global";
 // ============================================================================
 
 const makePriceProvider = (prices: Record<string, number> = {}): PriceProvider => ({
-  getPriceAsNumber: vi.fn((key: string) => (key in prices ? prices[key] : 1))
+  getPriceAsNumber: vi.fn((key: string) => prices[key] ?? 1)
 });
 
 interface MakeCurrencyProviderOpts {

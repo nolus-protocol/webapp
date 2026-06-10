@@ -6,7 +6,6 @@ import { assertChainList, assertRouteResponse, assertMessagesResponse } from "./
 import { BackendApi } from "@/common/api";
 import { i18n } from "@/i18n";
 import { MsgTransfer } from "cosmjs-types/ibc/applications/transfer/v1/tx";
-import type { BaseWallet } from "@/networks";
 import { MsgSend } from "cosmjs-types/cosmos/bank/v1beta1/tx";
 import { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
 
@@ -23,10 +22,76 @@ interface SkipTransactionStatus {
   error: string;
 }
 
+// NolusWallet declares simulateMultiTx as private, so no public structural type
+// can require it even though every wallet handed to submitRoute carries it at
+// runtime — narrow per wallet at the call site instead.
+function canSimulateMultiTx<W extends object>(
+  wallet: W
+): wallet is W & {
+  simulateMultiTx: (msgs: { msg: unknown; msgTypeUrl: string }[], memo: string) => Promise<SkipTxResult>;
+} {
+  return typeof Reflect.get(wallet, "simulateMultiTx") === "function";
+}
+
 enum Messages {
   "/ibc.applications.transfer.v1.MsgTransfer" = "/ibc.applications.transfer.v1.MsgTransfer",
   "/cosmwasm.wasm.v1.MsgExecuteContract" = "/cosmwasm.wasm.v1.MsgExecuteContract",
   "/cosmos.bank.v1beta1.MsgSend" = "/cosmos.bank.v1beta1.MsgSend"
+}
+
+// The read* narrowers mirror cosmjs-types fromPartial defaults on absent fields
+// ("" / 0n / []) so a valid Skip message builds the exact same tx as before, but
+// a wrong-typed field throws instead of silently encoding a corrupt money message.
+function readString(value: unknown, field: string): string {
+  if (value == null) {
+    return "";
+  }
+  if (typeof value !== "string") {
+    throw new Error(`Skip message field ${field} is not a string`);
+  }
+  return value;
+}
+
+function readTimestamp(value: unknown, field: string): bigint {
+  if (value == null) {
+    return BigInt(0);
+  }
+  if (typeof value === "string" || typeof value === "number" || typeof value === "bigint") {
+    return BigInt(value);
+  }
+  throw new Error(`Skip message field ${field} is not a timestamp`);
+}
+
+function readCoin(value: unknown, field: string): { denom: string; amount: string } | undefined {
+  if (value == null) {
+    return undefined;
+  }
+  if (typeof value !== "object") {
+    throw new Error(`Skip message field ${field} is not a coin`);
+  }
+  const denom = "denom" in value ? value.denom : undefined;
+  const amount = "amount" in value ? value.amount : undefined;
+  if ((denom !== undefined && typeof denom !== "string") || (amount !== undefined && typeof amount !== "string")) {
+    throw new Error(`Skip message field ${field} is not a coin`);
+  }
+  return { denom: denom ?? "", amount: amount ?? "" };
+}
+
+function readCoinList(value: unknown, field: string): { denom: string; amount: string }[] {
+  if (value == null) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    throw new Error(`Skip message field ${field} is not a coin list`);
+  }
+  const entries: unknown[] = value;
+  return entries.map((entry, index) => {
+    const coin = readCoin(entry, `${field}[${index}]`);
+    if (coin === undefined) {
+      throw new Error(`Skip message field ${field}[${index}] is not a coin`);
+    }
+    return coin;
+  });
 }
 
 /**
@@ -117,7 +182,7 @@ export class SkipRouter {
       source_asset_chain_id: sourceId ?? SkipRouter.chainId,
       dest_asset_denom: destDenom,
       dest_asset_chain_id: destSourceId ?? SkipRouter.chainId,
-      network
+      ...(network !== undefined ? { network } : {})
     };
     if (revert) {
       request.amount_out = amount;
@@ -130,25 +195,25 @@ export class SkipRouter {
     return route;
   }
 
-  static async submitRoute(
+  static async submitRoute<W extends { address?: string | undefined }>(
     route: RouteResponse,
-    wallets: { [key: string]: BaseWallet },
-    callback: (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => Promise<void>
+    wallets: { [key: string]: W },
+    callback: (tx: SkipTxResult, wallet: W, chainId: string) => Promise<void>
   ) {
     return await SkipRouter.transaction(route, wallets, callback);
   }
 
-  private static async transaction(
+  private static async transaction<W extends { address?: string | undefined }>(
     route: RouteResponse,
-    wallets: { [key: string]: BaseWallet },
-    callback: (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => Promise<void>
+    wallets: { [key: string]: W },
+    callback: (tx: SkipTxResult, wallet: W, chainId: string) => Promise<void>
   ) {
     const client = await SkipRouter.getClient();
-    const addressList = [];
+    const addressList: string[] = [];
     const addresses: Record<string, string> = {};
 
-    for (const key in wallets) {
-      const walletAddress = wallets[key].address;
+    for (const [key, wallet] of Object.entries(wallets)) {
+      const walletAddress = wallet.address;
       if (!walletAddress) {
         throw new Error(`Wallet address not available for ${key}`);
       }
@@ -156,7 +221,11 @@ export class SkipRouter {
     }
 
     for (const id of route.chain_ids) {
-      addressList.push(addresses[id]);
+      const address = addresses[id];
+      if (address === undefined) {
+        throw new Error(`Wallet address not available for ${id}`);
+      }
+      addressList.push(address);
     }
 
     const add: {
@@ -196,6 +265,12 @@ export class SkipRouter {
     for (const tx of response?.txs ?? []) {
       const chainId = tx?.cosmos_tx?.chain_id;
       const wallet = wallets[chainId];
+      if (wallet === undefined) {
+        throw new Error(`Wallet not available for ${chainId}`);
+      }
+      if (!canSimulateMultiTx(wallet)) {
+        throw new Error(`Wallet for ${chainId} cannot simulate transactions`);
+      }
 
       const msgs = [];
       for (const m of tx.cosmos_tx.msgs) {
@@ -221,21 +296,21 @@ export class SkipRouter {
 
     switch (status.state) {
       case "STATE_ABANDONED": {
-        throw new Error(i18n.t("message.tx-state-abandoned"));
+        throw new Error(i18n.global.t("message.tx-state-abandoned"));
       }
       case "STATE_COMPLETED_SUCCESS": {
         return status;
       }
       case "STATE_COMPLETED_ERROR": {
-        throw new Error(i18n.t("message.tx-state-error"));
+        throw new Error(i18n.global.t("message.tx-state-error"));
       }
       case "STATE_PENDING_ERROR": {
-        throw new Error(i18n.t("message.tx-state-pending-error"));
+        throw new Error(i18n.global.t("message.tx-state-pending-error"));
       }
     }
 
     if (retries <= 0) {
-      throw new Error(i18n.t("message.tx-state-abandoned"));
+      throw new Error(i18n.global.t("message.tx-state-abandoned"));
     }
 
     await SkipRouter.wait(800);
@@ -253,22 +328,24 @@ export class SkipRouter {
   static getTx(msg: SkipMsg, msgJSON: Record<string, unknown>) {
     switch (msg.msg_type_url) {
       case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-        return MsgTransfer.fromPartial({
-          sourcePort: msgJSON.source_port,
-          sourceChannel: msgJSON.source_channel,
-          sender: msgJSON.sender,
-          receiver: msgJSON.receiver,
-          token: msgJSON.token,
-          timeoutHeight: undefined,
-          timeoutTimestamp: msgJSON.timeout_timestamp,
-          memo: msgJSON.memo
-        });
+        const token = readCoin(msgJSON.token, "token");
+        const transfer = {
+          sourcePort: readString(msgJSON.source_port, "source_port"),
+          sourceChannel: readString(msgJSON.source_channel, "source_channel"),
+          sender: readString(msgJSON.sender, "sender"),
+          receiver: readString(msgJSON.receiver, "receiver"),
+          timeoutTimestamp: readTimestamp(msgJSON.timeout_timestamp, "timeout_timestamp"),
+          memo: readString(msgJSON.memo, "memo")
+        };
+        return token === undefined
+          ? MsgTransfer.fromPartial(transfer)
+          : MsgTransfer.fromPartial({ ...transfer, token });
       }
       case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
         return MsgSend.fromPartial({
-          fromAddress: msgJSON.from_address,
-          toAddress: msgJSON.to_address,
-          amount: msgJSON.amount
+          fromAddress: readString(msgJSON.from_address, "from_address"),
+          toAddress: readString(msgJSON.to_address, "to_address"),
+          amount: readCoinList(msgJSON.amount, "amount")
         });
       }
       case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
@@ -291,7 +368,7 @@ export class SkipRouter {
         });
       }
       default: {
-        throw new Error(i18n.t("message.tx-action-not-supported"));
+        throw new Error(i18n.global.t("message.tx-action-not-supported"));
       }
     }
   }
@@ -321,7 +398,7 @@ export class SkipRouter {
       });
     } catch {
       if (attempts >= 5) {
-        throw new Error(i18n.t("message.tx-tracking-failed"));
+        throw new Error(i18n.global.t("message.tx-tracking-failed"));
       }
       await SkipRouter.wait(4000);
       await SkipRouter.track(chainId, hash, attempts + 1);

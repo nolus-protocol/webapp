@@ -22,15 +22,15 @@ export class WalletStorage {
    * map lookups in `walletOperation` / `externalWallet` and crashes the
    * auto-reconnect path.
    */
-  public static getWalletConnectMechanism(): string | null {
+  public static getWalletConnectMechanism(): WalletConnectMechanism | null {
     const stored = localStorage.getItem(this.WALLET_CONNECT_MECHANISM);
     if (stored === null) return null;
-    const valid = (Object.values(WalletConnectMechanism) as string[]).includes(stored);
-    if (!valid) {
+    const match = Object.values(WalletConnectMechanism).find((mechanism) => mechanism === stored);
+    if (match === undefined) {
       this.eraseWalletInfo();
       return null;
     }
-    return stored;
+    return match;
   }
 
   public static setPubKey(pubkey: string) {

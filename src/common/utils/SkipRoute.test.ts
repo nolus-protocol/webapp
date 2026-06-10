@@ -19,8 +19,14 @@ vi.mock("./ConfigService", () => ({
 }));
 
 vi.mock("@/i18n", () => ({
-  i18n: { t: (k: string) => k }
+  i18n: { global: { t: (k: string) => k } }
 }));
+
+function firstCall<A extends unknown[]>(fn: { mock: { calls: A[] } }): A {
+  const call = fn.mock.calls[0];
+  if (call === undefined) throw new Error("expected the mock to have been called");
+  return call;
+}
 
 // Test getTx returns a properly constructed message for each supported type
 // and that MsgExecuteContract (the C1 regression) now builds instead of throwing.
@@ -135,6 +141,74 @@ describe("SkipRouter.getTx", () => {
     };
     expect(() => SkipRouter.getTx(msg, msgJSON)).toThrow(/unexpected msg type/);
   });
+
+  it("throws when a MsgSend address field is not a string", () => {
+    const msg: SkipMsg = { msg_type_url: "/cosmos.bank.v1beta1.MsgSend", msg: "" };
+    const msgJSON = { from_address: 42, to_address: "nolus1xyz", amount: [] };
+    expect(() => SkipRouter.getTx(msg, msgJSON)).toThrow("Skip message field from_address is not a string");
+  });
+
+  it("throws when MsgSend amount is not an array", () => {
+    const msg: SkipMsg = { msg_type_url: "/cosmos.bank.v1beta1.MsgSend", msg: "" };
+    const msgJSON = { from_address: "nolus1abc", to_address: "nolus1xyz", amount: "1unls" };
+    expect(() => SkipRouter.getTx(msg, msgJSON)).toThrow("Skip message field amount is not a coin list");
+  });
+
+  it("throws when a MsgSend amount entry is not a coin", () => {
+    const msg: SkipMsg = { msg_type_url: "/cosmos.bank.v1beta1.MsgSend", msg: "" };
+    expect(() => SkipRouter.getTx(msg, { from_address: "a", to_address: "b", amount: [null] })).toThrow(
+      "Skip message field amount[0] is not a coin"
+    );
+    expect(() =>
+      SkipRouter.getTx(msg, { from_address: "a", to_address: "b", amount: [{ denom: 5, amount: "1" }] })
+    ).toThrow("Skip message field amount[0] is not a coin");
+  });
+
+  it("defaults a missing MsgSend amount to an empty coin list (fromPartial parity)", () => {
+    const msg: SkipMsg = { msg_type_url: "/cosmos.bank.v1beta1.MsgSend", msg: "" };
+    const result = SkipRouter.getTx(msg, { from_address: "a", to_address: "b" });
+    expect(result).toMatchObject({ fromAddress: "a", toAddress: "b", amount: [] });
+  });
+
+  it("throws when MsgTransfer token is malformed", () => {
+    const msg: SkipMsg = { msg_type_url: "/ibc.applications.transfer.v1.MsgTransfer", msg: "" };
+    const base = {
+      source_port: "transfer",
+      source_channel: "channel-0",
+      sender: "nolus1a",
+      receiver: "osmo1b",
+      timeout_timestamp: "1"
+    };
+    expect(() => SkipRouter.getTx(msg, { ...base, token: "1unls" })).toThrow("Skip message field token is not a coin");
+    expect(() => SkipRouter.getTx(msg, { ...base, token: { denom: "unls", amount: 7 } })).toThrow(
+      "Skip message field token is not a coin"
+    );
+  });
+
+  it("throws when MsgTransfer timeout_timestamp is not a numeric value", () => {
+    const msg: SkipMsg = { msg_type_url: "/ibc.applications.transfer.v1.MsgTransfer", msg: "" };
+    const msgJSON = {
+      source_port: "transfer",
+      source_channel: "channel-0",
+      sender: "nolus1a",
+      receiver: "osmo1b",
+      token: { denom: "unls", amount: "1" },
+      timeout_timestamp: {}
+    };
+    expect(() => SkipRouter.getTx(msg, msgJSON)).toThrow("Skip message field timeout_timestamp is not a timestamp");
+  });
+
+  it("defaults missing MsgTransfer memo and timeout (fromPartial parity)", () => {
+    const msg: SkipMsg = { msg_type_url: "/ibc.applications.transfer.v1.MsgTransfer", msg: "" };
+    const result = SkipRouter.getTx(msg, {
+      source_port: "transfer",
+      source_channel: "channel-0",
+      sender: "nolus1a",
+      receiver: "osmo1b",
+      token: { denom: "unls", amount: "1" }
+    });
+    expect(result).toMatchObject({ memo: "", timeoutTimestamp: BigInt(0) });
+  });
 });
 
 describe("SkipRouter.getRoute — revert flag is always set to true on the response", () => {
@@ -179,7 +253,7 @@ describe("SkipRouter.getRoute — revert flag is always set to true on the respo
     });
     const route = await SkipRouter.getRoute("a", "b", "1", true);
     expect(route.revert).toBe(true);
-    const req = (BackendApi.getSkipRoute as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const req = firstCall(BackendApi.getSkipRoute as ReturnType<typeof vi.fn>)[0];
     expect(req.amount_out).toBe("1");
     expect(req.amount_in).toBeUndefined();
   });
@@ -196,7 +270,7 @@ describe("SkipRouter.getRoute — revert flag is always set to true on the respo
       dest_asset_chain_id: "c2"
     });
     await SkipRouter.getRoute("a", "b", "10", false);
-    const req = (BackendApi.getSkipRoute as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const req = firstCall(BackendApi.getSkipRoute as ReturnType<typeof vi.fn>)[0];
     expect(req.amount_in).toBe("10");
     expect(req.amount_out).toBeUndefined();
   });
@@ -266,12 +340,13 @@ describe("SkipRouter.submitRoute / transaction()", () => {
     );
 
     expect(wOsmo.simulateMultiTx).toHaveBeenCalledTimes(1);
-    const msgs = wOsmo.simulateMultiTx.mock.calls[0][0];
+    const msgs = firstCall(wOsmo.simulateMultiTx)[0];
     expect(msgs[0].msgTypeUrl).toBe("/cosmos.bank.v1beta1.MsgSend");
     expect(msgs[0].msg.fromAddress).toBe("osmo1a");
     expect(callback).toHaveBeenCalledTimes(1);
-    expect(callback.mock.calls[0][1]).toBe(wOsmo);
-    expect(callback.mock.calls[0][2]).toBe("osmosis-1");
+    const callbackArgs = firstCall(callback);
+    expect(callbackArgs[1]).toBe(wOsmo);
+    expect(callbackArgs[2]).toBe("osmosis-1");
   });
 
   it("when route.revert=true passes amount_in/amount_out from the route as-is", async () => {
@@ -288,7 +363,7 @@ describe("SkipRouter.submitRoute / transaction()", () => {
       dest_asset_chain_id: "c2"
     };
     await SkipRouter.submitRoute(route as unknown as Parameters<typeof SkipRouter.submitRoute>[0], {}, vi.fn());
-    const req = (BackendApi.getSkipMessages as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const req = firstCall(BackendApi.getSkipMessages as ReturnType<typeof vi.fn>)[0];
     expect(req.amount_in).toBe("IN");
     expect(req.amount_out).toBe("OUT");
   });
@@ -313,7 +388,7 @@ describe("SkipRouter.submitRoute / transaction()", () => {
       { "nolus-1": nolus, "osmosis-1": osmo } as unknown as Parameters<typeof SkipRouter.submitRoute>[1],
       vi.fn()
     );
-    const req = (BackendApi.getSkipMessages as ReturnType<typeof vi.fn>).mock.calls[0][0];
+    const req = firstCall(BackendApi.getSkipMessages as ReturnType<typeof vi.fn>)[0];
     expect(req.address_list).toEqual(["nolus1X", "osmo1X"]);
   });
 
@@ -357,9 +432,59 @@ describe("SkipRouter.submitRoute / transaction()", () => {
       { "nolus-1": w } as unknown as Parameters<typeof SkipRouter.submitRoute>[1],
       vi.fn()
     );
-    const msg = w.simulateMultiTx.mock.calls[0][0][0];
+    const msg = firstCall(w.simulateMultiTx)[0][0];
     expect(msg.msgTypeUrl).toBe("/ibc.applications.transfer.v1.MsgTransfer");
     expect(msg.msg.sourceChannel).toBe("channel-0");
+  });
+
+  it("throws when a route chain_id has no wallet address (list stays aligned with chain_ids)", async () => {
+    (BackendApi.getSkipMessages as ReturnType<typeof vi.fn>).mockResolvedValue({ txs: [] });
+    const route = {
+      chain_ids: ["nolus-1", "osmosis-1"],
+      revert: true,
+      operations: [],
+      amount_in: "1",
+      amount_out: "2",
+      source_asset_denom: "a",
+      dest_asset_denom: "b",
+      source_asset_chain_id: "c1",
+      dest_asset_chain_id: "c2"
+    };
+    const nolus = mkWallet("nolus1X");
+    await expect(
+      SkipRouter.submitRoute(
+        route as unknown as Parameters<typeof SkipRouter.submitRoute>[0],
+        { "nolus-1": nolus } as unknown as Parameters<typeof SkipRouter.submitRoute>[1],
+        vi.fn()
+      )
+    ).rejects.toThrow("Wallet address not available for osmosis-1");
+    expect(BackendApi.getSkipMessages).not.toHaveBeenCalled();
+  });
+
+  it("throws when a returned tx targets a chain with no wallet", async () => {
+    (BackendApi.getSkipMessages as ReturnType<typeof vi.fn>).mockResolvedValue({
+      txs: [{ cosmos_tx: { chain_id: "missing-1", msgs: [] } }]
+    });
+    const route = {
+      chain_ids: ["nolus-1"],
+      revert: true,
+      operations: [],
+      amount_in: "1",
+      amount_out: "2",
+      source_asset_denom: "a",
+      dest_asset_denom: "b",
+      source_asset_chain_id: "c1",
+      dest_asset_chain_id: "c2"
+    };
+    const nolus = mkWallet("nolus1X");
+    await expect(
+      SkipRouter.submitRoute(
+        route as unknown as Parameters<typeof SkipRouter.submitRoute>[0],
+        { "nolus-1": nolus } as unknown as Parameters<typeof SkipRouter.submitRoute>[1],
+        vi.fn()
+      )
+    ).rejects.toThrow("Wallet not available for missing-1");
+    expect(nolus.simulateMultiTx).not.toHaveBeenCalled();
   });
 
   it("propagates wallet.simulateMultiTx errors (no silent swallow)", async () => {
