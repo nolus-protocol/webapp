@@ -113,4 +113,16 @@ describe("useLeaseOpen — isDownPaymentAmountValid (submit-path min/max enforce
     expect(api.amountErrorMsg.value).toBe("message.missing-amount");
     wrapper.unmount();
   });
+
+  it("rejects with integer-out-of-range when no loan option is selected", async () => {
+    hoisted.getDownpaymentRange.mockResolvedValue({ ALL_BTC: { min: "0", max: "1000" } });
+    const { api, wrapper } = setup();
+    api.amount.value = "5";
+
+    const valid = await api.isDownPaymentAmountValid(DOWN_PAYMENT, undefined);
+
+    expect(valid).toBe(false);
+    expect(api.amountErrorMsg.value).toBe("message.integer-out-of-range");
+    wrapper.unmount();
+  });
 });

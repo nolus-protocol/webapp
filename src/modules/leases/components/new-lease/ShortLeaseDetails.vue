@@ -11,7 +11,7 @@
       label="Size"
       :amount="{
         microAmount: sizeAmount,
-        denom: totalAsset?.shortName ?? downPaymentAsset?.shortName,
+        denom: totalAsset?.shortName ?? downPaymentAsset?.shortName ?? '',
         decimals: totalAsset?.decimal_digits ?? downPaymentAsset?.decimal_digits ?? 6,
         around: true,
         tooltip: true,
@@ -19,10 +19,10 @@
       }"
       :secondary="{
         value: totalLoan,
-        denom: asset?.shortName,
+        denom: asset?.shortName ?? '',
         isDenomPrefix: false,
         hasSpace: true,
-        decimals: asset?.decimal_digits
+        decimals: asset?.decimal_digits ?? 2
       }"
     />
     <div class="flex flex-col gap-3">
@@ -48,14 +48,7 @@
           fontSize: 16,
           class: { 'line-through': isFreeLease }
         }"
-        :additional="
-          isFreeLease
-            ? {
-                text: '0%',
-                class: 'text-typography-success'
-              }
-            : undefined
-        "
+        v-bind="isFreeLease ? { additional: { text: '0%', class: 'text-typography-success' } } : {}"
       />
       <BigNumber
         class="md:flex-[50%]"
@@ -83,8 +76,8 @@
         :label="$t('message.downpayment')"
         :amount="{
           microAmount: downPaymentAmount,
-          decimals: downPaymentAsset.decimal_digits,
-          denom: downPaymentAsset.shortName,
+          decimals: downPaymentAsset?.decimal_digits ?? 0,
+          denom: downPaymentAsset?.shortName ?? '',
           fontSize: 16
         }"
         :secondary="{
@@ -98,8 +91,8 @@
         :label="$t('message.borrow')"
         :amount="{
           microAmount: borrowAmount,
-          decimals: asset.decimal_digits,
-          denom: asset.shortName,
+          decimals: asset?.decimal_digits ?? 0,
+          denom: asset?.shortName ?? '',
           fontSize: 16
         }"
         :secondary="{
@@ -112,8 +105,8 @@
         :label="$t('message.impact-and-dex-fees')"
         :amount="{
           microAmount: swapFeeAmount.truncate().toString(),
-          decimals: asset.decimal_digits,
-          denom: asset.shortName,
+          decimals: asset?.decimal_digits ?? 0,
+          denom: asset?.shortName ?? '',
           fontSize: 16
         }"
         :secondary="{
@@ -208,7 +201,11 @@ const totalLoan = computed(() => {
   if (!props.lease?.total?.amount) {
     return "0";
   }
-  const price = new Dec(pricesStore.prices[asset.value.key]?.price ?? 0);
+  const a = asset.value;
+  if (a === undefined) {
+    return "0";
+  }
+  const price = new Dec(pricesStore.prices[a.key]?.price ?? 0);
   if (!price.isPositive()) {
     return "0";
   }
@@ -216,7 +213,7 @@ const totalLoan = computed(() => {
   const totalHuman = new Dec(props.lease.total.amount, decimals);
   const feeHuman = new Dec(swapStableFee.value).quo(price);
   const amount = totalHuman.quo(price).sub(feeHuman);
-  return amount.toString(asset.value.decimal_digits);
+  return amount.toString(a.decimal_digits);
 });
 
 const asset = computed(() => {
@@ -225,9 +222,15 @@ const asset = computed(() => {
 });
 
 const lpn = computed(() => {
-  const [_t, p] = loanAsset.value.key.split("@");
-  const lpn = getLpnByProtocol(p);
-  return lpn;
+  const loan = loanAsset.value;
+  if (loan === undefined) {
+    return null;
+  }
+  const [_t, p] = loan.key.split("@");
+  if (p === undefined) {
+    return null;
+  }
+  return getLpnByProtocol(p);
 });
 
 const downPaymentAsset = computed(() => {
@@ -241,40 +244,62 @@ const loanAsset = computed(() => {
 });
 
 const downPaymentAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key]?.price ?? 0);
-  const decimals = new Dec(10 ** downPaymentAsset.value.decimal_digits);
+  const dpa = downPaymentAsset.value;
+  if (dpa === undefined) {
+    return "0";
+  }
+  const price = new Dec(pricesStore.prices[dpa.key]?.price ?? 0);
+  const decimals = new Dec(10 ** dpa.decimal_digits);
   const v = downPaymentStable.value;
   const amount = v.quo(price).mul(decimals);
   return amount.truncate().toString();
 });
 
 const downPaymentStable = computed(() => {
-  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key]?.price ?? 0);
+  const dpa = downPaymentAsset.value;
+  if (dpa === undefined) {
+    return new Dec(0);
+  }
+  const price = new Dec(pricesStore.prices[dpa.key]?.price ?? 0);
   const v = props.downpaymenAmount.length === 0 ? "0" : props.downpaymenAmount;
   const stable = price.mul(new Dec(v));
   return stable;
 });
 
 const borrowAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value.key]?.price ?? 0);
-  const decimals = new Dec(10 ** lpn.value.decimal_digits);
+  const a = asset.value;
+  const l = lpn.value;
+  if (a === undefined || l === null) {
+    return "0";
+  }
+  const price = new Dec(pricesStore.prices[a.key]?.price ?? 0);
+  const decimals = new Dec(10 ** l.decimal_digits);
   const v = borrowStable.value;
   const amount = v.quo(price).mul(decimals);
   return amount.truncate().toString();
 });
 
 const swapFeeAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value.key]?.price ?? 0);
-  const decimals = new Dec(10 ** lpn.value.decimal_digits);
+  const a = asset.value;
+  const l = lpn.value;
+  if (a === undefined || l === null) {
+    return new Dec(0);
+  }
+  const price = new Dec(pricesStore.prices[a.key]?.price ?? 0);
+  const decimals = new Dec(10 ** l.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
   return amount;
 });
 
 const borrowStable = computed(() => {
-  const price = new Dec(pricesStore.prices[lpn.value.key]?.price ?? 0);
+  const l = lpn.value;
+  if (l === null) {
+    return new Dec(0);
+  }
+  const price = new Dec(pricesStore.prices[l.key]?.price ?? 0);
   const v = props.lease?.borrow?.amount ?? "0";
-  const stable = price.mul(new Dec(v, lpn.value.decimal_digits));
+  const stable = price.mul(new Dec(v, l.decimal_digits));
   return stable;
 });
 
@@ -294,7 +319,13 @@ const percentLique = computed(() => {
   try {
     const a = asset.value;
     const [_, protocol] = a?.key?.split("@") ?? [];
+    if (a === undefined || protocol === undefined) {
+      return "0";
+    }
     const lpn = getLpnByProtocol(protocol);
+    if (lpn === null) {
+      return "0";
+    }
 
     const price = new Dec(pricesStore.prices[lpn.key]?.price ?? "0", a.decimal_digits);
     const lprice = getLquidation();
@@ -349,7 +380,10 @@ const setSwapFee = async () => {
   time = setTimeout(() => {
     void (async () => {
       const currency = downPaymentAsset.value;
-      const [_, p] = asset.value.key.split("@");
+      const a = asset.value;
+      if (currency === undefined || a === undefined) return;
+      const [_, p] = a.key.split("@");
+      if (p === undefined) return;
 
       // For a Short position the on-chain flow swaps both the down payment and
       // the borrowed LPN to the stable the position settles in (lease.total.ticker,
@@ -367,6 +401,7 @@ const setSwapFee = async () => {
       ).amount.toString();
 
       const lpn = getLpnByProtocol(p);
+      if (lpn === null) return;
       let amountIn = 0;
       let amountOut = 0;
       await Promise.all([

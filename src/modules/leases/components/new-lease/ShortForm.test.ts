@@ -324,6 +324,7 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
 
     expect(hoisted.leaseQuote).toHaveBeenCalled();
     const args = hoisted.leaseQuote.mock.calls[0];
+    if (args === undefined) throw new Error("expected leaseQuote to have been called with arguments");
     // args: [microAmount, downPaymentTicker, leaseTicker, ltd]
     expect(args[1]).toBe("ALL_BTC");
     expect(args[2]).toBe("USDC_NOBLE");
@@ -345,6 +346,7 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
 
     expect(hoisted.leaseQuote).toHaveBeenCalled();
     const args = hoisted.leaseQuote.mock.calls[0];
+    if (args === undefined) throw new Error("expected leaseQuote to have been called with arguments");
     expect(args[1]).toBe("USDC_NOBLE");
     expect(args[2]).toBe("USDC_NOBLE");
     wrapper.unmount();
@@ -364,6 +366,24 @@ describe("ShortForm.vue — leaseQuote ticker resolution", () => {
         dex_symbol: ""
       }
     ]);
+
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("0.001");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    await flushPromises();
+
+    expect(hoisted.leaseQuote).not.toHaveBeenCalled();
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.unexpected-error");
+    wrapper.unmount();
+  });
+
+  it("surfaces unexpected-error when no collateral asset is available (config drift)", async () => {
+    // Short protocols exist (so a loan option is selectable) but the protocol
+    // currency list is empty → no down-payment asset. calculate() must fail
+    // loudly through classifyError instead of quoting.
+    hoisted.getCachedProtocolCurrencies.mockReturnValue([]);
 
     const wrapper = factory();
     await wrapper.vm.$nextTick();

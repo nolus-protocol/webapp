@@ -44,7 +44,7 @@
       "
       @input="handleAmountChange"
       :error-msg="amountErrorMsg"
-      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
+      v-bind="advancedControlBindings"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
       :item-template="
         (item: any) =>
@@ -55,7 +55,6 @@
             balance: item.balance.value
           })
       "
-      :selected-currency-option="currency"
     />
     <hr class="my-4 border-border-color" />
     <div class="flex max-w-[190px] flex-col gap-2 px-6">
@@ -73,7 +72,7 @@
         "
         :options="coinList"
         :size="Size.medium"
-        :selected="coinList[selectedLoanCurrency]"
+        v-bind="selectedLoanOption !== undefined ? { selected: selectedLoanOption } : {}"
         searchable
         :disabled="isLoading"
       />
@@ -166,9 +165,9 @@
   </div>
   <LongLeaseDetails
     :downpaymen-amount="amount"
-    :downpayment-currency="currency?.key"
+    :downpayment-currency="currency?.key ?? ''"
     :lease="leaseApply"
-    :loan-currency="coinList[selectedLoanCurrency]?.key"
+    :loan-currency="selectedLoanOption?.key ?? ''"
   />
 </template>
 
@@ -196,9 +195,8 @@ import { useHistoryStore } from "@/common/stores/history";
 import { classifyError, getMicroAmount, Logger, walletOperation } from "@/common/utils";
 import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
-import type { ExternalCurrency, IObjectKeys } from "@/common/types";
+import type { ExternalCurrency } from "@/common/types";
 import { INTEREST_DECIMALS, MAX_POSITION, MIN_POSITION, POSITIONS, SORT_LEASE, WASM_EVENTS } from "@/config/global";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { Dec } from "@keplr-wallet/unit";
 import { h } from "vue";
 import { useI18n } from "vue-i18n";
@@ -308,6 +306,17 @@ const currency = computed(() => {
   return assets.value[selectedCurrency.value];
 });
 
+const selectedLoanOption = computed(() => {
+  return coinList.value[selectedLoanCurrency.value];
+});
+
+const advancedControlBindings = computed(() => {
+  return {
+    ...(errorInsufficientBalance.value ? { inputClass: "text-typography-error" } : {}),
+    ...(currency.value !== undefined ? { selectedCurrencyOption: currency.value } : {})
+  };
+});
+
 const assets = computed(() => {
   const data = [];
   // Use dynamic protocols from config store instead of hardcoded protocolsFilter.hold
@@ -315,6 +324,10 @@ const assets = computed(() => {
   const b = ((balances.value as ExternalCurrency[]) ?? []).filter((item) => {
     const [_, p] = item.key.split("@");
 
+    if (p === undefined) {
+      console.error(`LongForm: malformed currency key: ${item.key}`);
+      return false;
+    }
     if (activeProtocols.includes(p)) {
       return true;
     }
@@ -325,7 +338,7 @@ const assets = computed(() => {
     const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
     const balance = formatTokenBalance(value);
     const exactBalance = value.isZero() ? "0" : value.toString(asset.decimal_digits).replace(/\.?0+$/, "");
-    const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
+    const denom = asset.ibcData;
     const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
     const stable = price.mul(value);
 
@@ -363,6 +376,10 @@ const coinList = computed(() => {
   }
 
   const [_ticker, downPaymentProtocol] = currency.value.key.split("@");
+  if (downPaymentProtocol === undefined) {
+    console.error(`LongForm: malformed currency key: ${currency.value.key}`);
+    return [];
+  }
 
   // Get currencies for the selected protocol that can be leased (group === "lease")
   const protocolCurrencies = configStore.getCachedProtocolCurrencies(downPaymentProtocol);
@@ -411,6 +428,10 @@ const balances = computed(() => {
     }
 
     const [ticker, protocol] = item.key?.split("@") ?? [];
+    if (protocol === undefined) {
+      console.error(`LongForm: malformed currency key: ${item.key}`);
+      return false;
+    }
 
     // Get protocol currencies from cache and check if this is valid collateral
     const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol);
@@ -432,15 +453,30 @@ async function calculate() {
     const downPayment = amount.value;
 
     if (downPayment) {
-      const microAmount = getMicroAmount(selectedDownPaymentCurrency.balance.denom, downPayment);
+      if (selectedDownPaymentCurrency === undefined || selectedCurrency === undefined) {
+        throw new Error("down payment or lease currency is not selected");
+      }
+      const denom = selectedDownPaymentCurrency.balance.denom;
+      if (denom === undefined) {
+        throw new Error(`missing bank denom for ${selectedDownPaymentCurrency.key}`);
+      }
+      const microAmount = getMicroAmount(denom, downPayment);
 
       const lease = selectedCurrency;
 
       const [downPaymentTicker, protocol] = selectedDownPaymentCurrency.key.split("@");
       const [leaseTicker] = lease.key.split("@");
+      if (downPaymentTicker === undefined || protocol === undefined || leaseTicker === undefined) {
+        throw new Error(`malformed currency key: ${selectedDownPaymentCurrency.key} / ${lease.key}`);
+      }
+
+      const contracts = configStore.contracts[protocol];
+      if (contracts === undefined || contracts.leaser === null) {
+        throw new Error(`no leaser contract configured for protocol ${protocol}`);
+      }
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
+      const leaserClient = new Leaser(cosmWasmClient, contracts.leaser);
 
       const makeLeaseApplyResp = await leaserClient.leaseQuote(
         microAmount.mAmount.amount.toString(),
@@ -487,7 +523,14 @@ async function openLease() {
       const downPayment = amount.value;
       const selectedCurrency = coinList.value[selectedLoanCurrency.value];
 
-      const microAmount = getMicroAmount(selectedDownPaymentCurrency.balance.denom, downPayment);
+      if (selectedDownPaymentCurrency === undefined || selectedCurrency === undefined) {
+        throw new Error("down payment or lease currency is not selected");
+      }
+      const denom = selectedDownPaymentCurrency.balance.denom;
+      if (denom === undefined) {
+        throw new Error(`missing bank denom for ${selectedDownPaymentCurrency.key}`);
+      }
+      const microAmount = getMicroAmount(denom, downPayment);
 
       const funds = [
         {
@@ -499,15 +542,23 @@ async function openLease() {
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
 
       const [leaseTicker, protocol] = selectedCurrency.key.split("@");
+      if (leaseTicker === undefined || protocol === undefined) {
+        throw new Error(`malformed lease currency key: ${selectedCurrency.key}`);
+      }
 
-      const leaserClient = new Leaser(cosmWasmClient, configStore.contracts[protocol].leaser);
+      const contracts = configStore.contracts[protocol];
+      if (contracts === undefined || contracts.leaser === null) {
+        throw new Error(`no leaser contract configured for protocol ${protocol}`);
+      }
+
+      const leaserClient = new Leaser(cosmWasmClient, contracts.leaser);
 
       const { txBytes } = await leaserClient.simulateOpenLeaseTx(wallet, leaseTicker, ltd.value, funds);
 
       const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
 
-      const item = tx?.events.find((item: IObjectKeys) => {
-        return item.type === WASM_EVENTS["wasm-ls-request-loan"].key;
+      const item = tx?.events.find((event) => {
+        return event.type === WASM_EVENTS["wasm-ls-request-loan"].key;
       });
 
       const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
@@ -519,6 +570,9 @@ async function openLease() {
         message: i18n.t("message.currently-opening")
       });
 
+      if (data === undefined) {
+        throw new Error("wasm-ls-request-loan event attribute missing from the broadcast result");
+      }
       void router.push(`/${RouteNames.LEASES}/${data.value}`);
     } catch (error: unknown) {
       amountErrorMsg.value = i18n.t(classifyError(error));

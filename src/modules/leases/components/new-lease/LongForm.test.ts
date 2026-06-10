@@ -298,6 +298,23 @@ describe("LongForm.vue — reactive balance validation", () => {
     wrapper.unmount();
   });
 
+  it("surfaces integer-out-of-range (not a crash) when no collateral assets are available", async () => {
+    // No protocol currencies → empty asset list → no selectable collateral or
+    // loan option. The min/max check must fail loudly instead of quoting.
+    hoisted.getCachedProtocolCurrencies.mockReturnValue([]);
+
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("0.5");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+    await flushPromises();
+
+    expect(wrapper.find('[data-test="err"]').text()).toBe("message.integer-out-of-range");
+    expect(hoisted.leaseQuote).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
+
   it("flags a zero amount as invalid before attempting a quote", async () => {
     hoisted.state.balances = [{ denom: "ibc/WETH", amount: "1000000000000000000" }];
 

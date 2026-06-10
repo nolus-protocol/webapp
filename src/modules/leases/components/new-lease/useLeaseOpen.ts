@@ -16,10 +16,10 @@ import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 // computed produces a richer object that satisfies this structurally.
 export interface DownPaymentOption {
   key: string;
-  ibcData?: string;
+  ibcData?: string | undefined;
   decimal_digits: number;
   shortName: string;
-  balance?: { amount?: string };
+  balance?: { amount?: string | undefined } | undefined;
 }
 
 // The loan side: the asset-to-lease option. The shared min/max check only needs
@@ -57,6 +57,9 @@ export function useLeaseOpen() {
 
   const handleParentClick = (index: number) => {
     const tab = tabs[index];
+    if (tab === undefined) {
+      throw new Error(`unknown lease tab index: ${index}`);
+    }
     void router.push({ path: `/${RouteNames.LEASES}/open/${tab.action}` });
   };
 
@@ -67,7 +70,7 @@ export function useLeaseOpen() {
 
   async function validateMinMaxValues(
     selectedDownPaymentCurrency: DownPaymentOption | undefined,
-    selectedCurrency: LoanOption
+    selectedCurrency: LoanOption | undefined
   ): Promise<boolean> {
     try {
       let isValid = true;
@@ -75,7 +78,13 @@ export function useLeaseOpen() {
       const downPaymentAmount = amount.value;
       const currentBalance = selectedDownPaymentCurrency;
 
+      if (selectedCurrency === undefined) {
+        throw new Error("no loan currency selected");
+      }
       const [c, p] = selectedCurrency.key.split("@");
+      if (c === undefined || p === undefined) {
+        throw new Error(`malformed loan currency key: ${selectedCurrency.key}`);
+      }
       const range = (await getDownpaymentRange(p))[c];
       if (currentBalance) {
         if (downPaymentAmount || downPaymentAmount !== "") {
@@ -90,7 +99,7 @@ export function useLeaseOpen() {
 
           const downPaymentAmountInMinimalDenom = CurrencyUtils.convertDenomToMinimalDenom(
             downPaymentAmount,
-            currentBalance.ibcData,
+            currentBalance.ibcData ?? "",
             currentBalance.decimal_digits
           );
           const balance = CurrencyUtils.calculateBalance(
@@ -163,7 +172,7 @@ export function useLeaseOpen() {
 
   async function isDownPaymentAmountValid(
     selectedDownPaymentCurrency: DownPaymentOption | undefined,
-    selectedLoan: LoanOption
+    selectedLoan: LoanOption | undefined
   ): Promise<boolean> {
     amountErrorMsg.value = "";
 

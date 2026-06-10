@@ -12,8 +12,8 @@
       label="Size"
       :amount="{
         microAmount: sizeAmount,
-        denom: asset?.shortName,
-        decimals: asset?.decimal_digits,
+        denom: asset?.shortName ?? '',
+        decimals: asset?.decimal_digits ?? 0,
         around: true,
         tooltip: true,
         fontSize: 24
@@ -46,14 +46,7 @@
           fontSize: 16,
           class: { 'line-through': isFreeLease }
         }"
-        :additional="
-          isFreeLease
-            ? {
-                text: '0%',
-                class: 'text-typography-success'
-              }
-            : undefined
-        "
+        v-bind="isFreeLease ? { additional: { text: '0%', class: 'text-typography-success' } } : {}"
       />
       <BigNumber
         class="md:flex-[50%]"
@@ -81,8 +74,8 @@
         :label="$t('message.downpayment')"
         :amount="{
           microAmount: downPaymentAmount,
-          decimals: downPaymentAsset.decimal_digits,
-          denom: downPaymentAsset.shortName,
+          decimals: downPaymentAsset?.decimal_digits ?? 0,
+          denom: downPaymentAsset?.shortName ?? '',
           fontSize: 16
         }"
         :secondary="{
@@ -96,22 +89,22 @@
         :label="$t('message.borrow')"
         :amount="{
           microAmount: props.lease?.borrow?.amount ?? '0',
-          denom: lpn.shortName,
-          decimals: lpn.decimal_digits,
+          denom: lpn?.shortName ?? '',
+          decimals: lpn?.decimal_digits ?? 0,
           fontSize: 16
         }"
         :secondary="{
           microAmount: borrowAmount,
-          decimals: asset.decimal_digits,
-          denom: asset.shortName
+          decimals: asset?.decimal_digits ?? 0,
+          denom: asset?.shortName ?? ''
         }"
       />
       <BigNumber
         :label="$t('message.impact-and-dex-fees')"
         :amount="{
           microAmount: swapFeeAmount.truncate().toString(),
-          decimals: asset.decimal_digits,
-          denom: asset.shortName,
+          decimals: asset?.decimal_digits ?? 0,
+          denom: asset?.shortName ?? '',
           fontSize: 16
         }"
         :secondary="{
@@ -207,9 +200,15 @@ const asset = computed(() => {
 });
 
 const lpn = computed(() => {
-  const [, p] = downPaymentAsset.value.key.split("@");
-  const lpn = getLpnByProtocol(p);
-  return lpn;
+  const dpa = downPaymentAsset.value;
+  if (dpa === undefined) {
+    return null;
+  }
+  const [, p] = dpa.key.split("@");
+  if (p === undefined) {
+    return null;
+  }
+  return getLpnByProtocol(p);
 });
 
 const downPaymentAsset = computed(() => {
@@ -218,40 +217,60 @@ const downPaymentAsset = computed(() => {
 });
 
 const downPaymentAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key]?.price ?? 0);
-  const decimals = new Dec(10 ** downPaymentAsset.value.decimal_digits);
+  const dpa = downPaymentAsset.value;
+  if (dpa === undefined) {
+    return "0";
+  }
+  const price = new Dec(pricesStore.prices[dpa.key]?.price ?? 0);
+  const decimals = new Dec(10 ** dpa.decimal_digits);
   const v = downPaymentStable.value;
   const amount = v.quo(price).mul(decimals);
   return amount.truncate().toString();
 });
 
 const downPaymentStable = computed(() => {
-  const price = new Dec(pricesStore.prices[downPaymentAsset.value.key]?.price ?? 0);
+  const dpa = downPaymentAsset.value;
+  if (dpa === undefined) {
+    return new Dec(0);
+  }
+  const price = new Dec(pricesStore.prices[dpa.key]?.price ?? 0);
   const v = props.downpaymenAmount.length === 0 ? "0" : props.downpaymenAmount;
   const stable = price.mul(new Dec(v));
   return stable;
 });
 
 const borrowAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value.key]?.price ?? 0);
-  const decimals = new Dec(10 ** asset.value.decimal_digits);
+  const a = asset.value;
+  if (a === undefined) {
+    return "0";
+  }
+  const price = new Dec(pricesStore.prices[a.key]?.price ?? 0);
+  const decimals = new Dec(10 ** a.decimal_digits);
   const v = borrowStable.value;
   const amount = v.quo(price).mul(decimals);
   return amount.truncate().toString();
 });
 
 const swapFeeAmount = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value.key]?.price ?? 0);
-  const decimals = new Dec(10 ** asset.value.decimal_digits);
+  const a = asset.value;
+  if (a === undefined) {
+    return new Dec(0);
+  }
+  const price = new Dec(pricesStore.prices[a.key]?.price ?? 0);
+  const decimals = new Dec(10 ** a.decimal_digits);
   const v = new Dec(swapStableFee.value);
   const amount = v.quo(price).mul(decimals);
   return amount;
 });
 
 const borrowStable = computed(() => {
-  const price = new Dec(pricesStore.prices[lpn.value.key]?.price ?? 0);
+  const l = lpn.value;
+  if (l === null) {
+    return new Dec(0);
+  }
+  const price = new Dec(pricesStore.prices[l.key]?.price ?? 0);
   const v = props.lease?.borrow?.amount ?? "0";
-  const stable = price.mul(new Dec(v, lpn.value.decimal_digits));
+  const stable = price.mul(new Dec(v, l.decimal_digits));
   return stable;
 });
 
@@ -319,7 +338,10 @@ async function setSwapFee() {
     time = setTimeout(() => {
       void (async () => {
         const currency = downPaymentAsset.value;
-        const [_, p] = asset.value.key.split("@");
+        const a = asset.value;
+        if (currency === undefined || a === undefined) return;
+        const [_, p] = a.key.split("@");
+        if (p === undefined) return;
 
         const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
           props.downpaymenAmount,
@@ -328,16 +350,17 @@ async function setSwapFee() {
         ).amount.toString();
 
         const lpn = getLpnByProtocol(p);
+        if (lpn === null) return;
         let amountIn = 0;
         let amountOut = 0;
         await Promise.all([
-          SkipRouter.getRoute(currency.ibcData, asset.value.ibcData, microAmount).then((data) => {
+          SkipRouter.getRoute(currency.ibcData, a.ibcData, microAmount).then((data) => {
             amountIn += Number(data.usd_amount_in ?? 0);
             amountOut += Number(data.usd_amount_out ?? 0);
 
             return Number(data?.swap_price_impact_percent ?? 0);
           }),
-          SkipRouter.getRoute(lpn.ibcData, asset.value.ibcData, lease.borrow.amount).then((data) => {
+          SkipRouter.getRoute(lpn.ibcData, a.ibcData, lease.borrow.amount).then((data) => {
             amountIn += Number(data.usd_amount_in ?? 0);
             amountOut += Number(data.usd_amount_out ?? 0);
 
