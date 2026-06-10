@@ -1,3 +1,4 @@
+import type { Raw } from "vue";
 import type { NolusWallet } from "@nolus/nolusjs";
 import type { CoinBalance } from "@/common/types/Currencies";
 
@@ -21,7 +22,11 @@ export type AssetBalance = {
 };
 
 export type State = {
-  wallet?: NolusWallet;
+  // Raw<> keeps Pinia's UnwrapRef from mapping the class type: the mapped copy
+  // loses NolusWallet's protected members, making the store instance no longer
+  // assignable to the actions' `this: Store`. The runtime proxy preserves every
+  // method, so the nominal type stays accurate.
+  wallet?: Raw<NolusWallet> | undefined;
 
   // Vesting tokens
   vest: {
@@ -34,8 +39,8 @@ export type State = {
   }[];
 
   // Delegated vesting/free from base_vesting_account
-  delegated_vesting?: { denom: string; amount: string };
-  delegated_free?: { denom: string; amount: string };
+  delegated_vesting?: { denom: string; amount: string } | undefined;
+  delegated_free?: { denom: string; amount: string } | undefined;
 
   // Staking APR
   apr: number;

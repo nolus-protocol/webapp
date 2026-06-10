@@ -99,7 +99,9 @@ describe("useWalletStore", () => {
       ];
     });
     expect(store.vest).toHaveLength(1);
-    expect(store.vest[0].amount.amount).toBe("1000");
+    const entry = store.vest[0];
+    if (entry === undefined) throw new Error("expected one vest entry after $patch");
+    expect(entry.amount.amount).toBe("1000");
   });
 
   it("should expose all declared action keys as functions", () => {

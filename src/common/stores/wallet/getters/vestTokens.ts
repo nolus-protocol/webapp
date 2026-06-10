@@ -2,7 +2,11 @@ import type { State } from "../types";
 import { ChainConstants } from "@nolus/nolusjs";
 import { Dec, Int } from "@keplr-wallet/unit";
 
-export function vestTokens(state: State) {
+// The parameter is narrowed to the slice this getter reads: Pinia checks
+// getters against UnwrapRef<State>, and the unwrapped NolusWallet under the
+// optional `wallet` key is no longer assignable back to the class type under
+// the strict tsconfig floor.
+export function vestTokens(state: Pick<State, "vest">) {
   let balance = new Dec(0, ChainConstants.COIN_DECIMALS);
 
   for (const b of state.vest) {
