@@ -238,11 +238,43 @@ describe("WithdrawForm.vue", () => {
     });
     hoisted.broadcastTx.mockResolvedValue({});
     hoisted.fetchBalances.mockResolvedValue(undefined);
+    hoisted.configRef.contracts = { OSMOSIS: { lpp: "nolus1lppcontract" } };
   });
 
   it("renders without throwing with at least one asset", () => {
     const wrapper = factory();
     expect(wrapper.exists()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("skips an lpn whose currenciesData entry is missing and logs the gap", () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    hoisted.configRef.lpn = [{ key: "USDC@OSMOSIS" }, { key: "GHOST@OSMOSIS" }];
+
+    const wrapper = factory();
+    const vm = wrapper.vm as unknown as { assets: Array<{ value: string }> };
+    expect(vm.assets).toHaveLength(1);
+    expect(vm.assets[0]?.value).toBe("USDC@OSMOSIS");
+    expect(errorSpy).toHaveBeenCalledWith("[WithdrawForm] missing currency data for GHOST@OSMOSIS");
+
+    errorSpy.mockRestore();
+    wrapper.unmount();
+  });
+
+  it("surfaces a classified error and does not broadcast when the protocol has no contracts", async () => {
+    const wrapper = factory();
+    await flushPromises();
+    await nextTick();
+
+    await wrapper.find('[data-test="amount"]').setValue("50");
+    hoisted.configRef.contracts = {};
+
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    await nextTick();
+
+    expect(hoisted.broadcastTx).not.toHaveBeenCalled();
+    expect(wrapper.find('[data-test="error"]').text()).toBe("message.unexpected-error");
     wrapper.unmount();
   });
 

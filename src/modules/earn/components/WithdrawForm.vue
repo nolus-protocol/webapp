@@ -9,13 +9,13 @@
       class="px-6 py-4"
       :label="$t('message.amount')"
       :balanceLabel="$t('message.balance')"
-      :selectedCurrencyOption="assets[selectedCurrency]"
+      v-bind="selectedAsset !== undefined ? { selectedCurrencyOption: selectedAsset } : {}"
       @on-selected-currency="onSelect"
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
       :error-msg="error"
-      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : ''"
       :searchable="true"
       :itemsHeadline="[$t('message.assets'), $t('message.supplied')]"
       :item-template="
@@ -42,7 +42,7 @@
           {{ $t("message.preview-input") }}
         </div>
       </template>
-      <template v-else-if="assets[selectedCurrency]">
+      <template v-else-if="selectedAsset">
         <div class="flex items-center gap-2 text-14">
           <SvgIcon
             name="check-solid"
@@ -52,7 +52,7 @@
             class="flex-1"
             :innerHTML="
               $t('message.withdraw-rewards-preview', {
-                amount: `${input} ${assets[selectedCurrency].label}`,
+                amount: `${input} ${selectedAsset.label}`,
                 amountStable: stable
               })
             "
@@ -117,7 +117,15 @@ const assets = computed(() => {
   const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
   const lpns = configStore.lpn?.filter((item) => {
     const c = configStore.currenciesData[item.key];
+    if (c === undefined) {
+      console.error(`[WithdrawForm] missing currency data for ${item.key}`);
+      return false;
+    }
     const [_currency, protocol] = c.key.split("@");
+    if (protocol === undefined) {
+      console.error(`[WithdrawForm] malformed currency key ${c.key}`);
+      return false;
+    }
     return activeProtocols.includes(protocol);
   });
 
@@ -180,11 +188,13 @@ const lpnBalances = ref<
   }[]
 >([]);
 
+const selectedAsset = computed(() => assets.value[selectedCurrency.value]);
+
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = configStore.currenciesData?.[currency?.value];
+  const asset = currency === undefined ? undefined : configStore.currenciesData?.[currency.value];
 
-  const price = new Dec(pricesStore.prices[asset?.key]?.price ?? 0);
+  const price = new Dec(asset === undefined ? 0 : (pricesStore.prices[asset.key]?.price ?? 0));
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
@@ -218,6 +228,10 @@ async function fetchDepositBalance() {
           const walletAddress = walletStore.wallet?.address ?? WalletStorage.getWalletAddress();
           const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
           const [_currency, protocol] = lpn.key.split("@");
+          if (protocol === undefined) {
+            console.error(`[WithdrawForm] malformed currency key ${lpn.key}`);
+            return null;
+          }
 
           const contract = configStore.contracts[protocol]?.lpp;
           if (!contract) return null;
@@ -277,8 +291,18 @@ async function onValidateAmount() {
   }
   const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
   const currency = configStore.currenciesData[asset.value];
+  if (currency === undefined) {
+    throw new Error(`missing currency config for ${asset.value}`);
+  }
   const [_currency, protocol] = currency.key.split("@");
-  const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
+  if (protocol === undefined) {
+    throw new Error(`malformed currency key ${currency.key}`);
+  }
+  const contracts = configStore.contracts[protocol];
+  if (contracts === undefined) {
+    throw new Error(`no contracts configured for protocol ${protocol}`);
+  }
+  const lppClient = new Lpp(cosmWasmClient, contracts.lpp);
   const data = await lppClient.getLppBalance();
   const amount = CurrencyUtils.convertDenomToMinimalDenom(input.value, currency.ibcData, currency.decimal_digits);
   const balance = new Int(data.balance.amount);
@@ -296,7 +320,14 @@ async function transferAmount() {
     try {
       loading.value = true;
 
-      const currency = configStore.currenciesData[assets.value[selectedCurrency.value].value];
+      const selected = assets.value[selectedCurrency.value];
+      if (selected === undefined) {
+        throw new Error("no withdraw asset selected");
+      }
+      const currency = configStore.currenciesData[selected.value];
+      if (currency === undefined) {
+        throw new Error(`missing currency config for ${selected.value}`);
+      }
       const microAmount = getMicroAmount(currency.ibcData, input.value);
       const asset = lpnBalances.value.find((item) => item.key === currency.key);
       if (!asset) {
@@ -308,9 +339,17 @@ async function transferAmount() {
       }
 
       const [_currency, protocol] = currency.key.split("@");
+      if (protocol === undefined) {
+        throw new Error(`malformed currency key ${currency.key}`);
+      }
+
+      const contracts = configStore.contracts[protocol];
+      if (contracts === undefined) {
+        throw new Error(`no contracts configured for protocol ${protocol}`);
+      }
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
+      const lppClient = new Lpp(cosmWasmClient, contracts.lpp);
       const price = await lppClient.getPrice();
 
       const calculatedPrice = new Dec(price.amount_quote.amount).quo(new Dec(price.amount.amount));

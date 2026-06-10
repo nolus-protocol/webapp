@@ -9,13 +9,13 @@
       class="px-6 py-4"
       :label="$t('message.amount')"
       :balanceLabel="$t('message.balance')"
-      :selectedCurrencyOption="assets[selectedCurrency]"
+      v-bind="selectedAsset !== undefined ? { selectedCurrencyOption: selectedAsset } : {}"
       @on-selected-currency="onSelect"
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
       :error-msg="error"
-      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : ''"
       :searchable="true"
       :itemsHeadline="[$t('message.assets'), $t('message.your-balance')]"
       :item-template="
@@ -42,7 +42,7 @@
           {{ $t("message.preview-input") }}
         </div>
       </template>
-      <template v-if="decAmount.isPositive() && assets[selectedCurrency]">
+      <template v-if="decAmount.isPositive() && selectedAsset">
         <div class="flex items-center gap-2 text-14">
           <SvgIcon
             name="check-solid"
@@ -56,7 +56,7 @@
         <EarnChart
           :class="{ hidden: apr == 0 }"
           class="mt-4"
-          :currencyKey="assets[selectedCurrency].key"
+          :currencyKey="selectedAsset.key"
           :amount="decAmount"
         />
       </template>
@@ -69,7 +69,7 @@
       severity="primary"
       :label="$t('message.supply')"
       @click="onNextClick"
-      :disabled="disabled || assets[selectedCurrency]?.disabled"
+      :disabled="disabled || selectedAsset?.disabled === true"
       :loading="loading"
     />
     <p class="text-center text-12 text-typography-secondary">
@@ -117,7 +117,15 @@ const assets = computed(() => {
     const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
     const lpns = configStore.lpn?.filter((item) => {
       const c = configStore.currenciesData[item.key];
+      if (c === undefined) {
+        console.error(`[SupplyForm] missing currency data for ${item.key}`);
+        return false;
+      }
       const [_currency, protocol] = c.key.split("@");
+      if (protocol === undefined) {
+        console.error(`[SupplyForm] malformed currency key ${c.key}`);
+        return false;
+      }
       return activeProtocols.includes(protocol);
     });
 
@@ -125,6 +133,10 @@ const assets = computed(() => {
 
     for (const lpn of lpns ?? []) {
       const [_, p] = lpn.key.split("@");
+      if (p === undefined) {
+        console.error(`[SupplyForm] malformed currency key ${lpn.key}`);
+        continue;
+      }
       const amount = balancesStore.getBalance(lpn.ibcData);
       const value = new Dec(amount, lpn.decimal_digits);
 
@@ -156,8 +168,9 @@ const assets = computed(() => {
         const [_key, pr] = item.value.split("@");
         return pr === protocol;
       });
-      if (index > -1) {
-        items.push(data[index]);
+      const item = data[index];
+      if (item !== undefined) {
+        items.push(item);
         data.splice(index, 1);
       }
     }
@@ -192,11 +205,13 @@ const maxSupply = ref<{ [key: string]: Int }>({});
 
 const selectedCurrency = ref(0);
 
+const selectedAsset = computed(() => assets.value[selectedCurrency.value]);
+
 const stable = computed(() => {
   const currency = assets.value[selectedCurrency.value];
-  const asset = configStore.currenciesData?.[currency?.value];
+  const asset = currency === undefined ? undefined : configStore.currenciesData?.[currency.value];
 
-  const price = new Dec(pricesStore.prices?.[asset?.key]?.price ?? "0");
+  const price = new Dec(asset === undefined ? "0" : (pricesStore.prices?.[asset.key]?.price ?? "0"));
   const v = input?.value?.length ? input?.value : "0";
   const stable = price.mul(new Dec(v));
   return formatDecAsUsd(stable);
@@ -224,6 +239,9 @@ const apr = computed(() => {
     return 0;
   }
   const [_, protocol] = currency.key.split("@");
+  if (protocol === undefined) {
+    return 0;
+  }
 
   const a = earnStore.getProtocolApr(protocol);
   return a;
@@ -265,13 +283,28 @@ async function transferAmount() {
   if (wallet && error.value === "") {
     try {
       loading.value = true;
-      const currency = configStore.currenciesData[assets.value[selectedCurrency.value].value];
+      const selected = assets.value[selectedCurrency.value];
+      if (selected === undefined) {
+        throw new Error("no supply asset selected");
+      }
+      const currency = configStore.currenciesData[selected.value];
+      if (currency === undefined) {
+        throw new Error(`missing currency config for ${selected.value}`);
+      }
       const microAmount = getMicroAmount(currency.ibcData, input.value);
 
       const [_currency, protocol] = currency.key.split("@");
+      if (protocol === undefined) {
+        throw new Error(`malformed currency key ${currency.key}`);
+      }
+
+      const contracts = configStore.contracts[protocol];
+      if (contracts === undefined) {
+        throw new Error(`no contracts configured for protocol ${protocol}`);
+      }
 
       const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const lppClient = new Lpp(cosmWasmClient, configStore.contracts[protocol].lpp);
+      const lppClient = new Lpp(cosmWasmClient, contracts.lpp);
 
       const { txBytes } = await lppClient.simulateDepositTx(wallet, [
         {
@@ -304,6 +337,10 @@ async function fetchDepositCapacity() {
   const data = [];
   for (const lpn of lpns ?? []) {
     const [_currency, protocol] = lpn.key.split("@");
+    if (protocol === undefined) {
+      console.error(`[SupplyForm] malformed currency key ${lpn.key}`);
+      continue;
+    }
 
     const fn = async () => {
       try {
@@ -341,6 +378,9 @@ function validateSupply() {
     return "";
   }
   const [_, protocol] = asset.key.split("@");
+  if (protocol === undefined) {
+    return "";
+  }
   const max = maxSupply.value[protocol];
 
   // maxSupply is populated per-protocol by an async fetchDepositCapacity; before
