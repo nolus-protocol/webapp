@@ -416,6 +416,23 @@ describe("CloseDialog.vue", () => {
     wrapper.unmount();
   });
 
+  it("passes the resolved close asset as the selected currency option", async () => {
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    const control = wrapper.findComponent({ name: "AdvancedFormControl" });
+    expect(control.props("selectedCurrencyOption")).toMatchObject({ ticker: "ATOM" });
+    wrapper.unmount();
+  });
+
+  it("omits the selected currency option entirely when the close asset is unknown", async () => {
+    hoisted.getLease.mockReturnValue(makeLease({ amount: { ticker: "UNKNOWN", amount: "1000000000" } }));
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    const control = wrapper.findComponent({ name: "AdvancedFormControl" });
+    expect(control.props("selectedCurrencyOption")).toBeUndefined();
+    wrapper.unmount();
+  });
+
   it("does not crash when lease ticker is missing from currenciesData (unknown-asset guard)", async () => {
     // Simulate version skew: chain returns a ticker not present in local config.
     hoisted.getLease.mockReturnValue(makeLease({ amount: { ticker: "UNKNOWN", amount: "1000000000" } }));

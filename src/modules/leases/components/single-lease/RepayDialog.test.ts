@@ -337,6 +337,23 @@ describe("RepayDialog.vue", () => {
     wrapper.unmount();
   });
 
+  it("passes the resolved repayment asset as the selected currency option", async () => {
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    const control = wrapper.findComponent({ name: "AdvancedFormControl" });
+    expect(control.props("selectedCurrencyOption")).toMatchObject({ shortName: "USDC" });
+    wrapper.unmount();
+  });
+
+  it("omits the selected currency option entirely when no repayment asset resolves", async () => {
+    hoisted.getLease.mockReturnValue(undefined);
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    const control = wrapper.findComponent({ name: "AdvancedFormControl" });
+    expect(control.props("selectedCurrencyOption")).toBeUndefined();
+    wrapper.unmount();
+  });
+
   it("does not render content body when config is not initialized", async () => {
     hoisted.configRef.initialized = false;
     hoisted.getLease.mockClear();

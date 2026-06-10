@@ -16,7 +16,7 @@
             :currencyOptions="assets"
             :disabled-currency-picker="isLoading"
             :disabled-input-field="isLoading"
-            :selectedCurrencyOption="assets[0]"
+            v-bind="selectedCurrencyBinding"
             :calculated-balance="calculatedBalance"
             :value-only="amount"
             @input="handleAmountChange"
@@ -91,6 +91,7 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 import { AdvancedFormControl, Button, Dialog, Tooltip, Slider, SvgIcon } from "web-components";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
 import ClosePreview from "./ClosePreview.vue";
@@ -126,4 +127,11 @@ const {
   onSendClick,
   closeDialog
 } = useCloseLease();
+
+// Conditional spread keeps `undefined` out of the optional prop
+// (exactOptionalPropertyTypes) while preserving the "no selection" render.
+const selectedCurrencyBinding = computed(() => {
+  const first = assets.value[0];
+  return first !== undefined ? { selectedCurrencyOption: first } : {};
+});
 </script>
