@@ -13,13 +13,16 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::sync::Arc;
 use tracing::debug;
 use utoipa::ToSchema;
 
 use crate::error::AppError;
 use crate::external::base_client::ExternalApiClient;
-use crate::external::skip::{SkipChain, SkipMessagesResponse, SkipRouteResponse};
+use crate::external::skip::{
+    SkipChain, SkipMessagesResponse, SkipRouteResponse, SkipStatusResponse,
+};
 use crate::AppState;
 
 // ============================================================================
@@ -248,8 +251,9 @@ pub async fn get_messages(
 
 /// Get swap status
 ///
-/// Forwards to Skip API `/v2/tx/status`. Response is an opaque Skip API
-/// passthrough — shape is not fixed in this spec.
+/// Forwards to Skip API `/v2/tx/status`. The upstream response is validated
+/// against `SkipStatusResponse` at ingress — `state` and the error envelope
+/// are typed; unconsumed tracking fields are preserved verbatim.
 #[utoipa::path(
     get,
     path = "/api/swap/status/{tx_hash}",
@@ -259,25 +263,21 @@ pub async fn get_messages(
         StatusQuery,
     ),
     responses(
-        (status = 200, description = "Opaque Skip API passthrough", content_type = "application/json", body = Object),
-        (status = 502, description = "Skip API call failed", body = crate::error::ErrorResponse),
+        (status = 200, description = "Validated Skip status response", body = SkipStatusResponse),
+        (status = 502, description = "Skip API call failed or returned a malformed status", body = crate::error::ErrorResponse),
     ),
 )]
 pub async fn get_status(
     State(state): State<Arc<AppState>>,
     Path(tx_hash): Path<String>,
     Query(query): Query<StatusQuery>,
-) -> Result<Json<serde_json::Value>, AppError> {
+) -> Result<Json<SkipStatusResponse>, AppError> {
     debug!("Getting swap status for tx: {}", tx_hash);
 
-    let url = format!(
-        "{}/v2/tx/status?tx_hash={}&chain_id={}",
-        state.skip_client.base_url(),
-        urlencoding::encode(&tx_hash),
-        urlencoding::encode(&query.chain_id)
-    );
-
-    let response = state.skip_client.get_raw(&url).await?;
+    let response = state
+        .skip_client
+        .get_status(&tx_hash, &query.chain_id)
+        .await?;
     Ok(Json(response))
 }
 
@@ -382,23 +382,60 @@ pub async fn track_transaction(
     }))
 }
 
+/// Swap UI configuration assembled by `refresh_swap_config` from gated
+/// settings + ETL denom resolution.
+///
+/// Per-network swap currencies are served as dynamic `swap_currency_<network>`
+/// keys via the flattened map — a network must be able to disappear (protocol
+/// deprecation) without changing this type, so no network is ever a named
+/// field. The frontend validates per-network keys at point of use only.
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct SwapConfigResponse {
+    /// Blacklisted currency tickers excluded from swap routes
+    pub blacklist: Vec<String>,
+    /// Affiliate fee in basis points
+    pub fee: u32,
+    /// Resolved denom of the swap target currency; empty when unconfigured
+    pub swap_to_currency: String,
+    /// Transferable currencies per network (uppercase network key)
+    pub transfers: BTreeMap<String, NetworkTransfers>,
+    /// Dynamic `swap_currency_<network>` keys → resolved denom
+    #[serde(flatten)]
+    #[schema(value_type = Object)]
+    pub swap_currencies: BTreeMap<String, String>,
+}
+
+/// Currencies transferable on one network.
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct NetworkTransfers {
+    pub currencies: Vec<TransferCurrency>,
+}
+
+/// One transferable currency: bank denom on Nolus and its DEX-side denom.
+#[derive(Debug, Clone, Serialize, ToSchema)]
+pub struct TransferCurrency {
+    pub from: String,
+    pub to: String,
+    pub native: bool,
+}
+
 /// Get swap UI config
 ///
 /// Returns UI-only swap configuration (blacklist, defaults, transfers) from
-/// background-refreshed cache. Response is an opaque JSON object — shape is
-/// not fixed in this spec.
+/// background-refreshed cache. Per-network `swap_currency_<network>` keys are
+/// dynamic — the set of networks is data-driven.
 #[utoipa::path(
     get,
     path = "/api/swap/config",
     tag = "swap",
     responses(
-        (status = 200, description = "Opaque swap UI config", content_type = "application/json", body = Object),
+        (status = 200, description = "Swap UI config", body = SwapConfigResponse),
         (status = 503, description = "Swap config not yet populated", body = crate::error::ErrorResponse),
     ),
 )]
 pub async fn get_swap_config(
     State(state): State<Arc<AppState>>,
-) -> Result<Json<serde_json::Value>, AppError> {
+) -> Result<Json<SwapConfigResponse>, AppError> {
     let result = state
         .data_cache
         .swap_config

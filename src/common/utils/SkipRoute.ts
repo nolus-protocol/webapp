@@ -61,7 +61,7 @@ class Swap {
     const status = await BackendApi.getSkipStatus(chain_id, tx_hash);
     return {
       state: status.state,
-      error: status.error || ""
+      error: status.error?.message ?? ""
     };
   }
 
@@ -216,7 +216,7 @@ export class SkipRouter {
     const status = await client.getTransactionStatus({ chain_id: chainId, tx_hash: hash });
 
     if (status.error) {
-      throw status.error;
+      throw new Error(status.error);
     }
 
     switch (status.state) {

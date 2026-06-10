@@ -28,6 +28,7 @@ use crate::handlers::gated_assets::AssetsResponse;
 use crate::handlers::gated_networks::NetworksResponse;
 use crate::handlers::leases::LeaseConfigResponse;
 use crate::handlers::staking::Validator;
+use crate::handlers::swap::SwapConfigResponse;
 use crate::propagation::user_data_filter::UserDataFilterContext;
 use std::collections::HashMap;
 
@@ -188,7 +189,7 @@ pub struct AppDataCache {
 
     // ── Swap ─────────────────────────────────────────────────────
     /// Swap config (gated swap settings + ETL currencies resolved to denoms)
-    pub swap_config: Cached<serde_json::Value>,
+    pub swap_config: Cached<SwapConfigResponse>,
 
     // ── Lease configs ────────────────────────────────────────────
     /// Lease configs per protocol (downpayment ranges + leaser on-chain config)

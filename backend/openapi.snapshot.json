@@ -3382,15 +3382,15 @@
           "swap"
         ],
         "summary": "Get swap UI config",
-        "description": "Returns UI-only swap configuration (blacklist, defaults, transfers) from\nbackground-refreshed cache. Response is an opaque JSON object — shape is\nnot fixed in this spec.",
+        "description": "Returns UI-only swap configuration (blacklist, defaults, transfers) from\nbackground-refreshed cache. Per-network `swap_currency_<network>` keys are\ndynamic — the set of networks is data-driven.",
         "operationId": "get_swap_config",
         "responses": {
           "200": {
-            "description": "Opaque swap UI config",
+            "description": "Swap UI config",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/SwapConfigResponse"
                 }
               }
             }
@@ -3518,7 +3518,7 @@
           "swap"
         ],
         "summary": "Get swap status",
-        "description": "Forwards to Skip API `/v2/tx/status`. Response is an opaque Skip API\npassthrough — shape is not fixed in this spec.",
+        "description": "Forwards to Skip API `/v2/tx/status`. The upstream response is validated\nagainst `SkipStatusResponse` at ingress — `state` and the error envelope\nare typed; unconsumed tracking fields are preserved verbatim.",
         "operationId": "get_status",
         "parameters": [
           {
@@ -3542,17 +3542,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Opaque Skip API passthrough",
+            "description": "Validated Skip status response",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/SkipStatusResponse"
                 }
               }
             }
           },
           "502": {
-            "description": "Skip API call failed",
+            "description": "Skip API call failed or returned a malformed status",
             "content": {
               "application/json": {
                 "schema": {
@@ -6034,6 +6034,21 @@
           }
         }
       },
+      "NetworkTransfers": {
+        "type": "object",
+        "description": "Currencies transferable on one network.",
+        "required": [
+          "currencies"
+        ],
+        "properties": {
+          "currencies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferCurrency"
+            }
+          }
+        }
+      },
       "NetworksResponse": {
         "type": "object",
         "description": "Response for all networks",
@@ -7237,6 +7252,29 @@
         ],
         "description": "The cosmos transaction envelope the frontend signs and broadcasts."
       },
+      "SkipIbcTransferStatus": {
+        "type": "object",
+        "description": "IBC transfer hop status.",
+        "required": [
+          "src_chain_id",
+          "dst_chain_id",
+          "state"
+        ],
+        "properties": {
+          "src_chain_id": {
+            "type": "string"
+          },
+          "dst_chain_id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "packet_txs": {
+            "type": "object"
+          }
+        }
+      },
       "SkipMessagesResponse": {
         "allOf": [
           {
@@ -7334,6 +7372,88 @@
           }
         ],
         "description": "Skip `/v2/fungible/route` response.\n\nOnly the fields the swap flow consumes are typed and required; every other\nfield Skip returns (price impact, estimated fees, USD amounts, route\nduration, …) is preserved verbatim through `additional` so the frontend\nkeeps its display data. `operations` stays opaque and is echoed back to\n`/v2/fungible/msgs` unchanged, so it must round-trip byte-for-byte."
+      },
+      "SkipStatusError": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          }
+        ],
+        "description": "Structured Skip status error. Only `message` is consumed; `type` and\n`details` ride in `additional`."
+      },
+      "SkipStatusResponse": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "required": [
+              "state"
+            ],
+            "properties": {
+              "state": {
+                "type": "string",
+                "description": "Overall transaction state (`STATE_SUBMITTED`, `STATE_PENDING`,\n`STATE_COMPLETED_SUCCESS`, `STATE_COMPLETED_ERROR`,\n`STATE_PENDING_ERROR`, `STATE_ABANDONED`)"
+              },
+              "error": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SkipStatusError"
+                  }
+                ]
+              },
+              "transfer_sequence": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "$ref": "#/components/schemas/SkipTransferEvent"
+                },
+                "description": "Per-hop transfer events; each entry wraps exactly one transfer kind\n(`ibc_transfer`, `cctp_transfer`, `axelar_transfer`, …)"
+              }
+            }
+          }
+        ],
+        "description": "Skip `/v2/tx/status` response.\n\n`state` drives the frontend tracking loop and `error.message` is what it\nsurfaces — both are validated at ingress. Every other field Skip returns\n(`transfers`, `next_blocking_transfer`, `transfer_asset_release`, …) is\npreserved verbatim through `additional`."
+      },
+      "SkipTransferEvent": {
+        "allOf": [
+          {
+            "type": "object"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ibc_transfer": {
+                "oneOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SkipIbcTransferStatus"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "description": "One hop in a Skip transfer sequence. IBC hops are typed; every other\ntransfer kind (`cctp_transfer`, `axelar_transfer`, `go_fast_transfer`, …)\nis preserved through `additional`."
       },
       "SkipTx": {
         "allOf": [
@@ -7593,6 +7713,53 @@
           }
         }
       },
+      "SwapConfigResponse": {
+        "allOf": [
+          {
+            "type": "object",
+            "description": "Dynamic `swap_currency_<network>` keys → resolved denom"
+          },
+          {
+            "type": "object",
+            "required": [
+              "blacklist",
+              "fee",
+              "swap_to_currency",
+              "transfers"
+            ],
+            "properties": {
+              "blacklist": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Blacklisted currency tickers excluded from swap routes"
+              },
+              "fee": {
+                "type": "integer",
+                "format": "int32",
+                "description": "Affiliate fee in basis points",
+                "minimum": 0
+              },
+              "swap_to_currency": {
+                "type": "string",
+                "description": "Resolved denom of the swap target currency; empty when unconfigured"
+              },
+              "transfers": {
+                "type": "object",
+                "description": "Transferable currencies per network (uppercase network key)",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/NetworkTransfers"
+                },
+                "propertyNames": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "description": "Swap UI configuration assembled by `refresh_swap_config` from gated\nsettings + ETL denom resolution.\n\nPer-network swap currencies are served as dynamic `swap_currency_<network>`\nkeys via the flattened map — a network must be able to disappear (protocol\ndeprecation) without changing this type, so no network is ever a named\nfield. The frontend validates per-network keys at point of use only."
+      },
       "TallyResponse": {
         "type": "object",
         "required": [
@@ -7690,6 +7857,26 @@
               "string",
               "null"
             ]
+          }
+        }
+      },
+      "TransferCurrency": {
+        "type": "object",
+        "description": "One transferable currency: bank denom on Nolus and its DEX-side denom.",
+        "required": [
+          "from",
+          "to",
+          "native"
+        ],
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "native": {
+            "type": "boolean"
           }
         }
       },
