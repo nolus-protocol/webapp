@@ -111,10 +111,14 @@ router
   })
   .catch((e) => console.error(e));
 
+// Route components in this app are either direct SFC imports (objects) or
+// dynamic-import thunks — a bare function among them is always a lazy loader.
+const isLazyLoader = (component: unknown): component is () => Promise<unknown> => typeof component === "function";
+
 const preloadAllRoutes = () => {
   router.getRoutes().forEach((route) => {
     const preload = route.components?.default;
-    if (typeof preload === "function") {
+    if (isLazyLoader(preload)) {
       // Stale chunks after a deploy will reject here; don't pollute console —
       // the real navigation will trigger router.onError with the same error.
       Promise.resolve(preload()).catch(() => {});
@@ -122,8 +126,8 @@ const preloadAllRoutes = () => {
   });
 };
 
-const scrollHash = (hash: string) => {
-  return new Promise((resolve) => {
+const scrollHash = (hash: string): Promise<false> => {
+  return new Promise<false>((resolve) => {
     setTimeout(() => {
       const element = document.querySelector(hash);
       if (element) {

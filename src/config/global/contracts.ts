@@ -1,4 +1,5 @@
 import { ProtocolsPirin, ProtocolsRila } from "@nolus/nolusjs/build/types/Networks";
+import type { Networks } from "@/common/types";
 
 interface ContractsConfig {
   dispatcher: { instance: string };
@@ -6,7 +7,7 @@ interface ContractsConfig {
   protocols: Record<string, string>;
 }
 
-export const CONTRACTS: Record<string, ContractsConfig> = {
+export const CONTRACTS: Record<Networks, ContractsConfig> = {
   testnet: {
     dispatcher: {
       instance: "nolus1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrqrr2r7y"
