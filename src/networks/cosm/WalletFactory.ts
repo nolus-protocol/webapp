@@ -1,5 +1,5 @@
 import { type OfflineDirectSigner } from "@cosmjs/proto-signing";
-import type { Keplr } from "@keplr-wallet/types";
+import type { ChainInfo, Keplr } from "@keplr-wallet/types";
 import type { Wallet } from "..";
 
 import BluetoothTransport from "@ledgerhq/hw-transport-web-ble";
@@ -22,6 +22,18 @@ const aminoTypes = {
 };
 
 const MsgTransferAmino = new AminoTypes(aminoTypes);
+
+function isChainInfo(value: unknown): value is ChainInfo {
+  return typeof value === "object" && value !== null;
+}
+
+// @keplr-wallet/types declares its own Long-based SignDoc signer interfaces; bridge to the
+// cosmjs signer union via a structural runtime check rather than a type assertion.
+function isCompatibleSigner(signer: unknown): signer is OfflineAminoSigner | OfflineDirectSigner {
+  return (
+    typeof signer === "object" && signer !== null && "getAccounts" in signer && typeof signer.getAccounts === "function"
+  );
+}
 
 async function createWallet(
   wallet: Wallet,
@@ -64,7 +76,11 @@ async function authenticateKeplrLike(
     try {
       chainId = await wallet.getChainId();
       const node = await fetchEndpoints(network.key);
-      await extension.experimentalSuggestChain(network.embedChainInfo(chainId, node.rpc, node.api));
+      const chainInfo = network.embedChainInfo(chainId, node.rpc, node.api);
+      if (!isChainInfo(chainInfo)) {
+        throw new Error(`Chain info for network '${network.key}' is missing or malformed.`);
+      }
+      await extension.experimentalSuggestChain(chainInfo);
     } catch (e) {
       Logger.error(e);
       throw new Error("Failed to fetch suggest chain.", { cause: e });
@@ -74,6 +90,9 @@ async function authenticateKeplrLike(
 
     if (extension.getOfflineSignerAuto) {
       const offlineSigner = await extension.getOfflineSignerAuto(chainId);
+      if (!isCompatibleSigner(offlineSigner)) {
+        throw new Error(`${label} returned a signer without getAccounts support.`);
+      }
 
       return await createWallet(
         wallet,

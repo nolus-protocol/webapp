@@ -1,7 +1,7 @@
 import type { EncodeObject, OfflineSigner, TxBodyEncodeObject } from "@cosmjs/proto-signing";
 import type { Coin } from "cosmjs-types/cosmos/base/v1beta1/coin";
 import type { MsgExecuteContract } from "cosmjs-types/cosmwasm/wasm/v1/tx";
-import type { Secp256k1Pubkey } from "@cosmjs/amino/build/pubkeys";
+import type { Secp256k1Pubkey } from "@cosmjs/amino";
 import type { Wallet } from "../wallet";
 import type { CometClient } from "@cosmjs/tendermint-rpc";
 
@@ -134,7 +134,7 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
     },
     memo: string,
     pubkey: Secp256k1Pubkey,
-    sequence: { sequence?: number; accountNumber?: number }
+    sequence: { sequence?: number | undefined; accountNumber?: number | undefined }
   ) {
     if (sequence.sequence == null) {
       throw new Error("Account sequence not available");
@@ -154,12 +154,13 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
 
   public async useAccount(): Promise<boolean> {
     const accounts = await this.offlineSigner.getAccounts();
-    if (accounts.length === 0) {
+    const account = accounts[0];
+    if (account === undefined) {
       throw new Error("Missing account");
     }
-    this.address = accounts[0].address;
-    this.pubKey = accounts[0].pubkey;
-    this.algo = accounts[0].algo;
+    this.address = account.address;
+    this.pubKey = account.pubkey;
+    this.algo = account.algo;
 
     return true;
   }
@@ -220,7 +221,6 @@ export class BaseWallet extends SigningCosmWasmClient implements Wallet {
       sender: this.address?.toString(),
       receiver: toAddress,
       token: amount,
-      timeoutHeight: undefined,
       timeoutTimestamp: longTimeOut,
       memo
     });

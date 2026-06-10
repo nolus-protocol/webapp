@@ -115,7 +115,9 @@ describe("NolusWalletOverride", () => {
       const fn = w.simulateTx as Override<"simulateTx">;
       const result = await fn({} as never, "/cosmos.bank.v1beta1.MsgSend", "memo");
       // 100000 * 1.5 = 150000 rounded
-      expect((w.selectDynamicFee as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe(150000);
+      const dynamicFeeCall = (w.selectDynamicFee as ReturnType<typeof vi.fn>).mock.calls[0];
+      if (dynamicFeeCall === undefined) throw new Error("expected selectDynamicFee to have been called");
+      expect(dynamicFeeCall[0]).toBe(150000);
       expect(result).toHaveProperty("txHash");
       expect(result).toHaveProperty("txBytes");
       expect(result).toHaveProperty("usedFee");
@@ -144,7 +146,9 @@ describe("NolusWalletOverride", () => {
       const fn = w.simulateTx as Override<"simulateTx">;
       await fn({} as never, "/cosmos.bank.v1beta1.MsgSend");
       const signCalls = (w.sign as ReturnType<typeof vi.fn>).mock.calls;
-      expect(signCalls[0][3]).toBe("");
+      const firstSignCall = signCalls[0];
+      if (firstSignCall === undefined) throw new Error("expected sign to have been called");
+      expect(firstSignCall[3]).toBe("");
     });
 
     it("throws when wallet pubKey is missing (fail loudly)", async () => {
@@ -178,7 +182,9 @@ describe("NolusWalletOverride", () => {
         "memo"
       );
       // 200000 * 1.5 = 300000
-      expect((w.selectDynamicFee as ReturnType<typeof vi.fn>).mock.calls[0][0]).toBe(300000);
+      const dynamicFeeCall = (w.selectDynamicFee as ReturnType<typeof vi.fn>).mock.calls[0];
+      if (dynamicFeeCall === undefined) throw new Error("expected selectDynamicFee to have been called");
+      expect(dynamicFeeCall[0]).toBe(300000);
       expect(res).toHaveProperty("txHash");
     });
 

@@ -84,8 +84,9 @@ vi.mock("@cosmjs/stargate", async (orig) => {
 
 import { BaseWallet } from "./BaseWallet";
 import type { OfflineSigner, OfflineDirectSigner } from "@cosmjs/proto-signing";
+import type { OfflineAminoSigner } from "@cosmjs/amino";
 
-function fakeSigner(overrides: Partial<OfflineSigner> = {}): OfflineSigner {
+function fakeSigner(overrides: Partial<OfflineAminoSigner> = {}): OfflineAminoSigner {
   return {
     getAccounts: vi.fn(async () => [
       { address: "nolus1addr", pubkey: new Uint8Array(33).fill(2), algo: "secp256k1" as const }
@@ -102,7 +103,7 @@ function fakeSigner(overrides: Partial<OfflineSigner> = {}): OfflineSigner {
       }
     })),
     ...overrides
-  } as unknown as OfflineSigner;
+  } as unknown as OfflineAminoSigner;
 }
 
 function fakeDirectSigner(): OfflineDirectSigner {
@@ -119,7 +120,7 @@ function fakeDirectSigner(): OfflineDirectSigner {
 
 function buildBaseWallet(signer: OfflineSigner = fakeSigner(), gasMultiplier = 1.5) {
   return new BaseWallet(
-    { disconnect: vi.fn() } as unknown as Parameters<typeof BaseWallet>[0],
+    { disconnect: vi.fn() } as unknown as ConstructorParameters<typeof BaseWallet>[0],
     signer,
     {} as never,
     "rpc-url",
@@ -145,6 +146,7 @@ describe("BaseWallet", () => {
       const signer = fakeSigner();
       buildBaseWallet(signer);
       const args = superCtorArgs.mock.calls[0];
+      if (args === undefined) throw new Error("expected the BaseWallet super constructor to have been called");
       expect(args[1]).toBe(signer);
     });
 

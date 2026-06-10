@@ -33,7 +33,6 @@ vi.mock("@/config/global", () => ({
 
 import { SolanaWallet } from "./wallet";
 import type { NetworkData } from "@/common/types";
-import type { Window } from "../window";
 import { AuthInfo, SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 const ED_PUBKEY_BYTES = new Uint8Array(32);
@@ -70,22 +69,22 @@ function makePhantomProvider(overrides: Partial<Record<string, unknown>> = {}) {
 }
 
 function stubSolflare(provider: unknown) {
-  const w = window as unknown as Window & { solflare?: unknown };
-  w.solflare = provider as Window["solflare"];
+  const w = window as unknown as { solflare?: unknown };
+  w.solflare = provider;
 }
 
 function clearSolflare() {
-  const w = window as unknown as Window & { solflare?: unknown };
+  const w = window as unknown as { solflare?: unknown };
   delete w.solflare;
 }
 
 function stubPhantom(solanaProvider: unknown) {
-  const w = window as unknown as Window & { phantom?: { solana?: unknown } };
+  const w = window as unknown as { phantom?: { solana?: unknown } };
   w.phantom = { solana: solanaProvider };
 }
 
 function clearPhantom() {
-  const w = window as unknown as Window & { phantom?: unknown };
+  const w = window as unknown as { phantom?: unknown };
   delete w.phantom;
 }
 
@@ -189,8 +188,10 @@ describe("SolanaWallet (Solflare provider)", () => {
     const signer = sol.makeWCOfflineSigner();
     const accounts = await signer.getAccounts();
     expect(accounts).toHaveLength(1);
-    expect(accounts[0].address).toBe(sol.address);
-    expect(accounts[0].algo).toBe("ed25519");
+    const account = accounts[0];
+    if (account === undefined) throw new Error("expected the signer to return one account");
+    expect(account.address).toBe(sol.address);
+    expect(account.algo).toBe("ed25519");
   });
 
   it("makeWCOfflineSigner.signDirect throws 'not supported'", async () => {
@@ -271,7 +272,9 @@ describe("SolanaWallet (Solflare provider)", () => {
     // they round-trip cleanly through SignDoc — i.e. the bytes ARE
     // `SignDoc.encode(signDoc).finish()`, not a hash, JSON, or wrapped form.
     expect(provider.signMessage).toHaveBeenCalledTimes(1);
-    const passedBytes = provider.signMessage.mock.calls[0][0] as Uint8Array;
+    const signCall = provider.signMessage.mock.calls[0];
+    if (signCall === undefined) throw new Error("expected signMessage to have been called");
+    const passedBytes = signCall[0] as Uint8Array;
     expect(passedBytes).toBeInstanceOf(Uint8Array);
 
     const decoded = SignDoc.decode(passedBytes);
@@ -312,12 +315,16 @@ describe("SolanaWallet (Solflare provider)", () => {
       ""
     );
 
-    const passedBytes = provider.signMessage.mock.calls[0][0] as Uint8Array;
+    const signCall = provider.signMessage.mock.calls[0];
+    if (signCall === undefined) throw new Error("expected signMessage to have been called");
+    const passedBytes = signCall[0] as Uint8Array;
     const signDoc = SignDoc.decode(passedBytes);
     const authInfo = AuthInfo.decode(signDoc.authInfoBytes);
 
     expect(authInfo.signerInfos).toHaveLength(1);
-    expect(authInfo.signerInfos[0].publicKey?.typeUrl).toBe("/cosmos.crypto.ed25519.PubKey");
+    const signerInfo = authInfo.signerInfos[0];
+    if (signerInfo === undefined) throw new Error("expected one signerInfo in the AuthInfo");
+    expect(signerInfo.publicKey?.typeUrl).toBe("/cosmos.crypto.ed25519.PubKey");
   });
 
   it("makeWCOfflineSigner.simulateTx delegates to simulateMultiTx with a single-message list", async () => {
@@ -412,6 +419,14 @@ describe("SolanaWallet (Phantom provider)", () => {
     ).rejects.toThrow();
   });
 
+  it("throws 'not installed' when window.phantom.solana lacks the provider methods", async () => {
+    stubPhantom({ isPhantom: true });
+    const sol = new SolanaWallet("phantom");
+    await expect(
+      sol.connectCustom({ rpc: "r", api: "a" } as unknown as Parameters<typeof sol.connectCustom>[0], networkStub())
+    ).rejects.toThrow(/Phantom wallet is not installed/);
+  });
+
   it("connectCustom on Phantom signs via window.phantom.solana.signMessage", async () => {
     const phantomProvider = makePhantomProvider();
     stubPhantom(phantomProvider);
@@ -441,5 +456,104 @@ describe("SolanaWallet (Phantom provider)", () => {
     );
 
     expect(phantomProvider.signMessage).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("SolanaWallet strict guards", () => {
+  beforeEach(() => {
+    stargateConnectMock.mockReset();
+    stargateConnectMock.mockResolvedValue({ getChainId: vi.fn().mockResolvedValue("nolus-1") });
+  });
+
+  afterEach(() => {
+    clearSolflare();
+    clearPhantom();
+    vi.restoreAllMocks();
+  });
+
+  function connectArgs() {
+    return { rpc: "r", api: "a" } as unknown as Parameters<SolanaWallet["connectCustom"]>[0];
+  }
+
+  it("throws 'not installed' when window.solflare lacks the provider methods", async () => {
+    stubSolflare({ isSolflare: true });
+    const sol = new SolanaWallet("solflare");
+    await expect(sol.connectCustom(connectArgs(), networkStub())).rejects.toThrow(/Solflare wallet is not installed/);
+  });
+
+  it("throws when the chain info has no bech32 config", async () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    const network = { embedChainInfo: () => ({}) } as unknown as NetworkData;
+    await expect(sol.connectCustom(connectArgs(), network)).rejects.toThrow(/bech32 config/);
+  });
+
+  it("throws when the bech32 account prefix is not a string", async () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    const network = {
+      embedChainInfo: () => ({ bech32Config: { bech32PrefixAccAddr: 5 } })
+    } as unknown as NetworkData;
+    await expect(sol.connectCustom(connectArgs(), network)).rejects.toThrow(/prefix is not a string/);
+  });
+
+  it("makeWCOfflineSigner throws when the wallet was never connected (no pubKey)", () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    expect(() => sol.makeWCOfflineSigner()).toThrow(/not connected/);
+  });
+
+  it("simulateTx rejects when simulateMultiTx has been detached from the signer", async () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    await sol.connectCustom(connectArgs(), networkStub());
+    const signer = sol.makeWCOfflineSigner();
+    Object.assign(signer, { simulateMultiTx: undefined });
+    await expect(Promise.resolve(signer.simulateTx?.({} as never, "/cosmos.bank.v1beta1.MsgSend", ""))).rejects.toThrow(
+      /simulateMultiTx is not attached/
+    );
+  });
+
+  it("simulateMultiTx rejects when the host functions were never attached", async () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    await sol.connectCustom(connectArgs(), networkStub());
+    const signer = sol.makeWCOfflineSigner();
+    await expect(Promise.resolve(signer.simulateMultiTx?.([{ msg: {}, msgTypeUrl: "/x" }], ""))).rejects.toThrow(
+      /not attached/
+    );
+  });
+
+  it("simulateMultiTx rejects when getSequence resolves a malformed sequence info", async () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    await sol.connectCustom(connectArgs(), networkStub());
+    const signer = sol.makeWCOfflineSigner();
+    const bound = Object.assign(signer, {
+      registry: { encodeAsAny: vi.fn((m: unknown) => ({ typeUrl: "/x", value: m })) },
+      getSequence: vi.fn().mockResolvedValueOnce({}).mockResolvedValueOnce({ accountNumber: "1", sequence: "0" }),
+      getGasInfo: vi.fn()
+    });
+    await expect(Promise.resolve(bound.simulateMultiTx?.([{ msg: {}, msgTypeUrl: "/x" }], ""))).rejects.toThrow(
+      /sequence info/i
+    );
+    await expect(Promise.resolve(bound.simulateMultiTx?.([{ msg: {}, msgTypeUrl: "/x" }], ""))).rejects.toThrow(
+      /sequence info/i
+    );
+  });
+
+  it("simulateMultiTx rejects when gas estimation returns no usable fee", async () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    await sol.connectCustom(connectArgs(), networkStub());
+    const signer = sol.makeWCOfflineSigner();
+    const bound = Object.assign(signer, {
+      registry: { encodeAsAny: vi.fn((m: unknown) => ({ typeUrl: "/x", value: m })) },
+      getSequence: vi.fn().mockResolvedValue({ accountNumber: 1n, sequence: 0n }),
+      getGasInfo: vi.fn().mockResolvedValue({ usedFee: { amount: "not-a-list", gas: 5 } })
+    });
+    await expect(Promise.resolve(bound.simulateMultiTx?.([{ msg: {}, msgTypeUrl: "/x" }], ""))).rejects.toThrow(
+      /usable fee/
+    );
   });
 });
