@@ -61,7 +61,7 @@ const assets = computed(() => {
       const amountDec = new Dec(item.balance, asset.decimal_digits);
 
       const stable_b = CurrencyUtils.calculateBalance(
-        price,
+        price ?? "0",
         new Coin(asset.ibcData, item.balance.toString()),
         asset.decimal_digits
       ).toDec();

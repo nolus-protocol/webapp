@@ -178,7 +178,11 @@ describe("RedelegateButton.vue", () => {
     await wrapper.vm.$nextTick();
 
     expect(hoisted.simulateRedelegateTx).toHaveBeenCalledTimes(1);
-    const delegations = hoisted.simulateRedelegateTx.mock.calls[0][0];
+    const firstCall = hoisted.simulateRedelegateTx.mock.calls[0];
+    if (firstCall === undefined) {
+      throw new Error("expected simulateRedelegateTx to have recorded a call");
+    }
+    const delegations = firstCall[0];
     // Split 1000 between 2 validators -> 500 each; dest set to loaded validators,
     // src matches prop. Higher-commission validator sorted first and gets remainder (0 here).
     expect(delegations).toHaveLength(2);

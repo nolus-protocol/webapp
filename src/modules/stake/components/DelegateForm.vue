@@ -6,12 +6,12 @@
       class="px-6 py-4"
       labelAdvanced
       :balanceLabel="$t('message.balance')"
-      :selectedCurrencyOption="assets[0]"
+      :selectedCurrencyOption="nativeAsset"
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
       :error-msg="validationError"
-      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : ''"
     >
       <template v-slot:label>
         <div class="flex items-center gap-1">
@@ -101,20 +101,20 @@ const errorInsufficientBalance = computed(() => validationError.value === i18n.t
 const disabled = ref(false);
 const i18n = useI18n();
 
-const assets = computed(() => {
+const nativeAsset = computed(() => {
   const dec = new Dec(balancesStore.nativeBalance?.amount ?? "0", NATIVE_ASSET.decimal_digits);
   const balance = formatNumber(dec.toString(NATIVE_ASSET.decimal_digits), NATIVE_ASSET.decimal_digits);
   const exactBalance = dec.isZero() ? "0" : dec.toString(NATIVE_ASSET.decimal_digits).replace(/\.?0+$/, "");
 
-  return [
-    {
-      value: NATIVE_ASSET.denom,
-      label: NATIVE_ASSET.label,
-      icon: NATIVE_ASSET.icon,
-      balance: { value: exactBalance, customLabel: `${balance} ${NATIVE_ASSET.label}`, ticker: NATIVE_ASSET.label }
-    }
-  ];
+  return {
+    value: NATIVE_ASSET.denom,
+    label: NATIVE_ASSET.label,
+    icon: NATIVE_ASSET.icon,
+    balance: { value: exactBalance, customLabel: `${balance} ${NATIVE_ASSET.label}`, ticker: NATIVE_ASSET.label }
+  };
 });
+
+const assets = computed(() => [nativeAsset.value]);
 
 const stable = computed(() => {
   try {
@@ -157,7 +157,7 @@ async function onNextClick() {
 }
 
 function validateInputs() {
-  const selectedCurrency = assets.value[0];
+  const selectedCurrency = nativeAsset.value;
   validationError.value = validateAmountV2(input.value, selectedCurrency.balance.value);
   return validationError.value;
 }
@@ -181,7 +181,6 @@ async function delegate() {
   const amount = Number(data.amount.toString());
   const quotient = Math.floor(amount / division);
   const remainder = amount % division;
-  const amounts = [];
 
   validators = validators.sort(
     (
@@ -192,14 +191,10 @@ async function delegate() {
     }
   );
 
-  for (const v of validators) {
-    amounts.push({
-      value: quotient,
-      validator: v.operator_address
-    });
-  }
-
-  amounts[0].value += remainder;
+  const amounts = validators.map((v, index) => ({
+    value: index === 0 ? quotient + remainder : quotient,
+    validator: v.operator_address
+  }));
 
   const delegations = amounts.map((item) => {
     return {
@@ -252,7 +247,11 @@ async function getValidators() {
 
   for (let i = 0; i < STAKING.VALIDATORS_NUMBER; i++) {
     const index = randomInt(0, validators.length);
-    loadedValidators.push(validators[index]);
+    const validator = validators[index];
+    if (validator === undefined) {
+      continue;
+    }
+    loadedValidators.push(validator);
     validators.splice(index, 1);
   }
 

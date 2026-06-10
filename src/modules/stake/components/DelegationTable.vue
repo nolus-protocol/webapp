@@ -78,6 +78,10 @@ const columns = computed<TableColumnProps[]>(() =>
 );
 
 function openLink() {
+  if (NETWORK === undefined) {
+    console.error("[DelegationTable] no network config for the selected network");
+    return;
+  }
   window.open(NETWORK.staking, "_blank");
 }
 

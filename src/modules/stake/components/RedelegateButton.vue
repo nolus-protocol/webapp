@@ -86,8 +86,9 @@ async function delegate() {
       });
     }
 
-    if (amounts.length > 0) {
-      amounts[0].value += remainder;
+    const first = amounts[0];
+    if (first !== undefined) {
+      first.value += remainder;
     }
 
     const delegations = amounts
@@ -155,7 +156,11 @@ async function getValidators() {
 
   for (let i = 0; i < STAKING.VALIDATORS_NUMBER; i++) {
     const index = randomInt(0, validators.length);
-    loadedValidators.push(validators[index]);
+    const validator = validators[index];
+    if (validator === undefined) {
+      continue;
+    }
+    loadedValidators.push(validator);
     validators.splice(index, 1);
   }
 
