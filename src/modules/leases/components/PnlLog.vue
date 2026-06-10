@@ -97,7 +97,7 @@ import { NATIVE_CURRENCY } from "@/config/global";
 import type { ILoan } from "./types";
 import { getCreatedAtForHuman, IntercomService, isMobile, Logger } from "@/common/utils";
 import { formatUsd } from "@/common/utils/NumberFormatUtils";
-import { getCurrencyByTickerForProtocol, getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
+import { getLpnByProtocol, getProtocolByContract } from "@/common/utils/CurrencyLookup";
 import { useAnalyticsStore } from "@/common/stores";
 import { Dec } from "@keplr-wallet/unit";
 import { RouteNames } from "@/router";
@@ -118,7 +118,7 @@ const router = useRouter();
 // Realized PnL from analytics store
 const pnl = computed(() => {
   const realized = analyticsStore.realizedPnl?.realized_pnl;
-  return realized ? new Dec(realized) : new Dec(0);
+  return typeof realized === "string" || typeof realized === "number" ? new Dec(realized) : new Dec(0);
 });
 
 const limit = 10;
@@ -191,12 +191,20 @@ async function loadMore() {
 const leasesHistory = computed(() => {
   return loans.value
     .filter((item) => configStore.getProtocolByContract(item.LS_loan_pool_id))
-    .map((item) => {
+    .flatMap((item): TableRowItemProps[] => {
       const protocol = getProtocolByContract(item.LS_loan_pool_id);
       const ticker = item.LS_asset_symbol;
       const positionType = configStore.getPositionType(protocol);
       const currency =
-        positionType === "Short" ? getLpnByProtocol(protocol) : getCurrencyByTickerForProtocol(ticker, protocol);
+        positionType === "Short" ? getLpnByProtocol(protocol) : configStore.getCurrencyByKey(`${ticker}@${protocol}`);
+
+      // skip, don't throw: a throw inside this computed is swallowed by Vue and
+      // freezes the rendered list; historical rows can reference retired-protocol
+      // currencies that no lookup resolves.
+      if (!currency) {
+        console.error(`PnlLog: currency not found for ${ticker}@${protocol}, row skipped`);
+        return [];
+      }
 
       const pnl = new Dec(item.LS_pnl, currency.decimal_digits);
       const pnl_amount = formatUsd(pnl.toString(2));
@@ -207,55 +215,59 @@ const leasesHistory = computed(() => {
       const typeLabel = positionType === "Short" ? i18n.t("message.short") : i18n.t("message.long");
 
       if (mobile) {
-        return {
+        return [
+          {
+            items: [
+              {
+                image: currency.icon,
+                value: currency.shortName,
+                subValue: typeLabel,
+                subValueClass: positionType === "Short" ? "text-typography-error" : "text-typography-success",
+                variant: "left"
+              },
+              {
+                value: pnl_amount,
+                class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
+              }
+            ]
+          }
+        ];
+      }
+
+      return [
+        {
           items: [
+            {
+              value: `#${item.LS_contract_id.slice(-8)}`,
+              class: "text-typography-link cursor-pointer max-w-[120px]",
+              variant: "left"
+            },
+            {
+              component: getType(item),
+              class: "max-w-[200px] cursor-pointer",
+              variant: "left"
+            },
             {
               image: currency.icon,
               value: currency.shortName,
-              subValue: typeLabel,
-              subValueClass: positionType === "Short" ? "text-typography-error" : "text-typography-success",
+              subValue: currency.name,
               variant: "left"
+            },
+            {
+              value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
             },
             {
               value: pnl_amount,
               class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
+            },
+            {
+              value: getCreatedAtForHuman(date) as string,
+              class: "max-w-[200px]"
             }
           ]
-        };
-      }
-
-      return {
-        items: [
-          {
-            value: `#${item.LS_contract_id.slice(-8)}`,
-            class: "text-typography-link cursor-pointer max-w-[120px]",
-            variant: "left"
-          },
-          {
-            component: getType(item),
-            class: "max-w-[200px] cursor-pointer",
-            variant: "left"
-          },
-          {
-            image: currency.icon,
-            value: currency.shortName,
-            subValue: currency.name,
-            variant: "left"
-          },
-          {
-            value: i18n.t(`message.status-${item.LS_Close_Strategy ?? item.Type}`)
-          },
-          {
-            value: pnl_amount,
-            class: `${pnl_status ? "text-typography-success" : "text-typography-error"}`
-          },
-          {
-            value: getCreatedAtForHuman(date) as string,
-            class: "max-w-[200px]"
-          }
-        ]
-      };
-    }) as TableRowItemProps[];
+        }
+      ];
+    });
 });
 
 function getType(item: ILoan) {
@@ -270,7 +282,7 @@ function getType(item: ILoan) {
 }
 
 function jsonToCsv(rows: IObjectKeys[]) {
-  const esc = (v: string) => {
+  const esc = (v: unknown) => {
     if (v == null) return "";
     const s = String(v);
     return /[",\n\r]/.test(s) || s.includes(delimiter) ? `"${s.replace(/"/g, '""')}"` : s;

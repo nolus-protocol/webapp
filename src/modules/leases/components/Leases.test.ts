@@ -377,6 +377,7 @@ describe("Leases.vue — characterization (pre-composable extraction)", () => {
     await flushPromises();
     const reload = (wrapper.vm as unknown as { $: { provides: Record<string, () => void> } }).$.provides.reload;
     expect(typeof reload).toBe("function");
+    if (reload === undefined) throw new Error("expected a reload handler to be provided");
     hoisted.refreshMock.mockClear();
     reload();
     expect(hoisted.refreshMock).toHaveBeenCalledTimes(1);
