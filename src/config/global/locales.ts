@@ -7,13 +7,7 @@ const loadLocale = (lang: string) => async (): Promise<Record<string, unknown>> 
   return response.json();
 };
 
-const languages: {
-  [key: string]: {
-    key: string;
-    label: string;
-    load: () => Promise<Record<string, unknown>>;
-  };
-} = {
+const languages = {
   en: { key: "en", label: "English", load: loadLocale("en") },
   ru: { key: "ru", label: "Русский", load: loadLocale("ru") },
   cn: { key: "cn", label: "中文", load: loadLocale("cn") },
@@ -24,6 +18,13 @@ const languages: {
   id: { key: "id", label: "Bahasa Indo", load: loadLocale("id") },
   jp: { key: "jp", label: "日本語", load: loadLocale("jp") },
   kr: { key: "kr", label: "한국어", load: loadLocale("kr") }
-};
+} satisfies Record<
+  string,
+  {
+    key: string;
+    label: string;
+    load: () => Promise<Record<string, unknown>>;
+  }
+>;
 
 export { languages };

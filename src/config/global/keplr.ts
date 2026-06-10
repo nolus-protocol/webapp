@@ -6,7 +6,7 @@ const KeplrEmbedChainInfo = (networkName: string, chainId: string, tendermintRpc
   const network = NETWORK;
   return {
     chainId: chainId,
-    chainName: network.chainName ?? ChainConstants.CHAIN_NAME + " " + networkName,
+    chainName: network?.chainName ?? ChainConstants.CHAIN_NAME + " " + networkName,
     rpc: tendermintRpc,
     rest: rest,
     bip44: {
