@@ -19,7 +19,19 @@ vi.mock("@/common/api", () => ({
 import { BackendApi } from "@/common/api";
 import { useAnalyticsStore } from "./index";
 
-const api = BackendApi as unknown as Record<string, ReturnType<typeof vi.fn>>;
+const api = BackendApi as unknown as Record<
+  | "getUserDashboard"
+  | "getUserHistory"
+  | "getEarnings"
+  | "getPositionDebtValue"
+  | "getHistoryStats"
+  | "getRealizedPnl"
+  | "getRealizedPnlData"
+  | "getPnlLog"
+  | "getPnlOverTime"
+  | "getPriceSeries",
+  ReturnType<typeof vi.fn>
+>;
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -183,6 +195,51 @@ describe("AnalyticsStore", () => {
     await inflight;
     expect(store.historyData.historyStats).toBeNull();
     expect(store.historyData.realizedPnlData).toBeNull();
+  });
+
+  it("fetchHistoryData_keeps_null_realized_pnl_data", async () => {
+    api.getUserHistory.mockResolvedValueOnce({
+      history_stats: { count: 2 },
+      realized_pnl_data: null
+    });
+    const store = useAnalyticsStore();
+    store.address = "nolus1abc";
+    await store.fetchHistoryData();
+    expect(store.historyData.historyStats).toEqual({ count: 2 });
+    expect(store.historyData.realizedPnlData).toBeNull();
+  });
+
+  it("fetchHistoryData_drops_non_array_realized_pnl_data", async () => {
+    api.getUserHistory.mockResolvedValueOnce({
+      history_stats: { count: 2 },
+      realized_pnl_data: { address: "nolus1abc", trades: [] }
+    });
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useAnalyticsStore();
+      store.address = "nolus1abc";
+      await store.fetchHistoryData();
+      expect(store.historyData.realizedPnlData).toBeNull();
+      expect(consoleSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("fetchRealizedPnlData_populates_array_payload", async () => {
+    api.getRealizedPnlData.mockResolvedValueOnce([{ pnl: "3" }]);
+    const store = useAnalyticsStore();
+    store.address = "nolus1abc";
+    await store.fetchRealizedPnlData();
+    expect(store.historyData.realizedPnlData).toEqual([{ pnl: "3" }]);
+  });
+
+  it("fetchRealizedPnl_populates_dashboard_field", async () => {
+    api.getRealizedPnl.mockResolvedValueOnce({ realized_pnl: "-2" });
+    const store = useAnalyticsStore();
+    store.address = "nolus1abc";
+    await store.fetchRealizedPnl();
+    expect(store.dashboardData.realizedPnl).toEqual({ realized_pnl: "-2" });
   });
 
   it("fetchHistoryStats_populates_field", async () => {

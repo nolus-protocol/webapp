@@ -280,10 +280,13 @@ export const useLeasesStore = defineStore("leases", () => {
     const inProgress: LeaseInfo["in_progress"] = operation === "close" ? { close: {} } : { repayment: {} };
 
     const index = leases.value.findIndex((l) => l.address === address);
-    if (index !== -1) {
-      leases.value[index] = { ...leases.value[index], in_progress: inProgress };
-      leaseDetails.value.set(address, leases.value[index]);
+    const current = leases.value[index];
+    if (current === undefined) {
+      return;
     }
+    const updated = { ...current, in_progress: inProgress };
+    leases.value[index] = updated;
+    leaseDetails.value.set(address, updated);
   }
 
   /**

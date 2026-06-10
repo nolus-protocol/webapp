@@ -88,7 +88,7 @@ export const usePricesStore = defineStore("prices", () => {
       for (const [key, priceStr] of Object.entries(wsUpdate)) {
         updated[key] = {
           price: priceStr,
-          symbol: current[key]?.symbol ?? key.split("@")[0]
+          symbol: current[key]?.symbol ?? key.split("@", 1).join("")
         };
       }
       prices.value = updated;

@@ -23,7 +23,16 @@ import { flushPromises } from "@vue/test-utils";
 // Minimal typed-any accessor to the mocked BackendApi members.
 // Using `as any` is acceptable in test code to access vi.fn() helpers.
 
-const api = BackendApi as unknown as Record<string, ReturnType<typeof vi.fn>>;
+const api = BackendApi as unknown as Record<
+  | "getConfig"
+  | "getCurrencies"
+  | "getAssets"
+  | "getNetworkAssets"
+  | "getGatedProtocols"
+  | "getGasFeeConfig"
+  | "getProtocolCurrencies",
+  ReturnType<typeof vi.fn>
+>;
 
 beforeEach(() => {
   setActivePinia(createPinia());

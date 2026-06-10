@@ -14,7 +14,10 @@ vi.mock("@/common/api", () => ({
 import { BackendApi } from "@/common/api";
 import { useStatsStore } from "./index";
 
-const api = BackendApi as unknown as Record<string, ReturnType<typeof vi.fn>>;
+const api = BackendApi as unknown as Record<
+  "getStatsOverview" | "getLoansStats" | "getLeasedAssets" | "getMonthlyLeases" | "getSupplyBorrowHistory",
+  ReturnType<typeof vi.fn>
+>;
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -92,6 +95,24 @@ describe("StatsStore", () => {
       revenue: "0"
     });
     expect(store.hasOverviewData).toBe(false);
+  });
+
+  it("fetchOverview_falls_back_to_zero_when_pnl_amount_is_missing_or_not_a_string", async () => {
+    const store = useStatsStore();
+
+    api.getStatsOverview.mockResolvedValueOnce({
+      ...fullOverview(),
+      realized_pnl_stats: { total_realized_pnl: "-10" }
+    });
+    await store.fetchOverview();
+    expect(store.overview.realizedPnlStats).toBe("0");
+
+    api.getStatsOverview.mockResolvedValueOnce({
+      ...fullOverview(),
+      realized_pnl_stats: { amount: -10 }
+    });
+    await store.fetchOverview();
+    expect(store.overview.realizedPnlStats).toBe("0");
   });
 
   it("fetchOverview_sets_error_and_rethrows_on_failure", async () => {
@@ -172,6 +193,47 @@ describe("StatsStore", () => {
     expect(store.hasLoansStats).toBe(false);
     await store.fetchLoansStats();
     expect(store.hasLoansStats).toBe(true);
+  });
+
+  it("fetchMonthlyLeases_populates_array_payload", async () => {
+    api.getMonthlyLeases.mockResolvedValueOnce([{ month: "2026-01", count: 4 }]);
+    const store = useStatsStore();
+    await store.fetchMonthlyLeases();
+    expect(store.monthlyLeases).toEqual([{ month: "2026-01", count: 4 }]);
+    expect(store.lastUpdated).toBeInstanceOf(Date);
+  });
+
+  it("fetchMonthlyLeases_drops_non_array_payload", async () => {
+    api.getMonthlyLeases.mockResolvedValueOnce({ data: [{ month: "2026-01", count: 4 }] });
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useStatsStore();
+      await store.fetchMonthlyLeases();
+      expect(store.monthlyLeases).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("fetchSupplyBorrowHistory_populates_array_payload", async () => {
+    api.getSupplyBorrowHistory.mockResolvedValueOnce([{ timestamp: "t", supplied: "1", borrowed: "2" }]);
+    const store = useStatsStore();
+    await store.fetchSupplyBorrowHistory();
+    expect(store.supplyBorrowHistory).toEqual([{ timestamp: "t", supplied: "1", borrowed: "2" }]);
+  });
+
+  it("fetchSupplyBorrowHistory_drops_non_array_payload", async () => {
+    api.getSupplyBorrowHistory.mockResolvedValueOnce({ period: "1d", data: [] });
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useStatsStore();
+      await store.fetchSupplyBorrowHistory();
+      expect(store.supplyBorrowHistory).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalledTimes(1);
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 
   it("initialize_calls_fetchers_and_sets_initialized", async () => {

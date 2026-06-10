@@ -20,11 +20,15 @@ import {
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
 import { useWebSocketLifecycle } from "@/common/composables/useWebSocketLifecycle";
 
+// WS partial updates deliberately set deposited_usd to null until the next
+// full fetch replaces it; the API type only allows string | undefined.
+type StoredEarnPosition = Omit<EarnPosition, "deposited_usd"> & { deposited_usd?: string | null | undefined };
+
 export const useEarnStore = defineStore("earn", () => {
   // State
   const pools = ref<EarnPool[]>([]);
   const etlPools = ref<PoolInfo[]>([]);
-  const positions = ref<EarnPosition[]>([]);
+  const positions = ref<StoredEarnPosition[]>([]);
   const stats = ref<EarnStats | null>(null);
   const suppliedFunds = ref<SuppliedFundsResponse | null>(null);
   const address = ref<string | null>(null);
@@ -68,7 +72,7 @@ export const useEarnStore = defineStore("earn", () => {
   /**
    * Get position by protocol key
    */
-  function getPosition(protocol: string): EarnPosition | undefined {
+  function getPosition(protocol: string): StoredEarnPosition | undefined {
     return positions.value.find((p) => p.protocol === protocol);
   }
 
