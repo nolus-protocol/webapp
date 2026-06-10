@@ -488,6 +488,13 @@ describe("SolanaWallet strict guards", () => {
     await expect(sol.connectCustom(connectArgs(), network)).rejects.toThrow(/bech32 config/);
   });
 
+  it("throws when the bech32 config has no account prefix entry", async () => {
+    stubSolflare(makeProvider());
+    const sol = new SolanaWallet("solflare");
+    const network = { embedChainInfo: () => ({ bech32Config: {} }) } as unknown as NetworkData;
+    await expect(sol.connectCustom(connectArgs(), network)).rejects.toThrow(/bech32 config/);
+  });
+
   it("throws when the bech32 account prefix is not a string", async () => {
     stubSolflare(makeProvider());
     const sol = new SolanaWallet("solflare");
