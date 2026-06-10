@@ -43,7 +43,7 @@ import { type DropdownOption, Dropdown } from "web-components";
 
 import { setLang } from "@/i18n";
 import { APPEARANCE, languages } from "@/config/global";
-import { setTheme, getTheme, type Theme } from "@/common/utils/ThemeManager";
+import { setTheme, getTheme } from "@/common/utils/ThemeManager";
 import { getLanguage, setLanguage as setLangUtil } from "@/common/utils/LanguageUtils";
 
 import DarkIcon from "@/assets/icons/theme/dark.svg";
@@ -90,9 +90,10 @@ const appearance = ref(
 );
 
 function onUpdateTheme(theme: string) {
-  if (theme === "light" || theme === "dark" || theme === "sync") {
-    setTheme(theme as Theme);
+  if (theme !== "light" && theme !== "dark" && theme !== "sync") {
+    return;
   }
+  setTheme(theme);
   selectedAppearance.value = {
     label: i18n.t(`message.${theme}`),
     value: theme

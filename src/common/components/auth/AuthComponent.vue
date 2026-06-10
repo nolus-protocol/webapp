@@ -47,7 +47,6 @@ import TermsDialog from "../dialogs/TermsDialog.vue";
 import KeplrIcon from "@/assets/icons/wallets/keplr.svg?url";
 
 import { IntercomService } from "@/common/utils";
-import type { IObjectKeys } from "@/common/types";
 
 const i18n = useI18n();
 const terms = ref<typeof TermsDialog>();
@@ -61,7 +60,14 @@ const connections = computed(
       type: WalletActions;
     }
   > => {
-    const auth: IObjectKeys = {
+    const auth: Record<
+      string,
+      {
+        icon: string;
+        label: string;
+        type: WalletActions;
+      }
+    > = {
       Keplr: {
         icon: KeplrIcon,
         label: i18n.t("message.keplr"),

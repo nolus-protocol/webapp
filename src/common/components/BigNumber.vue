@@ -121,8 +121,7 @@
 <script lang="ts">
 import type { TokenAmountProps } from "@/common/components/TokenAmount.vue";
 import type { FormattedAmountProps } from "@/common/components/FormattedAmount.vue";
-import type { TooltipProps } from "web-components";
-import type { IBadgeProps } from "web-components/dist/src/components/atoms/badge/types";
+import type { IBadgeProps, TooltipProps } from "web-components";
 import type { Component } from "vue";
 
 export type AmountDisplayProps = TokenAmountProps | FormattedAmountProps;

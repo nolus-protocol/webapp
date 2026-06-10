@@ -2,21 +2,16 @@
   <AdvancedFormControl
     id="swap-1"
     :currencyOptions="currencyOptions"
-    :selectedCurrencyOption="selectedFirstCurrencyOption"
     class="px-6 py-4"
     label="From"
     :balanceLabel="`${$t('message.balance')}:`"
     placeholder="0"
-    :calculatedBalance="firstCalculatedBalance"
     @on-selected-currency="(option) => onUpdateCurrency(option, Emitters.onFirstChange)"
     @input="onUpdateFirstValue"
     :disabledCurrencyPicker="disabled"
     :disabledInputField="disabled"
     :isLoadingPicker="isLoading"
-    :itemsHeadline="itemsHeadline"
-    :item-template="itemTemplate"
-    :valueOnly="firstInputValue"
-    :inputClass="errorInsufficientBalance ? 'text-typography-error' : undefined"
+    v-bind="firstControlBind"
     searchable
   />
   <div class="relative">
@@ -24,7 +19,7 @@
     <button
       :class="[{ '-top-5': swapSvg }]"
       class="button-secondary transform-all ease-bounce ease-bounce absolute -top-[22px] left-1/2 h-11 w-11 -translate-x-1/2 cursor-pointer rounded-full px-2 duration-300 hover:h-12 hover:w-12"
-      @click="onSwap"
+      @click="onSwap?.($event)"
       @mouseleave="swapSvg = false"
       @mouseover="swapSvg = true"
     >
@@ -43,21 +38,16 @@
   <AdvancedFormControl
     id="swap-2"
     :currencyOptions="currencyOptions"
-    :selectedCurrencyOption="selectedSecondCurrencyOption"
     :disabledCurrencyPicker="disabled"
     :disabledInputField="disabled"
     class="px-6 py-4"
     label="To"
     hideBalance
     placeholder="0"
-    :calculatedBalance="secondCalculatedBalance"
     @on-selected-currency="(option) => onUpdateCurrency(option, Emitters.onSecondChange)"
     @input="onUpdateSecondValue"
     :isLoadingPicker="isLoading"
-    :itemsHeadline="itemsHeadline"
-    :item-template="itemTemplate"
-    :valueOnly="secondInputValue"
-    :inputClass="errorInsufficientBalance ? 'text-typography-error' : undefined"
+    v-bind="secondControlBind"
     searchable
   />
   <AnimatePresence>
@@ -89,7 +79,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watch, type Component } from "vue";
+import { computed, ref, watch, type Component } from "vue";
 import { type AdvancedCurrencyFieldOption, AdvancedFormControl, SvgIcon } from "web-components";
 import { AnimatePresence, Motion } from "motion-v";
 import DownArrow from "@/common/components/icons/DownArrow.vue";
@@ -123,6 +113,69 @@ const props = defineProps<{
 const swapSvg = ref(false);
 const firstValue = ref(props.firstInputValue);
 const secondValue = ref(props.secondInputValue);
+
+// Adapter for AdvancedFormControl's `(option?: DropdownOption) => any` template
+// prop. The required-but-widened parameter keeps the wrapper's arity at 1 — the
+// dropdown gates custom-item rendering on `itemTemplate.length`.
+const itemTemplateForControl = computed(() => {
+  const template = props.itemTemplate;
+  if (template === undefined) {
+    return undefined;
+  }
+  return (option: AdvancedCurrencyFieldOption | undefined) => {
+    if (option === undefined) {
+      console.error("[MultipleCurrencyComponent] item template invoked without an option");
+      return undefined;
+    }
+    return template(option);
+  };
+});
+
+// exactOptionalPropertyTypes: AdvancedFormControl's optional props don't accept
+// an explicit undefined, so possibly-absent bindings are spread in only when set.
+interface AdvancedControlBind {
+  selectedCurrencyOption?: AdvancedCurrencyFieldOption;
+  calculatedBalance?: string;
+  valueOnly?: string;
+  itemsHeadline?: string[];
+  itemTemplate?: (option: AdvancedCurrencyFieldOption | undefined) => Component | undefined;
+  inputClass?: string;
+}
+
+function buildControlBind(
+  selected: AdvancedCurrencyFieldOption | undefined,
+  calculatedBalance: string | undefined,
+  valueOnly: string | undefined
+): AdvancedControlBind {
+  const bind: AdvancedControlBind = {};
+  if (selected !== undefined) {
+    bind.selectedCurrencyOption = selected;
+  }
+  if (calculatedBalance !== undefined) {
+    bind.calculatedBalance = calculatedBalance;
+  }
+  if (valueOnly !== undefined) {
+    bind.valueOnly = valueOnly;
+  }
+  if (props.itemsHeadline !== undefined) {
+    bind.itemsHeadline = props.itemsHeadline;
+  }
+  const template = itemTemplateForControl.value;
+  if (template !== undefined) {
+    bind.itemTemplate = template;
+  }
+  if (props.errorInsufficientBalance) {
+    bind.inputClass = "text-typography-error";
+  }
+  return bind;
+}
+
+const firstControlBind = computed(() =>
+  buildControlBind(props.selectedFirstCurrencyOption, props.firstCalculatedBalance, props.firstInputValue)
+);
+const secondControlBind = computed(() =>
+  buildControlBind(props.selectedSecondCurrencyOption, props.secondCalculatedBalance, props.secondInputValue)
+);
 
 const onUpdateCurrency = (currency: AdvancedCurrencyFieldOption, emitter: Emitters) => {
   switch (emitter) {

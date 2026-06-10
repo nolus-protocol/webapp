@@ -23,23 +23,21 @@
           <div class="custom-scroll max-h-auto h-full overflow-y-auto md:max-h-[512px]">
             <ActivitiesItem
               v-for="transaction in wallet.historyItems"
-              :key="transaction.historyData.id"
-              :coinMinimalDenom="transaction.historyData?.coin?.currency?.coinMinimalDenom"
+              :key="transaction.historyData.id ?? ''"
               :title="transaction.historyData.msg"
               :type="transaction.historyData.icon"
               :time="transaction.historyData.timestamp"
-              :route="transaction.historyData.route"
+              v-bind="optionalActivityProps(transaction.historyData)"
               @click="onActivityClick(transaction as TransactionEntry)"
             />
 
             <ActivitiesItem
               v-for="transaction in wallet.activities.data"
-              :key="transaction.tx_hash"
-              :coinMinimalDenom="transaction.historyData?.coin?.currency?.coinMinimalDenom"
+              :key="transaction.tx_hash ?? ''"
               :title="transaction.historyData.msg"
               :type="transaction.historyData.icon"
               :time="transaction.historyData.timestamp"
-              :route="transaction.historyData.route"
+              v-bind="optionalActivityProps(transaction.historyData)"
               @click="onActivityClick(transaction as TransactionEntry)"
             />
           </div>
@@ -93,5 +91,18 @@ const wallet = useWalletStore();
 
 const onActivityClick = (transaction: TransactionEntry) => {
   transactionDialogRef.value?.show(transaction);
+};
+
+// exactOptionalPropertyTypes: ActivitiesItem's optional props reject an explicit
+// undefined, so absent values must omit the key entirely.
+const optionalActivityProps = (historyData: {
+  coin?: { currency?: { coinMinimalDenom?: string | undefined } | undefined } | undefined;
+  route?: unknown;
+}) => {
+  const coinMinimalDenom = historyData.coin?.currency?.coinMinimalDenom;
+  return {
+    ...(coinMinimalDenom !== undefined ? { coinMinimalDenom } : {}),
+    ...(historyData.route !== undefined ? { route: historyData.route } : {})
+  };
 };
 </script>

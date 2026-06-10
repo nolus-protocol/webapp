@@ -96,12 +96,13 @@ const type = WalletStorage.getWalletConnectMechanism();
 const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
 const emitter = defineEmits(["onDisconnect"]);
 
-const connections: {
-  [key: string]: {
+const connections: Record<
+  WalletConnectMechanism,
+  {
     icon: FunctionalComponent | string;
     label: string;
-  };
-} = {
+  }
+> = {
   [WalletConnectMechanism.KEPLR]: {
     icon: KeplrIcon,
     label: i18n.t("message.keplr")
@@ -123,7 +124,7 @@ const connections: {
     label: i18n.t("message.ledger")
   }
 };
-const connection = connections[type as keyof typeof WalletConnectMechanism];
+const connection = type === null ? undefined : connections[type];
 
 function onClickDisconnect() {
   emitter("onDisconnect");

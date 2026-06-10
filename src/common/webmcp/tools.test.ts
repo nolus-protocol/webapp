@@ -54,7 +54,11 @@ const ACTION_TOOLS = ["connect_wallet", "navigate"] as const;
  */
 function extractToolNames(source: string): string[] {
   const matches = source.matchAll(/^\s*name:\s*"([^"]+)"/gm);
-  return Array.from(matches, (m) => m[1]);
+  return Array.from(matches, (m) => {
+    const name = m[1];
+    if (name === undefined) throw new Error("expected the tool-name capture group to match");
+    return name;
+  });
 }
 
 function escapeRegex(s: string): string {
@@ -129,8 +133,8 @@ describe("WebMCP mechanism/action map consistency", () => {
   function extractObjectLiteral(source: string, name: string): Record<string, string> {
     const literalRe = new RegExp("const\\s+" + name + "[^=]*=\\s*\\{([\\s\\S]*?)\\}\\s*;");
     const m = source.match(literalRe);
-    if (!m) throw new Error("Could not find object literal for " + name);
-    const body = m[1];
+    const body = m?.[1];
+    if (body === undefined) throw new Error("Could not find object literal for " + name);
     const out: Record<string, string> = {};
     const entryRe =
       /(?:(\w+)|\[\s*WalletConnectMechanism\.(\w+)\s*\])\s*:\s*(?:WalletConnectMechanism|WalletActions)\.(\w+)/g;
@@ -138,6 +142,7 @@ describe("WebMCP mechanism/action map consistency", () => {
     while ((match = entryRe.exec(body)) !== null) {
       const key = match[1] ?? match[2];
       const value = match[3];
+      if (key === undefined || value === undefined) throw new Error("unparsable mechanism/action map entry");
       out[key] = value;
     }
     return out;
