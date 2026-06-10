@@ -20,6 +20,26 @@ const icon = "/icons/icon-128x128.png";
 const defaultLanguage = "en";
 const permille = 1000;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function payloadLtv(payload: IObjectKeys): number {
+  const data = payload.data;
+  if (isRecord(data) && typeof data.ltv === "number") {
+    return data.ltv;
+  }
+  throw new Error(`Push payload is missing a numeric ltv for type: ${String(payload.type)}`);
+}
+
+function payloadPosition(payload: IObjectKeys): string {
+  const data = payload.data;
+  if (isRecord(data) && typeof data.position === "string") {
+    return data.position;
+  }
+  throw new Error(`Push payload is missing a position for type: ${String(payload.type)}`);
+}
+
 async function handlePushEvent(event: PushEvent) {
   let payload: IObjectKeys = {};
   try {
@@ -33,12 +53,12 @@ async function handlePushEvent(event: PushEvent) {
 }
 
 async function parseNotification(payload: IObjectKeys): Promise<[string, NotificationOptions]> {
-  const lang = (await idbGet("language")) ?? defaultLanguage;
+  const lang = (await idbGet<string>("language")) ?? defaultLanguage;
   switch (payload.type) {
     case PushNotifications.Funding: {
       const [title, message] = await Promise.all([
-        translate(lang, "ltv-title", { percent: payload.data.ltv / permille }),
-        translate(lang, "liquidations-funding", { ticker: truncateString(payload.data.position, 8, 8) })
+        translate(lang, "ltv-title", { percent: payloadLtv(payload) / permille }),
+        translate(lang, "liquidations-funding", { ticker: truncateString(payloadPosition(payload), 8, 8) })
       ]);
 
       const notification: NotificationOptions = {
@@ -54,8 +74,8 @@ async function parseNotification(payload: IObjectKeys): Promise<[string, Notific
     }
     case PushNotifications.FundingRecommended: {
       const [title, message] = await Promise.all([
-        translate(lang, "ltv-title-risk", { percent: payload.data.ltv / permille }),
-        translate(lang, "liquidations-funding-recommended", { ticker: truncateString(payload.data.position, 8, 8) })
+        translate(lang, "ltv-title-risk", { percent: payloadLtv(payload) / permille }),
+        translate(lang, "liquidations-funding-recommended", { ticker: truncateString(payloadPosition(payload), 8, 8) })
       ]);
 
       const notification: NotificationOptions = {
@@ -71,8 +91,8 @@ async function parseNotification(payload: IObjectKeys): Promise<[string, Notific
     }
     case PushNotifications.FundNow: {
       const [title, message] = await Promise.all([
-        translate(lang, "ltv-title-high-risk", { percent: payload.data.ltv / permille }),
-        translate(lang, "liquidations-fund-now", { ticker: truncateString(payload.data.position, 8, 8) })
+        translate(lang, "ltv-title-high-risk", { percent: payloadLtv(payload) / permille }),
+        translate(lang, "liquidations-fund-now", { ticker: truncateString(payloadPosition(payload), 8, 8) })
       ]);
 
       const notification: NotificationOptions = {
@@ -90,7 +110,7 @@ async function parseNotification(payload: IObjectKeys): Promise<[string, Notific
       const [title, message] = await Promise.all([
         translate(lang, "ltv-title-partial-liquidation", {}),
         translate(lang, "liquidations-partially-liquidated", {
-          ticker: truncateString(payload.data.position, 8, 8),
+          ticker: truncateString(payloadPosition(payload), 8, 8),
           percent: DefaultLtv / permille
         })
       ]);
@@ -110,7 +130,7 @@ async function parseNotification(payload: IObjectKeys): Promise<[string, Notific
       const [title, message] = await Promise.all([
         translate(lang, "ltv-title-full-liquidation", {}),
         translate(lang, "liquidations-fully-liquidated", {
-          ticker: truncateString(payload.data.position, 8, 8)
+          ticker: truncateString(payloadPosition(payload), 8, 8)
         })
       ]);
 
@@ -150,19 +170,22 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
   event.waitUntil(self.clients.openWindow(targetUrl));
 });
 
-self.addEventListener("pushsubscriptionchange", (event: ExtendableEvent) => {
+self.addEventListener("pushsubscriptionchange", (event) => {
   const key = urlB64ToUint8Array(publicKey);
-  event.waitUntil(
-    self.registration.pushManager
-      .subscribe({ userVisibleOnly: true, applicationServerKey: key })
-      .then((newSub: PushSubscription) => {
-        return fetch(`${host}/subscribe`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ address: redirect, data: newSub })
-        });
-      })
-  );
+  const resubscribed = self.registration.pushManager
+    .subscribe({ userVisibleOnly: true, applicationServerKey: key })
+    .then((newSub: PushSubscription) => {
+      return fetch(`${host}/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: redirect, data: newSub })
+      });
+    });
+  // The lib map types this event as a bare Event; in a real Service Worker it is
+  // always an ExtendableEvent, so the instanceof check never fails at runtime.
+  if (event instanceof ExtendableEvent) {
+    event.waitUntil(resubscribed);
+  }
 });
 
 self.addEventListener("install", () => {

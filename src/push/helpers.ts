@@ -7,14 +7,15 @@ export function urlB64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
 
+function isIndexable(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 export function templateParser(expression: string, valueObj: IObjectKeys) {
   const templateMatcher = /{\s?([^{}\s]*)\s?}/g;
   return expression.replace(templateMatcher, (_substring: string, value: string) => {
     const keys = value.split(".");
-    const parsedValue = keys.reduce((acc, key) => {
-      acc = acc[key];
-      return acc;
-    }, valueObj);
+    const parsedValue = keys.reduce<unknown>((acc, key) => (isIndexable(acc) ? acc[key] : undefined), valueObj);
     return String(parsedValue);
   });
 }

@@ -14,7 +14,7 @@ vi.mock("./config", () => ({
 }));
 
 type RegisterMock = ReturnType<
-  typeof vi.fn<[string, RegistrationOptions | undefined], Promise<ServiceWorkerRegistration>>
+  typeof vi.fn<(scriptURL: string, options?: RegistrationOptions) => Promise<ServiceWorkerRegistration>>
 >;
 
 function installServiceWorkerMock(registerImpl: RegisterMock) {
