@@ -32,11 +32,11 @@ const i18n = useI18n();
 const props = defineProps<{
   downPaymentStable: Dec;
   downPaymentAmount: string;
-  downPaymentAsset: ExternalCurrency;
+  downPaymentAsset: ExternalCurrency | undefined;
 
   borrowStable: Dec;
   borrowAmount: string;
-  borrowAsset: ExternalCurrency;
+  borrowAsset: ExternalCurrency | undefined;
 }>();
 const zero = 0.00000001;
 
@@ -89,8 +89,16 @@ async function setStats() {
   ];
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
-  if (!plotContainer) return;
+type TooltipSelection = Selection<HTMLDivElement, unknown, HTMLElement, unknown>;
+
+function isTooltipSelection(value: unknown): value is TooltipSelection {
+  return typeof value === "object" && value !== null && "html" in value && typeof value.html === "function";
+}
+
+function updateChart(...args: unknown[]) {
+  const [plotContainer, tooltip] = args;
+  if (!(plotContainer instanceof HTMLElement)) return;
+  if (!isTooltipSelection(tooltip)) return;
 
   const styles = window.getComputedStyle(document.documentElement);
   const values = responses.value.map((d) => d.value);
@@ -221,7 +229,12 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
-function getClosestDataPoint(cPosition: number, width: number) {
+function getClosestDataPoint(...args: unknown[]) {
+  const [cPosition, width] = args;
+  if (typeof cPosition !== "number" || typeof width !== "number") {
+    return null;
+  }
+
   const plotAreaWidth = width - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
   const barWidth = plotAreaWidth / responses.value.length;
@@ -229,7 +242,7 @@ function getClosestDataPoint(cPosition: number, width: number) {
   const barIndex = Math.floor(adjustedX / barWidth);
 
   if (barIndex >= 0 && barIndex < responses.value.length) {
-    return responses.value[barIndex];
+    return responses.value[barIndex] ?? null;
   }
 
   return null;
