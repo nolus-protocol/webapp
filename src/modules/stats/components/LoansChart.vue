@@ -38,16 +38,38 @@ watch(
   [() => statsStore.leasedAssets, () => configStore.initialized],
   ([items]) => {
     if (items) {
-      processLeasedAssets(items as { loan: string; asset: string }[]);
+      if (!Array.isArray(items)) {
+        console.error("[LoansChart] unexpected leased-assets payload shape:", items);
+        return;
+      }
+      processLeasedAssets(items);
     }
   },
   { immediate: true }
 );
 
-function processLeasedAssets(items: { loan: string; asset: string }[]) {
+function isLeasedAssetEntry(value: unknown): value is { loan: string | number; asset: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "loan" in value &&
+    "asset" in value &&
+    (typeof value.loan === "string" || typeof value.loan === "number") &&
+    typeof value.asset === "string"
+  );
+}
+
+function processLeasedAssets(items: unknown[]) {
   loans.value = items
-    .map((item) => {
+    .flatMap((item) => {
+      if (!isLeasedAssetEntry(item)) {
+        console.error("[LoansChart] skipping malformed leased-asset entry:", item);
+        return [];
+      }
       const [key, protocol] = item.asset.split(" ");
+      if (key === undefined) {
+        return [];
+      }
       let shortName = key;
       try {
         const currency = getCurrencyByTickerForNetwork(key);
@@ -56,10 +78,12 @@ function processLeasedAssets(items: { loan: string; asset: string }[]) {
         // Currency not found in registry, use ticker as-is
       }
 
-      return {
-        ticker: `${shortName}${protocol ? ` ${protocol}` : ""}`,
-        loan: Number(item.loan)
-      };
+      return [
+        {
+          ticker: `${shortName}${protocol ? ` ${protocol}` : ""}`,
+          loan: Number(item.loan)
+        }
+      ];
     })
     .sort((a, b) => b.loan - a.loan);
 
@@ -73,8 +97,12 @@ async function setStats() {
   }
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
-  if (!plotContainer) return;
+function isTooltipSelection(value: unknown): value is Selection<HTMLDivElement, unknown, HTMLElement, unknown> {
+  return value instanceof Object && "html" in value && "style" in value && "node" in value;
+}
+
+function updateChart(plotContainer: unknown, tooltip: unknown) {
+  if (!(plotContainer instanceof HTMLElement) || !isTooltipSelection(tooltip)) return;
 
   plotContainer.innerHTML = "";
   chartWidth = getChartWidth(plotContainer);
@@ -163,7 +191,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
-function getClosestDataPoint(yPosition: number) {
+function getClosestDataPoint(yPosition: unknown) {
+  if (typeof yPosition !== "number") {
+    return null;
+  }
   const plotAreaHeight = chartHeight - marginTop - marginBottom;
   const adjustedY = yPosition - marginTop;
   const barHeight = plotAreaHeight / loans.value.length;

@@ -89,7 +89,16 @@ const loadingStaking = ref(false);
 const disabled = ref(false);
 
 // Earnings from analytics store
-const earningsAmount = computed(() => analyticsStore.earnings?.earnings ?? "0.00");
+const earningsAmount = computed(() => {
+  const earnings = analyticsStore.earnings?.earnings;
+  if (typeof earnings === "string") {
+    return earnings;
+  }
+  if (typeof earnings === "number") {
+    return earnings.toString();
+  }
+  return "0.00";
+});
 
 // Staking and analytics stores are initialized by connectionStore.connectWallet()
 
@@ -121,6 +130,10 @@ async function requestClaim() {
   try {
     loadingStaking.value = true;
     if (wallet.wallet) {
+      const delegator = wallet.wallet.address;
+      if (delegator === undefined) {
+        throw new Error("wallet address is not available for claiming rewards");
+      }
       // Build claim data from staking store rewards
       const data = stakingStore.rewards
         .filter((reward) => {
@@ -132,7 +145,7 @@ async function requestClaim() {
         })
         .map((reward) => ({
           validator: reward.validator_address,
-          delegator: wallet.wallet?.address
+          delegator
         }));
 
       if (data.length > 0) {

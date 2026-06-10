@@ -115,7 +115,7 @@ const periodOptions = ref([
   { label: i18n.t("message.all"), value: "all" }
 ]);
 
-const chartPeriod = ref(periodOptions.value[0].value); // default 6m
+const chartPeriod = ref(periodOptions.value[0]?.value ?? "6m");
 
 function onPeriodChange(data: { label: string; value: string }) {
   chartPeriod.value = data.value;

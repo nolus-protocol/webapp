@@ -2,8 +2,14 @@
   <Widget class="overflow-auto">
     <WidgetHeader
       :label="walletConnected && !emptyState ? $t('message.dashboard-lease-title') : ''"
-      :icon="walletConnected && !emptyState ? { name: 'leases', class: 'fill-icon-link' } : undefined"
-      :badge="walletConnected && !emptyState ? { content: networkFilteredLeases.length.toString() } : undefined"
+      v-bind="
+        walletConnected && !emptyState
+          ? {
+              icon: { name: 'leases', class: 'fill-icon-link' },
+              badge: { content: networkFilteredLeases.length.toString() }
+            }
+          : {}
+      "
     >
       <template v-if="walletConnected && !emptyState">
         <Button
@@ -43,10 +49,11 @@
               image: { name: 'new-lease' },
               title: $t('message.start-lease'),
               description: $t('message.start-lease-description'),
-              button:
-                wallet.wallet && !isProtocolDisabled
-                  ? { name: $t('message.open-position'), icon: 'plus', url: `/${RouteNames.LEASES}/open/long` }
-                  : undefined,
+              ...(wallet.wallet && !isProtocolDisabled
+                ? {
+                    button: { name: $t('message.open-position'), icon: 'plus', url: `/${RouteNames.LEASES}/open/long` }
+                  }
+                : {}),
               link: {
                 label: $t('message.learn-new-leases'),
                 onClick: () => IntercomService.askQuestion('How does margin leverage work?')
