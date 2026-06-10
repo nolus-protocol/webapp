@@ -151,6 +151,12 @@ export default mergeConfig(
             functions: 55,
             statements: 70
           },
+          "src/common/stores/wallet/actions/loadVestedTokens.ts": {
+            lines: 95,
+            branches: 85,
+            functions: 95,
+            statements: 95
+          },
           // Per-file floors for Phase 4 wallet + signing target files.
           // Pure logic files — very high bar.
           "src/networks/cosm/encode.ts": {
@@ -260,6 +266,18 @@ export default mergeConfig(
             branches: 60,
             functions: 30,
             statements: 45
+          },
+          "src/modules/leases/components/single-lease/StopLossDialog.vue": {
+            lines: 70,
+            branches: 55,
+            functions: 60,
+            statements: 70
+          },
+          "src/modules/leases/components/single-lease/TakeProfitDialog.vue": {
+            lines: 65,
+            branches: 55,
+            functions: 50,
+            statements: 65
           },
           "src/router/index.ts": {
             lines: 75,
