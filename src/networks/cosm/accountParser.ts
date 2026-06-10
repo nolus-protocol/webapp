@@ -16,7 +16,7 @@ function uint64FromProto(input: bigint | number | string) {
 
 function accountFromBaseAccount(input: BaseAccount) {
   const { address, pubKey, accountNumber, sequence } = input;
-  const pubkey = pubKey ? (0, decodePubkey)(pubKey) : null;
+  const pubkey = pubKey ? decodePubkey(pubKey) : null;
   return {
     address: address,
     pubkey: pubkey,
@@ -33,28 +33,28 @@ export function accountFromAny(input: { typeUrl: string; value: Uint8Array }) {
       return accountFromBaseAccount(BaseAccount.decode(value));
     case "/cosmos.auth.v1beta1.ModuleAccount": {
       const baseAccount = ModuleAccount.decode(value).baseAccount;
-      (0, assert)(baseAccount);
+      assert(baseAccount);
       return accountFromBaseAccount(baseAccount);
     }
     // vesting
     case "/cosmos.vesting.v1beta1.BaseVestingAccount": {
       const baseAccount = BaseVestingAccount.decode(value)?.baseAccount;
-      (0, assert)(baseAccount);
+      assert(baseAccount);
       return accountFromBaseAccount(baseAccount);
     }
     case "/cosmos.vesting.v1beta1.ContinuousVestingAccount": {
       const baseAccount = ContinuousVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
-      (0, assert)(baseAccount);
+      assert(baseAccount);
       return accountFromBaseAccount(baseAccount);
     }
     case "/cosmos.vesting.v1beta1.DelayedVestingAccount": {
       const baseAccount = DelayedVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
-      (0, assert)(baseAccount);
+      assert(baseAccount);
       return accountFromBaseAccount(baseAccount);
     }
     case "/cosmos.vesting.v1beta1.PeriodicVestingAccount": {
       const baseAccount = PeriodicVestingAccount.decode(value)?.baseVestingAccount?.baseAccount;
-      (0, assert)(baseAccount);
+      assert(baseAccount);
       return accountFromBaseAccount(baseAccount);
     }
     default:

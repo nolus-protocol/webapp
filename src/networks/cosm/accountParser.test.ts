@@ -24,7 +24,7 @@ function makeBaseAccountBytes(seq = 42n, num = 100n, withPubKey = true): Uint8Ar
   return BaseAccount.encode(
     BaseAccount.fromPartial({
       address: ADDRESS,
-      pubKey: withPubKey ? encodedSecpPubkeyAny() : undefined,
+      ...(withPubKey ? { pubKey: encodedSecpPubkeyAny() } : {}),
       accountNumber: num,
       sequence: seq
     })

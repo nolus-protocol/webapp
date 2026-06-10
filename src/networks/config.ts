@@ -11,11 +11,26 @@ import { embedChainInfo as neutronChainInfo } from "./list/neutron/constants";
 
 import { useConfigStore } from "@/common/stores/config";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
+import type { ChainInfo } from "@keplr-wallet/types";
+
+type ChainInfoEmbedder = (chainId: string, tendermintRpc: string, rest: string) => ChainInfo;
+
+// NetworkData.embedChainInfo is frozen at `(...args: unknown[]) => unknown`, so the
+// typed embedders are adapted to it with a runtime check instead of a type assertion.
+function withUnknownArgs(embedder: ChainInfoEmbedder): (...args: unknown[]) => unknown {
+  return (...args: unknown[]) => {
+    const [chainId, tendermintRpc, rest] = args;
+    if (typeof chainId !== "string" || typeof tendermintRpc !== "string" || typeof rest !== "string") {
+      throw new Error("embedChainInfo expects chainId, rpc and rest endpoint strings");
+    }
+    return embedder(chainId, tendermintRpc, rest);
+  };
+}
 
 const CHAIN_INFO_EMBEDDERS: { [key: string]: (...args: unknown[]) => unknown } = {
-  NOLUS: nolusChainInfo,
-  OSMOSIS: osmoChainInfo,
-  NEUTRON: neutronChainInfo
+  NOLUS: withUnknownArgs(nolusChainInfo),
+  OSMOSIS: withUnknownArgs(osmoChainInfo),
+  NEUTRON: withUnknownArgs(neutronChainInfo)
 };
 
 /**

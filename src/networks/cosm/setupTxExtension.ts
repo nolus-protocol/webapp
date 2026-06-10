@@ -47,7 +47,7 @@ export function setupTxExtension(base: QueryClient): TxExtension {
           }),
           body: TxBody.fromPartial({
             messages: Array.from(messages),
-            memo: memo
+            memo: memo ?? ""
           }),
           signatures: [new Uint8Array()]
         });

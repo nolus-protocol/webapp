@@ -18,7 +18,7 @@ const {
   solanaConnectCustom: vi.fn().mockResolvedValue(undefined),
   solanaMakeWCOfflineSigner: vi.fn(() => ({ type: "svm", chainId: "nolus-1", getAccounts: async () => [] })),
   fetchEndpointsMock: vi.fn().mockResolvedValue({ rpc: "r", api: "a" }),
-  walletManagerMock: { getWalletConnectMechanism: vi.fn(() => undefined) },
+  walletManagerMock: { getWalletConnectMechanism: vi.fn((): string | undefined => undefined) },
   walletUtilsMock: { getKeplr: vi.fn() },
   bluetoothCreateMock: vi.fn().mockResolvedValue({ type: "ble-transport" }),
   webusbCreateMock: vi.fn().mockResolvedValue({ type: "usb-transport" })
@@ -134,6 +134,30 @@ describe("WalletFactory", () => {
       await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(/version is not latest/);
     });
 
+    it("rejects when embedChainInfo returns a non-object (wrapped as 'Failed to fetch suggest chain.')", async () => {
+      walletUtilsMock.getKeplr.mockResolvedValue({
+        getOfflineSignerAuto: vi.fn(),
+        experimentalSuggestChain: vi.fn().mockResolvedValue(undefined),
+        enable: vi.fn()
+      });
+      const network = fakeNetwork({ embedChainInfo: vi.fn(() => undefined) });
+
+      await expect(authenticateKeplr(fakeWallet(), network)).rejects.toThrow(/Failed to fetch suggest chain/);
+    });
+
+    it("rejects when the extension returns a signer without getAccounts", async () => {
+      walletUtilsMock.getKeplr.mockResolvedValue({
+        getOfflineSignerAuto: vi.fn().mockResolvedValue({}),
+        experimentalSuggestChain: vi.fn().mockResolvedValue(undefined),
+        enable: vi.fn().mockResolvedValue(undefined)
+      });
+
+      await expect(authenticateKeplr(fakeWallet(), fakeNetwork())).rejects.toThrow(
+        /signer without getAccounts support/
+      );
+      expect(baseWalletCtor).not.toHaveBeenCalled();
+    });
+
     it("wraps network fetch failures with 'Failed to fetch suggest chain.'", async () => {
       walletUtilsMock.getKeplr.mockResolvedValue({
         getOfflineSignerAuto: vi.fn(),
@@ -164,6 +188,7 @@ describe("WalletFactory", () => {
       expect(baseWalletCtor).toHaveBeenCalledTimes(1);
       // BaseWallet ctor arg order: (tm, signer, opts, rpc, api, prefix, gasMultiplier, gasPrice, explorer)
       const args = baseWalletCtor.mock.calls[0];
+      if (args === undefined) throw new Error("expected the BaseWallet constructor to have been called");
       expect(args[1]).toBe(offlineSigner);
       expect(args[3]).toBe("rpc-url");
       expect(args[4]).toBe("api-url");
@@ -203,7 +228,9 @@ describe("WalletFactory", () => {
       expect(solanaConnectCustom).toHaveBeenCalledTimes(1);
       expect(solanaMakeWCOfflineSigner).toHaveBeenCalledTimes(1);
       // The BaseWallet signer arg is the WC signer from SolanaWallet
-      expect(baseWalletCtor.mock.calls[0][1].type).toBe("svm");
+      const ctorCall = baseWalletCtor.mock.calls[0];
+      if (ctorCall === undefined) throw new Error("expected the BaseWallet constructor to have been called");
+      expect(ctorCall[1].type).toBe("svm");
     });
 
     it("phantom errors during connectCustom propagate (BaseWallet not built on failure)", async () => {
@@ -220,7 +247,9 @@ describe("WalletFactory", () => {
       expect(solanaWalletCtor).toHaveBeenCalledWith("solflare");
       expect(solanaConnectCustom).toHaveBeenCalledTimes(1);
       expect(solanaMakeWCOfflineSigner).toHaveBeenCalledTimes(1);
-      expect(baseWalletCtor.mock.calls[0][1].type).toBe("svm");
+      const ctorCall = baseWalletCtor.mock.calls[0];
+      if (ctorCall === undefined) throw new Error("expected the BaseWallet constructor to have been called");
+      expect(ctorCall[1].type).toBe("svm");
     });
 
     it("solflare errors during connectCustom propagate", async () => {
@@ -242,6 +271,7 @@ describe("WalletFactory", () => {
       const wallet = fakeWallet();
       await authenticateKeplr(wallet, fakeNetwork());
       const args = baseWalletCtor.mock.calls[0];
+      if (args === undefined) throw new Error("expected the BaseWallet constructor to have been called");
       expect(args[0]).toEqual({ kind: "comet" });
     });
   });
