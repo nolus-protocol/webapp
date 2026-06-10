@@ -171,6 +171,11 @@ self.addEventListener("notificationclick", (event: NotificationEvent) => {
 });
 
 self.addEventListener("pushsubscriptionchange", (event) => {
+  // The lib map types this event as a bare Event; in a real Service Worker it is
+  // always an ExtendableEvent, so the instanceof check never fails at runtime.
+  if (!(event instanceof ExtendableEvent)) {
+    return;
+  }
   const key = urlB64ToUint8Array(publicKey);
   const resubscribed = self.registration.pushManager
     .subscribe({ userVisibleOnly: true, applicationServerKey: key })
@@ -181,11 +186,7 @@ self.addEventListener("pushsubscriptionchange", (event) => {
         body: JSON.stringify({ address: redirect, data: newSub })
       });
     });
-  // The lib map types this event as a bare Event; in a real Service Worker it is
-  // always an ExtendableEvent, so the instanceof check never fails at runtime.
-  if (event instanceof ExtendableEvent) {
-    event.waitUntil(resubscribed);
-  }
+  event.waitUntil(resubscribed);
 });
 
 self.addEventListener("install", () => {
