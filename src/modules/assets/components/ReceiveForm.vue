@@ -37,7 +37,7 @@
       :disabled-input-field="isDisabled"
       :disabled-currency-picker="disablePicker || isDisabled"
       :error-msg="amountErrorMsg"
-      :selected-currency-option="currency"
+      v-bind="currency !== undefined ? { selectedCurrencyOption: currency } : {}"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
       :item-template="
         (item: any) =>

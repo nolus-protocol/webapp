@@ -37,8 +37,8 @@
       :disabled-input-field="isDisabled"
       :disabled-currency-picker="disablePicker || isDisabled"
       :error-msg="amountErrorMsg"
-      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
-      :selected-currency-option="currency"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : ''"
+      v-bind="currency !== undefined ? { selectedCurrencyOption: currency } : {}"
       :itemsHeadline="[$t('message.assets'), $t('message.balance')]"
       :item-template="
         (item: any) => {
@@ -72,8 +72,8 @@
       <Input
         id="receipt-send-2"
         type="text"
-        :inputClass="network.native ? '' : 'border-none p-0'"
-        :disabled="!network.native"
+        :inputClass="network?.native ? '' : 'border-none p-0'"
+        :disabled="!network?.native"
         :value="walletRef"
         @input="onRecipientInput"
       />
