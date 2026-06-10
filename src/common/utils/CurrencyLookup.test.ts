@@ -52,7 +52,10 @@ import {
   getPriceForCurrency
 } from "./CurrencyLookup";
 
-const api = BackendApi as unknown as Record<string, ReturnType<typeof vi.fn>>;
+const api = BackendApi as unknown as {
+  getConfig: ReturnType<typeof vi.fn>;
+  getCurrencies: ReturnType<typeof vi.fn>;
+};
 
 // USDC lives on two protocols sharing one IBC denom. OSMOSIS is the network's
 // primary protocol and the only one with a published price; NEUTRON's key is
@@ -196,7 +199,9 @@ describe("getPriceForCurrency", () => {
       { ticker: "USDC", stable: usdcStable }
     ].sort((a, b) => Number(b.stable.sub(a.stable).toString(8)));
 
-    expect(sorted[0].ticker).toBe("USDC");
+    const top = sorted[0];
+    if (top === undefined) throw new Error("expected sorted list to be non-empty");
+    expect(top.ticker).toBe("USDC");
   });
 });
 

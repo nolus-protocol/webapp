@@ -46,7 +46,11 @@ export class WalletAccess {
 
   public static async getWallet(key: string): Promise<Wallet> {
     const network = NETWORK_DATA;
-    const node = await fetchEndpoints(network.supportedNetworks[key].key);
+    const supportedNetwork = network.supportedNetworks[key];
+    if (supportedNetwork === undefined) {
+      throw new Error(`Unsupported network: ${key}`);
+    }
+    const node = await fetchEndpoints(supportedNetwork.key);
     const client = await Wallet.getInstance(node.rpc, node.api);
     return client;
   }
