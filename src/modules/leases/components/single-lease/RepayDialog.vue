@@ -23,7 +23,7 @@
             :calculated-balance="calculatedBalance"
             :disabled-currency-picker="isLoading"
             :disabled-input-field="isLoading"
-            :selectedCurrencyOption="assets[0]"
+            v-bind="selectedCurrencyBinding"
             :value-only="amount"
             @input="handleAmountChange"
             :error-msg="amountErrorMsg"
@@ -78,6 +78,7 @@
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
 import { AdvancedFormControl, Button, Dialog, Slider } from "web-components";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
 import RepayPreview from "./RepayPreview.vue";
@@ -104,4 +105,11 @@ const {
   onSendClick,
   closeDialog
 } = useRepayLease();
+
+// Conditional spread keeps `undefined` out of the optional prop
+// (exactOptionalPropertyTypes) while preserving the "no selection" render.
+const selectedCurrencyBinding = computed(() => {
+  const first = assets.value[0];
+  return first !== undefined ? { selectedCurrencyOption: first } : {};
+});
 </script>

@@ -16,7 +16,7 @@
             :currencyOptions="assets"
             :disabled-currency-picker="true"
             :disabled-input-field="isLoading"
-            :selectedCurrencyOption="assets[0]"
+            v-bind="selectedCurrencyBinding"
             :value-only="amount"
             @input="handleAmountChange"
             :error-msg="amountErrorMsg"
@@ -61,7 +61,7 @@
                 :innerHTML="
                   $t('message.stoppings-close-price', {
                     price: price,
-                    asset: currency.shortName
+                    asset: currency?.shortName ?? ''
                   })
                 "
               ></p>
@@ -95,7 +95,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { AdvancedFormControl, Button, Dialog, Tooltip, SvgIcon, ToastType } from "web-components";
 import { RouteNames } from "@/router";
@@ -110,8 +110,6 @@ import { classifyError, Logger, walletOperation } from "@/common/utils";
 import { formatNumber, formatPriceUsd } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol, getCurrencyByTicker } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY, NATIVE_NETWORK } from "../../../../config/global/network";
-import type { ExternalCurrency } from "@/common/types";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { Dec } from "@keplr-wallet/unit";
 import type { NolusWallet } from "@nolus/nolusjs";
 import { NolusClient } from "@nolus/nolusjs";
@@ -144,7 +142,10 @@ const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: st
 
 const dialog = ref<typeof Dialog | null>(null);
 const lease = ref<LeaseInfo | null>(null);
-const displayData = ref<LeaseDisplayData | null>(null);
+// shallowRef: a deep ref's UnwrapRef proxies the Dec class instances inside
+// LeaseDisplayData and strips their nominal type; the value is only ever
+// replaced wholesale, never mutated in place, so shallow tracking suffices.
+const displayData = shallowRef<LeaseDisplayData | null>(null);
 
 function initLease() {
   // Read from store cache — the parent already fetched this lease.
@@ -177,6 +178,13 @@ const currency = computed(() => {
   return assets.value[selectedCurrency.value];
 });
 
+// Conditional spread keeps `undefined` out of the optional prop
+// (exactOptionalPropertyTypes) while preserving the "no selection" render.
+const selectedCurrencyBinding = computed(() => {
+  const first = assets.value[0];
+  return first !== undefined ? { selectedCurrencyOption: first } : {};
+});
+
 const currentPrice = computed(() => {
   if (!lease.value) return "";
   const asset = getCurrency();
@@ -185,14 +193,24 @@ const currentPrice = computed(() => {
 });
 
 const assets = computed(() => {
-  const data = [];
+  const data: {
+    name: string;
+    icon: string;
+    value: string;
+    label: string;
+    ibcData: string;
+    shortName: string;
+    decimal_digits: number;
+    key: string;
+    ticker: string;
+  }[] = [];
 
   if (lease.value) {
     const asset = getCurrency();
     if (!asset) {
       return data;
     }
-    const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
+    const denom = asset.ibcData;
 
     data.push({
       name: asset.name,
@@ -211,14 +229,15 @@ const assets = computed(() => {
 });
 
 const payout = computed(() => {
-  if (!lease.value || !displayData.value) return "0";
+  const selected = currency.value;
+  if (!lease.value || !displayData.value || !selected) return "0";
   const end_price = new Dec(amount.value.length === 0 ? 0 : amount.value);
   const positionType = configStore.getPositionType(lease.value.protocol);
   const debt = displayData.value.totalDebt ?? new Dec(0);
 
   if (positionType === "Long") {
     const end = totalAmount.value.mul(end_price);
-    return formatNumber(end.sub(debt).toString(), currency.value?.decimal_digits, NATIVE_CURRENCY.symbol);
+    return formatNumber(end.sub(debt).toString(), selected.decimal_digits, NATIVE_CURRENCY.symbol);
   } else {
     // Short: payout = position_USDC - (debt_in_asset × target_price)
     const lpn = getLpnByProtocol(lease.value.protocol);
@@ -226,7 +245,7 @@ const payout = computed(() => {
     const debtAtTargetPrice = debt.mul(end_price);
     return formatNumber(
       positionUsdc.sub(debtAtTargetPrice).toString(),
-      currency.value?.decimal_digits,
+      selected.decimal_digits,
       NATIVE_CURRENCY.symbol
     );
   }
@@ -237,7 +256,9 @@ const totalAmount = computed(() => {
   const positionType = configStore.getPositionType(lease.value.protocol);
 
   if (positionType === "Long") {
-    return new Dec(lease.value.amount.amount ?? "0", currency.value.decimal_digits);
+    const selected = currency.value;
+    if (!selected) return new Dec(0);
+    return new Dec(lease.value.amount.amount ?? "0", selected.decimal_digits);
   } else {
     const ticker = lease.value.etl_data?.lease_position_ticker ?? lease.value.amount.ticker;
     const asset = configStore.currenciesData?.[`${ticker}@${lease.value.protocol}`];
