@@ -14,6 +14,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as VueRouter from "vue-router";
+import type { LeaseInfo } from "@/common/api";
 import { setActivePinia, createPinia } from "pinia";
 
 vi.hoisted(() => {
@@ -222,7 +223,7 @@ function makeShortLease() {
       due_interest: "0"
     },
     interest: { annual_rate_percent: 5 }
-  } as unknown as Parameters<typeof PositionSummaryWidget>[0];
+  } as unknown as LeaseInfo;
 }
 
 function makeLongLease() {
@@ -244,7 +245,7 @@ function makeLongLease() {
       due_interest: "0"
     },
     interest: { annual_rate_percent: 5 }
-  } as unknown as Parameters<typeof PositionSummaryWidget>[0];
+  } as unknown as LeaseInfo;
 }
 
 function factory(lease: unknown, positionType: "long" | "short") {

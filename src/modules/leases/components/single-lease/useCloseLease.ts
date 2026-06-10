@@ -1,4 +1,4 @@
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, shallowRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { Dialog } from "web-components";
 import { ToastType } from "web-components";
@@ -64,7 +64,10 @@ export function useCloseLease() {
 
   const dialog = ref<typeof Dialog | null>(null);
   const lease = ref<LeaseInfo | null>(null);
-  const displayData = ref<LeaseDisplayData | null>(null);
+  // shallowRef: a deep ref's UnwrapRef proxies the Dec class instances inside
+  // LeaseDisplayData and strips their nominal type; the value is only ever
+  // replaced wholesale, never mutated in place, so shallow tracking suffices.
+  const displayData = shallowRef<LeaseDisplayData | null>(null);
   const minAsset = ref<AmountSpec | null>(null);
 
   async function initLease() {
@@ -101,7 +104,17 @@ export function useCloseLease() {
   const unknownAssetReported = ref(false);
 
   const assets = computed(() => {
-    const data = [];
+    const data: {
+      name: string;
+      icon: string;
+      value: string;
+      label: string;
+      ibcData: string;
+      shortName: string;
+      decimal_digits: number;
+      key: string;
+      ticker: string;
+    }[] = [];
 
     if (lease.value && lease.value.status === "opened") {
       const ticker = lease.value.amount.ticker;
@@ -160,11 +173,19 @@ export function useCloseLease() {
     const positionType = configStore.getPositionType(lease.value.protocol);
     if (positionType === "Short") {
       const lpn = getLpnByProtocol(lease.value.protocol);
-      return new Dec(pricesStore.prices[lpn?.key]?.price, lpn?.decimal_digits).toString(lpn?.decimal_digits);
+      const entry = lpn ? pricesStore.prices[lpn.key] : undefined;
+      if (!lpn || !entry) {
+        Logger.error(`Missing LPN or price entry for protocol ${lease.value.protocol}`);
+        return "0";
+      }
+      return new Dec(entry.price, lpn.decimal_digits).toString(lpn.decimal_digits);
     } else {
-      return new Dec(pricesStore.prices[currency.value?.key]?.price, currency.value?.decimal_digits).toString(
-        currency.value?.decimal_digits
-      );
+      const selected = currency.value;
+      const entry = selected ? pricesStore.prices[selected.key] : undefined;
+      if (!selected || !entry) {
+        return "0";
+      }
+      return new Dec(entry.price, selected.decimal_digits).toString(selected.decimal_digits);
     }
   });
 
@@ -175,6 +196,11 @@ export function useCloseLease() {
     const data = getAmountValue(amount.value === "" ? "0" : amount.value);
     const positionType = configStore.getPositionType(lease.value.protocol);
     const lpn = getLpnByProtocol(lease.value.protocol);
+
+    if (!lpn) {
+      Logger.error(`LPN not found for protocol ${lease.value.protocol}`);
+      return "";
+    }
 
     if (positionType === "Short") {
       const price = new Dec(pricesStore.prices[lpn.key]?.price ?? 0);
@@ -189,6 +215,11 @@ export function useCloseLease() {
     if (!lease.value) return formatUsd(0);
     const positionType = configStore.getPositionType(lease.value.protocol);
     const lpn = getLpnByProtocol(lease.value.protocol);
+
+    if (!lpn) {
+      Logger.error(`LPN not found for protocol ${lease.value.protocol}`);
+      return formatUsd(0);
+    }
 
     if (positionType === "Short") {
       const price = new Dec(pricesStore.prices[lpn.key]?.price ?? 0);
@@ -237,6 +268,10 @@ export function useCloseLease() {
         const amountStr = amount.value.length ? amount.value : "0";
         const value = new Dec(amountStr).mul(price).mul(new Dec(swapFee.value));
         const lpn = getLpnByProtocol(lease.value.protocol);
+        if (!lpn) {
+          Logger.error(`LPN not found for protocol ${lease.value.protocol}`);
+          return { debt: "", price: "", asset: "", fee: "" };
+        }
         return {
           fee: `${formatPercent(swapFee.value * PERCENT, NATIVE_CURRENCY.maximumFractionDigits)} (${formatDecAsUsd(value)})`,
           asset: currecy.shortName,
@@ -327,9 +362,18 @@ export function useCloseLease() {
     const positionType = configStore.getPositionType(lease.value.protocol);
     const lpnData = getLpnByProtocol(lease.value.protocol);
 
+    if (!lpnData) {
+      Logger.error(`LPN not found for protocol ${lease.value.protocol}`);
+      return "0.00";
+    }
+
     if (positionType === "Short") {
-      const lpnPrice = new Dec(pricesStore.prices[lpnData.key as string].price);
-      payOutValue = payOutValue.quo(lpnPrice);
+      const lpnPriceEntry = pricesStore.prices[lpnData.key];
+      if (!lpnPriceEntry) {
+        Logger.error(`Missing price entry for ${lpnData.key}`);
+        return "0.00";
+      }
+      payOutValue = payOutValue.quo(new Dec(lpnPriceEntry.price));
     }
 
     return payOutValue.toString(Number(lpnData.decimal_digits));
@@ -364,6 +408,11 @@ export function useCloseLease() {
 
     const debtTicker = lease.value.debt.ticker;
     const debtCurrency = configStore.currenciesData[`${debtTicker}@${lease.value.protocol}`];
+
+    if (!debtCurrency) {
+      Logger.error(`Unknown debt currency ${debtTicker}@${lease.value.protocol}`);
+      return null;
+    }
 
     return { amount: displayData.value.totalDebt, symbol: debtCurrency.shortName };
   });
@@ -624,6 +673,14 @@ export function useCloseLease() {
     const ticker = lease.value.debt.ticker;
     const c = configStore.currenciesData[`${ticker}@${lease.value.protocol}`];
 
+    // skip, don't throw: getRepayment runs inside render computeds (debt,
+    // debtData) where a throw is swallowed by Vue and freezes the preview —
+    // mirrors the existing missing-price bails below.
+    if (!c) {
+      Logger.error(`Unknown debt currency ${ticker}@${lease.value.protocol}`);
+      return undefined;
+    }
+
     const amountToRepay = CurrencyUtils.convertMinimalDenomToDenom(
       amount.toString(),
       c.shortName,
@@ -650,7 +707,10 @@ export function useCloseLease() {
       const SHORT_PRICE_BUFFER = new Dec("1.01");
       const debtTicker = lease.value.debt.ticker;
       const debtAssetPrice = new Dec(pricesStore.prices[`${debtTicker}@${lease.value.protocol}`]?.price ?? "1");
-      const selectedPriceEntry = pricesStore.prices[selectedCurrency.key as string];
+      if (!selectedCurrency) {
+        return undefined;
+      }
+      const selectedPriceEntry = pricesStore.prices[selectedCurrency.key];
       // A missing selected-currency price would divide by zero and throw inside a
       // render computed, freezing it. Bail so callers render an empty preview —
       // mirrors the Long branch below and the guarded RepayDialog.
@@ -741,14 +801,17 @@ export function useCloseLease() {
   function getCurrency() {
     if (!lease.value || lease.value.status !== "opened") return undefined;
 
-    const microAmount = getMicroAmount(currency.value.ibcData, amount.value);
+    const c = currency.value;
+    if (!c) {
+      throw new Error(`Close currency unavailable for ${lease.value.amount.ticker}@${lease.value.protocol}`);
+    }
+
+    const microAmount = getMicroAmount(c.ibcData, amount.value);
     const a = new Int(lease.value.amount.amount ?? 0);
 
     if (a.equals(microAmount.mAmount.amount)) {
       return undefined;
     }
-
-    const c = currency.value;
 
     return {
       amount: microAmount.mAmount.amount.toString(),
@@ -792,8 +855,17 @@ export function useCloseLease() {
         amount: new CoinPretty({ coinDenom: "", coinMinimalDenom: "", coinDecimals: 0 }, new Int(0))
       };
     }
-    const [_, protocolKey] = selectedCurrency.key.split("@");
-    const lpnData = getLpnByProtocol(protocolKey);
+    const protocolKey = selectedCurrency.key.split("@")[1];
+    const lpnData = protocolKey ? getLpnByProtocol(protocolKey) : null;
+    if (!lpnData) {
+      Logger.error(`LPN not found for protocol of ${selectedCurrency.key}`);
+      return {
+        amountInStable: new CoinPretty({ coinDenom: "", coinMinimalDenom: "", coinDecimals: 0 }, new Int(0))
+          .trim(true)
+          .hideDenom(true),
+        amount: new CoinPretty({ coinDenom: "", coinMinimalDenom: "", coinDecimals: 0 }, new Int(0))
+      };
+    }
 
     const amount = new Dec(a);
     const price = new Dec(pricesStore.prices[selectedCurrency.key as string]?.price ?? 0);
@@ -844,10 +916,9 @@ export function useCloseLease() {
   }
 
   function closeDialog() {
+    const matched = route.matched[2];
     const path =
-      route.matched[2].path === `/${RouteNames.LEASES}`
-        ? `/${RouteNames.LEASES}`
-        : `/${RouteNames.LEASES}/${route.params.id}`;
+      matched?.path === `/${RouteNames.LEASES}` ? `/${RouteNames.LEASES}` : `/${RouteNames.LEASES}/${route.params.id}`;
     void router.push(path);
   }
 

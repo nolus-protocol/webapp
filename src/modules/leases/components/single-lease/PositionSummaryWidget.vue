@@ -125,7 +125,7 @@
           :loading-width="'120px'"
           :label="$t('message.unrealized-pnl')"
           :amount="{
-            value: pnl.amount.toString(2),
+            value: pnl.amount,
             denom: '$',
             class: pnl.status ? 'text-typography-success' : 'text-typography-error',
             fontSize: 24,

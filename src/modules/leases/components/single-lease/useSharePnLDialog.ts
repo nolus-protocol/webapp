@@ -36,8 +36,9 @@ export function useSharePnLDialog() {
   // Per-cover palette covers text colors only. PnL colors are a single brand
   // pair (PNL_POSITIVE / PNL_NEGATIVE) used on every cover for visual
   // consistency across the share library.
+  const DEFAULT_PALETTE: Palette = { text: "#FFFFFF", muted: "#C1CAD7" }; // dark navy illustration
   const palettes: Palette[] = [
-    { text: "#FFFFFF", muted: "#C1CAD7" }, // dark navy illustration
+    DEFAULT_PALETTE,
     { text: "#082D63", muted: "#5E7699" }, // orange
     { text: "#082D63", muted: "#5E7699" } // light lavender
   ];
@@ -51,7 +52,7 @@ export function useSharePnLDialog() {
   let leaseData: LeaseInfo | null;
   let leaseDisplayData: LeaseDisplayData | null;
 
-  const palette = (): Palette => palettes[imageIndex.value] ?? palettes[0];
+  const palette = (): Palette => palettes[imageIndex.value] ?? DEFAULT_PALETTE;
 
   const asset = () => {
     if (!leaseData) return undefined;
@@ -159,9 +160,10 @@ export function useSharePnLDialog() {
 
   watch([showPnlAmount, showPrice, showPositionSize], () => {
     void generateCanvas();
-    for (const key in canvasRefs.value) {
-      const img = images[key as keyof typeof images];
-      void generateSmallCanvas(canvasRefs.value[key], img as string);
+    for (const [key, canvasElement] of Object.entries(canvasRefs.value)) {
+      const img = images[Number(key)];
+      if (img === undefined) continue;
+      void generateSmallCanvas(canvasElement, img);
     }
   });
 
@@ -256,8 +258,9 @@ export function useSharePnLDialog() {
 
   const generateCanvas = () => {
     const canvasElement = canvas.value;
-    if (!canvasElement) return;
-    return scheduleRender(canvasElement, images[imageIndex.value]);
+    const img = images[imageIndex.value];
+    if (!canvasElement || img === undefined) return;
+    return scheduleRender(canvasElement, img);
   };
 
   async function setBackground(ctx: CanvasRenderingContext2D, src: string) {
@@ -349,7 +352,7 @@ export function useSharePnLDialog() {
   function setPnlPercent(ctx: CanvasRenderingContext2D) {
     const pos = pnlNumber();
     const symbol = pos < 0 ? "-" : "+";
-    const [a, d] = Math.abs(pos).toFixed(2).split(".");
+    const [a = "0", d] = Math.abs(pos).toFixed(2).split(".");
 
     ctx.fillStyle = pos < 0 ? PNL_NEGATIVE : PNL_POSITIVE;
 
@@ -366,7 +369,7 @@ export function useSharePnLDialog() {
     ctx.font = "600 96px 'Garet'";
     const pos = pnlNumber();
     const symbol = pos < 0 ? "-" : "+";
-    const [a, d] = Math.abs(pos).toFixed(2).split(".");
+    const [a = "0", d] = Math.abs(pos).toFixed(2).split(".");
     const integerWidth = ctx.measureText(`${symbol}${formatNumber(a, 0)}`).width;
     ctx.font = "600 80px 'Garet'";
     const decimalWidth = ctx.measureText(`.${d}%`).width;
@@ -451,9 +454,15 @@ export function useSharePnLDialog() {
     canvasElement.toBlob((blob) => {
       void (async () => {
         try {
+          // A null blob (zero-sized canvas, out of memory) previously built a
+          // File whose content was the string "null" and shared a corrupt PNG.
+          if (!blob) {
+            Logger.error("SharePnL: canvas.toBlob returned null, nothing to share");
+            return;
+          }
           const filesArray = [
-            new File([blob as Blob], "position.png", {
-              type: blob?.type,
+            new File([blob], "position.png", {
+              type: blob.type,
               lastModified: new Date().getTime()
             })
           ];
@@ -476,9 +485,10 @@ export function useSharePnLDialog() {
     await nextTick();
     void generateCanvas();
 
-    for (const key in canvasRefs.value) {
-      const img = images[key as keyof typeof images];
-      void generateSmallCanvas(canvasRefs.value[key], img as string);
+    for (const [key, canvasElement] of Object.entries(canvasRefs.value)) {
+      const img = images[Number(key)];
+      if (img === undefined) continue;
+      void generateSmallCanvas(canvasElement, img);
     }
   };
 
