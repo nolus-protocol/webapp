@@ -90,7 +90,7 @@ const analyticsStore = useAnalyticsStore();
 const pnl = computed(() => analyticsStore.historyStats?.pnl?.toString() ?? "0");
 const tx_volume = computed(() => analyticsStore.historyStats?.tx_volume?.toString() ?? "0");
 const win_rate = computed(() => analyticsStore.historyStats?.win_rate?.toString() ?? "0");
-const loading = computed(() => analyticsStore.historyDataLoading && !analyticsStore.hasHistoryData);
+const loading = computed(() => analyticsStore.historyLoading && !analyticsStore.hasHistoryStats);
 
 const hasChartData = computed(() => chart_data.value.some((d) => d.percentage !== 0));
 const disabled = () => (WalletStorage.getWalletConnectMechanism() ? false : true);
@@ -99,13 +99,20 @@ const disabled = () => (WalletStorage.getWalletConnectMechanism() ? false : true
 watch(
   () => analyticsStore.historyStats,
   (stats) => {
-    if (stats?.bucket) {
-      chart_data.value = stats.bucket.map((item: { bucket: string; positions: number; share_percent: string }) => {
-        return {
-          ticker: item.bucket,
-          percentage: Number(item.share_percent),
-          loan: item.positions.toString()
-        };
+    const bucket = stats?.bucket;
+    if (Array.isArray(bucket)) {
+      chart_data.value = bucket.flatMap((item) => {
+        if (!isRecord(item)) {
+          console.error("[RealisedPnl] skipping malformed bucket entry:", item);
+          return [];
+        }
+        return [
+          {
+            ticker: String(item.bucket),
+            percentage: Number(item.share_percent),
+            loan: String(item.positions)
+          }
+        ];
       });
     }
     chart.value?.update();
@@ -128,8 +135,11 @@ async function setStats() {
   chart.value?.update();
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
-  if (!plotContainer) return;
+// Chart.vue's props are typed (...args: unknown[]), so the concrete argument
+// types have to be re-established with runtime guards here.
+function updateChart(...args: unknown[]) {
+  const [plotContainer, tooltip] = args;
+  if (!(plotContainer instanceof HTMLElement) || !isTooltipSelection(tooltip)) return;
 
   const bucketOrder = ["<0", "0-50", "51–100", "101–300", "301+"];
   plotContainer.innerHTML = "";
@@ -211,7 +221,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
-function getClosestDataPoint(yPosition: number) {
+function getClosestDataPoint(yPosition: unknown) {
+  if (typeof yPosition !== "number") {
+    return null;
+  }
   const plotAreaHeight = chartHeight - marginTop - marginBottom;
   const adjustedY = yPosition - marginTop;
   const barHeight = plotAreaHeight / chart_data.value.length;
@@ -222,5 +235,18 @@ function getClosestDataPoint(yPosition: number) {
   }
 
   return null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isTooltipSelection(value: unknown): value is Selection<HTMLDivElement, unknown, HTMLElement, unknown> {
+  return (
+    isRecord(value) &&
+    typeof value.html === "function" &&
+    typeof value.style === "function" &&
+    typeof value.node === "function"
+  );
 }
 </script>

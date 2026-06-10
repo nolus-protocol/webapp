@@ -26,18 +26,25 @@ const currency_mapper: { [key: string]: string } = {
 };
 
 export async function message(msg: IObjectKeys, address: string, i18n: IObjectKeys, voteMessages: IObjectKeys) {
+  const t = translatorOf(i18n);
   switch (msg.type) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
+      const data = recordOf(msg.data);
+      const coin = firstCoinOf(data.amount);
+      if (coin === undefined) {
+        console.error("[history] skipping MsgSend entry with malformed amount:", msg.tx_hash);
+        return [formatMessageType(msg.type), null];
+      }
       const steps = [
         {
           icon: NATIVE_NETWORK.icon
         }
       ];
-      const token = getCurrency(msg.data?.amount?.[0]);
+      const token = getCurrency(coin);
 
       const detailedSteps = [
         {
-          label: i18n.t("message.send-stepper"),
+          label: t("message.send-stepper"),
           icon: NATIVE_NETWORK.icon,
           tokenComponent: () => h("div", `${token}`),
           meta: () => h("div", `${NATIVE_NETWORK.label} > ${NATIVE_NETWORK.label}`)
@@ -46,8 +53,8 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
       if (msg.from === address) {
         return [
-          i18n.t("message.send-action", {
-            address: truncateString(msg.data?.toAddress),
+          t("message.send-action", {
+            address: truncateString(stringOf(data.toAddress)),
             amount: formatCoinPretty(token)
           }),
           token,
@@ -64,8 +71,8 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
       if (msg.to === address) {
         return [
-          i18n.t("message.receive-action", {
-            address: truncateString(msg.data.fromAddress),
+          t("message.receive-action", {
+            address: truncateString(stringOf(data.fromAddress)),
             amount: formatCoinPretty(token)
           }),
           token,
@@ -82,13 +89,21 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       return [formatMessageType(msg.type), null];
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
+      const data = recordOf(msg.data);
       if (msg.from === address) {
-        const token = await fetchCurrency(msg.data.token);
+        const coin = coinOf(data.token);
+        if (coin === undefined) {
+          console.error("[history] skipping MsgTransfer entry with malformed token:", msg.tx_hash);
+          return [formatMessageType(msg.type), null];
+        }
+        const token = await fetchCurrency(coin);
 
-        const receiver = getIcon(getChainName(msg.data.receiver));
-        const sender = getIcon(getChainName(msg.data.sender));
-        const labelReceiver = getChainLabel(getChainName(msg.data.receiver));
-        const labelSender = getChainLabel(getChainName(msg.data.sender));
+        const receiverAddress = stringOf(data.receiver);
+        const senderAddress = stringOf(data.sender);
+        const receiver = getIcon(getChainName(receiverAddress));
+        const sender = getIcon(getChainName(senderAddress));
+        const labelReceiver = getChainLabel(getChainName(receiverAddress));
+        const labelSender = getChainLabel(getChainName(senderAddress));
 
         const steps = [
           {
@@ -101,13 +116,13 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
         const detailedSteps = [
           {
-            label: i18n.t("message.send-stepper"),
+            label: t("message.send-stepper"),
             icon: sender,
             tokenComponent: () => h("div", `${token}`),
             meta: () => h("div", `${labelSender} > ${labelReceiver}`)
           },
           {
-            label: i18n.t("message.receive-stepper"),
+            label: t("message.receive-stepper"),
             icon: receiver,
             tokenComponent: () => h("div", `${token}`),
             meta: () => h("div", `${labelReceiver}`)
@@ -115,8 +130,8 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         ];
 
         return [
-          i18n.t("message.send-action", {
-            address: truncateString(msg.data.receiver),
+          t("message.send-action", {
+            address: truncateString(receiverAddress),
             amount: formatCoinPretty(token)
           }),
           token,
@@ -132,10 +147,15 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       }
 
       if (msg.to === address) {
-        const token = getCurrency(msg.data.token);
+        const coin = coinOf(data.token);
+        if (coin === undefined) {
+          console.error("[history] skipping MsgTransfer entry with malformed token:", msg.tx_hash);
+          return [formatMessageType(msg.type), null];
+        }
+        const token = getCurrency(coin);
         return [
-          i18n.t("message.receive-action", {
-            address: truncateString(msg.data.sender),
+          t("message.receive-action", {
+            address: truncateString(stringOf(data.sender)),
             amount: formatCoinPretty(token)
           }),
           token
@@ -146,10 +166,18 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
     }
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
       try {
-        const data = JSON.parse(Buffer.from(msg.data.packet.data).toString());
-        const d = `${msg.data.packet.destinationPort}/${msg.data.packet.destinationChannel}/${data.denom}`;
+        const packet = recordOf(recordOf(msg.data).packet);
+        const packetPayload = packet.data;
+        if (typeof packetPayload !== "string" && !(packetPayload instanceof Uint8Array)) {
+          throw new Error("malformed IBC packet payload");
+        }
+        const data = JSON.parse(Buffer.from(packetPayload).toString());
+        const d = `${packet.destinationPort}/${packet.destinationChannel}/${data.denom}`;
         const denom = currency_mapper[d] ?? getIbc(d);
         const coin = parseCoins(`${data.amount}${denom}`)[0];
+        if (coin === undefined) {
+          throw new Error("no coin parsed from IBC packet amount");
+        }
         delete msg.fee_denom;
 
         const receiver = getIcon(getChainName(data.receiver));
@@ -159,13 +187,13 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
         const detailedSteps = [
           {
-            label: i18n.t("message.send-stepper"),
+            label: t("message.send-stepper"),
             icon: sender,
             tokenComponent: () => h("div", `${token}`),
             meta: () => h("div", `${labelSender} > ${labelReceiver}`)
           },
           {
-            label: i18n.t("message.receive-stepper"),
+            label: t("message.receive-stepper"),
             icon: receiver,
             tokenComponent: () => h("div", `${token}`),
             meta: () => h("div", `${labelReceiver}`)
@@ -181,7 +209,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           }
         ];
         return [
-          i18n.t("message.receive-action", {
+          t("message.receive-action", {
             address: truncateString(data.sender),
             amount: formatCoinPretty(token)
           }),
@@ -201,12 +229,22 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
       try {
-        const data = JSON.parse(Buffer.from(msg.data.msg).toString());
+        const msgData = recordOf(msg.data);
+        const rawMsg = msgData.msg;
+        if (typeof rawMsg !== "string" && !(rawMsg instanceof Uint8Array)) {
+          throw new Error("malformed contract execute payload");
+        }
+        const data = JSON.parse(Buffer.from(rawMsg).toString());
+        const contract = stringOf(msgData.contract);
 
         if (data.open_lease) {
           const configStore = useConfigStore();
-          const token = getCurrency(msg.data.funds[0]);
-          const protocolKey = getProtocolByContract(msg.data.contract);
+          const funds = firstCoinOf(msgData.funds);
+          if (funds === undefined) {
+            throw new Error("missing funds on open lease entry");
+          }
+          const token = getCurrency(funds);
+          const protocolKey = getProtocolByContract(contract);
           const cr = getCurrencyByTickerForProtocol(data.open_lease.currency, protocolKey);
           const positionType = configStore.getPositionType(protocolKey);
           const steps = [
@@ -214,7 +252,7 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
               icon: NATIVE_NETWORK.icon
             },
             {
-              icon: getIconByContract(msg.data.contract)
+              icon: getIconByContract(contract)
             }
           ];
 
@@ -222,10 +260,10 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
             const lpn = getLpnByProtocol(protocolKey);
 
             return [
-              i18n.t("message.open-short-position-action", {
+              t("message.open-short-position-action", {
                 ticker: cr?.shortName,
                 LPN_ticker: lpn?.shortName ?? "",
-                position: i18n.t(`message.${positionType.toLowerCase()}`).toLowerCase(),
+                position: t(`message.${positionType.toLowerCase()}`).toLowerCase(),
                 amount: formatCoinPretty(token)
               }),
               token,
@@ -237,9 +275,9 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           }
 
           return [
-            i18n.t("message.open-position-action", {
+            t("message.open-position-action", {
               ticker: cr?.shortName,
-              position: i18n.t(`message.${positionType.toLowerCase()}`).toLowerCase(),
+              position: t(`message.${positionType.toLowerCase()}`).toLowerCase(),
               amount: formatCoinPretty(token)
             }),
             token,
@@ -251,10 +289,14 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
 
         if (data.repay) {
-          const token = getCurrency(msg.data.funds[0]);
+          const funds = firstCoinOf(msgData.funds);
+          if (funds === undefined) {
+            throw new Error("missing funds on repay entry");
+          }
+          const token = getCurrency(funds);
           return [
-            i18n.t("message.repay-position-action", {
-              contract: truncateString(msg.data.contract),
+            t("message.repay-position-action", {
+              contract: truncateString(contract),
               amount: formatCoinPretty(token)
             }),
             token
@@ -263,29 +305,34 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
         if (data.close) {
           return [
-            i18n.t("message.close-position-action", {
-              contract: truncateString(msg.data.contract)
+            t("message.close-position-action", {
+              contract: truncateString(contract)
             }),
             null
           ];
         }
 
         if (data.claim_rewards) {
-          const coin = msg.rewards ? getCurrency(parseCoins(`${msg.rewards}`)[0]).toString() : "";
+          const reward = msg.rewards ? parseCoins(`${msg.rewards}`)[0] : undefined;
+          const coin = reward === undefined ? "" : getCurrency(reward).toString();
 
           return [
-            i18n.t("message.claim-position-action", {
+            t("message.claim-position-action", {
               amount: coin,
-              address: truncateString(msg.data.contract)
+              address: truncateString(contract)
             }),
             coin
           ];
         }
 
         if (data.deposit) {
-          const token = getCurrency(msg.data.funds[0]);
+          const funds = firstCoinOf(msgData.funds);
+          if (funds === undefined) {
+            throw new Error("missing funds on deposit entry");
+          }
+          const token = getCurrency(funds);
           return [
-            i18n.t("message.supply-position-action", {
+            t("message.supply-position-action", {
               amount: formatCoinPretty(token)
             }),
             token
@@ -293,20 +340,24 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
         }
 
         if (data.burn) {
-          const protocol = getProtocolByContract(msg.data.contract);
+          const protocol = getProtocolByContract(contract);
           const lpn = getLpnByProtocol(protocol);
           if (!lpn) {
             return [formatMessageType(msg.type), null];
           }
-          const withdraw = await BackendApi.getLpWithdraw(msg.tx_hash);
+          const txHash = msg.tx_hash;
+          if (typeof txHash !== "string") {
+            throw new Error("missing tx hash on withdraw entry");
+          }
+          const withdraw = await BackendApi.getLpWithdraw(txHash);
           const token = CurrencyUtils.convertMinimalDenomToDenom(
-            withdraw.LP_amnt_asset ?? 0,
+            withdraw.amount,
             lpn.ibcData,
             lpn.shortName,
             Number(lpn.decimal_digits)
           );
           return [
-            i18n.t("message.withdraw-position-action", {
+            t("message.withdraw-position-action", {
               amount: formatCoinPretty(token)
             }),
             token
@@ -315,16 +366,16 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
 
         if (data.close_position?.full_close) {
           return [
-            i18n.t("message.full-close-action", {
-              contract: truncateString(msg.data.contract)
+            t("message.full-close-action", {
+              contract: truncateString(contract)
             }),
             null
           ];
         }
         if (data.change_close_policy) {
           return [
-            i18n.t("message.change-close-policy", {
-              address: truncateString(msg.data.contract)
+            t("message.change-close-policy", {
+              address: truncateString(contract)
             }),
             null
           ];
@@ -340,10 +391,10 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
           );
 
           return [
-            i18n.t("message.partial-close-action", {
+            t("message.partial-close-action", {
               ticker: data.close_position.currency,
               amount: formatCoinPretty(token),
-              contract: truncateString(msg.data.contract)
+              contract: truncateString(contract)
             }),
             token
           ];
@@ -356,110 +407,137 @@ export async function message(msg: IObjectKeys, address: string, i18n: IObjectKe
       return [formatMessageType(msg.type), null];
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
-      const m = voteMessages[msg.data.option];
+      const data = recordOf(msg.data);
+      const option = data.option;
+      const m = typeof option === "string" || typeof option === "number" ? voteMessages[option] : undefined;
+      const proposalId = data.proposalId;
       return [
-        i18n.t("message.vote-position-action", {
+        t("message.vote-position-action", {
           vote: m,
-          propose: msg.data.proposalId?.toString()
+          propose: proposalId === undefined || proposalId === null ? undefined : String(proposalId)
         }),
         null
       ];
     }
     case Messages["/cosmos.staking.v1beta1.MsgDelegate"]: {
-      const token = getCurrency(msg.data.amount);
+      const data = recordOf(msg.data);
+      const coin = coinOf(data.amount);
+      if (coin === undefined) {
+        console.error("[history] skipping MsgDelegate entry with malformed amount:", msg.tx_hash);
+        return [formatMessageType(msg.type), null];
+      }
+      const token = getCurrency(coin);
       return [
-        i18n.t("message.delegate-position-action", {
-          validator: truncateString(msg.data.validatorAddress),
+        t("message.delegate-position-action", {
+          validator: truncateString(stringOf(data.validatorAddress)),
           amount: formatCoinPretty(token)
         }),
         token
       ];
     }
     case Messages["/cosmos.staking.v1beta1.MsgUndelegate"]: {
-      const token = getCurrency(msg.data.amount);
+      const data = recordOf(msg.data);
+      const coin = coinOf(data.amount);
+      if (coin === undefined) {
+        console.error("[history] skipping MsgUndelegate entry with malformed amount:", msg.tx_hash);
+        return [formatMessageType(msg.type), null];
+      }
+      const token = getCurrency(coin);
       return [
-        i18n.t("message.undelegate-position-action", {
-          validator: truncateString(msg.data?.validatorAddress),
+        t("message.undelegate-position-action", {
+          validator: truncateString(stringOf(data.validatorAddress)),
           amount: formatCoinPretty(token)
         }),
         token
       ];
     }
     case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
-      const coin = msg.rewards ? getCurrency(parseCoins(`${msg.rewards}`)[0]).toString() : "";
+      const reward = msg.rewards ? parseCoins(`${msg.rewards}`)[0] : undefined;
+      const coin = reward === undefined ? "" : getCurrency(reward).toString();
 
       return [
-        i18n.t("message.claim-position-action", {
+        t("message.claim-position-action", {
           amount: coin,
-          address: truncateString(msg.data?.validatorAddress)
+          address: truncateString(stringOf(recordOf(msg.data).validatorAddress))
         }),
         coin
       ];
     }
     case Messages["/cosmos.staking.v1beta1.MsgBeginRedelegate"]: {
-      const token = getCurrency(msg.data?.amount);
+      const data = recordOf(msg.data);
+      const coin = coinOf(data.amount);
+      if (coin === undefined) {
+        console.error("[history] skipping MsgBeginRedelegate entry with malformed amount:", msg.tx_hash);
+        return [formatMessageType(msg.type), null];
+      }
+      const token = getCurrency(coin);
       return [
-        i18n.t("message.redelegate-action", {
+        t("message.redelegate-action", {
           amount: formatCoinPretty(token),
-          address: truncateString(msg.data?.validatorDstAddress)
+          address: truncateString(stringOf(data.validatorDstAddress))
         }),
         token
       ];
     }
     default: {
-      return [formatMessageType(msg.typeUrl ?? msg.type), null];
+      return [formatMessageType(stringOf(msg.typeUrl ?? msg.type)), null];
     }
   }
 }
 
 export function action(msg: IObjectKeys, i18n: IObjectKeys) {
+  const t = translatorOf(i18n);
   switch (msg.type) {
     case Messages["/cosmos.bank.v1beta1.MsgSend"]: {
-      return i18n.t("message.transfer-history");
+      return t("message.transfer-history");
     }
     case Messages["/ibc.applications.transfer.v1.MsgTransfer"]: {
-      return msg.is_swap ? i18n.t("message.swap-history") : i18n.t("message.transfer-history");
+      return msg.is_swap ? t("message.swap-history") : t("message.transfer-history");
     }
     case Messages["/ibc.core.channel.v1.MsgRecvPacket"]: {
-      return msg.is_swap ? i18n.t("message.swap-history") : i18n.t("message.transfer-history");
+      return msg.is_swap ? t("message.swap-history") : t("message.transfer-history");
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
       try {
-        const data = JSON.parse(Buffer.from(msg.data.msg).toString());
+        const rawMsg = recordOf(msg.data).msg;
+        if (typeof rawMsg !== "string" && !(rawMsg instanceof Uint8Array)) {
+          throw new Error("malformed contract execute payload");
+        }
+        const data = JSON.parse(Buffer.from(rawMsg).toString());
         if (data.open_lease) {
-          return i18n.t("message.leases-history");
+          return t("message.leases-history");
         }
 
         if (data.repay) {
-          return i18n.t("message.leases-history");
+          return t("message.leases-history");
         }
 
         if (data.close) {
-          return i18n.t("message.leases-history");
+          return t("message.leases-history");
         }
 
         if (data.claim_rewards) {
-          return i18n.t("message.earn-history");
+          return t("message.earn-history");
         }
 
         if (data.deposit) {
-          return i18n.t("message.earn-history");
+          return t("message.earn-history");
         }
 
         if (data.burn) {
-          return i18n.t("message.earn-history");
+          return t("message.earn-history");
         }
 
         if (data.close_position?.full_close) {
-          return i18n.t("message.leases-history");
+          return t("message.leases-history");
         }
 
         if (data.close_position?.partial_close) {
-          return i18n.t("message.leases-history");
+          return t("message.leases-history");
         }
 
         if (data.change_close_policy) {
-          return i18n.t("message.close-policy");
+          return t("message.close-policy");
         }
       } catch (error) {
         Logger.error(error);
@@ -468,22 +546,22 @@ export function action(msg: IObjectKeys, i18n: IObjectKeys) {
       return formatMessageType(msg.type);
     }
     case Messages["/cosmos.gov.v1beta1.MsgVote"]: {
-      return i18n.t("message.vote-history");
+      return t("message.vote-history");
     }
     case Messages["/cosmos.staking.v1beta1.MsgDelegate"]: {
-      return i18n.t("message.stake-history");
+      return t("message.stake-history");
     }
     case Messages["/cosmos.staking.v1beta1.MsgUndelegate"]: {
-      return i18n.t("message.stake-history");
+      return t("message.stake-history");
     }
     case Messages["/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"]: {
-      return i18n.t("message.stake-history");
+      return t("message.stake-history");
     }
     case Messages["/cosmos.staking.v1beta1.MsgBeginRedelegate"]: {
-      return i18n.t("message.stake-history");
+      return t("message.stake-history");
     }
     default: {
-      return formatMessageType(msg.typeUrl ?? msg.type);
+      return formatMessageType(stringOf(msg.typeUrl ?? msg.type));
     }
   }
 }
@@ -501,7 +579,11 @@ export function icon(msg: IObjectKeys, _i18n: IObjectKeys) {
     }
     case Messages["/cosmwasm.wasm.v1.MsgExecuteContract"]: {
       try {
-        const data = JSON.parse(Buffer.from(msg.data.msg).toString());
+        const rawMsg = recordOf(msg.data).msg;
+        if (typeof rawMsg !== "string" && !(rawMsg instanceof Uint8Array)) {
+          throw new Error("malformed contract execute payload");
+        }
+        const data = JSON.parse(Buffer.from(rawMsg).toString());
 
         if (data.open_lease) {
           return "leases";
@@ -575,6 +657,37 @@ function formatMessageType(typeUrl: string): string {
   return withoutMsg.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
+function translatorOf(i18n: IObjectKeys): (key: string, values?: Record<string, unknown>) => string {
+  const t = i18n.t;
+  if (typeof t !== "function") {
+    throw new Error("history formatting requires an i18n translate function");
+  }
+  return (key, values) => String(values === undefined ? t.call(i18n, key) : t.call(i18n, key, values));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function recordOf(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : {};
+}
+
+function stringOf(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function coinOf(value: unknown): Coin | undefined {
+  if (isRecord(value) && typeof value.amount === "string" && typeof value.denom === "string") {
+    return { amount: value.amount, denom: value.denom };
+  }
+  return undefined;
+}
+
+function firstCoinOf(value: unknown): Coin | undefined {
+  return Array.isArray(value) ? coinOf(value[0]) : undefined;
+}
+
 function truncateString(text: string) {
   return TextFormat.truncateString(text, 6, 6);
 }
@@ -634,10 +747,9 @@ function getChainName(address: string) {
 function getIcon(prefix: string | null) {
   try {
     const configStore = useConfigStore();
-    const supportedNetworks = configStore.supportedNetworksData;
-    for (const key in supportedNetworks) {
-      if (supportedNetworks[key].prefix === prefix) {
-        return supportedNetworks[key].icon;
+    for (const network of Object.values(configStore.supportedNetworksData)) {
+      if (network.prefix === prefix) {
+        return network.icon;
       }
     }
   } catch (error) {
@@ -649,10 +761,9 @@ function getIcon(prefix: string | null) {
 function getChainLabel(prefix: string | null) {
   try {
     const configStore = useConfigStore();
-    const supportedNetworks = configStore.supportedNetworksData;
-    for (const key in supportedNetworks) {
-      if (supportedNetworks[key].prefix === prefix) {
-        return supportedNetworks[key].name;
+    for (const network of Object.values(configStore.supportedNetworksData)) {
+      if (network.prefix === prefix) {
+        return network.name;
       }
     }
   } catch (error) {

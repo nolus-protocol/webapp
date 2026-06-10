@@ -7,13 +7,11 @@
 </template>
 
 <script lang="ts" setup>
-import type { TransactionEntry } from "../types/ITransaction";
-
 import { useI18n } from "vue-i18n";
 import { computed, h, ref } from "vue";
 import { Label, type LabelProps, TableRow, type TableRowItemProps } from "web-components";
 import TransactionDetails from "@/common/components/activities/TransactionDetails.vue";
-import Action, { type IAction } from "@/modules/history/components/Action.vue";
+import Action, { type HistoryRowEntry, type IAction } from "@/modules/history/components/Action.vue";
 import { CONFIRM_STEP } from "@/common/types";
 import { getCreatedAtForHuman, isMobile } from "@/common/utils";
 
@@ -22,7 +20,7 @@ const mobile = isMobile();
 const transactionDialogRef = ref<typeof TransactionDetails | null>(null);
 
 interface Props {
-  transaction: TransactionEntry;
+  transaction: HistoryRowEntry;
 }
 const props = defineProps<Props>();
 
@@ -78,14 +76,14 @@ const transactionData = computed<TableRowItemProps>(() => {
   };
 });
 
-function getTimeStamp() {
+function getTimeStamp(): string {
   if (props.transaction.historyData.skipRoute) {
-    return getCreatedAtForHuman(new Date(props.transaction.historyData.id ?? ""));
+    return getCreatedAtForHuman(new Date(props.transaction.historyData.id ?? "")) ?? "";
   }
   if (props.transaction.historyData.timestamp) {
     return props.transaction.historyData.timestamp;
   }
-  return props.transaction.block;
+  return String(props.transaction.block ?? "");
 }
 
 function getStatus() {
