@@ -26,6 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Typecheck (vue-tsc, strict floor)
+        # Fresh tsbuildinfo: a stale incremental cache can under-report across
+        # compiler-flag changes.
+        run: |
+          rm -rf node_modules/.tmp
+          npm run typecheck
+
       - name: Lint
         run: npm run lint
 
