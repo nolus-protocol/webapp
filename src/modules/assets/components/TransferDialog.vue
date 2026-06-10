@@ -6,7 +6,7 @@
     showClose
     @close-dialog="
       () => {
-        const path = route.matched[1].path ?? '/';
+        const path = route.matched[1]?.path ?? '/';
         router.push(path);
       }
     "
@@ -66,7 +66,7 @@ const title = computed(() => {
 });
 
 function onChangeTab(event: number) {
-  let path = route.matched[1].path ?? "/";
+  let path = route.matched[1]?.path ?? "/";
 
   if (path === "/") {
     path = "";

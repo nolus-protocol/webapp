@@ -12,6 +12,7 @@ import { CurrencyUtils } from "@nolus/nolusjs";
 import { MultipleCurrencyEventType, type SkipRouteConfigType } from "@/common/types";
 import { useI18n } from "vue-i18n";
 import { type BaseWallet } from "@/networks";
+import type { NolusWallet } from "@nolus/nolusjs";
 import { SwapStatus } from "../enums";
 import { NETWORK_DATA } from "@/networks/config";
 import { SkipRouter, type SkipTxResult } from "@/common/utils/SkipRoute";
@@ -56,7 +57,13 @@ export function useSwapForm() {
   const errorInsufficientBalance = computed(() => error.value === i18n.t("message.invalid-balance-big"));
 
   const disabledByWallet = computed(() => {
-    switch (wallet.wallet?.signer?.type) {
+    const w: unknown = wallet.wallet;
+    const signer = typeof w === "object" && w !== null && "signer" in w ? w.signer : undefined;
+    const signerType =
+      typeof signer === "object" && signer !== null && "type" in signer && typeof signer.type === "string"
+        ? signer.type
+        : undefined;
+    switch (signerType) {
       case WalletTypes.evm: {
         return true;
       }
@@ -393,9 +400,9 @@ export function useSwapForm() {
     return error.value;
   }
 
-  async function onSwap() {
+  async function onSwap(): Promise<void> {
     if (!WalletAccess.isAuth() || !route) {
-      return false;
+      return;
     }
 
     try {
@@ -404,8 +411,8 @@ export function useSwapForm() {
       const wallets = await getWallets();
       const addresses: Record<string, string> = {};
 
-      for (const key in wallets) {
-        const walletAddress = wallets[key].address;
+      for (const [key, chainWallet] of Object.entries(wallets)) {
+        const walletAddress = chainWallet.address;
         if (!walletAddress) {
           throw new Error(`Wallet address not available for ${key}`);
         }
@@ -415,11 +422,11 @@ export function useSwapForm() {
       if (!route) {
         throw new Error("Route not available");
       }
-      await SkipRouter.submitRoute(route, wallets, async (tx: SkipTxResult, baseWallet: BaseWallet) => {
+      await SkipRouter.submitRoute(route, wallets, async (tx: SkipTxResult, baseWallet: BaseWallet | NolusWallet) => {
         const element = {
           hash: tx.txHash,
           status: SwapStatus.pending,
-          url: baseWallet.explorer
+          url: "explorer" in baseWallet ? baseWallet.explorer : null
         };
 
         txHashes.value.push(element);
@@ -435,29 +442,40 @@ export function useSwapForm() {
 
       onClose();
 
-      if (wallet.history[id]) {
-        wallet.history[id].txHashes = txHashes.value;
-      }
+      historyStore.setTransferTxHashes(
+        String(id),
+        txHashes.value.map((t) => t.hash)
+      );
     } catch (e) {
       error.value = i18n.t(classifyError(e));
       Logger.error(error);
 
-      if (wallet.history[id]) {
-        wallet.history[id].errorMsg = error.value;
-      }
+      historyStore.failPendingTransfer(String(id), error.value);
     } finally {
       loadingTx.value = false;
     }
   }
 
-  async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
+  async function getWallets(): Promise<{ [key: string]: BaseWallet | NolusWallet }> {
     if (!route) {
       throw new Error("Route not available");
     }
     const currentRoute = route;
-    const native = wallet.wallet.signer.chainId as string;
-    const addrs = {
-      [native]: wallet.wallet
+    const nolusWallet = wallet.wallet;
+    if (nolusWallet == null) {
+      throw new Error("Wallet not connected");
+    }
+    const w: unknown = nolusWallet;
+    const signer = typeof w === "object" && w !== null && "signer" in w ? w.signer : undefined;
+    const native =
+      typeof signer === "object" && signer !== null && "chainId" in signer && typeof signer.chainId === "string"
+        ? signer.chainId
+        : undefined;
+    if (native === undefined) {
+      throw new Error("Native chain id not available from wallet signer");
+    }
+    const addrs: { [key: string]: BaseWallet | NolusWallet } = {
+      [native]: nolusWallet
     };
 
     const chainToParse: { [key: string]: NetworkInfo } = {};
@@ -484,6 +502,9 @@ export function useSwapForm() {
         const client = await WalletAccess.getWallet(chain);
         const network = NETWORK_DATA;
         const networkData = network?.supportedNetworks[chain];
+        if (networkData === undefined) {
+          throw new Error(`Unsupported network: ${chain}`);
+        }
         const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
         const chainId = await baseWallet.getChainId();
         addrs[chainId] = baseWallet;

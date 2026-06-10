@@ -516,6 +516,7 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
 
       expect(SkipRouter.getRoute).toHaveBeenCalled();
       const args = (SkipRouter.getRoute as ReturnType<typeof vi.fn>).mock.calls[0];
+      if (args === undefined) throw new Error("expected SkipRouter.getRoute to have been called with arguments");
       // first 2 args are ibcData of the two selected currencies
       expect(args[0]).toBe("ibc/OSMO");
       expect(args[1]).toBe("ibc/USDC");
@@ -562,6 +563,7 @@ describe("SwapForm.vue — defensive guards on .find()", () => {
 
       expect(SkipRouter.getRoute).toHaveBeenCalled();
       const args = (SkipRouter.getRoute as ReturnType<typeof vi.fn>).mock.calls[0];
+      if (args === undefined) throw new Error("expected SkipRouter.getRoute to have been called with arguments");
       expect(args[0]).toBe("ibc/OSMO");
       expect(args[1]).toBe("ibc/USDC");
       // revert flag is true for updateSwapToRoute path

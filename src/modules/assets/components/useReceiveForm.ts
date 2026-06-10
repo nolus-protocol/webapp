@@ -7,7 +7,9 @@ import { IGNORED_NETWORKS } from "../../../config/global";
 
 import type { Wallet } from "@/networks";
 import { type BaseWallet } from "@/networks";
-import { CONFIRM_STEP, type Network, type SkipRouteConfigType } from "@/common/types";
+import type { NolusWallet } from "@nolus/nolusjs";
+import type { AdvancedCurrencyFieldOption } from "web-components";
+import { CONFIRM_STEP, type SkipRouteConfigType } from "@/common/types";
 import { useWalletStore } from "@/common/stores/wallet";
 import { useBalancesStore } from "@/common/stores/balances";
 import { computed, onUnmounted, ref, watch, inject } from "vue";
@@ -40,7 +42,13 @@ export function useReceiveForm() {
       const currency = tryGetCurrencyByDenom(asset.from);
       if (!currency) continue; // Skip deprecated/removed denoms
 
-      const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
+      const assetBalance = asset.balance;
+      if (assetBalance === undefined) {
+        console.error(`Missing balance for asset ${asset.from}`);
+        continue;
+      }
+
+      const value = new Dec(assetBalance.amount.toString(), asset.decimal_digits);
       const balance = formatTokenBalance(value);
       const exactBalance = value.isZero() ? "0" : value.toString(asset.decimal_digits).replace(/\.?0+$/, "");
 
@@ -57,8 +65,8 @@ export function useReceiveForm() {
           value: exactBalance,
           customLabel: `${balance} ${currency.shortName}`,
           ticker: currency.shortName,
-          denom: asset.balance.denom,
-          amount: asset.balance?.amount
+          denom: assetBalance.denom,
+          amount: assetBalance.amount
         },
         from: asset.from,
         native: asset.native,
@@ -81,7 +89,7 @@ export function useReceiveForm() {
   const balancesStore = useBalancesStore();
   const configStore = useConfigStore();
   const historyStore = useHistoryStore();
-  const networks = ref<Network[]>(NETWORK_DATA.list);
+  const networks = ref(NETWORK_DATA.list);
 
   const selectedNetwork = ref(0);
   const networkCurrencies = ref<AssetBalance[]>([]);
@@ -135,18 +143,22 @@ export function useReceiveForm() {
           return true;
         }
         return false;
-      }) as Network[];
+      });
 
       networks.value = [...n].filter((item) => {
         return !IGNORED_NETWORKS.includes(item.key);
       });
-      const index = networks.value.findIndex((item: Network) => item.key === configStore.protocolFilter);
+      const index = networks.value.findIndex((item) => item.key === configStore.protocolFilter);
       if (index < 0) {
         selectedNetwork.value = 0;
       } else {
         selectedNetwork.value = index;
       }
-      await onUpdateNetwork(networks.value[selectedNetwork.value]);
+      const selected = networks.value[selectedNetwork.value];
+      if (selected === undefined) {
+        throw new Error("No transfer networks available");
+      }
+      await onUpdateNetwork(selected);
     } catch (error) {
       Logger.error(error);
     }
@@ -195,13 +207,27 @@ export function useReceiveForm() {
     if (!tempRoute.value) return;
     const chains = getChainIds(tempRoute.value);
 
+    if (route == null) {
+      throw new Error("Route not available");
+    }
+    const selectedAsset = currency.value;
+    if (selectedAsset === undefined) {
+      throw new Error("Selected currency not available");
+    }
+    const nolusWallet = walletStore.wallet;
+    if (nolusWallet === undefined) {
+      throw new Error("Wallet not connected");
+    }
+
+    // Spread copy: `RouteResponse` is an interface without an index signature, so it
+    // is not assignable to IObjectKeys; the anonymous spread type is.
     const data = {
       id,
       chains,
-      skipRoute: route,
+      skipRoute: { ...route },
       fromAddress: wallet.value,
-      currency: currency.value.from,
-      receiverAddress: walletStore.wallet.address,
+      currency: selectedAsset.from,
+      receiverAddress: nolusWallet.address,
       type: HISTORY_ACTIONS.RECEIVE
     };
     historyStore.addPendingTransfer(data, i18n);
@@ -215,7 +241,7 @@ export function useReceiveForm() {
     () => [selectedCurrency.value, amount.value, wallet.value],
     () => {
       if (amount.value.length > 0) {
-        if (validateAmount() && wallet.value?.length > 0) {
+        if (validateAmount() && (wallet.value?.length ?? 0) > 0) {
           clearTimeout(timeOut);
           tempRoute.value = null;
           timeOut = setTimeout(() => {
@@ -232,7 +258,7 @@ export function useReceiveForm() {
     }
   );
 
-  async function onUpdateNetwork(event: Network) {
+  async function onUpdateNetwork(event: (typeof networks.value)[number]) {
     tempRoute.value = null;
     selectedNetwork.value = networks.value.findIndex((item) => item === event);
     if (!event.native) {
@@ -244,7 +270,7 @@ export function useReceiveForm() {
     amount.value = event;
   }
 
-  function onSelectCurrency(option: (typeof assets.value)[number]) {
+  function onSelectCurrency(option: AdvancedCurrencyFieldOption) {
     selectedCurrency.value = assets.value.findIndex((item) => item === option);
   }
 
@@ -255,7 +281,14 @@ export function useReceiveForm() {
 
       if (isValid) {
         route = await getRoute();
-        const networkdata = NETWORK_DATA?.supportedNetworks[network.value.key];
+        const currentNetwork = network.value;
+        if (currentNetwork === undefined) {
+          throw new Error("Network not selected");
+        }
+        const networkdata = NETWORK_DATA?.supportedNetworks[currentNetwork.key];
+        if (networkdata === undefined) {
+          throw new Error(`Unsupported network: ${currentNetwork.key}`);
+        }
         const currency = getCurrencyByTickerForNetwork(networkdata.ticker);
         fee.value = coin(networkdata.fees.transfer_amount, currency.ibcData);
       }
@@ -273,18 +306,21 @@ export function useReceiveForm() {
     disablePicker.value = true;
     try {
       const ntwrk = NETWORK_DATA;
+      const currentNetwork = network.value;
+      if (currentNetwork === undefined) {
+        throw new Error("Network not selected");
+      }
 
       const currencies = [];
       const promises = [];
-      const data = skipRouteConfig?.transfers?.[network.value.key]?.currencies;
+      const data = skipRouteConfig?.transfers?.[currentNetwork.key]?.currencies;
       for (const c of data ?? []) {
         if (c.visible && configStore.protocolFilter !== c.visible) continue;
 
         const currency = tryGetCurrencyByDenom(c.from);
         if (!currency) continue; // Skip deprecated/removed denoms
 
-        currency.balance = coin(0, c.to);
-        currencies.push(currency);
+        currencies.push({ ...currency, balance: coin(0, c.to) });
       }
 
       const mappedCurrencies = currencies.map((item) => {
@@ -301,8 +337,11 @@ export function useReceiveForm() {
         };
       });
 
-      const networkData = ntwrk?.supportedNetworks[network.value.key];
-      client = await WalletAccess.getWallet(network.value.key);
+      const networkData = ntwrk?.supportedNetworks[currentNetwork.key];
+      if (networkData === undefined) {
+        throw new Error(`Unsupported network: ${currentNetwork.key}`);
+      }
+      client = await WalletAccess.getWallet(currentNetwork.key);
       const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
       wallet.value = baseWallet?.address as string;
 
@@ -394,8 +433,8 @@ export function useReceiveForm() {
           const wallets = await getWallets();
           const addresses: Record<string, string> = {};
 
-          for (const key in wallets) {
-            const walletAddress = wallets[key].address;
+          for (const [key, chainWallet] of Object.entries(wallets)) {
+            const walletAddress = chainWallet.address;
             if (!walletAddress) {
               throw new Error(`Wallet address not available for ${key}`);
             }
@@ -408,25 +447,42 @@ export function useReceiveForm() {
 
           void historyStore.loadActivities();
           step.value = CONFIRM_STEP.SUCCESS;
-          walletStore.history[id].historyData.route.activeStep = walletStore.history[id].historyData.route.steps.length;
-          walletStore.history[id].historyData.routeDetails.activeStep =
-            walletStore.history[id].historyData.routeDetails.steps.length;
-          walletStore.history[id].historyData.status = CONFIRM_STEP.SUCCESS;
+          const entry = walletStore.history[id];
+          if (entry === undefined) {
+            throw new Error("Pending transfer entry not found");
+          }
+          const { route: entryRoute, routeDetails } = entry.historyData;
+          if (entryRoute === undefined || routeDetails === undefined) {
+            throw new Error("Pending transfer entry is missing route data");
+          }
+          entryRoute.activeStep = entryRoute.steps.length;
+          routeDetails.activeStep = routeDetails.steps.length;
+          entry.historyData.status = CONFIRM_STEP.SUCCESS;
         } catch (error) {
           step.value = CONFIRM_STEP.ERROR;
           amountErrorMsg.value = i18n.t(classifyError(error));
 
-          if (walletStore.history[id]) {
-            walletStore.history[id].historyData.errorMsg = amountErrorMsg.value;
-            walletStore.history[id].historyData.route.steps[
-              walletStore.history[id].historyData.route.activeStep
-            ].approval = true;
+          const entry = walletStore.history[id];
+          if (entry) {
+            entry.historyData.errorMsg = amountErrorMsg.value;
 
-            walletStore.history[id].historyData.routeDetails.steps[
-              walletStore.history[id].historyData.routeDetails.activeStep
-            ].approval = true;
+            const entryRoute = entry.historyData.route;
+            if (entryRoute !== undefined) {
+              const routeStep = entryRoute.steps[entryRoute.activeStep];
+              if (routeStep !== undefined) {
+                routeStep.approval = true;
+              }
+            }
 
-            walletStore.history[id].historyData.status = CONFIRM_STEP.ERROR;
+            const routeDetails = entry.historyData.routeDetails;
+            if (routeDetails !== undefined) {
+              const detailsStep = routeDetails.steps[routeDetails.activeStep];
+              if (detailsStep !== undefined) {
+                detailsStep.approval = true;
+              }
+            }
+
+            entry.historyData.status = CONFIRM_STEP.ERROR;
           }
           Logger.error(error);
         } finally {
@@ -440,42 +496,67 @@ export function useReceiveForm() {
     }
   }
 
-  async function submit(wallets: { [key: string]: BaseWallet }) {
+  async function submit(wallets: { [key: string]: BaseWallet | NolusWallet }) {
     if (!route) {
       throw new Error("Route not available");
     }
-    await SkipRouter.submitRoute(route, wallets, async (tx: SkipTxResult, wallet: BaseWallet, chainId: string) => {
-      walletStore.history[id].historyData.route.activeStep++;
-      walletStore.history[id].historyData.routeDetails.activeStep++;
+    await SkipRouter.submitRoute(
+      route,
+      wallets,
+      async (tx: SkipTxResult, wallet: BaseWallet | NolusWallet, chainId: string) => {
+        const entry = walletStore.history[id];
+        if (entry === undefined) {
+          throw new Error("Pending transfer entry not found");
+        }
+        const { route: entryRoute, routeDetails } = entry.historyData;
+        if (entryRoute === undefined || routeDetails === undefined) {
+          throw new Error("Pending transfer entry is missing route data");
+        }
+        entryRoute.activeStep++;
+        routeDetails.activeStep++;
 
-      const element = {
-        hash: tx.txHash,
-        status: SwapStatus.pending,
-        url: wallet.explorer
-      };
+        const element = {
+          hash: tx.txHash,
+          status: SwapStatus.pending,
+          url: "explorer" in wallet ? wallet.explorer : null
+        };
 
-      txHashes.value.push(element);
+        txHashes.value.push(element);
 
-      if (walletStore.history[id]) {
-        walletStore.history[id].historyData.txHashes = txHashes.value;
+        historyStore.setTransferTxHashes(
+          String(id),
+          txHashes.value.map((t) => t.hash)
+        );
+
+        await wallet.broadcastTx(tx.txBytes);
+        await SkipRouter.track(chainId, tx.txHash);
+        await SkipRouter.fetchStatus(tx.txHash, chainId);
+
+        element.status = SwapStatus.success;
       }
-
-      await wallet.broadcastTx(tx.txBytes);
-      await SkipRouter.track(chainId, tx.txHash);
-      await SkipRouter.fetchStatus(tx.txHash, chainId);
-
-      element.status = SwapStatus.success;
-    });
+    );
     onClose();
   }
 
-  async function getWallets(): Promise<{ [key: string]: BaseWallet }> {
+  async function getWallets(): Promise<{ [key: string]: BaseWallet | NolusWallet }> {
     if (!route) {
       throw new Error("Route not available");
     }
-    const native = walletStore.wallet.signer.chainId as string;
-    const addrs = {
-      [native]: walletStore.wallet
+    const nolusWallet = walletStore.wallet;
+    if (nolusWallet == null) {
+      throw new Error("Wallet not connected");
+    }
+    const w: unknown = nolusWallet;
+    const signer = typeof w === "object" && w !== null && "signer" in w ? w.signer : undefined;
+    const native =
+      typeof signer === "object" && signer !== null && "chainId" in signer && typeof signer.chainId === "string"
+        ? signer.chainId
+        : undefined;
+    if (native === undefined) {
+      throw new Error("Native chain id not available from wallet signer");
+    }
+    const addrs: { [key: string]: BaseWallet | NolusWallet } = {
+      [native]: nolusWallet
     };
     const chainToParse: { [key: string]: NetworkInfo } = getChains(route);
     const promises = [];
@@ -485,6 +566,9 @@ export function useReceiveForm() {
         const client = await WalletAccess.getWallet(chain);
         const network = NETWORK_DATA;
         const networkData = network?.supportedNetworks[chain];
+        if (networkData === undefined) {
+          throw new Error(`Unsupported network: ${chain}`);
+        }
         const baseWallet = (await externalWallet(client, networkData)) as BaseWallet;
         const chainId = await baseWallet.getChainId();
         addrs[chainId] = baseWallet;
@@ -500,6 +584,9 @@ export function useReceiveForm() {
   async function getRoute() {
     const chainId = await client.getChainId();
     const asset = assets.value[selectedCurrency.value];
+    if (asset === undefined) {
+      throw new Error("Selected asset not available");
+    }
 
     const transferAmount = Decimal.fromUserInput(amount.value, asset.decimal_digits as number);
 
@@ -509,7 +596,19 @@ export function useReceiveForm() {
 
   function getChains(route: RouteResponse) {
     const chainToParse: { [key: string]: NetworkInfo } = {};
-    const native = walletStore.wallet.signer.chainId as string;
+    const nolusWallet = walletStore.wallet;
+    if (nolusWallet == null) {
+      throw new Error("Wallet not connected");
+    }
+    const w: unknown = nolusWallet;
+    const signer = typeof w === "object" && w !== null && "signer" in w ? w.signer : undefined;
+    const native =
+      typeof signer === "object" && signer !== null && "chainId" in signer && typeof signer.chainId === "string"
+        ? signer.chainId
+        : undefined;
+    if (native === undefined) {
+      throw new Error("Native chain id not available from wallet signer");
+    }
 
     const chains = chainsData.filter((item) => {
       if (item.chain_id === native) {

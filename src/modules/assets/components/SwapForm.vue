@@ -19,12 +19,13 @@
       :error-insufficient-balance="errorInsufficientBalance"
       @swap="onSwapItems"
       :item-template="
-        (item) =>
+        (item: AdvancedCurrencyFieldOption) =>
           h<AssetItemProps>(AssetItem, {
             ...item,
             abbreviation: item.label,
             name: item.name,
-            balance: item.balance.value
+            balance: item.balance?.value ?? '',
+            price: item.price ?? ''
           })
       "
     />
@@ -116,7 +117,7 @@
 
 <script lang="ts" setup>
 import MultipleCurrencyComponent from "@/common/components/MultipleCurrencyComponent.vue";
-import { Button, type AssetItemProps, AssetItem } from "web-components";
+import { Button, type AdvancedCurrencyFieldOption, type AssetItemProps, AssetItem } from "web-components";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 import { h } from "vue";
 import { useSwapForm } from "./useSwapForm";
