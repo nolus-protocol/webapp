@@ -634,5 +634,25 @@ describe("BackendApi", () => {
       if (plainCall === undefined) throw new Error("expected fetch to have been called for the plain request");
       expect(String(plainCall[0])).not.toContain("search=");
     });
+
+    it("searchLeases returns the live bare string-array response as lease addresses", async () => {
+      const api = new BackendApiClient();
+      fetchMock.mockResolvedValueOnce(jsonResponse(["nolus1aaa", "nolus1bbb"]));
+      await expect(api.searchLeases("nolus1x", 0, 10)).resolves.toEqual(["nolus1aaa", "nolus1bbb"]);
+    });
+
+    it("searchLeases unwraps a paginated wrapper response to lease addresses", async () => {
+      const api = new BackendApiClient();
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({ data: [{ lease_address: "nolus1ccc" }], total: 1, skip: 0, limit: 10 })
+      );
+      await expect(api.searchLeases("nolus1x", 0, 10)).resolves.toEqual(["nolus1ccc"]);
+    });
+
+    it("searchLeases rejects an unrecognized response shape", async () => {
+      const api = new BackendApiClient();
+      fetchMock.mockResolvedValueOnce(jsonResponse({ leases: ["nolus1ddd"] }));
+      await expect(api.searchLeases("nolus1x", 0, 10)).rejects.toThrow(/lease search/);
+    });
   });
 });

@@ -457,28 +457,6 @@ export interface LeaseClosingEntry {
 }
 
 /**
- * Lease search entry
- */
-export interface LeaseSearchEntry {
-  lease_address: string;
-  status: string;
-  protocol: string;
-  position_ticker?: string;
-  position_amount?: string;
-  pnl?: string;
-}
-
-/**
- * Leases search paginated response
- */
-export interface LeasesSearchResponse {
-  data: LeaseSearchEntry[];
-  total: number;
-  skip: number;
-  limit: number;
-}
-
-/**
  * LP withdraw response
  */
 export interface LpWithdrawResponse {

@@ -83,7 +83,6 @@ import type {
   TransactionFilters,
   LeaseOpeningResponse,
   LeaseClosingEntry,
-  LeasesSearchResponse,
   LpWithdrawResponse,
   RealizedPnlDataResponse
 } from "./types";
@@ -601,19 +600,15 @@ export class BackendApiClient {
   }
 
   /**
-   * Search leases by address
+   * Search leases by address. Returns the matching lease contract addresses.
    */
-  async searchLeases(
-    address: string,
-    skip: number = 0,
-    limit: number = 50,
-    search?: string
-  ): Promise<LeasesSearchResponse> {
+  async searchLeases(address: string, skip: number = 0, limit: number = 50, search?: string): Promise<string[]> {
     const params: Record<string, string | number> = { address, skip, limit };
     if (search && search.length > 0) {
       params.search = search;
     }
-    return this.request<LeasesSearchResponse>("GET", "/api/etl/leases-search", { params });
+    const res = await this.request<unknown>("GET", "/api/etl/leases-search", { params });
+    return parseLeaseAddresses(res);
   }
 
   /**
@@ -736,6 +731,35 @@ export class BackendApiClient {
   async getEtlPools(): Promise<PoolsResponse> {
     return this.request<PoolsResponse>("GET", "/api/etl/pools");
   }
+}
+
+// The live ETL passthrough returns a bare string array (verified against the
+// deployed backend); a paginated { data: [{ lease_address }] } wrapper is
+// tolerated because prod and dev ETL versions are known to drift. Anything
+// else fails loudly rather than rendering an empty filter.
+function parseLeaseAddresses(res: unknown): string[] {
+  if (Array.isArray(res)) {
+    return res.map((entry) => {
+      if (typeof entry !== "string") {
+        throw new Error("Unrecognized lease search entry shape");
+      }
+      return entry;
+    });
+  }
+  if (res !== null && typeof res === "object" && "data" in res && Array.isArray(res.data)) {
+    return res.data.map((entry: unknown) => {
+      if (
+        entry !== null &&
+        typeof entry === "object" &&
+        "lease_address" in entry &&
+        typeof entry.lease_address === "string"
+      ) {
+        return entry.lease_address;
+      }
+      throw new Error("Unrecognized lease search entry shape");
+    });
+  }
+  throw new Error("Unrecognized lease search response shape");
 }
 
 // Export singleton instance

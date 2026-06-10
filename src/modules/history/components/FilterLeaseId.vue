@@ -100,11 +100,11 @@ async function fetchPositions(): Promise<PositionItem[]> {
     return [];
   }
 
-  const res = await BackendApi.searchLeases(wallet.wallet.address, skip, limit, search.value);
+  const leaseAddresses = await BackendApi.searchLeases(wallet.wallet.address, skip, limit, search.value);
 
-  return res.data.map((item) => ({
-    contract: item.lease_address,
-    label: `#${item.lease_address.slice(-8)}`,
+  return leaseAddresses.map((contract) => ({
+    contract,
+    label: `#${contract.slice(-8)}`,
     checked: false
   }));
 }
