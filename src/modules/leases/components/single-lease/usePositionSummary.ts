@@ -23,8 +23,8 @@ import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
 
 export interface PositionSummaryProps {
-  lease?: LeaseInfo | null;
-  displayData?: LeaseDisplayData | null;
+  lease?: LeaseInfo | null | undefined;
+  displayData?: LeaseDisplayData | null | undefined;
   loading: boolean;
 }
 
@@ -160,27 +160,21 @@ export function usePositionSummary(props: PositionSummaryProps) {
   });
 
   const stopLoss = computed(() => {
+    const decimals = asset.value?.decimal_digits ?? 0;
     return props.displayData?.stopLoss
       ? {
           percent: props.displayData.stopLoss.percent,
-          amount: formatNumber(
-            props.displayData.stopLoss.price.toString(asset.value?.decimal_digits),
-            asset.value?.decimal_digits,
-            NATIVE_CURRENCY.symbol
-          )
+          amount: formatNumber(props.displayData.stopLoss.price.toString(decimals), decimals, NATIVE_CURRENCY.symbol)
         }
       : null;
   });
 
   const takeProfit = computed(() => {
+    const decimals = asset.value?.decimal_digits ?? 0;
     return props.displayData?.takeProfit
       ? {
           percent: props.displayData.takeProfit.percent,
-          amount: formatNumber(
-            props.displayData.takeProfit.price.toString(asset.value?.decimal_digits),
-            asset.value?.decimal_digits,
-            NATIVE_CURRENCY.symbol
-          )
+          amount: formatNumber(props.displayData.takeProfit.price.toString(decimals), decimals, NATIVE_CURRENCY.symbol)
         }
       : null;
   });

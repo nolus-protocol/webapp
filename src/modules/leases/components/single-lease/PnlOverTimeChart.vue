@@ -63,7 +63,7 @@ const data = ref<ChartData[]>([
   }
 ]);
 const chart = ref<typeof Chart>();
-const props = defineProps<{ lease?: LeaseInfo | null }>();
+const props = defineProps<{ lease?: LeaseInfo | null | undefined }>();
 const analyticsStore = useAnalyticsStore();
 
 async function setData() {
@@ -86,8 +86,12 @@ watch(
   }
 );
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
-  if (!plotContainer) return;
+function isTooltipSelection(value: unknown): value is Selection<HTMLDivElement, unknown, HTMLElement, unknown> {
+  return value instanceof Object && "html" in value && "style" in value && "node" in value;
+}
+
+function updateChart(plotContainer: unknown, tooltip: unknown) {
+  if (!(plotContainer instanceof HTMLElement) || !isTooltipSelection(tooltip)) return;
 
   plotContainer.innerHTML = "";
   chartWidth = getChartWidth(plotContainer);
@@ -233,7 +237,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
-function getClosestDataPoint(cPosition: number) {
+function getClosestDataPoint(cPosition: unknown) {
+  if (typeof cPosition !== "number") {
+    return null;
+  }
   return findClosestPoint(data.value, (d) => d.date.getTime(), chartWidth, marginLeft, marginRight, cPosition);
 }
 </script>

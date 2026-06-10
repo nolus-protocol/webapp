@@ -14,9 +14,7 @@ import { classifyError, getMicroAmount, LeaseMath, Logger, walletOperation } fro
 import { formatNumber, formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { getLpnByProtocol } from "@/common/utils/CurrencyLookup";
 import { NATIVE_CURRENCY } from "../../../../config/global/network";
-import type { ExternalCurrency } from "@/common/types";
 import { minimumLeaseAmount } from "@/config/global";
-import type { AssetBalance } from "@/common/stores/wallet/types";
 import { CoinPretty, Dec, Int } from "@keplr-wallet/unit";
 
 import type { NolusWallet } from "@nolus/nolusjs";
@@ -91,9 +89,10 @@ export function useRepayLease() {
 
   function onSetAmount(percent: number) {
     const a = getRepayment(percent);
+    const selected = currency.value;
     sliderValue.value = percent;
     sliderValueDec.value = new Dec(percent);
-    amount.value = a?.repayment ? a.repayment.toString(currency.value.decimal_digits) : "";
+    amount.value = a?.repayment && selected ? a.repayment.toString(selected.decimal_digits) : "";
   }
 
   function onSelectFullDebt() {
@@ -106,11 +105,11 @@ export function useRepayLease() {
 
   const assets = computed(() => {
     const data = [];
-    for (const asset of (balances.value as ExternalCurrency[]) ?? []) {
-      const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
+    for (const asset of balances.value) {
+      const value = new Dec(asset.balance.amount.toString(), asset.decimal_digits);
       const balance = formatTokenBalance(value);
       const exactBalance = value.isZero() ? "0" : value.toString(asset.decimal_digits).replace(/\.?0+$/, "");
-      const denom = (asset as ExternalCurrency).ibcData ?? (asset as AssetBalance).from;
+      const denom = asset.ibcData;
       const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
       const stable = price.mul(value);
 
@@ -126,9 +125,9 @@ export function useRepayLease() {
           customLabel: `${balance} ${asset.shortName}`,
           ticker: asset.shortName,
           denom: asset.balance.denom,
-          amount: asset.balance?.amount
+          amount: asset.balance.amount
         },
-        ibcData: (asset as ExternalCurrency).ibcData,
+        ibcData: asset.ibcData,
         native: asset.native,
         symbol: asset.symbol,
         ticker: asset.ticker,
@@ -311,6 +310,10 @@ export function useRepayLease() {
 
         const debt = getDebtValue();
         const lpn = getLpnByProtocol(leaseValue.protocol);
+        if (!lpn) {
+          amountErrorMsg.value = i18n.t("message.unexpected-error");
+          return false;
+        }
         const debtInCurrencies = debt.quo(new Dec(priceEntry.price));
         const minAmm = new Dec(minimumLeaseAmount).mul(new Dec(10 ** lpn.decimal_digits));
 
@@ -401,7 +404,11 @@ export function useRepayLease() {
       try {
         loading.value = true;
 
-        const microAmount = getMicroAmount(currency.value.balance.denom, amount.value);
+        const selected = currency.value;
+        if (!selected) {
+          throw new Error(`Repayment currency unavailable for lease ${lease.value.address}`);
+        }
+        const microAmount = getMicroAmount(selected.balance.denom, amount.value);
         const funds: Coin[] = [
           {
             denom: microAmount.coinMinimalDenom,
@@ -473,6 +480,10 @@ export function useRepayLease() {
         };
       } else {
         const lpn = getLpnByProtocol(lease.value.protocol);
+        if (!lpn) {
+          Logger.error(`LPN not found for protocol ${lease.value.protocol}`);
+          return { payment: "", rest: "" };
+        }
         return {
           payment: `${formatTokenBalance(d)} ${lpn.shortName}`,
           rest: `${formatTokenBalance(rest)} ${lpn.shortName}`
@@ -497,6 +508,10 @@ export function useRepayLease() {
         return `${formatTokenBalance(d)} ${currecy?.shortName ?? ""}`;
       } else {
         const lpn = getLpnByProtocol(lease.value.protocol);
+        if (!lpn) {
+          Logger.error(`LPN not found for protocol ${lease.value.protocol}`);
+          return "";
+        }
         return `${formatTokenBalance(d)} ${lpn.shortName}`;
       }
     }
@@ -530,10 +545,9 @@ export function useRepayLease() {
   });
 
   function closeDialog() {
+    const matched = route.matched[2];
     const path =
-      route.matched[2].path === `/${RouteNames.LEASES}`
-        ? `/${RouteNames.LEASES}`
-        : `/${RouteNames.LEASES}/${route.params.id}`;
+      matched?.path === `/${RouteNames.LEASES}` ? `/${RouteNames.LEASES}` : `/${RouteNames.LEASES}/${route.params.id}`;
     void router.push(path);
   }
 

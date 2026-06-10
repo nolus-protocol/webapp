@@ -132,7 +132,7 @@ describe("buildLiquidationSteps", () => {
   });
 
   it("drops an entry whose liquidation_price is undefined", () => {
-    expect(buildLiquidationSteps([historyEntry({ liquidation_price: undefined })])).toEqual([]);
+    expect(buildLiquidationSteps([{ action: "liquidation", timestamp: "2026-01-01T00:00:00Z" }])).toEqual([]);
   });
 
   it('drops an entry whose liquidation_price is "0" (fully-repaid event)', () => {
@@ -148,7 +148,7 @@ describe("buildLiquidationSteps", () => {
   });
 
   it("drops an entry whose timestamp is missing", () => {
-    expect(buildLiquidationSteps([historyEntry({ timestamp: undefined })])).toEqual([]);
+    expect(buildLiquidationSteps([{ action: "liquidation", liquidation_price: "79257.5" }])).toEqual([]);
   });
 
   it("drops an entry whose timestamp is unparseable", () => {
@@ -170,7 +170,7 @@ describe("buildLiquidationSteps", () => {
 
   it("yields exactly the positive steps in time order for a realistic mixed history", () => {
     const steps = buildLiquidationSteps([
-      historyEntry({ action: "open", timestamp: "2025-12-31T00:00:00Z", liquidation_price: undefined }),
+      { action: "open", timestamp: "2025-12-31T00:00:00Z" },
       historyEntry({ action: "liquidation", timestamp: "2026-01-01T00:00:00Z", liquidation_price: "79257" }),
       historyEntry({ action: "liquidation", timestamp: "2026-01-02T00:00:00Z", liquidation_price: "81003" }),
       historyEntry({ action: "liquidation", timestamp: "2026-01-03T00:00:00Z", liquidation_price: "75679" }),

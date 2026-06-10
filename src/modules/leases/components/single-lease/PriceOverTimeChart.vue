@@ -58,7 +58,7 @@ type ChartData = { Date: Date; Price: number; Liquidation: string | null };
 
 const data = ref<ChartData[]>([]);
 const props = defineProps<{
-  lease?: LeaseInfo | null;
+  lease?: LeaseInfo | null | undefined;
   interval: string;
 }>();
 
@@ -146,22 +146,34 @@ async function loadData(intetval: string) {
   const ticker = props.lease?.etl_data?.lease_position_ticker ?? props.lease?.amount?.ticker;
 
   if (positionType === "Long") {
-    const [key, protocol]: string[] = ticker?.includes("@")
+    if (ticker === undefined) {
+      console.error("PriceOverTimeChart: no ticker resolvable for the lease, skipping price series");
+      return null;
+    }
+    const [key = ticker, protocol = props.lease?.protocol ?? ""] = ticker.includes("@")
       ? ticker.split("@")
-      : [ticker as string, props.lease?.protocol ?? ""];
+      : [ticker, props.lease?.protocol ?? ""];
 
     const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
     return prices;
   } else {
-    const lpn = getLpnByProtocol(props.lease?.protocol as string);
-    const [key, protocol] = lpn.key.split("@");
+    const lpn = getLpnByProtocol(props.lease?.protocol ?? "");
+    if (!lpn) {
+      console.error(`PriceOverTimeChart: LPN not found for protocol ${props.lease?.protocol}, skipping price series`);
+      return null;
+    }
+    const [key = "", protocol = ""] = lpn.key.split("@");
     const prices = await analyticsStore.fetchPriceSeries(key, protocol, intetval);
     return prices;
   }
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
-  if (!plotContainer) return;
+function isTooltipSelection(value: unknown): value is Selection<HTMLDivElement, unknown, HTMLElement, unknown> {
+  return value instanceof Object && "html" in value && "style" in value && "node" in value;
+}
+
+function updateChart(plotContainer: unknown, tooltip: unknown) {
+  if (!(plotContainer instanceof HTMLElement) || !isTooltipSelection(tooltip)) return;
 
   plotContainer.innerHTML = "";
   chartWidth = getChartWidth(plotContainer);
@@ -333,7 +345,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
-function getClosestDataPoint(cPosition: number) {
+function getClosestDataPoint(cPosition: unknown) {
+  if (typeof cPosition !== "number") {
+    return null;
+  }
   return findClosestPoint(data.value, (d) => d.Date.getTime(), chartWidth, marginLeft, marginRight, cPosition);
 }
 </script>

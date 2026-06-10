@@ -8,11 +8,7 @@
         <span>{{ $t("message.period") }}:</span>
         <Dropdown
           id="price"
-          :on-select="
-            (data) => {
-              chartTimeRange = data;
-            }
-          "
+          :on-select="onSelectRange"
           :options="options"
           :selected="options[0]"
           class="w-20"
@@ -30,7 +26,7 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import { Dropdown, Widget } from "web-components";
+import { Dropdown, type DropdownOption, Widget } from "web-components";
 import { CHART_RANGES } from "@/config/global";
 import type { LeaseInfo } from "@/common/api";
 import type { LeaseDisplayData } from "@/common/stores/leases";
@@ -49,4 +45,11 @@ const options = Object.values(CHART_RANGES).map((value) => ({
   ...value,
   value: value.label
 }));
+
+function onSelectRange(selected: DropdownOption) {
+  const match = options.find((option) => option.value === selected.value);
+  if (match) {
+    chartTimeRange.value = match;
+  }
+}
 </script>
