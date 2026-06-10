@@ -131,7 +131,7 @@ export function useLeases() {
 
         return false;
       })
-      .map((item) => {
+      .map((item): TableRowItemProps | null => {
         try {
           const displayData = leasesStore.getLeaseDisplayData(item);
           const pnlData = {
