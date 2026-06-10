@@ -28,7 +28,7 @@
             <HistoryTableRowWrapper
               v-for="transaction of txsSkip"
               :transaction="transaction"
-              :key="`${transaction.id}`"
+              :key="`${transaction.historyData.id}`"
             />
             <HistoryTableRowWrapper
               :transaction="transaction"
@@ -137,21 +137,28 @@ const txs = computed(() => {
 // Filtered pending transfers based on search
 const txsSkip = computed(() => {
   const param = search.value.toLowerCase();
-  return historyStore.pendingTransfersList.filter((item) => {
-    if (param.length === 0) {
-      return true;
+  const items = [];
+  for (const item of historyStore.pendingTransfersList) {
+    if (item === undefined) {
+      continue;
     }
-
-    if (
-      item.historyData.receiverAddress?.toLowerCase().includes(param) ||
-      item.historyData.fromAddress?.toLowerCase().includes(param)
-    ) {
-      return true;
+    if (param.length === 0 || matchesPendingSearch(item.historyData, param)) {
+      items.push(item);
     }
-
-    return false;
-  });
+  }
+  return items;
 });
+
+// Pending transfers carry extra addresses (receiverAddress/fromAddress) the
+// HistoryData type does not declare; read them through an index lookup.
+function matchesPendingSearch(historyData: Record<string, unknown>, param: string): boolean {
+  const receiver = historyData.receiverAddress;
+  const from = historyData.fromAddress;
+  return (
+    (typeof receiver === "string" && receiver.toLowerCase().includes(param)) ||
+    (typeof from === "string" && from.toLowerCase().includes(param))
+  );
+}
 
 // Reacts to: configStore.initialized.
 // Idempotency: initializeHistory() only loads when a wallet address is present and

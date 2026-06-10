@@ -48,12 +48,16 @@
 <script lang="ts" setup>
 import { inject, ref } from "vue";
 import { Button, Popover, ToastType } from "web-components";
-import type { ITransactionData } from "@/modules/history/types";
-import type { HistoryData } from "@/modules/history/types/ITransaction";
+import type { IObjectKeys } from "@/common/types";
+import type { useHistoryStore } from "@/common/stores/history";
 import { TextFormat } from "../../../common/utils";
 import { useI18n } from "vue-i18n";
 
-export type IAction = { transaction: ITransactionData & HistoryData };
+// The store's reactive unwrapping maps class fields (CoinPretty) into a
+// structurally different type, so the prop type must be derived from the
+// store rather than declared as the raw TransactionEntry.
+export type HistoryRowEntry = ReturnType<typeof useHistoryStore>["transactions"][number] & { code?: number };
+export type IAction = { transaction: HistoryRowEntry };
 
 const i18n = useI18n();
 const popoverRef = ref<InstanceType<typeof Popover> | null>(null);
@@ -64,7 +68,7 @@ const emitter = defineEmits(["click"]);
 
 function copyHash() {
   if (props.transaction) {
-    void TextFormat.copyToClipboard(props.transaction?.tx_hash);
+    void TextFormat.copyToClipboard(props.transaction.tx_hash ?? "");
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-copied-successfully") });
   }
   popoverRef.value?.close();
@@ -72,10 +76,11 @@ function copyHash() {
 
 function copyTxRaw() {
   if (props.transaction) {
-    const item = { ...props.transaction.data };
-    if (props.transaction.data.msg) {
-      const msg = JSON.parse(Buffer.from(props.transaction.data.msg).toString());
-      item.msg = msg;
+    const txData = props.transaction.data;
+    const item: IObjectKeys = { ...txData };
+    const rawMsg = txData?.msg;
+    if (rawMsg && (typeof rawMsg === "string" || rawMsg instanceof Uint8Array)) {
+      item.msg = JSON.parse(Buffer.from(rawMsg).toString());
     }
 
     const data = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));
