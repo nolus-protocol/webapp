@@ -28,6 +28,28 @@ export interface UserHistoryData {
   realizedPnlData: IObjectKeys[] | null;
 }
 
+// Interfaces (unlike object literals) carry no implicit index signature, so a
+// typed API response is not directly assignable to IObjectKeys. The mapped
+// type restores the implicit index signature without copying the value.
+function toIndexed<T extends object>(value: T | null): { [K in keyof T]: T[K] } | null {
+  return value;
+}
+
+function isIndexedArray(value: unknown): value is IObjectKeys[] {
+  return Array.isArray(value);
+}
+
+function toIndexedArray(value: object | null): IObjectKeys[] | null {
+  if (value === null) {
+    return null;
+  }
+  if (!isIndexedArray(value)) {
+    console.error("[AnalyticsStore] Dropping realized PnL payload: expected an array");
+    return null;
+  }
+  return value;
+}
+
 export const useAnalyticsStore = defineStore("analytics", () => {
   // ==========================================================================
   // State
@@ -110,9 +132,9 @@ export const useAnalyticsStore = defineStore("analytics", () => {
       if (address.value !== targetAddress) return;
 
       dashboardData.value = {
-        earnings: data.earnings,
-        realizedPnl: data.realized_pnl,
-        positionDebtValue: data.position_debt_value
+        earnings: toIndexed(data.earnings),
+        realizedPnl: toIndexed(data.realized_pnl),
+        positionDebtValue: toIndexed(data.position_debt_value)
       };
 
       lastUpdated.value = new Date();
@@ -133,7 +155,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const earnings = await BackendApi.getEarnings(address.value);
-      dashboardData.value.earnings = earnings;
+      dashboardData.value.earnings = toIndexed(earnings);
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch earnings:", e);
       throw e;
@@ -148,7 +170,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const data = await BackendApi.getPositionDebtValue(address.value);
-      dashboardData.value.positionDebtValue = data;
+      dashboardData.value.positionDebtValue = toIndexed(data);
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch position/debt value:", e);
       throw e;
@@ -175,8 +197,8 @@ export const useAnalyticsStore = defineStore("analytics", () => {
       if (address.value !== targetAddress) return;
 
       historyData.value = {
-        historyStats: data.history_stats,
-        realizedPnlData: data.realized_pnl_data
+        historyStats: toIndexed(data.history_stats),
+        realizedPnlData: toIndexedArray(data.realized_pnl_data)
       };
 
       lastUpdated.value = new Date();
@@ -197,7 +219,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const stats = await BackendApi.getHistoryStats(address.value);
-      historyData.value.historyStats = stats;
+      historyData.value.historyStats = toIndexed(stats);
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch history stats:", e);
       throw e;
@@ -212,7 +234,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const data = await BackendApi.getRealizedPnl(address.value);
-      dashboardData.value.realizedPnl = data;
+      dashboardData.value.realizedPnl = toIndexed(data);
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch realized PnL:", e);
       throw e;
@@ -227,7 +249,7 @@ export const useAnalyticsStore = defineStore("analytics", () => {
 
     try {
       const data = await BackendApi.getRealizedPnlData(address.value);
-      historyData.value.realizedPnlData = data;
+      historyData.value.realizedPnlData = toIndexedArray(data);
     } catch (e) {
       console.error("[AnalyticsStore] Failed to fetch realized PnL data:", e);
       throw e;

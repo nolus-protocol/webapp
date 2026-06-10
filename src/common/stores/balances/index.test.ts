@@ -305,7 +305,9 @@ describe("useBalancesStore", () => {
     expect(captured.onBalances).not.toBeNull();
     emitBalances("nolus1x", [mkBalance({ amount: "5" })]);
     expect(store.balances.length).toBe(1);
-    expect(store.balances[0].amount).toBe("5");
+    const updated = store.balances[0];
+    if (updated === undefined) throw new Error("expected one balance entry after the ws update");
+    expect(updated.amount).toBe("5");
   });
 
   it("ws callback ignores mismatched address", async () => {
@@ -375,7 +377,9 @@ describe("useBalancesStore", () => {
 
     const filtered = store.filteredBalances;
     expect(filtered.length).toBe(1);
-    expect(filtered[0].balance?.amount).toBe("20");
+    const kept = filtered[0];
+    if (kept === undefined) throw new Error("expected one filtered balance entry");
+    expect(kept.balance?.amount).toBe("20");
   });
 
   it("filteredBalances skips ignored currencies", async () => {

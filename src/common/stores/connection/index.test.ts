@@ -254,6 +254,7 @@ describe("useConnectionStore", () => {
     // Config must finish before the others (ordering check via invocation order).
     const configOrder = configStore.initialize.mock.invocationCallOrder[0];
     const pricesOrder = pricesStore.initialize.mock.invocationCallOrder[0];
+    if (pricesOrder === undefined) throw new Error("expected pricesStore.initialize to have been invoked");
     expect(configOrder).toBeLessThan(pricesOrder);
   });
 
@@ -283,6 +284,7 @@ describe("useConnectionStore", () => {
     const pricesOrder = pricesStore.cleanup.mock.invocationCallOrder[0];
     const statsOrder = statsStore.cleanup.mock.invocationCallOrder[0];
     const disconnectOrder = wsClient.disconnect.mock.invocationCallOrder[0];
+    if (disconnectOrder === undefined) throw new Error("expected wsClient.disconnect to have been invoked");
 
     expect(pricesOrder).toBeLessThan(disconnectOrder);
     expect(statsOrder).toBeLessThan(disconnectOrder);

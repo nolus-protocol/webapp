@@ -418,7 +418,7 @@ describe("useLeasesStore", () => {
     });
 
     const store = useLeasesStore();
-    const req = { protocol: "p", downpayment: { ticker: "ATOM", amount: "1" }, lease_currency: "ATOM" };
+    const req = { protocol: "p", downpayment: { ticker: "ATOM", denom: "uatom", amount: "1" }, lease_currency: "ATOM" };
     const result = await store.getQuote(req);
     expect(BackendApi.getLeaseQuote).toHaveBeenCalledWith(req);
     expect(result.borrow.amount).toBe("500");
