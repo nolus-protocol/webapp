@@ -6,7 +6,7 @@
       :content="tooltipContent(segment)"
     >
       <div
-        :class="[colors[segment.key].bg, colors[segment.key].before, barClasses]"
+        :class="[segment.color.bg, segment.color.before, barClasses]"
         :style="{ width: `calc(${segment.percent}%)`, zIndex: segments.length - index }"
       />
     </Tooltip>
@@ -37,17 +37,26 @@ const total = computed(() => Object.values(props.voting).reduce((acc, value) => 
 
 const segments = computed(() =>
   Object.entries(props.voting)
-    .map(([key, value]) => ({
-      key,
-      label: props.labels[key] ?? key,
-      percent: ((Number(value) / total.value) * 100).toFixed(2)
-    }))
+    .flatMap(([key, value]) => {
+      const color = colors[key];
+      if (color === undefined) {
+        console.error(`[VotingLine] skipping tally key without a color mapping: ${key}`);
+        return [];
+      }
+      return [
+        {
+          key,
+          color,
+          label: props.labels[key] ?? key,
+          percent: ((Number(value) / total.value) * 100).toFixed(2)
+        }
+      ];
+    })
     .filter((item) => !!Number(item.percent))
     .reverse()
 );
 
-function tooltipContent(segment: { key: string; label: string; percent: string }) {
-  const textClass = colors[segment.key].text;
-  return `<span class="${textClass}">${segment.label} ${segment.percent}%</span>`;
+function tooltipContent(segment: { color: { text: string }; label: string; percent: string }) {
+  return `<span class="${segment.color.text}">${segment.label} ${segment.percent}%</span>`;
 }
 </script>
