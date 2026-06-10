@@ -137,11 +137,12 @@ onBeforeUnmount(() => {
 });
 
 const fee = computed(() => {
-  if (data.value?.fee_denom) {
-    const currencty = getCurrencyByDenom(data.value.fee_denom);
+  const entry = data.value;
+  if (entry?.fee_denom && entry.fee_amount !== undefined) {
+    const currencty = getCurrencyByDenom(entry.fee_denom);
     return {
       denom: currencty.shortName,
-      amount: data.value.fee_amount,
+      amount: entry.fee_amount,
       decimals: currencty.decimal_digits
     };
   }
@@ -163,7 +164,8 @@ const status = computed(() => {
       };
     }
     default: {
-      if (data.value?.code != null && data.value.code !== 0) {
+      const entry = data.value;
+      if (entry && "code" in entry && typeof entry.code === "number" && entry.code !== 0) {
         return {
           title: i18n.t(`message.failed`),
           class: "text-typography-error"
@@ -178,18 +180,24 @@ const status = computed(() => {
 });
 
 function copyHash() {
-  if (data.value) {
-    void TextFormat.copyToClipboard(data.value.tx_hash);
+  const hash = data.value?.tx_hash;
+  if (hash !== undefined) {
+    void TextFormat.copyToClipboard(hash);
     onShowToast({ type: ToastType.success, message: i18n.t("message.tx-copied-successfully") });
   }
 }
 
 function copyTxRaw() {
-  if (data.value) {
-    const item = { ...data.value.data };
-    if (data.value.data.msg) {
-      const msg = JSON.parse(Buffer.from(data.value.data.msg).toString());
-      item.msg = msg;
+  const txData = data.value?.data;
+  if (txData !== undefined) {
+    const item = { ...txData };
+    const rawMsg = txData.msg;
+    if (rawMsg) {
+      if (typeof rawMsg === "string") {
+        item.msg = JSON.parse(Buffer.from(rawMsg).toString());
+      } else if (rawMsg instanceof Uint8Array) {
+        item.msg = JSON.parse(Buffer.from(rawMsg).toString());
+      }
     }
 
     const params = JSON.stringify(item, (key, value) => (typeof value === "bigint" ? value.toString() : value));

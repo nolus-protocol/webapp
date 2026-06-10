@@ -95,6 +95,9 @@ export function useNetworkCurrency() {
     }
 
     const [, protocol] = lpnEntry.key.split("@");
+    if (protocol === undefined) {
+      return { isEarnable: false, apr: 0 };
+    }
     const gatedProtocol = configStore.getGatedProtocol(protocol);
     if (!gatedProtocol) {
       return { isEarnable: false, apr: 0 };

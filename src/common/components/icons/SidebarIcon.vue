@@ -165,7 +165,7 @@
 
 <script lang="ts" setup>
 defineProps<{
-  icon?: string;
+  icon?: string | undefined;
   toggled?: boolean;
 }>();
 </script>
