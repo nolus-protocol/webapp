@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type * as CommonUtils from "@/common/utils";
+import type * as DateParser from "@/common/utils/dateParser";
 import { setActivePinia, createPinia } from "pinia";
 
 // jsdom doesn't implement matchMedia; ThemeManager (loaded via the utils barrel
@@ -46,6 +47,17 @@ vi.mock("@/common/utils/NumberFormatUtils", () => ({
   formatTokenBalance: vi.fn(() => "1")
 }));
 
+// The store reaches getCreatedAtForHuman through the barrel, but the barrel mock
+// below does not intercept the store's copy — mock the deep module the barrel
+// re-exports so both the store and this file share one mock instance.
+vi.mock("@/common/utils/dateParser", async (importOriginal) => {
+  const actual = await importOriginal<typeof DateParser>();
+  return {
+    ...actual,
+    getCreatedAtForHuman: vi.fn(() => "just now")
+  };
+});
+
 vi.mock("@nolus/nolusjs", () => ({
   CurrencyUtils: {
     convertMinimalDenomToDenom: vi.fn(() => ({ amount: "1", denom: "USDC" }))
@@ -56,7 +68,6 @@ vi.mock("@/common/utils", async (importOriginal) => {
   const actual = await importOriginal<typeof CommonUtils>();
   return {
     ...actual,
-    getCreatedAtForHuman: vi.fn(() => "just now"),
     TextFormat: {
       ...actual.TextFormat,
       truncateString: vi.fn((s: string) => s.slice(0, 12))
@@ -75,12 +86,17 @@ vi.mock("@/i18n", () => ({
 }));
 
 import { BackendApi } from "@/common/api";
+import type { CurrencyInfo } from "@/common/api";
+import { getCreatedAtForHuman } from "@/common/utils/dateParser";
 import { CONFIRM_STEP } from "@/common/types";
 import { HISTORY_ACTIONS } from "@/modules/history/types";
+import { message } from "@/modules/history/common";
+import type { TransactionEntry } from "@/modules/history/types/ITransaction";
+import { CoinPretty, Dec } from "@keplr-wallet/unit";
 import { useHistoryStore } from "./index";
 import { useConfigStore } from "@/common/stores/config";
 
-const api = BackendApi as unknown as Record<string, ReturnType<typeof vi.fn>>;
+const api = BackendApi as unknown as { getTransactions: ReturnType<typeof vi.fn> };
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -120,10 +136,53 @@ function baseSendPayload() {
   };
 }
 
+function usdcCurrency(): CurrencyInfo {
+  return {
+    key: "USDC@OSMOSIS",
+    ticker: "USDC",
+    symbol: "USDC",
+    name: "USD Coin",
+    shortName: "USDC",
+    decimal_digits: 6,
+    ibcData: "ibc/USDC",
+    dexSymbol: "USDC",
+    icon: "usdc.svg",
+    native: false,
+    coingeckoId: null,
+    protocol: "OSMOSIS",
+    group: "lease",
+    isActive: true
+  };
+}
+
+function seedConfigCurrencies() {
+  const configStore = useConfigStore();
+  configStore.currenciesResponse = {
+    currencies: { "USDC@OSMOSIS": usdcCurrency() },
+    lpn: [],
+    lease_currencies: [],
+    map: {}
+  };
+}
+
+// A fully-typed pending entry without route steppers, for guard-branch tests.
+function plantedEntry(id: string): TransactionEntry {
+  return {
+    historyData: {
+      id,
+      msg: "planted",
+      action: "transfer",
+      icon: "assets",
+      timestamp: "just now",
+      coin: new CoinPretty({ coinDenom: "USDC", coinMinimalDenom: "ibc/USDC", coinDecimals: 6 }, new Dec(1))
+    }
+  };
+}
+
 // A minimal i18n shim — addPendingTransfer only calls .t(key, params).
-const i18nInstance = {
-  t: (key: string, _params?: Record<string, unknown>) => key
-} as unknown as Record<string, unknown>;
+const i18nInstance: { t: unknown } = {
+  t: (...args: unknown[]) => args[0]
+};
 
 describe("HistoryStore", () => {
   // ---------------------------------------------------------------------------
@@ -147,7 +206,7 @@ describe("HistoryStore", () => {
   it("hasPendingTransfers_computed", () => {
     const store = useHistoryStore();
     expect(store.hasPendingTransfers).toBe(false);
-    store.pendingTransfers["1"] = { historyData: { id: 1 } } as unknown as (typeof store.pendingTransfers)[string];
+    store.pendingTransfers["1"] = plantedEntry("1");
     expect(store.hasPendingTransfers).toBe(true);
   });
 
@@ -156,76 +215,249 @@ describe("HistoryStore", () => {
   // ---------------------------------------------------------------------------
   it("addPendingTransfer_receive_builds_entry", () => {
     // Seed the config store so getCurrencyByDenom returns a currency.
-    const configStore = useConfigStore();
-    configStore.currenciesResponse = {
-      currencies: {
-        "USDC@OSMOSIS": {
-          key: "USDC@OSMOSIS",
-          ticker: "USDC",
-          protocol: "OSMOSIS",
-          symbol: "USDC",
-          shortName: "USDC",
-          ibcData: "ibc/USDC",
-          decimal_digits: 6,
-          group: "lease",
-          native: false
-        }
-      },
-      lpn: [],
-      lease_currencies: [],
-      map: {}
-    } as unknown as typeof configStore.currenciesResponse;
+    seedConfigCurrencies();
 
     const store = useHistoryStore();
     store.addPendingTransfer(baseReceivePayload(), i18nInstance);
 
     const entry = store.pendingTransfers["1"];
-    expect(entry).toBeDefined();
+    if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
     expect(entry.historyData.status).toBe(CONFIRM_STEP.PENDING);
     expect(entry.historyData.icon).toBe("assets");
   });
 
   it("addPendingTransfer_send_builds_entry", () => {
-    const configStore = useConfigStore();
-    configStore.currenciesResponse = {
-      currencies: {
-        "USDC@OSMOSIS": {
-          key: "USDC@OSMOSIS",
-          ticker: "USDC",
-          protocol: "OSMOSIS",
-          symbol: "USDC",
-          shortName: "USDC",
-          ibcData: "ibc/USDC",
-          decimal_digits: 6,
-          group: "lease"
-        }
-      },
-      lpn: [],
-      lease_currencies: [],
-      map: {}
-    } as unknown as typeof configStore.currenciesResponse;
+    seedConfigCurrencies();
 
     const store = useHistoryStore();
     store.addPendingTransfer(baseSendPayload(), i18nInstance);
 
     const entry = store.pendingTransfers["2"];
-    expect(entry).toBeDefined();
+    if (entry === undefined) throw new Error("expected pending transfer 2 to be created");
     expect(entry.historyData.status).toBe(CONFIRM_STEP.PENDING);
   });
 
   it("getPendingTransfer_lookup", () => {
     const store = useHistoryStore();
-    const configStore = useConfigStore();
-    configStore.currenciesResponse = {
-      currencies: {},
-      lpn: [],
-      lease_currencies: [],
-      map: {}
-    } as unknown as typeof configStore.currenciesResponse;
-
     store.addPendingTransfer(baseReceivePayload(), i18nInstance);
     expect(store.getPendingTransfer("1")).toBeDefined();
     expect(store.getPendingTransfer("999")).toBeUndefined();
+  });
+
+  it("addPendingTransfer_throws_without_t", () => {
+    const store = useHistoryStore();
+    expect(() => store.addPendingTransfer(baseReceivePayload(), { t: undefined })).toThrow("i18n");
+  });
+
+  it("addPendingTransfer_throws_without_id", () => {
+    const store = useHistoryStore();
+    expect(() => store.addPendingTransfer({ ...baseReceivePayload(), id: undefined }, i18nInstance)).toThrow(
+      "missing an id"
+    );
+  });
+
+  it("addPendingTransfer_throws_without_skip_route", () => {
+    const store = useHistoryStore();
+    expect(() => store.addPendingTransfer({ ...baseReceivePayload(), skipRoute: undefined }, i18nInstance)).toThrow(
+      "skip route"
+    );
+  });
+
+  it("addPendingTransfer_receive_throws_without_amountOut", () => {
+    const store = useHistoryStore();
+    expect(() =>
+      store.addPendingTransfer({ ...baseReceivePayload(), skipRoute: baseSkipRoute() }, i18nInstance)
+    ).toThrow("amountOut");
+  });
+
+  it("addPendingTransfer_receive_throws_without_fromAddress", () => {
+    const store = useHistoryStore();
+    expect(() => store.addPendingTransfer({ ...baseReceivePayload(), fromAddress: undefined }, i18nInstance)).toThrow(
+      "sender address"
+    );
+  });
+
+  it("addPendingTransfer_send_throws_without_amountIn", () => {
+    const store = useHistoryStore();
+    expect(() => store.addPendingTransfer({ ...baseSendPayload(), skipRoute: baseSkipRoute() }, i18nInstance)).toThrow(
+      "amountIn"
+    );
+  });
+
+  it("addPendingTransfer_send_throws_without_receiverAddress", () => {
+    const store = useHistoryStore();
+    expect(() => store.addPendingTransfer({ ...baseSendPayload(), receiverAddress: undefined }, i18nInstance)).toThrow(
+      "receiver address"
+    );
+  });
+
+  it("addPendingTransfer_throws_for_unsupported_type", () => {
+    const store = useHistoryStore();
+    expect(() => store.addPendingTransfer({ ...baseReceivePayload(), type: "unsupported" }, i18nInstance)).toThrow(
+      "cannot be assembled"
+    );
+  });
+
+  it("addPendingTransfer_tolerates_non_string_currency", () => {
+    const store = useHistoryStore();
+    store.addPendingTransfer({ ...baseReceivePayload(), currency: 42 }, i18nInstance);
+    expect(store.getPendingTransfer("1")).toBeDefined();
+  });
+
+  // ---------------------------------------------------------------------------
+  // addPendingTransfer — route step assembly
+  // ---------------------------------------------------------------------------
+  it("addPendingTransfer_builds_route_steps_for_transfer_operations", () => {
+    seedConfigCurrencies();
+    const store = useHistoryStore();
+    store.addPendingTransfer(
+      {
+        ...baseReceivePayload(),
+        skipRoute: {
+          amountOut: "1000000",
+          operations: [
+            { amount_in: "100", amount_out: "99", transfer: { from_chain_id: "osmosis", to_chain_id: "axelar" } },
+            { amount_in: "99", amount_out: "98", cctp_transfer: { from_chain_id: "axelar", to_chain_id: "noble" } }
+          ]
+        },
+        chains: {
+          osmosis: { icon: "osmosis.svg", label: "Osmosis" },
+          axelar: { icon: "axelar.svg", label: "Axelar" },
+          noble: { icon: "noble.svg", label: "Noble" }
+        }
+      },
+      i18nInstance
+    );
+
+    const entry = store.pendingTransfers["1"];
+    if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+    const { route, routeDetails } = entry.historyData;
+    if (route === undefined || routeDetails === undefined) throw new Error("expected route steppers to be assembled");
+    expect(route.steps).toHaveLength(3);
+    expect(routeDetails.steps).toHaveLength(3);
+    expect(routeDetails.steps[0]).toMatchObject({
+      label: "message.send-stepper",
+      icon: "osmosis.svg",
+      token: { balance: "1", symbol: "USDC" }
+    });
+    expect(routeDetails.steps[1]).toMatchObject({ label: "message.swap-stepper", icon: "axelar.svg" });
+    expect(routeDetails.steps[2]).toMatchObject({ label: "message.receive-stepper", icon: "noble.svg" });
+  });
+
+  it("addPendingTransfer_skips_steps_with_unknown_chain", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.addPendingTransfer(
+        {
+          ...baseReceivePayload(),
+          skipRoute: {
+            amountOut: "1000000",
+            operations: [
+              { amount_in: "100", amount_out: "99", transfer: { from_chain_id: "missing", to_chain_id: "gone" } }
+            ]
+          }
+        },
+        i18nInstance
+      );
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+      expect(entry.historyData.route).toMatchObject({ steps: [] });
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("addPendingTransfer_skips_malformed_route_operations", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.addPendingTransfer(
+        { ...baseReceivePayload(), skipRoute: { amountOut: "1000000", operations: ["bogus"] } },
+        i18nInstance
+      );
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+      expect(entry.historyData.route).toMatchObject({ steps: [] });
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("addPendingTransfer_ignores_non_transfer_operations", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.addPendingTransfer(
+        { ...baseReceivePayload(), skipRoute: { amountOut: "1000000", operations: [{ swap: {} }] } },
+        i18nInstance
+      );
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+      expect(entry.historyData.route).toMatchObject({ steps: [] });
+      expect(consoleSpy).not.toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("addPendingTransfer_skips_step_with_malformed_amount_in", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.addPendingTransfer(
+        {
+          ...baseReceivePayload(),
+          skipRoute: {
+            amountOut: "1000000",
+            operations: [{ amount_out: "99", transfer: { from_chain_id: "osmosis", to_chain_id: "noble" } }]
+          },
+          chains: {
+            osmosis: { icon: "osmosis.svg", label: "Osmosis" },
+            noble: { icon: "noble.svg", label: "Noble" }
+          }
+        },
+        i18nInstance
+      );
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+      expect(entry.historyData.route).toMatchObject({ steps: [] });
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("addPendingTransfer_skips_receive_step_with_malformed_amount_out", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.addPendingTransfer(
+        {
+          ...baseReceivePayload(),
+          skipRoute: {
+            amountOut: "1000000",
+            operations: [{ amount_in: "100", transfer: { from_chain_id: "osmosis", to_chain_id: "noble" } }]
+          },
+          chains: {
+            osmosis: { icon: "osmosis.svg", label: "Osmosis" },
+            noble: { icon: "noble.svg", label: "Noble" }
+          }
+        },
+        i18nInstance
+      );
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+      const route = entry.historyData.route;
+      if (route === undefined) throw new Error("expected route stepper to be assembled");
+      // The send step (amount_in) is kept; only the malformed receive step is dropped.
+      expect(route.steps).toHaveLength(1);
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 
   // ---------------------------------------------------------------------------
@@ -233,17 +465,12 @@ describe("HistoryStore", () => {
   // ---------------------------------------------------------------------------
   it("updatePendingTransferStatus_updates_status", () => {
     const store = useHistoryStore();
-    const configStore = useConfigStore();
-    configStore.currenciesResponse = {
-      currencies: {},
-      lpn: [],
-      lease_currencies: [],
-      map: {}
-    } as unknown as typeof configStore.currenciesResponse;
     store.addPendingTransfer(baseReceivePayload(), i18nInstance);
 
     store.updatePendingTransferStatus("1", CONFIRM_STEP.SUCCESS);
-    expect(store.pendingTransfers["1"].historyData.status).toBe(CONFIRM_STEP.SUCCESS);
+    const entry = store.pendingTransfers["1"];
+    if (entry === undefined) throw new Error("expected pending transfer 1 to exist");
+    expect(entry.historyData.status).toBe(CONFIRM_STEP.SUCCESS);
   });
 
   it("updatePendingTransferStatus_noop_when_id_missing", () => {
@@ -256,63 +483,141 @@ describe("HistoryStore", () => {
   it("incrementPendingTransferStep_advances_step", () => {
     const store = useHistoryStore();
     // Manually plant a minimal entry so we don't need the full addPendingTransfer path.
-    store.pendingTransfers["1"] = {
-      historyData: {
-        id: 1,
-        route: { steps: [{}, {}], activeStep: 0 },
-        routeDetails: { steps: [{}, {}], activeStep: 0 }
-      }
-    } as unknown as (typeof store.pendingTransfers)[string];
+    const planted = plantedEntry("1");
+    planted.historyData.route = { steps: [], activeStep: 0 };
+    planted.historyData.routeDetails = { steps: [], activeStep: 0 };
+    store.pendingTransfers["1"] = planted;
 
     store.incrementPendingTransferStep("1");
-    expect(store.pendingTransfers["1"].historyData.route.activeStep).toBe(1);
-    expect(store.pendingTransfers["1"].historyData.routeDetails.activeStep).toBe(1);
+    const entry = store.pendingTransfers["1"];
+    if (entry === undefined) throw new Error("expected pending transfer 1 to exist");
+    const { route, routeDetails } = entry.historyData;
+    if (route === undefined || routeDetails === undefined) throw new Error("expected planted route steppers");
+    expect(route.activeStep).toBe(1);
+    expect(routeDetails.activeStep).toBe(1);
+  });
+
+  it("incrementPendingTransferStep_logs_and_noops_without_route", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.pendingTransfers["1"] = plantedEntry("1");
+
+      store.incrementPendingTransferStep("1");
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to exist");
+      expect(entry.historyData.route).toBeUndefined();
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 
   it("completePendingTransfer_sets_success", () => {
     const store = useHistoryStore();
-    store.pendingTransfers["1"] = {
-      historyData: {
-        id: 1,
-        route: { steps: [{}, {}], activeStep: 0 },
-        routeDetails: { steps: [{}, {}], activeStep: 0 }
-      }
-    } as unknown as (typeof store.pendingTransfers)[string];
+    const planted = plantedEntry("1");
+    planted.historyData.route = {
+      steps: [
+        { label: "a", icon: "a" },
+        { label: "b", icon: "b" }
+      ],
+      activeStep: 0
+    };
+    planted.historyData.routeDetails = {
+      steps: [
+        { label: "a", icon: "a" },
+        { label: "b", icon: "b" }
+      ],
+      activeStep: 0
+    };
+    store.pendingTransfers["1"] = planted;
 
     store.completePendingTransfer("1");
-    expect(store.pendingTransfers["1"].historyData.status).toBe(CONFIRM_STEP.SUCCESS);
-    expect(store.pendingTransfers["1"].historyData.route.activeStep).toBe(2);
+    const entry = store.pendingTransfers["1"];
+    if (entry === undefined) throw new Error("expected pending transfer 1 to exist");
+    expect(entry.historyData.status).toBe(CONFIRM_STEP.SUCCESS);
+    const route = entry.historyData.route;
+    if (route === undefined) throw new Error("expected planted route stepper");
+    expect(route.activeStep).toBe(2);
+  });
+
+  it("completePendingTransfer_marks_success_without_route", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.pendingTransfers["1"] = plantedEntry("1");
+
+      store.completePendingTransfer("1");
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to exist");
+      expect(entry.historyData.status).toBe(CONFIRM_STEP.SUCCESS);
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 
   it("failPendingTransfer_sets_error_and_marks_step_failed", () => {
     const store = useHistoryStore();
-    store.pendingTransfers["1"] = {
-      historyData: {
-        id: 1,
-        route: { steps: [{ status: "ok" }, { status: "ok" }], activeStep: 0 },
-        routeDetails: { steps: [{ status: "ok" }, { status: "ok" }], activeStep: 0 }
-      }
-    } as unknown as (typeof store.pendingTransfers)[string];
+    const planted = plantedEntry("1");
+    planted.historyData.route = {
+      steps: [
+        { label: "a", icon: "a" },
+        { label: "b", icon: "b" }
+      ],
+      activeStep: 0
+    };
+    planted.historyData.routeDetails = {
+      steps: [
+        { label: "a", icon: "a" },
+        { label: "b", icon: "b" }
+      ],
+      activeStep: 0
+    };
+    store.pendingTransfers["1"] = planted;
 
     store.failPendingTransfer("1", "nope");
-    const h = store.pendingTransfers["1"].historyData;
+    const entry = store.pendingTransfers["1"];
+    if (entry === undefined) throw new Error("expected pending transfer 1 to exist");
+    const h = entry.historyData;
     expect(h.status).toBe(CONFIRM_STEP.ERROR);
     expect(h.errorMsg).toBe("nope");
-    expect(h.route.steps[0].status).toBe("failed");
-    expect(h.routeDetails.steps[0].status).toBe("failed");
+    const { route, routeDetails } = h;
+    if (route === undefined || routeDetails === undefined) throw new Error("expected planted route steppers");
+    const routeStep = route.steps[0];
+    if (routeStep === undefined) throw new Error("expected a first route step");
+    expect(routeStep).toMatchObject({ status: "failed" });
+    const detailsStep = routeDetails.steps[0];
+    if (detailsStep === undefined) throw new Error("expected a first routeDetails step");
+    expect(detailsStep).toMatchObject({ status: "failed" });
+  });
+
+  it("failPendingTransfer_marks_error_without_route", () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.pendingTransfers["1"] = plantedEntry("1");
+
+      store.failPendingTransfer("1", "boom");
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to exist");
+      expect(entry.historyData.status).toBe(CONFIRM_STEP.ERROR);
+      expect(entry.historyData.errorMsg).toBe("boom");
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
   });
 
   it("setTransferTxHashes_and_removePendingTransfer_and_clearPendingTransfers", () => {
     const store = useHistoryStore();
-    store.pendingTransfers["1"] = {
-      historyData: { id: 1 }
-    } as unknown as (typeof store.pendingTransfers)[string];
-    store.pendingTransfers["2"] = {
-      historyData: { id: 2 }
-    } as unknown as (typeof store.pendingTransfers)[string];
+    store.pendingTransfers["1"] = plantedEntry("1");
+    store.pendingTransfers["2"] = plantedEntry("2");
 
     store.setTransferTxHashes("1", ["0xabc"]);
-    expect(store.pendingTransfers["1"].historyData.txHashes).toEqual(["0xabc"]);
+    const updated = store.pendingTransfers["1"];
+    if (updated === undefined) throw new Error("expected pending transfer 1 to exist");
+    expect(updated.historyData.txHashes).toEqual(["0xabc"]);
 
     store.removePendingTransfer("1");
     expect(store.pendingTransfers["1"]).toBeUndefined();
@@ -322,20 +627,21 @@ describe("HistoryStore", () => {
     expect(store.pendingTransfers).toEqual({});
   });
 
+  it("setTransferTxHashes_noop_when_id_missing", () => {
+    const store = useHistoryStore();
+    // Must not throw.
+    store.setTransferTxHashes("does-not-exist", ["0x1"]);
+    expect(store.pendingTransfers["does-not-exist"]).toBeUndefined();
+  });
+
   it("pendingTransfersList_sorted_by_id_desc", () => {
     const store = useHistoryStore();
-    store.pendingTransfers["1"] = {
-      historyData: { id: 1 }
-    } as unknown as (typeof store.pendingTransfers)[string];
-    store.pendingTransfers["3"] = {
-      historyData: { id: 3 }
-    } as unknown as (typeof store.pendingTransfers)[string];
-    store.pendingTransfers["2"] = {
-      historyData: { id: 2 }
-    } as unknown as (typeof store.pendingTransfers)[string];
+    store.pendingTransfers["1"] = plantedEntry("1");
+    store.pendingTransfers["3"] = plantedEntry("3");
+    store.pendingTransfers["2"] = plantedEntry("2");
 
     const ids = store.pendingTransfersList.map((t) => t.historyData.id);
-    expect(ids).toEqual([3, 2, 1]);
+    expect(ids).toEqual(["3", "2", "1"]);
   });
 
   // ---------------------------------------------------------------------------
@@ -391,6 +697,48 @@ describe("HistoryStore", () => {
     expect(store.transactions.length).toBe(2);
   });
 
+  it("fetchTransactions_defaults_timestamp_when_human_date_unavailable", async () => {
+    vi.mocked(getCreatedAtForHuman).mockReturnValueOnce(null);
+    api.getTransactions.mockResolvedValueOnce([{ id: "a", timestamp: "2024-01-01T00:00:00Z" }]);
+    const store = useHistoryStore();
+    store.address = "nolus1abc";
+    const res = await store.fetchTransactions(0, 50);
+    const entry = res[0];
+    if (entry === undefined) throw new Error("expected one fetched transaction");
+    expect(entry.historyData.timestamp).toBe("");
+  });
+
+  it("fetchTransactions_skips_entries_with_unrecognized_message_shape", async () => {
+    vi.mocked(message).mockResolvedValueOnce([null]);
+    api.getTransactions.mockResolvedValueOnce([{ id: "a", timestamp: "2024-01-01T00:00:00Z" }]);
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.address = "nolus1abc";
+      const res = await store.fetchTransactions(0, 50);
+      expect(res).toEqual([]);
+      expect(store.transactions).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("fetchTransactions_wraps_i18n_for_message_formatters", async () => {
+    api.getTransactions.mockResolvedValueOnce([{ id: "a", timestamp: "2024-01-01T00:00:00Z" }]);
+    const store = useHistoryStore();
+    store.address = "nolus1abc";
+    await store.fetchTransactions(0, 50);
+
+    const lastCall = vi.mocked(message).mock.lastCall;
+    if (lastCall === undefined) throw new Error("expected message() to have been called");
+    const t = lastCall[2].t;
+    if (typeof t !== "function") throw new Error("expected the i18n adapter to expose t()");
+    expect(t("message.yes")).toBe("message.yes");
+    expect(t("message.send-action", { amount: "1" })).toBe("message.send-action");
+    expect(() => t(42)).toThrow("translation key");
+  });
+
   it("resetTransactions_clears_list", async () => {
     api.getTransactions.mockResolvedValueOnce([{ id: "a", timestamp: "2024-01-01T00:00:00Z" }]);
     const store = useHistoryStore();
@@ -422,6 +770,22 @@ describe("HistoryStore", () => {
     expect(store.activities.data.length).toBe(1);
   });
 
+  it("loadActivities_skips_entries_with_unrecognized_message_shape", async () => {
+    vi.mocked(message).mockResolvedValueOnce([null]);
+    api.getTransactions.mockResolvedValueOnce([{ id: "a", timestamp: "2024-01-01T00:00:00Z" }]);
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      store.address = "nolus1abc";
+      await store.loadActivities();
+      expect(store.activities.loaded).toBe(true);
+      expect(store.activities.data).toEqual([]);
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
   it("loadActivities_swallows_errors_and_marks_loaded", async () => {
     api.getTransactions.mockRejectedValueOnce(new Error("nope"));
     const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -447,13 +811,19 @@ describe("HistoryStore", () => {
     expect(store.initialized).toBe(true);
   });
 
+  it("initialize_skips_reload_for_same_address", async () => {
+    api.getTransactions.mockResolvedValue([]);
+    const store = useHistoryStore();
+    await store.initialize("nolus1abc");
+    await store.initialize("nolus1abc");
+    expect(api.getTransactions).toHaveBeenCalledTimes(1);
+  });
+
   it("setAddress_null_triggers_cleanup", async () => {
     api.getTransactions.mockResolvedValue([]);
     const store = useHistoryStore();
     await store.initialize("nolus1abc");
-    store.pendingTransfers["1"] = {
-      historyData: { id: 1 }
-    } as unknown as (typeof store.pendingTransfers)[string];
+    store.pendingTransfers["1"] = plantedEntry("1");
 
     store.setAddress(null);
     expect(store.address).toBeNull();
