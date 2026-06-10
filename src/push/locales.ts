@@ -11,7 +11,11 @@ const loaded: { [key: string]: Promise<{ [key: string]: string }> } = {};
 
 async function translate(lang: string, expression: string, valueObj: IObjectKeys) {
   const l = await loadLocaleMessages(lang);
-  return templateParser(l[expression], valueObj);
+  const template = l[expression];
+  if (template === undefined) {
+    throw new Error(`Missing push translation key: ${expression}`);
+  }
+  return templateParser(template, valueObj);
 }
 
 export async function loadLocaleMessages(locale: string) {
@@ -24,7 +28,11 @@ export async function loadLocaleMessages(locale: string) {
     const messages = await data.json();
     loaded[locale] = messages.push;
   }
-  return loaded[locale];
+  const localeMessages = loaded[locale];
+  if (localeMessages === undefined) {
+    throw new Error(`Push locale messages failed to load for: ${locale}`);
+  }
+  return localeMessages;
 }
 
 export { translate };
