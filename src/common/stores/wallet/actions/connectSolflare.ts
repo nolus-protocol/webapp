@@ -16,6 +16,11 @@ export async function connectSolflare(this: Store) {
   const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);
   await nolusWalletOfflineSigner.useAccount();
 
+  const { address } = nolusWalletOfflineSigner;
+  if (address === undefined) {
+    throw new Error("Solflare connect failed: wallet exposes no account address");
+  }
+
   WalletStorage.saveWalletConnectMechanism(WalletConnectMechanism.SOL_SOLFLARE);
   WalletStorage.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
   applyWalletProtocolFilter(WalletConnectMechanism.SOL_SOLFLARE);
@@ -23,5 +28,5 @@ export async function connectSolflare(this: Store) {
   this.wallet = nolusWalletOfflineSigner;
   applyNolusWalletOverrides(this.wallet);
 
-  void IntercomService.load(this.wallet.address, "solflare");
+  void IntercomService.load(address, "solflare");
 }

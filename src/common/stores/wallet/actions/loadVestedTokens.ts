@@ -39,6 +39,11 @@ export async function loadVestedTokens(this: Store): Promise<
   const vest = [];
 
   if (vesting_account) {
+    const originalVesting = vesting_account.original_vesting[0];
+    if (originalVesting === undefined) {
+      throw new Error("base_vesting_account carries no original_vesting entries");
+    }
+
     const start = new Date((accData.start_time || 0) * 1000);
     const end = new Date(vesting_account.end_time * 1000);
 
@@ -50,13 +55,13 @@ export async function loadVestedTokens(this: Store): Promise<
 
     items.push({
       endTime: `${to}`,
-      amount: vesting_account.original_vesting[0]
+      amount: originalVesting
     });
 
     vest.push({
       start,
       end,
-      amount: vesting_account.original_vesting[0]
+      amount: originalVesting
     });
 
     this.vest = vest;

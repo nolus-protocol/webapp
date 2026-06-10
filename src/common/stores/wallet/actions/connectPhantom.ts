@@ -16,6 +16,11 @@ export async function connectPhantom(this: Store) {
   const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);
   await nolusWalletOfflineSigner.useAccount();
 
+  const { address } = nolusWalletOfflineSigner;
+  if (address === undefined) {
+    throw new Error("Phantom connect failed: wallet exposes no account address");
+  }
+
   WalletStorage.saveWalletConnectMechanism(WalletConnectMechanism.SOL_PHANTOM);
   WalletStorage.setPubKey(Buffer.from(pubkeyAny).toString("hex"));
   applyWalletProtocolFilter(WalletConnectMechanism.SOL_PHANTOM);
@@ -23,5 +28,5 @@ export async function connectPhantom(this: Store) {
   this.wallet = nolusWalletOfflineSigner;
   applyNolusWalletOverrides(this.wallet);
 
-  void IntercomService.load(this.wallet.address, "phantom");
+  void IntercomService.load(address, "phantom");
 }

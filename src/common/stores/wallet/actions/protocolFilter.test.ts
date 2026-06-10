@@ -39,6 +39,9 @@ vi.hoisted(() => {
   }
 });
 
+// Mutable so individual tests can simulate a signer without an address.
+const signerStub = vi.hoisted((): { address: string | undefined } => ({ address: "nolus1abc" }));
+
 const setProtocolFilter = vi.fn();
 vi.mock("@/common/stores/config", () => ({
   useConfigStore: () => ({ setProtocolFilter })
@@ -72,11 +75,13 @@ vi.mock("@nolus/nolusjs", () => ({
     getInstance: () => ({ getChainId: vi.fn().mockResolvedValue("nolus-1") })
   },
   NolusWalletFactory: {
-    nolusOfflineSigner: vi.fn().mockResolvedValue({
-      pubKey: "deadbeef",
-      address: "nolus1abc",
-      useAccount: vi.fn().mockResolvedValue(undefined)
-    }),
+    nolusOfflineSigner: vi.fn().mockImplementation(() =>
+      Promise.resolve({
+        pubKey: "deadbeef",
+        address: signerStub.address,
+        useAccount: vi.fn().mockResolvedValue(undefined)
+      })
+    ),
     nolusLedgerWallet: vi.fn().mockResolvedValue({
       pubKey: "ledgerpubkey",
       address: "nolus1ledger",
@@ -139,6 +144,7 @@ import type { Store } from "../types";
 beforeEach(() => {
   setProtocolFilter.mockClear();
   solanaWalletCtor.mockClear();
+  signerStub.address = "nolus1abc";
   localStorage.clear();
 });
 
@@ -196,6 +202,14 @@ describe("connectPhantom", () => {
     expect(solanaWalletCtor).toHaveBeenCalledTimes(1);
     expect(solanaWalletCtor).toHaveBeenCalledWith("phantom");
   });
+
+  it("throws when the signer exposes no account address", async () => {
+    signerStub.address = undefined;
+    const store = makeStore();
+
+    await expect(connectPhantom.call(store)).rejects.toThrow("wallet exposes no account address");
+    expect(setProtocolFilter).not.toHaveBeenCalled();
+  });
 });
 
 describe("connectSolflare", () => {
@@ -213,6 +227,14 @@ describe("connectSolflare", () => {
 
     expect(solanaWalletCtor).toHaveBeenCalledTimes(1);
     expect(solanaWalletCtor).toHaveBeenCalledWith("solflare");
+  });
+
+  it("throws when the signer exposes no account address", async () => {
+    signerStub.address = undefined;
+    const store = makeStore();
+
+    await expect(connectSolflare.call(store)).rejects.toThrow("wallet exposes no account address");
+    expect(setProtocolFilter).not.toHaveBeenCalled();
   });
 });
 
