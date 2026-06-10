@@ -72,8 +72,12 @@ async function setStats() {
   await statsStore.fetchMonthlyLeases(props.period);
 }
 
-function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivElement, unknown, HTMLElement, unknown>) {
-  if (!plotContainer) return;
+function isTooltipSelection(value: unknown): value is Selection<HTMLDivElement, unknown, HTMLElement, unknown> {
+  return value instanceof Object && "html" in value && "style" in value && "node" in value;
+}
+
+function updateChart(plotContainer: unknown, tooltip: unknown) {
+  if (!(plotContainer instanceof HTMLElement) || !isTooltipSelection(tooltip)) return;
 
   plotContainer.innerHTML = "";
   chartWidth = getChartWidth(plotContainer);
@@ -86,9 +90,9 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
 
   const plotChart = rectY(
     loans.value,
-    // @ts-expect-error -- Observable Plot binX typing mismatch with rectY options
     binX(
       { y: "sum" },
+      // @ts-expect-error -- Observable Plot's BinXInputs omits the y input channel consumed by the sum reducer
       { x: "date", y: "amount", fill: styles.getPropertyValue("--color-icon-success"), thresholds: timeMonth }
     )
   ).plot({
@@ -163,7 +167,10 @@ function updateChart(plotContainer: HTMLElement, tooltip: Selection<HTMLDivEleme
     });
 }
 
-function getClosestDataPoint(cPosition: number) {
+function getClosestDataPoint(cPosition: unknown) {
+  if (typeof cPosition !== "number") {
+    return null;
+  }
   const plotAreaWidth = chartWidth - marginLeft - marginRight;
   const adjustedX = cPosition - marginLeft;
   const barWidth = plotAreaWidth / loans.value.length;

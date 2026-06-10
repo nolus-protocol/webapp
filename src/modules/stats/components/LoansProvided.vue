@@ -43,8 +43,26 @@ const configStore = useConfigStore();
 const statsStore = useStatsStore();
 
 // Computed properties from store
-const openPositionValue = computed(() => statsStore.loansStats.openPositionValue?.open_position_value ?? "0");
-const openInterest = computed(() => statsStore.loansStats.openInterest?.open_interest ?? "0");
+const openPositionValue = computed(() => {
+  const value = statsStore.loansStats.openPositionValue?.open_position_value;
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return value.toString();
+  }
+  return "0";
+});
+const openInterest = computed(() => {
+  const value = statsStore.loansStats.openInterest?.open_interest;
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number") {
+    return value.toString();
+  }
+  return "0";
+});
 const loading = computed(() => statsStore.loansStatsLoading && !statsStore.hasLoansStats);
 
 // Reacts to: configStore.initialized.

@@ -2,8 +2,11 @@
   <Widget class="!p-0">
     <WidgetHeader
       :label="walletConnected && !isEmpty ? $t('message.assets') : ''"
-      :icon="walletConnected && !isEmpty ? { name: 'assets', class: 'fill-icon-link' } : undefined"
-      :badge="walletConnected && !isEmpty ? { content: filteredAssets.length.toString() } : undefined"
+      v-bind="
+        walletConnected && !isEmpty
+          ? { icon: { name: 'assets', class: 'fill-icon-link' }, badge: { content: filteredAssets.length.toString() } }
+          : {}
+      "
       class="px-6 pt-6"
     >
       <template v-if="walletConnected && !isEmpty">
@@ -63,9 +66,9 @@
             image: { name: 'deposit-assets' },
             title: $t('message.assets'),
             description: $t('message.deposit-assets'),
-            button: wallet.wallet
-              ? { name: $t('message.receive'), icon: 'plus', url: `/${AssetsDialog.RECEIVE}` }
-              : undefined
+            ...(wallet.wallet
+              ? { button: { name: $t('message.receive'), icon: 'plus', url: `/${AssetsDialog.RECEIVE}` } }
+              : {})
           }
         ]"
       />
@@ -200,6 +203,7 @@ const assets = computed<TableRowItemProps[]>(() => {
     const stableDec = new Dec(item.balanceUsd.toFixed(2));
     const balance = mobile ? formatMobileAmount(balanceDec) : formatTokenBalance(balanceDec);
     const stable_balance = mobile ? formatMobileUsd(stableDec) : formatUsd(item.balanceUsd);
+    const yieldValue = getYield(item);
     return {
       items: [
         {
@@ -215,7 +219,7 @@ const assets = computed<TableRowItemProps[]>(() => {
           subValue: hide.value ? "****" : stable_balance,
           variant: "right"
         },
-        { value: getYield(item), class: "text-typography-success md:flex hidden" }
+        { ...(yieldValue !== undefined ? { value: yieldValue } : {}), class: "text-typography-success md:flex hidden" }
       ]
     };
   });
