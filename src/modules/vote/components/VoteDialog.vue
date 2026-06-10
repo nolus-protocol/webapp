@@ -200,10 +200,14 @@ async function onVoteEmit(vote: VoteOption) {
 
     const connectedWallet = wallet.wallet;
     if (connectedWallet) {
+      const voter = connectedWallet.address;
+      if (voter === undefined) {
+        throw new Error("wallet address is not available for voting");
+      }
       const typeUrl = "/cosmos.gov.v1beta1.MsgVote";
       const voteMsg = MsgVote.fromPartial({
         proposalId: BigInt(props.proposal.id),
-        voter: connectedWallet.address,
+        voter,
         option: vote
       });
 

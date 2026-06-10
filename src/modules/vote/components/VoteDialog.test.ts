@@ -27,7 +27,7 @@ const hoisted = vi.hoisted(() => {
   const onShowToast = vi.fn();
 
   const walletRef: {
-    value: { simulateTx: typeof simulateTx; broadcastTx: typeof broadcastTx; address: string } | null;
+    value: { simulateTx: typeof simulateTx; broadcastTx: typeof broadcastTx; address: string | undefined } | null;
   } = {
     value: { simulateTx, broadcastTx, address: "nolus1abc" }
   };
@@ -125,13 +125,22 @@ vi.mock("./VotingLine.vue", () => ({
 import { mount, flushPromises } from "@vue/test-utils";
 import { Dec } from "@keplr-wallet/unit";
 import VoteDialog from "./VoteDialog.vue";
+import type { Proposal } from "@/modules/vote/types";
 
-function makeProposal(status = "PROPOSAL_STATUS_VOTING_PERIOD") {
+function makeProposal(status = "PROPOSAL_STATUS_VOTING_PERIOD"): Proposal {
   return {
     id: "42",
     title: "Test Proposal",
     summary: "Do the thing",
-    status,
+    // Runtime proposals carry PROPOSAL_STATUS_VOTING_PERIOD even though
+    // Proposal["status"] excludes it; same boundary assertion production uses.
+    status: status as Proposal["status"],
+    messages: [],
+    submit_time: "2029-12-01T00:00:00Z",
+    deposit_end_time: "2029-12-15T00:00:00Z",
+    total_deposit: [],
+    voting_start_time: "2029-12-15T00:00:00Z",
+    voted: false,
     tally: {
       yes_count: "0",
       abstain_count: "0",
@@ -222,6 +231,21 @@ describe("VoteDialog.vue", () => {
     expect(hoisted.walletOperationMock).toHaveBeenCalledTimes(1);
     expect(hoisted.simulateTx).toHaveBeenCalledTimes(1);
     expect(hoisted.broadcastTx).toHaveBeenCalledTimes(1);
+    wrapper.unmount();
+  });
+
+  it("does not dispatch a vote when the wallet has no address", async () => {
+    hoisted.walletRef.value = { simulateTx: hoisted.simulateTx, broadcastTx: hoisted.broadcastTx, address: undefined };
+
+    const wrapper = factory();
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="message.yes"]').trigger("click");
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(hoisted.simulateTx).not.toHaveBeenCalled();
+    expect(hoisted.broadcastTx).not.toHaveBeenCalled();
+    expect(hoisted.loggerError).toHaveBeenCalled();
     wrapper.unmount();
   });
 

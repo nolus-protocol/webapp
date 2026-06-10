@@ -11,8 +11,8 @@
         <ProposalItemWrapper
           v-for="proposal in proposals"
           :key="proposal.id"
-          :bondedTokens="bondedTokens"
-          :quorum="quorum"
+          :bondedTokens="bondedTokensDec"
+          :quorum="quorumDec"
           :state="proposal"
           @actionButton="onActionButton"
           class="h-fit flex-[0_calc(100%/2-16px)]"
@@ -32,8 +32,8 @@
       <VoteDialog
         ref="dialog"
         :proposal="selectedProposal"
-        :bondedTokens="bondedTokens"
-        :quorumTokens="quorum"
+        :bondedTokens="bondedTokensDec"
+        :quorumTokens="quorumDec"
       />
     </template>
     <template v-else>
@@ -46,6 +46,7 @@
 import ListHeader from "@/common/components/ListHeader.vue";
 import { computed, onUnmounted, ref, watch } from "vue";
 import { ChainConstants } from "@nolus/nolusjs";
+import { Dec } from "@keplr-wallet/unit";
 import { Button } from "web-components";
 import { type Proposal } from "@/modules/vote/types";
 import { ProposalItemWrapper, ProposalSkeleton, VoteDialog } from "@/modules/vote/components";
@@ -74,6 +75,11 @@ const selectedProposal = ref({
 const { fetchGovernanceProposals, fetchProposalData, fetchData, LOAD_TIMEOUT, limit } = useFetchGovernanceProposals();
 const { loadBondedTokens, bondedTokens } = useLoadBondedTokens();
 const { loadTallying, quorum } = useLoadTallying();
+
+// ref(new Dec(...)) erases Dec's private members from the unwrapped type, so the
+// composable values are rebuilt as real Dec instances for the typed Dec props.
+const bondedTokensDec = computed(() => new Dec(bondedTokens.value.toString()));
+const quorumDec = computed(() => new Dec(quorum.value.toString()));
 
 // Reacts to: configStore.initialized.
 // Idempotency: onInit() runs a Promise.allSettled over the proposal / bonded-token

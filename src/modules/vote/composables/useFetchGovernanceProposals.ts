@@ -1,9 +1,33 @@
 import { ref, type Ref } from "vue";
 import { Logger, WalletStorage } from "@/common/utils";
-import { type Proposal } from "@/modules/vote/types";
-import type { ProposalStatus } from "web-components";
+import { type Proposal, type ProposalContent } from "@/modules/vote/types";
 import { BackendApi } from "@/common/api";
+import type { ProposalInfo } from "@/common/api/types/governance";
 import { getProposalsConfig } from "@/common/utils/ConfigService";
+
+function isProposalContent(value: unknown): value is ProposalContent {
+  return typeof value === "object" && value !== null && "@type" in value && typeof value["@type"] === "string";
+}
+
+function toProposal(p: ProposalInfo): Proposal {
+  return {
+    id: p.id,
+    // The runtime status set includes PROPOSAL_STATUS_VOTING_PERIOD, which
+    // Proposal["status"] excludes by (pre-existing) design; the assertion keeps
+    // the long-standing lie at the single mapping boundary.
+    status: p.status as Proposal["status"],
+    submit_time: p.submit_time ?? "",
+    deposit_end_time: p.deposit_end_time ?? "",
+    total_deposit: [],
+    voting_start_time: p.voting_start_time ?? "",
+    voting_end_time: p.voting_end_time ?? "",
+    title: p.title ?? "",
+    summary: p.summary ?? "",
+    messages: p.messages.filter(isProposalContent),
+    tally: p.tally ?? { yes_count: "0", abstain_count: "0", no_count: "0", no_with_veto_count: "0" },
+    voted: p.voted ?? false
+  };
+}
 
 export const useFetchGovernanceProposals = () => {
   const LOAD_TIMEOUT = 500;
@@ -31,24 +55,7 @@ export const useFetchGovernanceProposals = () => {
     // Filter out hidden proposals
     const filteredProposals = proposalsResponse.proposals.filter((item) => !proposalsConfig.hide.includes(item.id));
 
-    // Map to the expected Proposal type
-    const mappedProposals: Proposal[] = filteredProposals.map((p) => ({
-      id: p.id,
-      status: p.status as ProposalStatus,
-      final_tally_result: p.final_tally_result,
-      submit_time: p.submit_time,
-      deposit_end_time: p.deposit_end_time,
-      voting_start_time: p.voting_start_time,
-      voting_end_time: p.voting_end_time,
-      title: p.title,
-      summary: p.summary,
-      messages: p.messages,
-      metadata: p.metadata,
-      tally: p.tally,
-      voted: p.voted
-    }));
-
-    proposals.value = mappedProposals;
+    proposals.value = filteredProposals.map(toProposal);
     pagination.value = {
       total: parseInt(proposalsResponse.pagination.total, 10),
       next_key: proposalsResponse.pagination.next_key || ""
@@ -70,8 +77,11 @@ export const useFetchGovernanceProposals = () => {
       const filteredProposals = proposalsResponse.proposals.filter((item) => !reqConfig.hide.includes(item.id));
 
       return {
-        proposals: filteredProposals,
-        pagination: proposalsResponse.pagination
+        proposals: filteredProposals.map(toProposal),
+        pagination: {
+          total: parseInt(proposalsResponse.pagination.total, 10),
+          next_key: proposalsResponse.pagination.next_key || ""
+        }
       };
     } catch (error: unknown) {
       Logger.error(error);
@@ -92,7 +102,7 @@ export const useFetchGovernanceProposals = () => {
         promises.push(
           BackendApi.getProposalVote(proposal.id, address)
             .then((response) => {
-              proposal.voted = response?.vote?.options?.length > 0;
+              proposal.voted = (response?.vote?.options?.length ?? 0) > 0;
             })
             .catch((e) => {
               Logger.error(e);

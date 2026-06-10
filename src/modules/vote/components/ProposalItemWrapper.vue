@@ -11,7 +11,7 @@
     :turnout="turnout"
     :voteButtonText="$t('message.vote')"
     :voted="!state.voted"
-    :voting_end_time="formatDateTime(state.voting_end_time)"
+    :voting_end_time="formatDateTime(state.voting_end_time) ?? ''"
     :labels
     @actionButton="emit('actionButton', state)"
     :turnoutLabel="$t('message.turnout')"
