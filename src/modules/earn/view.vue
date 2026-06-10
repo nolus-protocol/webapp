@@ -98,7 +98,14 @@ const stableAmount = computed(() => {
 
 // Total earnings (rewards) from ETL via analytics store
 const earningsAmount = computed(() => {
-  return analyticsStore.earnings?.earnings ?? "0.00";
+  const earnings = analyticsStore.earnings?.earnings;
+  if (typeof earnings === "string") {
+    return earnings;
+  }
+  if (typeof earnings === "number") {
+    return earnings.toString();
+  }
+  return "0.00";
 });
 
 // Projected annual yield based on current positions and APYs
@@ -181,7 +188,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
               value: item.currency?.shortName ?? item.protocol,
               subValue: item.apr,
               subValueClass: "text-typography-success",
-              image: item.currency?.icon,
+              ...(item.currency?.icon !== undefined ? { image: item.currency.icon } : {}),
               variant: "left"
             },
             {
@@ -212,7 +219,7 @@ const assetsRows = computed<TableRowItemProps[]>(() => {
           {
             value: item.currency?.shortName ?? item.protocol,
             subValue: item.currency?.name ?? "",
-            image: item.currency?.icon,
+            ...(item.currency?.icon !== undefined ? { image: item.currency.icon } : {}),
             variant: "left"
           },
           {

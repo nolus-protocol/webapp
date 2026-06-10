@@ -132,7 +132,9 @@ vi.mock("@/common/utils", () => ({
     coinMinimalDenom: "ibc/USDC"
   }),
   validateAmountV2: hoisted.validateAmountV2Mock,
-  walletOperation: hoisted.walletOperationMock
+  walletOperation: hoisted.walletOperationMock,
+  classifyError: (e: unknown) =>
+    e instanceof Error && /liquidity/i.test(e.message) ? "message.no-liquidity" : "message.unexpected-error"
 }));
 
 vi.mock("@/common/utils/NumberFormatUtils", () => ({
@@ -231,7 +233,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { nextTick } from "vue";
 import SupplyForm from "./SupplyForm.vue";
 
@@ -252,6 +254,7 @@ describe("SupplyForm.vue", () => {
     hoisted.configRef.initialized = true;
     hoisted.configRef.protocolFilter = "OSMOSIS";
     hoisted.configRef.lpn = [{ key: "USDC@OSMOSIS" }];
+    hoisted.configRef.contracts = { OSMOSIS: { lpp: "nolus1lppcontract" } };
     hoisted.configRef.getActiveProtocolsForNetwork = vi.fn((_f: string) => ["OSMOSIS"]);
     hoisted.getBalance.mockReturnValue("0");
     hoisted.getProtocolApr.mockReturnValue(5);
@@ -338,6 +341,37 @@ describe("SupplyForm.vue", () => {
       expect(result).toBe("message.invalid-amount");
       wrapper.unmount();
     });
+  });
+
+  it("skips an lpn whose currenciesData entry is missing and logs the gap", () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    hoisted.configRef.lpn = [{ key: "USDC@OSMOSIS" }, { key: "GHOST@OSMOSIS" }];
+
+    const wrapper = factory();
+    const vm = wrapper.vm as unknown as { assets: Array<{ key: string }> };
+    expect(vm.assets).toHaveLength(1);
+    expect(vm.assets[0]?.key).toBe("USDC@OSMOSIS");
+    expect(errorSpy).toHaveBeenCalledWith("[SupplyForm] missing currency data for GHOST@OSMOSIS");
+
+    errorSpy.mockRestore();
+    wrapper.unmount();
+  });
+
+  it("surfaces a classified error and does not broadcast when the protocol has no contracts", async () => {
+    const wrapper = factory();
+    await flushPromises();
+    await nextTick();
+
+    await wrapper.find('[data-test="amount"]').setValue("100");
+    hoisted.configRef.contracts = {};
+
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    await nextTick();
+
+    expect(hoisted.walletRef.value?.broadcastTx).not.toHaveBeenCalled();
+    expect(wrapper.find('[data-test="error"]').text()).toBe("message.unexpected-error");
+    wrapper.unmount();
   });
 
   it("validateSupply does not throw before the per-protocol deposit capacity has loaded — finding 5", () => {
