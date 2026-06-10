@@ -107,6 +107,11 @@ async function requestClaim() {
   await run(async () => {
     if (!wallet.wallet) return;
 
+    const delegator = wallet.wallet.address;
+    if (delegator === undefined) {
+      throw new Error("wallet address is not available for claiming rewards");
+    }
+
     const data = stakingStore.rewards
       .filter((reward) => {
         return reward.rewards.some((r) => {
@@ -116,7 +121,7 @@ async function requestClaim() {
       })
       .map((reward) => ({
         validator: reward.validator_address,
-        delegator: wallet.wallet?.address
+        delegator
       }));
 
     if (data.length === 0) {

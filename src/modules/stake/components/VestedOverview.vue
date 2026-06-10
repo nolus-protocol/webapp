@@ -49,7 +49,7 @@ const balance = computed(() => {
 const stableBalance = computed(() => {
   const price = pricesStore.prices[asset.value.key]?.price;
   const stable = CurrencyUtils.calculateBalance(
-    price,
+    price ?? "0",
     new Coin(asset.value.ibcData, wallet.vestTokens.amount),
     asset.value.decimal_digits
   ).toDec();

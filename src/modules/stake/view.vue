@@ -105,7 +105,13 @@ watch(
 );
 
 async function loadVested() {
-  vestedTokens.value = await wallet.LOAD_VESTED_TOKENS();
+  // Pinia pre-binds actions to their store, so the method can be taken as a
+  // plain function; this drops the action's `this: Store` check, which the
+  // unwrapped pinia instance type cannot satisfy (UnwrapRef erases NolusWallet
+  // class methods from `state.wallet`).
+  const loadVestedTokens: () => Promise<{ endTime: string; amount: { amount: string; denom: string } }[]> =
+    wallet.LOAD_VESTED_TOKENS;
+  vestedTokens.value = await loadVestedTokens();
 }
 
 // Get native currency for price calculations
@@ -200,7 +206,7 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
         return {
           items: [
             {
-              value: position.validator_moniker,
+              value: position.validator_moniker ?? "",
               variant: "left",
               class: "break-all"
             },
@@ -216,7 +222,7 @@ const validatorRows = computed<TableRowItemProps[]>(() => {
       return {
         items: [
           {
-            value: position.validator_moniker,
+            value: position.validator_moniker ?? "",
             subValue: validator?.website ?? "",
             variant: "left",
             class: "break-all"

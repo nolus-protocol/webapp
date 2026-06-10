@@ -231,7 +231,11 @@ describe("UndelegateForm.vue", () => {
     await flushPromises();
 
     expect(hoisted.simulateUndelegateTx).toHaveBeenCalledTimes(1);
-    const txs = hoisted.simulateUndelegateTx.mock.calls[0][0] as Array<{
+    const firstCall = hoisted.simulateUndelegateTx.mock.calls[0];
+    if (firstCall === undefined) {
+      throw new Error("expected simulateUndelegateTx to have recorded a call");
+    }
+    const txs = firstCall[0] as Array<{
       validator: string;
       amount: { amount: string };
     }>;

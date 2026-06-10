@@ -247,6 +247,31 @@ describe("DelegateForm.vue", () => {
     wrapper.unmount();
   });
 
+  it("gives the remainder of an uneven split to the highest-commission validator", async () => {
+    hoisted.loadDelegatorValidators.mockResolvedValue([
+      { operator_address: "nolusvaloperLOW", commission: { commission_rates: { rate: "0.02" } } },
+      { operator_address: "nolusvaloperHIGH", commission: { commission_rates: { rate: "0.05" } } }
+    ]);
+
+    const wrapper = factory();
+    await wrapper.find('[data-test="amount"]').setValue("0.000003");
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    await nextTick();
+    await flushPromises();
+
+    expect(hoisted.simulateDelegateTx).toHaveBeenCalledTimes(1);
+    const firstCall = hoisted.simulateDelegateTx.mock.calls[0];
+    if (firstCall === undefined) {
+      throw new Error("expected simulateDelegateTx to have recorded a call");
+    }
+    expect(firstCall[0]).toEqual([
+      { validator: "nolusvaloperHIGH", amount: { denom: "unls", amount: "2" } },
+      { validator: "nolusvaloperLOW", amount: { denom: "unls", amount: "1" } }
+    ]);
+    wrapper.unmount();
+  });
+
   it("surfaces a localized message (not a silent stop) when delegate rejects — finding 9", async () => {
     hoisted.walletOperationMock.mockRejectedValueOnce(new Error("validator fetch failed"));
     const wrapper = factory();

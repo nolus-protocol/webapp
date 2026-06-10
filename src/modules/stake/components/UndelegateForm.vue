@@ -6,12 +6,12 @@
       class="px-6 py-4"
       labelAdvanced
       :balanceLabel="$t('message.balance')"
-      :selectedCurrencyOption="assets[0]"
+      :selectedCurrencyOption="nativeAsset"
       placeholder="0"
       :calculatedBalance="stable"
       @input="onInput"
       :error-msg="validationError"
-      :input-class="errorInsufficientBalance ? 'text-typography-error' : undefined"
+      :input-class="errorInsufficientBalance ? 'text-typography-error' : ''"
     >
       <template v-slot:label>
         <div class="flex items-center gap-1">
@@ -108,21 +108,21 @@ const date = computed(() => {
   return formatDateTime(date.toString());
 });
 
-const assets = computed(() => {
+const nativeAsset = computed(() => {
   // Use staking store delegations
   const amount = new Dec(stakingStore.totalStaked, NATIVE_ASSET.decimal_digits);
   const balance = formatTokenBalance(amount);
   const exactBalance = amount.isZero() ? "0" : amount.toString(NATIVE_ASSET.decimal_digits).replace(/\.?0+$/, "");
 
-  return [
-    {
-      value: NATIVE_ASSET.denom,
-      label: NATIVE_ASSET.label,
-      icon: NATIVE_ASSET.icon,
-      balance: { value: exactBalance, customLabel: `${balance} ${NATIVE_ASSET.label}`, ticker: NATIVE_ASSET.label }
-    }
-  ];
+  return {
+    value: NATIVE_ASSET.denom,
+    label: NATIVE_ASSET.label,
+    icon: NATIVE_ASSET.icon,
+    balance: { value: exactBalance, customLabel: `${balance} ${NATIVE_ASSET.label}`, ticker: NATIVE_ASSET.label }
+  };
 });
+
+const assets = computed(() => [nativeAsset.value]);
 
 const stable = computed(() => {
   try {
@@ -162,7 +162,7 @@ async function onNextClick() {
 }
 
 function validateInputs() {
-  const selectedCurrency = assets.value[0];
+  const selectedCurrency = nativeAsset.value;
   validationError.value = validateAmountV2(input.value, selectedCurrency.balance.value);
   return validationError.value;
 }
