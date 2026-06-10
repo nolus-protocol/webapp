@@ -54,6 +54,12 @@ class MockWebSocket {
   }
 }
 
+function firstSentMessage(ws: MockWebSocket): string {
+  const sent = ws.sentMessages[0];
+  if (sent === undefined) throw new Error("expected a message to have been sent");
+  return sent;
+}
+
 describe("WebSocketClientImpl", () => {
   let client: WebSocketClientImpl;
   let mockWs: MockWebSocket;
@@ -139,7 +145,7 @@ describe("WebSocketClientImpl", () => {
       client.subscribePrices(callback);
 
       expect(mockWs.sentMessages).toHaveLength(1);
-      const message = JSON.parse(mockWs.sentMessages[0]);
+      const message = JSON.parse(firstSentMessage(mockWs));
       expect(message.type).toBe("subscribe");
       expect(message.topic).toBe("prices");
     });
@@ -148,7 +154,7 @@ describe("WebSocketClientImpl", () => {
       const callback = vi.fn();
       client.subscribeBalances("addr1", callback);
 
-      const message = JSON.parse(mockWs.sentMessages[0]);
+      const message = JSON.parse(firstSentMessage(mockWs));
       expect(message.type).toBe("subscribe");
       expect(message.topic).toBe("balances");
       // Params are spread at top level due to backend's serde(flatten)
@@ -159,7 +165,7 @@ describe("WebSocketClientImpl", () => {
       const callback = vi.fn();
       client.subscribeLeases("owner1", callback);
 
-      const message = JSON.parse(mockWs.sentMessages[0]);
+      const message = JSON.parse(firstSentMessage(mockWs));
       expect(message.topic).toBe("leases");
       // Params are spread at top level due to backend's serde(flatten)
       expect(message.address).toBe("owner1");
@@ -169,7 +175,7 @@ describe("WebSocketClientImpl", () => {
       const callback = vi.fn();
       client.subscribeTxStatus("txhash1", "pirin-1", callback);
 
-      const message = JSON.parse(mockWs.sentMessages[0]);
+      const message = JSON.parse(firstSentMessage(mockWs));
       expect(message.topic).toBe("tx_status");
       // Params are spread at top level due to backend's serde(flatten)
       expect(message.hash).toBe("txhash1");
@@ -184,7 +190,7 @@ describe("WebSocketClientImpl", () => {
       unsubscribe();
 
       expect(mockWs.sentMessages).toHaveLength(1);
-      const message = JSON.parse(mockWs.sentMessages[0]);
+      const message = JSON.parse(firstSentMessage(mockWs));
       expect(message.type).toBe("unsubscribe");
       expect(message.topic).toBe("prices");
     });

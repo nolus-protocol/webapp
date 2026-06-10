@@ -152,7 +152,7 @@ export class BackendApiClient {
     path: string,
     options: {
       body?: unknown;
-      params?: Record<string, string | number | boolean | undefined>;
+      params?: Record<string, string | number | boolean | undefined> | undefined;
       headers?: Record<string, string>;
       schema?: z.ZodType<T>;
     } = {}
@@ -219,7 +219,7 @@ export class BackendApiClient {
     const response = await fetch(urlString, {
       method,
       headers,
-      body: options.body ? JSON.stringify(options.body) : undefined
+      body: options.body ? JSON.stringify(options.body) : null
     });
 
     if (!response.ok) {
