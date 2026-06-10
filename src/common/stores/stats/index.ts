@@ -122,7 +122,7 @@ export const useStatsStore = defineStore("stats", () => {
       // type does not), so the field is read through a runtime narrowing chain.
       const pnlStats = data.realized_pnl_stats;
       const realizedPnlAmount =
-        pnlStats !== null && "amount" in pnlStats && typeof pnlStats.amount === "string" ? pnlStats.amount : "0";
+        pnlStats != null && "amount" in pnlStats && typeof pnlStats.amount === "string" ? pnlStats.amount : "0";
 
       overview.value = {
         tvl: data.tvl?.total_value_locked ?? "0",
