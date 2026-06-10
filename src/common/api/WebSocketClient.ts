@@ -155,12 +155,17 @@ export type ConnectionState = "disconnected" | "connecting" | "connected" | "rec
 export type ConnectionStateCallback = (state: ConnectionState) => void;
 
 /**
- * Subscription tracking
+ * Subscription tracking.
+ *
+ * Callbacks are stored type-erased (`(...args: never[]) => void` accepts any
+ * function): each public subscribe method pairs a topic with its typed callback,
+ * and `handleMessage` dispatches the matching payload per topic — the correlation
+ * is enforced at those two sites, not by the store itself.
  */
 interface Subscription {
   topic: SubscriptionTopic;
-  params?: Record<string, unknown>;
-  callbacks: Set<(...args: unknown[]) => void>;
+  params?: Record<string, unknown> | undefined;
+  callbacks: Set<(...args: never[]) => void>;
 }
 
 /**
@@ -405,7 +410,9 @@ class WebSocketClientImpl {
     if (subscription) {
       subscription.callbacks.forEach((callback) => {
         try {
-          callback(...args);
+          // Type-erased dispatch (see Subscription): args match the callback's
+          // signature because both are keyed by the same topic.
+          Reflect.apply(callback, undefined, args);
         } catch (error) {
           console.error("[WebSocket] Callback error", error);
         }
@@ -418,7 +425,7 @@ class WebSocketClientImpl {
       if (key.startsWith("leases:")) {
         subscription.callbacks.forEach((callback) => {
           try {
-            callback(lease);
+            Reflect.apply(callback, undefined, [lease]);
           } catch (error) {
             console.error("[WebSocket] Lease callback error", error);
           }
@@ -447,7 +454,7 @@ class WebSocketClientImpl {
   private subscribe(
     key: string,
     topic: SubscriptionTopic,
-    callback: (...args: unknown[]) => void,
+    callback: (...args: never[]) => void,
     params?: Record<string, unknown>
   ): Unsubscribe {
     let subscription = this.subscriptions.get(key);

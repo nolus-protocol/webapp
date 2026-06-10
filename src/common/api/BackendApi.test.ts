@@ -49,7 +49,9 @@ describe("BackendApi", () => {
 
       await api.getPrices();
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [calledUrl, calledInit] = fetchMock.mock.calls[0];
+      const firstCall = fetchMock.mock.calls[0];
+      if (firstCall === undefined) throw new Error("expected fetch to have been called");
+      const [calledUrl, calledInit] = firstCall;
       expect(String(calledUrl)).toContain("/api/prices");
       expect(calledInit?.method).toBe("GET");
     });
@@ -64,8 +66,9 @@ describe("BackendApi", () => {
       );
 
       await api.getBalances("nolus1abc");
-      const [calledUrl] = fetchMock.mock.calls[0];
-      expect(String(calledUrl)).toContain("address=nolus1abc");
+      const balancesCall = fetchMock.mock.calls[0];
+      if (balancesCall === undefined) throw new Error("expected fetch to have been called");
+      expect(String(balancesCall[0])).toContain("address=nolus1abc");
     });
 
     it("should send body on POST", async () => {
@@ -74,7 +77,9 @@ describe("BackendApi", () => {
 
       await api.trackSkipTransaction("osmosis-1", "0xdeadbeef");
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      const init = fetchMock.mock.calls[0][1];
+      const trackCall = fetchMock.mock.calls[0];
+      if (trackCall === undefined) throw new Error("expected fetch to have been called");
+      const init = trackCall[1];
       expect(init?.method).toBe("POST");
       expect(init?.body).toBeDefined();
       const parsed = JSON.parse(init?.body as string);
@@ -367,7 +372,9 @@ describe("BackendApi", () => {
 
     // Helper: assert fetch was called with URL containing path and given method
     const expectCall = (path: string, method: string) => {
-      const [url, init] = fetchMock.mock.calls[0];
+      const call = fetchMock.mock.calls[0];
+      if (call === undefined) throw new Error("expected fetch to have been called");
+      const [url, init] = call;
       expect(String(url)).toContain(path);
       expect(init?.method).toBe(method);
     };
@@ -540,7 +547,9 @@ describe("BackendApi", () => {
       const api = new BackendApiClient();
       fetchMock.mockResolvedValueOnce(jsonResponse({ token: "abc" }));
       await api.getIntercomToken("nolus1x", "keplr");
-      const [url, init] = fetchMock.mock.calls[0];
+      const call = fetchMock.mock.calls[0];
+      if (call === undefined) throw new Error("expected fetch to have been called");
+      const [url, init] = call;
       expect(String(url)).toContain("/api/intercom/hash");
       expect(init?.method).toBe("POST");
       const parsed = JSON.parse(init?.body as string);
@@ -587,7 +596,9 @@ describe("BackendApi", () => {
         staking: false,
         positions_ids: ["nolus1p1", "nolus1p2"]
       });
-      const [url] = fetchMock.mock.calls[0];
+      const call = fetchMock.mock.calls[0];
+      if (call === undefined) throw new Error("expected fetch to have been called");
+      const [url] = call;
       const urlStr = String(url);
       expect(urlStr).toContain("/api/etl/txs");
       expect(urlStr).toContain("filter=positions");
@@ -603,7 +614,9 @@ describe("BackendApi", () => {
         earn: true,
         staking: true
       });
-      const [url] = fetchMock.mock.calls[0];
+      const call = fetchMock.mock.calls[0];
+      if (call === undefined) throw new Error("expected fetch to have been called");
+      const [url] = call;
       expect(String(url)).not.toContain("filter=");
     });
 
@@ -611,11 +624,15 @@ describe("BackendApi", () => {
       const api = new BackendApiClient();
       fetchMock.mockResolvedValueOnce(okArr());
       await api.searchLeases("nolus1x", 0, 10, "foo");
-      expect(String(fetchMock.mock.calls[0][0])).toContain("search=foo");
+      const searchCall = fetchMock.mock.calls[0];
+      if (searchCall === undefined) throw new Error("expected fetch to have been called for the search request");
+      expect(String(searchCall[0])).toContain("search=foo");
 
       fetchMock.mockResolvedValueOnce(okArr());
       await api.searchLeases("nolus1x", 0, 10);
-      expect(String(fetchMock.mock.calls[1][0])).not.toContain("search=");
+      const plainCall = fetchMock.mock.calls[1];
+      if (plainCall === undefined) throw new Error("expected fetch to have been called for the plain request");
+      expect(String(plainCall[0])).not.toContain("search=");
     });
   });
 });
