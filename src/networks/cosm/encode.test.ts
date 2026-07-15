@@ -60,6 +60,32 @@ describe("encodePubkey", () => {
   });
 });
 
+describe("wire compatibility (regression anchor)", () => {
+  // Known-good protobuf wire output for SECP_KEY captured against the pre-migration
+  // cosmjs-types-legacy@0.8.0 codec. The secp256k1 PubKey message is a single bytes
+  // field (tag 0x0a, length 0x21=33, then the 33 key bytes). Migrating to
+  // cosmjs-types@0.11.0 must emit these exact bytes — a mismatch is codec drift.
+  const SECP_PUBKEY_WIRE = new Uint8Array([
+    10, 33, 2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+    29, 30, 31, 32
+  ]);
+
+  it("encodes a secp256k1 pubkey to the exact known-good wire bytes", () => {
+    const pubkey: Pubkey = { type: "tendermint/PubKeySecp256k1", value: SECP_KEY_B64 };
+    const any = encodePubkey(pubkey);
+    expect(any.typeUrl).toBe("/cosmos.crypto.secp256k1.PubKey");
+    expect(Array.from(any.value)).toEqual(Array.from(SECP_PUBKEY_WIRE));
+  });
+
+  it("decodes the known-good wire bytes back to the original amino pubkey", () => {
+    const any = Any.fromPartial({
+      typeUrl: "/cosmos.crypto.secp256k1.PubKey",
+      value: SECP_PUBKEY_WIRE
+    });
+    expect(decodePubkey(any)).toEqual({ type: "tendermint/PubKeySecp256k1", value: SECP_KEY_B64 });
+  });
+});
+
 describe("decodePubkey", () => {
   it("returns null when pubkey is undefined", () => {
     expect(decodePubkey(undefined)).toBeNull();
