@@ -2,7 +2,8 @@ import type { Keplr } from "@keplr-wallet/types";
 
 import { KeyUtils } from "@nolus/nolusjs";
 import { WalletStorage } from ".";
-import { Wallet, NETWORK_DATA } from "@/networks";
+import { Wallet } from "@/networks";
+import { getNetworkData } from "@/networks/config";
 import { fetchEndpoints } from "./EndpointService";
 
 // Note: unlike Phantom/Solflare, Keplr does NOT expose an `isKeplr === true` marker
@@ -45,7 +46,7 @@ export class WalletAccess {
   }
 
   public static async getWallet(key: string): Promise<Wallet> {
-    const network = NETWORK_DATA;
+    const network = getNetworkData();
     const supportedNetwork = network.supportedNetworks[key];
     if (supportedNetwork === undefined) {
       throw new Error(`Unsupported network: ${key}`);

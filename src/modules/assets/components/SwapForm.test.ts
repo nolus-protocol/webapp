@@ -144,7 +144,7 @@ vi.mock("vue-i18n", () => ({
 }));
 
 vi.mock("@/networks/config", () => ({
-  NETWORK_DATA: { supportedNetworks: {} }
+  getNetworkData: () => ({ supportedNetworks: {} })
 }));
 
 vi.mock("@/networks/types", () => ({

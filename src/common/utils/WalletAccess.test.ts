@@ -31,17 +31,20 @@ vi.mock("./EndpointService", () => ({
   fetchEndpoints: mocks.fetchEndpoints
 }));
 
-// @/networks — Wallet.getInstance + NETWORK_DATA.supportedNetworks[key].key
+// @/networks — Wallet.getInstance; @/networks/config — getNetworkData().supportedNetworks[key].key
 vi.mock("@/networks", () => ({
   Wallet: {
     getInstance: mocks.walletGetInstance
-  },
-  NETWORK_DATA: {
+  }
+}));
+
+vi.mock("@/networks/config", () => ({
+  getNetworkData: () => ({
     supportedNetworks: {
       NOLUS: { key: "NOLUS" },
       OSMOSIS: { key: "OSMOSIS" }
     }
-  }
+  })
 }));
 
 // Import under test AFTER mocks are declared.

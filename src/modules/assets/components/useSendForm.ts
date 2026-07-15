@@ -2,7 +2,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
 import { SwapStatus } from "../enums";
-import { NETWORK_DATA } from "@/networks/config";
+import { getNetworkData } from "@/networks/config";
 import { NATIVE_NETWORK } from "../../../config/global/network";
 import { IGNORED_NETWORKS } from "../../../config/global";
 
@@ -101,7 +101,7 @@ export function useSendForm() {
   const balancesStore = useBalancesStore();
   const configStore = useConfigStore();
   const historyStore = useHistoryStore();
-  const networks = ref(NETWORK_DATA.list);
+  const networks = ref(getNetworkData().list);
 
   const selectedNetwork = ref(0);
   const networkCurrencies = ref<ExternalCurrency[] | AssetBalance[]>(balancesStore.filteredBalances);
@@ -170,7 +170,7 @@ export function useSendForm() {
       const [config, chns] = await Promise.all([getSkipRouteConfig(), SkipRouter.getChains()]);
       skipRouteConfig = config;
       chainsData = chns;
-      const n = NETWORK_DATA.list.filter((item) => {
+      const n = getNetworkData().list.filter((item) => {
         if (config.transfers[item.key]) {
           return true;
         }
@@ -342,7 +342,7 @@ export function useSendForm() {
 
     disablePicker.value = true;
     try {
-      const ntwrk = NETWORK_DATA;
+      const ntwrk = getNetworkData();
       const currentNetwork = network.value;
       if (currentNetwork === undefined) {
         throw new Error("Network not selected");
@@ -700,7 +700,7 @@ export function useSendForm() {
       const fn = async function () {
         if (chain !== NATIVE_NETWORK.key) {
           const client = await WalletAccess.getWallet(chain);
-          const network = NETWORK_DATA;
+          const network = getNetworkData();
           const networkData = network?.supportedNetworks[chain];
           if (networkData === undefined) {
             throw new Error(`Unsupported network: ${chain}`);

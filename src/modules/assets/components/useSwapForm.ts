@@ -14,7 +14,7 @@ import { useI18n } from "vue-i18n";
 import { type BaseWallet } from "@/networks";
 import type { NolusWallet } from "@nolus/nolusjs";
 import { SwapStatus } from "../enums";
-import { NETWORK_DATA } from "@/networks/config";
+import { getNetworkData } from "@/networks/config";
 import { SkipRouter, type SkipTxResult } from "@/common/utils/SkipRoute";
 import { useConfigStore } from "@/common/stores/config";
 import { useHistoryStore } from "@/common/stores/history";
@@ -498,7 +498,7 @@ export function useSwapForm() {
     for (const chain in chainToParse) {
       const fn = async function () {
         const client = await WalletAccess.getWallet(chain);
-        const network = NETWORK_DATA;
+        const network = getNetworkData();
         const networkData = network?.supportedNetworks[chain];
         if (networkData === undefined) {
           throw new Error(`Unsupported network: ${chain}`);
