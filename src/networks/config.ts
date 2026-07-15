@@ -2,7 +2,7 @@
  * Network Configuration
  *
  * All network data is fetched from the backend via the config store.
- * This file only provides helper functions and legacy exports for backward compatibility.
+ * This file only provides helper functions.
  */
 
 import { embedChainInfo as nolusChainInfo } from "./list/nolus/constants";
@@ -34,9 +34,9 @@ const CHAIN_INFO_EMBEDDERS: { [key: string]: (...args: unknown[]) => unknown } =
 };
 
 /**
- * Get NETWORK_DATA dynamically from config store
+ * Get network data dynamically from config store
  */
-function getNetworkData() {
+export function getNetworkData() {
   const configStore = useConfigStore();
   const networks = configStore.networks;
 
@@ -90,16 +90,3 @@ function getNetworkData() {
     supportedNetworks
   };
 }
-
-/**
- * Legacy export for NETWORK_DATA
- * @deprecated Use getNetworkData() instead
- */
-export const NETWORK_DATA = {
-  get list() {
-    return getNetworkData().list;
-  },
-  get supportedNetworks() {
-    return getNetworkData().supportedNetworks;
-  }
-};

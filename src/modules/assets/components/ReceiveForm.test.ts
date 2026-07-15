@@ -138,7 +138,7 @@ vi.mock("vue-i18n", () => ({
 }));
 
 vi.mock("@/networks/config", () => ({
-  NETWORK_DATA: {
+  getNetworkData: () => ({
     list: [
       { key: "OSMOSIS", value: "osmosis", native: false, label: "Osmosis" },
       { key: "NOLUS", value: "nolus", native: true, label: "Nolus" }
@@ -146,7 +146,7 @@ vi.mock("@/networks/config", () => ({
     supportedNetworks: {
       OSMOSIS: { value: "osmosis", ticker: "OSMO", fees: { transfer_amount: 1000 } }
     }
-  }
+  })
 }));
 
 vi.mock("@/networks", () => ({}));

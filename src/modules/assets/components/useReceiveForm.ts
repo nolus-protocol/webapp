@@ -2,7 +2,7 @@ import type { AssetBalance } from "@/common/stores/wallet/types";
 import type { Coin } from "@keplr-wallet/types";
 
 import { SwapStatus } from "../enums";
-import { NETWORK_DATA } from "@/networks/config";
+import { getNetworkData } from "@/networks/config";
 import { IGNORED_NETWORKS } from "../../../config/global";
 
 import type { Wallet } from "@/networks";
@@ -89,7 +89,7 @@ export function useReceiveForm() {
   const balancesStore = useBalancesStore();
   const configStore = useConfigStore();
   const historyStore = useHistoryStore();
-  const networks = ref(NETWORK_DATA.list);
+  const networks = ref(getNetworkData().list);
 
   const selectedNetwork = ref(0);
   const networkCurrencies = ref<AssetBalance[]>([]);
@@ -138,7 +138,7 @@ export function useReceiveForm() {
       skipRouteConfig = config;
       chainsData = chns;
 
-      const n = NETWORK_DATA.list.filter((item) => {
+      const n = getNetworkData().list.filter((item) => {
         if (config.transfers[item.key]) {
           return true;
         }
@@ -285,7 +285,7 @@ export function useReceiveForm() {
         if (currentNetwork === undefined) {
           throw new Error("Network not selected");
         }
-        const networkdata = NETWORK_DATA?.supportedNetworks[currentNetwork.key];
+        const networkdata = getNetworkData()?.supportedNetworks[currentNetwork.key];
         if (networkdata === undefined) {
           throw new Error(`Unsupported network: ${currentNetwork.key}`);
         }
@@ -305,7 +305,7 @@ export function useReceiveForm() {
 
     disablePicker.value = true;
     try {
-      const ntwrk = NETWORK_DATA;
+      const ntwrk = getNetworkData();
       const currentNetwork = network.value;
       if (currentNetwork === undefined) {
         throw new Error("Network not selected");
@@ -562,7 +562,7 @@ export function useReceiveForm() {
     for (const chain in chainToParse) {
       const fn = async function () {
         const client = await WalletAccess.getWallet(chain);
-        const network = NETWORK_DATA;
+        const network = getNetworkData();
         const networkData = network?.supportedNetworks[chain];
         if (networkData === undefined) {
           throw new Error(`Unsupported network: ${chain}`);
