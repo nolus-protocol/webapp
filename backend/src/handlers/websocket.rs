@@ -1728,6 +1728,8 @@ fn process_balance_compute(
         }
         // Push exactly what REST would serve; never a payload REST would have 503'd.
         Err(currencies::BalancesError::Unavailable(_)) => BalanceFlushOutcome::SkippedUnavailable,
+        // Belt-and-braces: monitor addresses are validated at subscribe time, so this is unreachable here; skip like Unavailable.
+        Err(currencies::BalancesError::Validation(_)) => BalanceFlushOutcome::SkippedUnavailable,
         Err(currencies::BalancesError::Chain(e)) => {
             debug!("Balance monitor chain query failed for {}: {}", address, e);
             BalanceFlushOutcome::SkippedUnavailable
@@ -1762,7 +1764,6 @@ pub async fn start_balance_monitor_task(
                             n
                         );
                         do_full_recheck = true;
-                        last_full_recheck = Some(now);
                     } else {
                         warn!(
                             "Balance monitor lagged {} events within {}s of the last full recheck; suppressed, processing pending addresses only",
@@ -1794,7 +1795,6 @@ pub async fn start_balance_monitor_task(
                                     let now = Instant::now();
                                     if lag_recheck_allowed(last_full_recheck, now) {
                                         do_full_recheck = true;
-                                        last_full_recheck = Some(now);
                                     } else {
                                         warn!(
                                             "Balance monitor lagged {} events during debounce within {}s of the last full recheck; suppressed",
@@ -1838,6 +1838,10 @@ pub async fn start_balance_monitor_task(
                 .buffer_unordered(BALANCE_MONITOR_FANOUT_CAP)
                 .collect()
                 .await;
+
+            if do_full_recheck {
+                last_full_recheck = Some(Instant::now());
+            }
 
             let pushed = outcomes
                 .iter()
@@ -2783,6 +2787,34 @@ mod tests {
         ));
         assert_eq!(
             process_balance_compute(&m, "nolus1a", chain_err),
+            BalanceFlushOutcome::SkippedUnavailable
+        );
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// A validation error also skips the push, mirroring the belt-and-braces
+    /// arm for monitor input that is already validated at subscribe time.
+    #[tokio::test]
+    async fn test_process_balance_compute_skips_on_validation() {
+        let m = WebSocketManager::new(16);
+        let mut rx = register_conn(&m, "c1");
+        m.add_subscription(
+            "c1",
+            Subscription::Balances {
+                addresses: vec!["nolus1a".to_string()],
+            },
+        )
+        .unwrap();
+
+        let validation = Err(currencies::BalancesError::Validation(
+            crate::error::AppError::Validation {
+                message: "Invalid Nolus address format".to_string(),
+                field: Some("address".to_string()),
+                details: None,
+            },
+        ));
+        assert_eq!(
+            process_balance_compute(&m, "nolus1a", validation),
             BalanceFlushOutcome::SkippedUnavailable
         );
         assert!(rx.try_recv().is_err());

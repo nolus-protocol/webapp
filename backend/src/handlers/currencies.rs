@@ -84,12 +84,15 @@ pub struct BalanceInfo {
 
 /// Why balance computation could not produce a payload.
 ///
-/// Lets the balance monitor skip a cold-cache tick silently while the REST
-/// handler surfaces the wrapped 503/chain error verbatim.
+/// Lets the balance monitor skip such a tick silently while the REST handler
+/// surfaces the wrapped error verbatim.
 pub enum BalancesError {
     /// A required cache (filter context, currencies, or prices) is not yet warm.
     /// Carries the 503 the REST handler returns unchanged.
     Unavailable(AppError),
+    /// The address failed validation. Carries the 400 the REST handler returns
+    /// unchanged.
+    Validation(AppError),
     /// The chain balance query (or another downstream call) failed.
     Chain(AppError),
 }
@@ -210,7 +213,9 @@ pub async fn get_balances(
 
     match compute_balances(&state, &query.address).await {
         Ok(response) => Ok(Json(response)),
-        Err(BalancesError::Unavailable(e) | BalancesError::Chain(e)) => Err(e),
+        Err(
+            BalancesError::Unavailable(e) | BalancesError::Validation(e) | BalancesError::Chain(e),
+        ) => Err(e),
     }
 }
 
@@ -224,7 +229,7 @@ pub async fn compute_balances(
     address: &str,
 ) -> Result<BalancesResponse, BalancesError> {
     if !crate::validation::is_valid_nolus_address(address) {
-        return Err(BalancesError::Unavailable(AppError::Validation {
+        return Err(BalancesError::Validation(AppError::Validation {
             message: "Invalid Nolus address format".to_string(),
             field: Some("address".to_string()),
             details: None,
@@ -378,12 +383,12 @@ mod tests {
             .await
             .unwrap_err();
         match err {
-            super::BalancesError::Unavailable(crate::error::AppError::Validation {
+            super::BalancesError::Validation(crate::error::AppError::Validation {
                 field, ..
             }) => {
                 assert_eq!(field, Some("address".to_string()));
             }
-            _ => panic!("expected Unavailable(Validation) for an invalid address"),
+            _ => panic!("expected Validation for an invalid address"),
         }
     }
 }
