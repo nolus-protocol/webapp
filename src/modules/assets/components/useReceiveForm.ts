@@ -431,14 +431,12 @@ export function useReceiveForm() {
           isLoading.value = true;
 
           const wallets = await getWallets();
-          const addresses: Record<string, string> = {};
 
           for (const [key, chainWallet] of Object.entries(wallets)) {
             const walletAddress = chainWallet.address;
             if (!walletAddress) {
               throw new Error(`Wallet address not available for ${key}`);
             }
-            addresses[key] = walletAddress;
           }
 
           setHistory();
