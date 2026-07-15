@@ -210,3 +210,7 @@ export function useLeaseOpen() {
     isDownPaymentAmountValid
   };
 }
+
+// The reactive/validation base shared by both lease forms. `useLeaseForm`
+// consumes it; the per-position composables spread it back out to the SFC.
+export type LeaseOpenApi = ReturnType<typeof useLeaseOpen>;
