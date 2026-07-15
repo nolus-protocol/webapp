@@ -24,7 +24,6 @@ export type {
   BalanceCallback,
   LeaseCallback,
   TxStatusCallback,
-  StakingCallback,
   SkipTxCallback,
   Unsubscribe,
   ConnectionState,
