@@ -223,6 +223,14 @@ pub async fn compute_balances(
     state: &AppState,
     address: &str,
 ) -> Result<BalancesResponse, BalancesError> {
+    if !crate::validation::is_valid_nolus_address(address) {
+        return Err(BalancesError::Unavailable(AppError::Validation {
+            message: "Invalid Nolus address format".to_string(),
+            field: Some("address".to_string()),
+            details: None,
+        }));
+    }
+
     let filter_ctx = state
         .data_cache
         .filter_context
@@ -359,5 +367,23 @@ mod tests {
 
         // Zero amount should return "0"
         assert_eq!(calculate_price_with_decimals("100", "0", "1.0", 8, 6), "0");
+    }
+
+    /// An invalid address is rejected before any cache or chain access, as the
+    /// 400-mapped `Validation` error the REST balances handler already returns.
+    #[tokio::test]
+    async fn test_compute_balances_rejects_invalid_address() {
+        let state = crate::test_utils::test_app_state().await;
+        let err = super::compute_balances(&state, "not-a-valid-address")
+            .await
+            .unwrap_err();
+        match err {
+            super::BalancesError::Unavailable(crate::error::AppError::Validation {
+                field, ..
+            }) => {
+                assert_eq!(field, Some("address".to_string()));
+            }
+            _ => panic!("expected Unavailable(Validation) for an invalid address"),
+        }
     }
 }

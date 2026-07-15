@@ -147,7 +147,10 @@ impl Subscription {
         match topic {
             "prices" => Ok(Subscription::Prices),
             "balance" | "balances" => {
-                let addresses = params
+                // Frontend sends exactly one; the cap bounds monitor fan-out per subscription.
+                const MAX_ADDRESSES_PER_BALANCE_SUBSCRIPTION: usize = 16;
+
+                let addresses: Vec<String> = params
                     .get("addresses")
                     .and_then(|v| v.as_array())
                     .map(|arr| {
@@ -162,6 +165,25 @@ impl Subscription {
                             .map(|s| vec![s.to_string()])
                     })
                     .ok_or("Missing 'addresses' or 'address' parameter")?;
+
+                if addresses.is_empty() {
+                    return Err("Balance subscription requires at least one address".to_string());
+                }
+                if addresses.len() > MAX_ADDRESSES_PER_BALANCE_SUBSCRIPTION {
+                    return Err(format!(
+                        "Balance subscription exceeds the maximum of {} addresses",
+                        MAX_ADDRESSES_PER_BALANCE_SUBSCRIPTION
+                    ));
+                }
+                if !addresses
+                    .iter()
+                    .all(|a| crate::validation::is_valid_nolus_address(a))
+                {
+                    return Err(
+                        "Balance subscription contains an invalid Nolus address".to_string()
+                    );
+                }
+
                 Ok(Subscription::Balances { addresses })
             }
             "lease" | "leases" => {
@@ -1661,6 +1683,19 @@ async fn check_earn_positions(state: &AppState, address: &str) -> Result<(), Str
 /// house refresh-fan-out bound, kept off the shared chain-query semaphore.
 const BALANCE_MONITOR_FANOUT_CAP: usize = 8;
 
+/// Minimum gap between Lagged-driven full rechecks, so a burst of lag signals
+/// cannot translate into back-to-back full fan-outs over every subscriber.
+const LAG_RECHECK_MIN_INTERVAL: Duration = Duration::from_secs(30);
+
+/// Whether a Lagged signal may trigger a full recheck, given when the last one
+/// ran. `None` means none has run yet, so a full recheck is always allowed.
+fn lag_recheck_allowed(last_full_recheck: Option<Instant>, now: Instant) -> bool {
+    match last_full_recheck {
+        Some(prev) => now.duration_since(prev) >= LAG_RECHECK_MIN_INTERVAL,
+        None => true,
+    }
+}
+
 /// Outcome of evaluating one address in a balance-monitor flush.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum BalanceFlushOutcome {
@@ -1700,29 +1735,41 @@ fn process_balance_compute(
     }
 }
 
-/// Start background task for balance monitoring, triggered by bank-transfer events.
+/// Background task that pushes balance updates to subscribed connections.
 ///
-/// Accumulates each tx's transfer participants, debounces, intersects with
-/// subscribed balance addresses, re-queries via the shared REST compute, and
-/// pushes on change. No periodic sweep — REST covers in-app actions.
+/// Guarantees a subscribed address receives a full REST-shaped balance payload
+/// whenever its on-chain holdings change, and nothing when the address is
+/// unchanged or the underlying caches are cold — the monitor only ever emits
+/// what the REST balances endpoint would serve, never a payload REST would 503.
 pub async fn start_balance_monitor_task(
     state: Arc<AppState>,
     mut bank_transfer_rx: tokio::sync::broadcast::Receiver<crate::chain_events::BankTransferEvent>,
 ) {
     tokio::spawn(async move {
+        let mut last_full_recheck: Option<Instant> = None;
+
         loop {
             let mut candidate_addresses: HashSet<String> = HashSet::new();
             let mut do_full_recheck = false;
 
-            // Block until the first transfer event (or a lag signal).
             match bank_transfer_rx.recv().await {
                 Ok(event) => candidate_addresses.extend(event.addresses),
                 Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
-                    warn!(
-                        "Balance monitor lagged {} events, re-checking all subscribed balance addresses",
-                        n
-                    );
-                    do_full_recheck = true;
+                    let now = Instant::now();
+                    if lag_recheck_allowed(last_full_recheck, now) {
+                        warn!(
+                            "Balance monitor lagged {} events, re-checking all subscribed balance addresses",
+                            n
+                        );
+                        do_full_recheck = true;
+                        last_full_recheck = Some(now);
+                    } else {
+                        warn!(
+                            "Balance monitor lagged {} events within {}s of the last full recheck; suppressed, processing pending addresses only",
+                            n,
+                            LAG_RECHECK_MIN_INTERVAL.as_secs()
+                        );
+                    }
                 }
                 Err(tokio::sync::broadcast::error::RecvError::Closed) => {
                     error!("Bank transfer channel closed, balance monitor stopping");
@@ -1743,8 +1790,18 @@ pub async fn start_balance_monitor_task(
                                     candidate_addresses.extend(event.addresses);
                                     continue;
                                 }
-                                Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
-                                    do_full_recheck = true;
+                                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                                    let now = Instant::now();
+                                    if lag_recheck_allowed(last_full_recheck, now) {
+                                        do_full_recheck = true;
+                                        last_full_recheck = Some(now);
+                                    } else {
+                                        warn!(
+                                            "Balance monitor lagged {} events during debounce within {}s of the last full recheck; suppressed",
+                                            n,
+                                            LAG_RECHECK_MIN_INTERVAL.as_secs()
+                                        );
+                                    }
                                     break;
                                 }
                                 Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
@@ -1818,7 +1875,10 @@ mod tests {
         // Balances with array
         let sub = Subscription::from_client_message(
             "balances",
-            &serde_json::json!({"addresses": ["nolus1abc", "nolus1def"]}),
+            &serde_json::json!({"addresses": [
+                "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc",
+                "nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5"
+            ]}),
         )
         .unwrap();
         assert!(matches!(sub, Subscription::Balances { addresses } if addresses.len() == 2));
@@ -1826,7 +1886,7 @@ mod tests {
         // Balance with single address
         let sub = Subscription::from_client_message(
             "balance",
-            &serde_json::json!({"address": "nolus1abc"}),
+            &serde_json::json!({"address": "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc"}),
         )
         .unwrap();
         assert!(matches!(sub, Subscription::Balances { addresses } if addresses.len() == 1));
@@ -1859,6 +1919,51 @@ mod tests {
         assert!(Subscription::from_client_message("balances", &serde_json::json!({})).is_err());
         assert!(Subscription::from_client_message("leases", &serde_json::json!({})).is_err());
         assert!(Subscription::from_client_message("tx_status", &serde_json::json!({})).is_err());
+    }
+
+    /// Balance subscription parse arm caps and validates its address list:
+    /// a single valid address is accepted; empty, oversized, and invalid lists
+    /// are rejected before a subscription is ever created.
+    #[test]
+    fn test_balance_subscription_validation() {
+        let valid = "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc";
+
+        let sub =
+            Subscription::from_client_message("balance", &serde_json::json!({ "address": valid }))
+                .unwrap();
+        assert!(matches!(sub, Subscription::Balances { addresses } if addresses.len() == 1));
+
+        assert!(Subscription::from_client_message(
+            "balances",
+            &serde_json::json!({ "addresses": [] })
+        )
+        .is_err());
+
+        let oversized = vec![valid; 17];
+        assert!(Subscription::from_client_message(
+            "balances",
+            &serde_json::json!({ "addresses": oversized })
+        )
+        .is_err());
+
+        assert!(Subscription::from_client_message(
+            "balances",
+            &serde_json::json!({ "addresses": ["not-a-valid-address"] })
+        )
+        .is_err());
+    }
+
+    /// The lag-backoff gate allows the first full recheck, suppresses a second
+    /// within the window, and re-allows once the window has elapsed.
+    #[test]
+    fn test_lag_recheck_allowed_backoff() {
+        let now = Instant::now();
+        assert!(lag_recheck_allowed(None, now));
+        assert!(!lag_recheck_allowed(Some(now), now));
+        assert!(lag_recheck_allowed(
+            Some(now),
+            now + LAG_RECHECK_MIN_INTERVAL
+        ));
     }
 
     #[test]

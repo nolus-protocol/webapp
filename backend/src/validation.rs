@@ -20,6 +20,15 @@ pub fn validate_bech32_address(address: &str, field_name: &str) -> Result<(), Ap
     Ok(())
 }
 
+/// Returns `true` only for a valid bech32 address on the `nolus` HRP.
+///
+/// A valid address decodes cleanly and reports the `nolus` human-readable part,
+/// so this rejects empty strings, uppercase, whitespace, and `/ ? # %` by
+/// construction — a caller may then interpolate the result into an LCD path.
+pub fn is_valid_nolus_address(address: &str) -> bool {
+    matches!(bech32::decode(address), Ok((hrp, _)) if hrp.as_str() == "nolus")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -63,5 +72,30 @@ mod tests {
             }
             _ => panic!("Expected Validation error"),
         }
+    }
+
+    #[test]
+    fn test_is_valid_nolus_address_accepts_mainnet() {
+        assert!(is_valid_nolus_address(
+            "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc"
+        ));
+    }
+
+    /// Path-traversal, query, fragment, percent, uppercase, whitespace, empty,
+    /// and over-length inputs must all fail — none may reach an LCD path.
+    #[test]
+    fn test_is_valid_nolus_address_rejects_hostile_inputs() {
+        let mainnet = "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc";
+        assert!(!is_valid_nolus_address(&format!("{mainnet}/../../foo")));
+        assert!(!is_valid_nolus_address(&format!("{mainnet}?x=1")));
+        assert!(!is_valid_nolus_address(&format!("{mainnet}#frag")));
+        assert!(!is_valid_nolus_address("nolus1%2e%2e"));
+        assert!(!is_valid_nolus_address(&mainnet.to_uppercase()));
+        assert!(!is_valid_nolus_address("nolus1 abc"));
+        assert!(!is_valid_nolus_address(""));
+        assert!(!is_valid_nolus_address(&format!(
+            "nolus1{}",
+            "q".repeat(120)
+        )));
     }
 }
