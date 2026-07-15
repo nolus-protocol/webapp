@@ -924,7 +924,7 @@ async fn fetch_lease_info(
             interest: LeaseInterestInfo {
                 loan_rate: opening.opening.loan_interest_rate,
                 margin_rate: 0,
-                annual_rate_percent: f64::from(opening.opening.loan_interest_rate) / PERMILLE,
+                annual_rate_percent: calculate_annual_rate(opening.opening.loan_interest_rate, 0),
             },
             liquidation_price: None,
             opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
@@ -1538,7 +1538,15 @@ async fn fetch_lease_monitor_info_internal(
         .get_lease_status(lease_address, due_projection_secs)
         .await?;
 
-    let info = match &lease_status {
+    build_lease_monitor_info(&lease_status, lease_address, protocol)
+}
+
+fn build_lease_monitor_info(
+    lease_status: &LeaseStatusResponse,
+    lease_address: &str,
+    protocol: &str,
+) -> Result<LeaseMonitorInfo, AppError> {
+    let info = match lease_status {
         LeaseStatusResponse::Opening(opening) => LeaseMonitorInfo {
             address: lease_address.to_string(),
             protocol: protocol.to_string(),
@@ -1548,7 +1556,7 @@ async fn fetch_lease_monitor_info_internal(
             interest: Some(LeaseInterestInfo {
                 loan_rate: opening.opening.loan_interest_rate,
                 margin_rate: 0,
-                annual_rate_percent: f64::from(opening.opening.loan_interest_rate) / PERMILLE,
+                annual_rate_percent: calculate_annual_rate(opening.opening.loan_interest_rate, 0),
             }),
             liquidation_price: None,
             pnl: None,
@@ -1582,9 +1590,10 @@ async fn fetch_lease_monitor_info_internal(
                 interest: Some(LeaseInterestInfo {
                     loan_rate: info.loan_interest_rate,
                     margin_rate: info.margin_interest_rate,
-                    annual_rate_percent: f64::from(
-                        info.loan_interest_rate + info.margin_interest_rate,
-                    ) / PERMILLE,
+                    annual_rate_percent: calculate_annual_rate(
+                        info.loan_interest_rate,
+                        info.margin_interest_rate,
+                    ),
                 }),
                 liquidation_price: None,
                 pnl: None,
@@ -1620,9 +1629,10 @@ async fn fetch_lease_monitor_info_internal(
                 interest: Some(LeaseInterestInfo {
                     loan_rate: info.loan_interest_rate,
                     margin_rate: info.margin_interest_rate,
-                    annual_rate_percent: f64::from(
-                        info.loan_interest_rate + info.margin_interest_rate,
-                    ) / PERMILLE,
+                    annual_rate_percent: calculate_annual_rate(
+                        info.loan_interest_rate,
+                        info.margin_interest_rate,
+                    ),
                 }),
                 liquidation_price: None,
                 pnl: None,
@@ -1689,6 +1699,76 @@ mod tests {
         assert!((calculate_annual_rate(100, 0) - 10.0).abs() < 0.001);
         // Real example: loan_rate=94, margin_rate=80 → (94+80)/1000*100 = 17.4%
         assert!((calculate_annual_rate(94, 80) - 17.4).abs() < 0.001);
+    }
+
+    #[test]
+    fn monitor_opened_interest_matches_rest_percent_scale() {
+        let mut opened = make_opened("ALL_BTC", "1000000", "USDC_NOBLE");
+        opened.loan_interest_rate = 170;
+        opened.margin_interest_rate = 16;
+        let status = LeaseStatusResponse::Opened(LeaseOpened { opened });
+
+        let info = build_lease_monitor_info(&status, "lease1", "TEST-PROTOCOL")
+            .expect("opened monitor info builds");
+        let interest = info.interest.expect("opened lease carries interest");
+
+        assert_eq!(interest.loan_rate, 170);
+        assert_eq!(interest.margin_rate, 16);
+        assert_eq!(interest.annual_rate_percent, calculate_annual_rate(170, 16));
+    }
+
+    #[test]
+    fn monitor_closing_interest_matches_rest_percent_scale() {
+        let debt = |amount: &str| LeaseAmount {
+            ticker: "USDC_NOBLE".to_string(),
+            amount: amount.to_string(),
+        };
+        let closing = ClosingLeaseInfo {
+            amount: LeaseAmount {
+                ticker: "ALL_BTC".to_string(),
+                amount: "1000000".to_string(),
+            },
+            loan_interest_rate: 170,
+            margin_interest_rate: 16,
+            principal_due: debt("500000000"),
+            overdue_margin: debt("0"),
+            overdue_interest: debt("0"),
+            due_margin: debt("0"),
+            due_interest: debt("0"),
+        };
+        let status = LeaseStatusResponse::Closing(LeaseClosing { closing });
+
+        let info = build_lease_monitor_info(&status, "lease1", "TEST-PROTOCOL")
+            .expect("closing monitor info builds");
+        let interest = info.interest.expect("closing lease carries interest");
+
+        assert_eq!(interest.annual_rate_percent, calculate_annual_rate(170, 16));
+    }
+
+    #[test]
+    fn monitor_opening_interest_is_loan_only_percent_scale() {
+        let opening = LeaseOpeningInfo {
+            currency: "ALL_BTC".to_string(),
+            downpayment: LeaseAmount {
+                ticker: "USDC_NOBLE".to_string(),
+                amount: "400000000".to_string(),
+            },
+            loan: LeaseAmount {
+                ticker: "USDC_NOBLE".to_string(),
+                amount: "600000000".to_string(),
+            },
+            loan_interest_rate: 186,
+            in_progress: None,
+        };
+        let status = LeaseStatusResponse::Opening(LeaseOpening { opening });
+
+        let info = build_lease_monitor_info(&status, "lease1", "TEST-PROTOCOL")
+            .expect("opening monitor info builds");
+        let interest = info.interest.expect("opening lease carries interest");
+
+        // Chain omits margin_interest_rate in the Opening state, so the rate is loan-only.
+        assert_eq!(interest.margin_rate, 0);
+        assert_eq!(interest.annual_rate_percent, calculate_annual_rate(186, 0));
     }
 
     #[test]
@@ -1765,7 +1845,9 @@ mod tests {
 
     // ── PnL calculation tests ────────────────────────────────────
 
-    use crate::external::chain::LeaseAmount;
+    use crate::external::chain::{
+        LeaseAmount, LeaseClosing, LeaseOpened, LeaseOpening, LeaseOpeningInfo,
+    };
     use crate::external::etl::{EtlLeaseInfo, EtlLeaseOpening};
     use crate::handlers::currencies::{
         CurrenciesResponse, CurrencyInfo, PriceInfo, PricesResponse,
