@@ -713,19 +713,39 @@ export const useConfigStore = defineStore("config", () => {
   }
 
   /**
+   * Start a network-assets fetch, returning the request's token id alongside its
+   * completion promise. The id is captured synchronously here (a rejected promise
+   * carries no value, so it cannot be returned via await) — callers that need to
+   * guard their own error handling compare this returned id against the live token
+   * instead of re-reading the shared counter after the call.
+   */
+  function startNetworkAssetsFetch(network: string): { requestId: number; completion: Promise<void> } {
+    const requestId = ++assetRequestToken;
+    const completion = (async () => {
+      assetsLoading.value = true;
+
+      try {
+        const response = await BackendApi.getNetworkAssets(network);
+        // Ignore a superseded in-flight response: a newer filter switch bumped the
+        // token, so this now-stale network's assets must not overwrite the current ones.
+        if (requestId === assetRequestToken) {
+          assetsResponse.value = response;
+        }
+      } catch (e) {
+        console.error("[ConfigStore] Failed to fetch network assets:", e);
+        throw e;
+      } finally {
+        assetsLoading.value = false;
+      }
+    })();
+    return { requestId, completion };
+  }
+
+  /**
    * Fetch assets for a specific network using /api/networks/{network}/assets
    */
   async function fetchNetworkAssets(network: string): Promise<void> {
-    assetsLoading.value = true;
-
-    try {
-      assetsResponse.value = await BackendApi.getNetworkAssets(network);
-    } catch (e) {
-      console.error("[ConfigStore] Failed to fetch network assets:", e);
-      throw e;
-    } finally {
-      assetsLoading.value = false;
-    }
+    await startNetworkAssetsFetch(network).completion;
   }
 
   /**
@@ -786,6 +806,15 @@ export const useConfigStore = defineStore("config", () => {
   // the backend on every subsequent toggle back to the same filter within the session.
   const fetchedNetworks = new Set<string>();
 
+  // Monotonic request token for network-asset fetches. A fetch captures the token
+  // current when it starts and commits its result only while that token is still the
+  // latest; every qualifying filter switch bumps it — including a switch to an
+  // already-fetched network, which early-returns without fetching. This cancels a
+  // slow in-flight response for a network the user has since switched away from. A
+  // filter-equality guard would be wrong: initialize() fetches while protocolFilter
+  // is still "".
+  let assetRequestToken = 0;
+
   // Networks the wallet-driven mapping in `walletProtocolFilter.ts` can produce.
   // Even when the backend has no protocol entry for one of these yet (e.g. SOLANA
   // before the first Solana protocol ships), the watcher must still attempt the
@@ -809,6 +838,11 @@ export const useConfigStore = defineStore("config", () => {
   //   3. Failed fetch → console.error, clear assetsResponse so stale data from
   //      the previous network does not survive the failed switch, AND record
   //      the network in fetchedNetworks so we do not retry-storm.
+  //   4. Superseded in-flight response → never commits. A newer filter switch
+  //      (including one to an already-fetched network) bumps the request token;
+  //      a stale fetch's success-commit and this error-branch null both check it,
+  //      so a slow response for a network the user switched away from cannot
+  //      overwrite the current one.
   watch(protocolFilter, async (newFilter) => {
     if (!initialized.value) return;
     if (!newFilter) return;
@@ -819,17 +853,27 @@ export const useConfigStore = defineStore("config", () => {
     }
 
     const upperFilter = newFilter.toUpperCase();
-    if (fetchedNetworks.has(upperFilter)) return;
+    if (fetchedNetworks.has(upperFilter)) {
+      // Already fetched → no request, but this switch still supersedes any in-flight
+      // fetch for a now-stale network so its late response cannot commit.
+      assetRequestToken++;
+      return;
+    }
 
+    const { requestId, completion } = startNetworkAssetsFetch(newFilter);
     try {
-      await fetchNetworkAssets(newFilter);
+      await completion;
       await prefetchProtocolCurrenciesForNetwork(newFilter);
       fetchedNetworks.add(upperFilter);
     } catch (err) {
       console.error("[ConfigStore] Failed to fetch assets for network:", upperFilter, err);
-      // Drop stale assets so the previous network's data is not visible under
-      // the new filter, then record the failure to prevent retry-storms.
-      assetsResponse.value = null;
+      // Drop stale assets so the previous network's data is not visible under the new
+      // filter — but only while this request is still the latest, so a superseded
+      // failure cannot wipe the current network's assets. Record the failure either
+      // way to prevent retry-storms.
+      if (requestId === assetRequestToken) {
+        assetsResponse.value = null;
+      }
       fetchedNetworks.add(upperFilter);
     }
   });

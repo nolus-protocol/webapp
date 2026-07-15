@@ -142,6 +142,9 @@ type LeaseRec = {
   interest: { loan_rate: number; margin_rate: number; annual_rate_percent: number };
 
   in_progress?: any;
+  pnl?: { amount: string; percent: string; downpayment: string; pnl_positive: boolean };
+  liquidation_price?: string;
+  opened_at?: string;
 };
 
 const mkLease = (o: Partial<LeaseRec>): LeaseRec => ({
@@ -434,6 +437,75 @@ describe("useLeasesStore", () => {
 
     const lease = store.leases.find((l) => l.address === "l1");
     expect(lease?.amount.amount).toBe("9999");
+  });
+
+  it("ws callback preserves REST pnl when the monitor sends pnl:null (allowlist null-skip)", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([
+      mkLease({
+        address: "l1",
+        status: "opened",
+        pnl: { amount: "42", percent: "5", downpayment: "100", pnl_positive: true }
+      })
+    ]);
+    await store.setOwner("nolus1x");
+
+    // Routine same-status tick: monitor hardcodes pnl:null but advances in_progress.
+    emitLeases({ address: "l1", status: "opened", pnl: null, in_progress: { close: {} } });
+
+    const lease = store.leases.find((l) => l.address === "l1");
+    expect(lease?.pnl).toEqual({ amount: "42", percent: "5", downpayment: "100", pnl_positive: true });
+    expect(lease?.in_progress).toEqual({ close: {} });
+    expect(lease?.status).toBe("opened");
+  });
+
+  it("ws callback preserves amount when the monitor sends amount:null on an opening lease", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([
+      mkLease({ address: "l1", status: "opening", amount: { ticker: "ATOM", amount: "1000000" } })
+    ]);
+    await store.setOwner("nolus1x");
+
+    emitLeases({ address: "l1", status: "opening", amount: null, pnl: null });
+
+    const lease = store.leases.find((l) => l.address === "l1");
+    expect(lease?.amount).toEqual({ ticker: "ATOM", amount: "1000000" });
+    // totalCollateralUsd reads lease.amount.ticker over open leases — a null amount would throw.
+    expect(() => store.totalCollateralUsd).not.toThrow();
+  });
+
+  it("ws callback applies non-null monitor debt and interest values", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opened" })]);
+    await store.setOwner("nolus1x");
+
+    const newDebt = {
+      ticker: "USDC",
+      principal: "5",
+      overdue_margin: "0",
+      overdue_interest: "0",
+      due_margin: "0",
+      due_interest: "0",
+      total: "5"
+    };
+    const newInterest = { loan_rate: 1, margin_rate: 2, annual_rate_percent: 3 };
+    emitLeases({ address: "l1", status: "opened", debt: newDebt, interest: newInterest, pnl: null });
+
+    const lease = store.leases.find((l) => l.address === "l1");
+    expect(lease?.debt).toEqual(newDebt);
+    expect(lease?.interest).toEqual(newInterest);
+  });
+
+  it("ws callback ignores keys outside the monitor allowlist", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opened", opened_at: "REST_TIME" })]);
+    await store.setOwner("nolus1x");
+
+    // opened_at is REST/ETL-owned, not a monitor field — a stray WS value must not overwrite it.
+    emitLeases({ address: "l1", status: "opened", opened_at: "WS_TIME", pnl: null });
+
+    const lease = store.leases.find((l) => l.address === "l1");
+    expect(lease?.opened_at).toBe("REST_TIME");
   });
 
   it("ws callback regression guard ignores stale event", async () => {

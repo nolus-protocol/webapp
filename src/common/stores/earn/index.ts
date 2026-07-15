@@ -179,20 +179,34 @@ export const useEarnStore = defineStore("earn", () => {
   const { setAddress, cleanup } = useWebSocketLifecycle({
     address,
     subscribe: (addr) =>
-      WebSocketClient.subscribeEarn(addr, (wsAddr, wsPositions, totalUsd) => {
+      // The WS earn total is deliberately ignored: the backend hardcodes
+      // total_deposited_usd="0.00" on every push ("would need prices", websocket.rs),
+      // so the REST-derived totalDepositedUsd is kept until the next full fetch.
+      WebSocketClient.subscribeEarn(addr, (wsAddr, wsPositions) => {
         if (wsAddr !== address.value) return;
 
-        positions.value = wsPositions.map((p) => ({
-          protocol: p.protocol,
-          lpp_address: p.lpp_address,
-          currency: "", // Not provided by WS, will be filled on next full fetch
-          deposited_nlpn: p.deposited_asset,
-          deposited_lpn: p.deposited_lpn,
-          deposited_usd: null,
-          lpp_price: "1.0",
-          current_apy: 0
-        }));
-        totalDepositedUsd.value = totalUsd;
+        // Merge WS-owned fields (deposited_lpn, deposited_asset) into a matched REST
+        // record so its REST-only fields (deposited_usd/current_apy/currency/lpp_price)
+        // survive; an unmatched WS position gets a placeholder until the next fetch.
+        // Positions absent from the payload drop — same wholesale-replace removal
+        // semantics as REST fetchPositions.
+        const existingByKey = new Map(positions.value.map((p) => [`${p.protocol}::${p.lpp_address}`, p]));
+        positions.value = wsPositions.map((p) => {
+          const existing = existingByKey.get(`${p.protocol}::${p.lpp_address}`);
+          if (existing) {
+            return { ...existing, deposited_nlpn: p.deposited_asset, deposited_lpn: p.deposited_lpn };
+          }
+          return {
+            protocol: p.protocol,
+            lpp_address: p.lpp_address,
+            currency: "",
+            deposited_nlpn: p.deposited_asset,
+            deposited_lpn: p.deposited_lpn,
+            deposited_usd: null,
+            lpp_price: "1.0",
+            current_apy: 0
+          };
+        });
         lastUpdated.value = new Date();
       }),
     fetch: fetchPositions,

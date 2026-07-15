@@ -42,6 +42,34 @@ const STATUS_ORDER: Record<string, number> = {
   liquidated: 4
 };
 
+/**
+ * Keys the WebSocket lease monitor owns and may write onto an existing record —
+ * exactly the mutable field set of its payload (`start_lease_monitor_task` in
+ * backend/src/handlers/websocket.rs); `address`/`protocol` are identity, not
+ * merged. Contract: a new WS payload field requires an explicit entry here, and
+ * a null/undefined value is never applied — the monitor serializes Rust `None`
+ * as JSON `null` (it hardcodes `pnl: None` on every arm and `amount: None` on
+ * opening/terminal arms), and REST stays authoritative for those. A blanket
+ * spread would clobber the REST-computed pnl/amount with null on a routine tick.
+ */
+const WS_LEASE_MONITOR_KEYS = [
+  "status",
+  "amount",
+  "debt",
+  "interest",
+  "liquidation_price",
+  "pnl",
+  "close_policy",
+  "in_progress"
+] as const satisfies readonly (keyof LeaseInfo)[];
+
+function applyWsMonitorField<K extends keyof LeaseInfo>(target: LeaseInfo, source: Partial<LeaseInfo>, key: K): void {
+  const value = source[key];
+  if (value !== null && value !== undefined) {
+    target[key] = value;
+  }
+}
+
 export const useLeasesStore = defineStore("leases", () => {
   // State
   const leases = ref<LeaseInfo[]>([]);
@@ -311,9 +339,14 @@ export const useLeasesStore = defineStore("leases", () => {
 
         let merged: LeaseInfo;
         if (existing) {
-          // Existing record: WS updates may be partial; merge so ETL-only fields
-          // (not sent over WS) survive. The existing record was already validated.
-          merged = { ...existing, ...wsLease };
+          // Existing record: apply only the monitor-owned keys, and only when the
+          // incoming value is non-null — REST-computed/ETL-only fields survive, and
+          // the monitor's null pnl/amount can no longer overwrite them. The existing
+          // record was already validated. (See WS_LEASE_MONITOR_KEYS.)
+          merged = { ...existing };
+          for (const key of WS_LEASE_MONITOR_KEYS) {
+            applyWsMonitorField(merged, wsLease, key);
+          }
         } else {
           // No prior record: a brand-new lease must arrive as a complete LeaseInfo
           // (the same shape the REST path validates) before it reaches the money

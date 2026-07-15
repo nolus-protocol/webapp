@@ -528,6 +528,11 @@ describe("ConfigStore", () => {
   //   3. Log failures at error level (console.error), not just warn.
   //   4. Drop stale assets when a switch fails — never leave the previous
   //      network's assets visible under the new filter.
+  //   5. A superseded in-flight response never commits — if a newer filter
+  //      switch lands while a fetch is still pending, that slow response (or
+  //      its error-branch null) must not overwrite the current network's
+  //      assets. Guarded by a monotonic request token, not a filter-equality
+  //      check (initialize() fetches while protocolFilter is still "").
 
   /** Helper: prime the store so initialize() is a no-op past the first cycle. */
   async function primeInitializedStore() {
@@ -643,6 +648,95 @@ describe("ConfigStore", () => {
       await flushPromises();
 
       expect(store.assetsResponse).toBeNull();
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+
+  it("watcher_superseded_in_flight_response_never_commits", async () => {
+    // Rule 5. Keplr(OSMOSIS) → Phantom connect fires a slow fetchNetworkAssets("SOLANA");
+    // reconnect Keplr before it resolves → watcher early-returns (OSMOSIS already fetched),
+    // and the late SOLANA response must NOT commit under the OSMOSIS filter.
+    api.getConfig.mockResolvedValueOnce(makeConfig());
+    api.getCurrencies.mockResolvedValueOnce(makeCurrencies());
+    api.getNetworkAssets.mockResolvedValueOnce({
+      assets: [{ ticker: "OSMO", networks: ["OSMOSIS"], protocols: ["OSMOSIS"], icon: "" }]
+    });
+    api.getGatedProtocols.mockResolvedValueOnce({ protocols: [] });
+    api.getGasFeeConfig.mockResolvedValueOnce({ gas_prices: {}, gas_multiplier: 1 });
+
+    const store = useConfigStore();
+    await store.initialize();
+    expect(store.assets.map((a) => a.ticker)).toEqual(["OSMO"]);
+
+    // SOLANA fetch is slow — resolved manually after the supersede lands.
+    let resolveSolana!: (v: { assets: unknown[] }) => void;
+    const solanaPending = new Promise<{ assets: unknown[] }>((res) => {
+      resolveSolana = res;
+    });
+    api.getNetworkAssets.mockReturnValueOnce(solanaPending);
+
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      store.setProtocolFilter("SOLANA");
+      await flushPromises(); // watcher kicks off the SOLANA fetch (now in-flight)
+
+      // Reconnect Keplr → OSMOSIS. Already fetched → watcher early-returns, but this
+      // switch supersedes the in-flight SOLANA request.
+      store.setProtocolFilter("OSMOSIS");
+      await flushPromises();
+
+      // SOLANA response arrives late.
+      resolveSolana({ assets: [{ ticker: "SOL", networks: ["SOLANA"], protocols: ["SOLANA"], icon: "" }] });
+      await flushPromises();
+      await flushPromises();
+
+      // Stale SOLANA assets must NOT have committed under the OSMOSIS filter.
+      expect(store.assets.map((a) => a.ticker)).toEqual(["OSMO"]);
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+
+  it("watcher_superseded_failed_fetch_does_not_clear_current_assets", async () => {
+    // Rule 5, failure branch: the error-branch "clear stale assets" null is just as
+    // dangerous when superseded — a slow SOLANA fetch that REJECTS after the user has
+    // switched back to OSMOSIS must not wipe the committed OSMOSIS assets.
+    api.getConfig.mockResolvedValueOnce(makeConfig());
+    api.getCurrencies.mockResolvedValueOnce(makeCurrencies());
+    api.getNetworkAssets.mockResolvedValueOnce({
+      assets: [{ ticker: "OSMO", networks: ["OSMOSIS"], protocols: ["OSMOSIS"], icon: "" }]
+    });
+    api.getGatedProtocols.mockResolvedValueOnce({ protocols: [] });
+    api.getGasFeeConfig.mockResolvedValueOnce({ gas_prices: {}, gas_multiplier: 1 });
+
+    const store = useConfigStore();
+    await store.initialize();
+    expect(store.assets.map((a) => a.ticker)).toEqual(["OSMO"]);
+
+    // SOLANA fetch is slow and will fail — rejected manually after the supersede lands.
+    let rejectSolana!: (e: Error) => void;
+    const solanaPending = new Promise<never>((_res, rej) => {
+      rejectSolana = rej;
+    });
+    api.getNetworkAssets.mockReturnValueOnce(solanaPending);
+
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      store.setProtocolFilter("SOLANA");
+      await flushPromises(); // watcher kicks off the SOLANA fetch (now in-flight)
+
+      // Switch back to OSMOSIS → already fetched, early-return, but supersedes SOLANA.
+      store.setProtocolFilter("OSMOSIS");
+      await flushPromises();
+
+      // SOLANA rejects late — superseded, so the error-branch null must NOT apply.
+      rejectSolana(new Error("solana down"));
+      await flushPromises();
+      await flushPromises();
+
+      expect(store.assetsResponse).not.toBeNull();
+      expect(store.assets.map((a) => a.ticker)).toEqual(["OSMO"]);
     } finally {
       consoleErr.mockRestore();
     }
