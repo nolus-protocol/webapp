@@ -119,20 +119,6 @@ impl UrlBuilder {
             format!("{}?{}", self.endpoint(endpoint), query.join("&"))
         }
     }
-
-    /// Build a URL with optional query parameters (skips None values)
-    pub fn with_optional_query(&self, endpoint: &str, params: &[(&str, Option<&str>)]) -> String {
-        let query: Vec<String> = params
-            .iter()
-            .filter_map(|(k, v)| v.map(|val| format!("{}={}", k, urlencoding::encode(val))))
-            .collect();
-
-        if query.is_empty() {
-            self.endpoint(endpoint)
-        } else {
-            format!("{}?{}", self.endpoint(endpoint), query.join("&"))
-        }
-    }
 }
 
 #[cfg(test)]
@@ -151,18 +137,6 @@ mod tests {
         let url = builder.with_query("search", &[("q", "test"), ("limit", "10")]);
         assert!(url.contains("q=test"));
         assert!(url.contains("limit=10"));
-    }
-
-    #[test]
-    fn test_url_builder_with_optional_query() {
-        let builder = UrlBuilder::new("https://api.example.com");
-        let url = builder.with_optional_query(
-            "search",
-            &[("q", Some("test")), ("filter", None), ("limit", Some("10"))],
-        );
-        assert!(url.contains("q=test"));
-        assert!(url.contains("limit=10"));
-        assert!(!url.contains("filter"));
     }
 
     #[test]
