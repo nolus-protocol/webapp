@@ -36,6 +36,13 @@ BackendApi.onRateLimited = () => {
   });
 };
 
+BackendApi.onServerError = () => {
+  onShowToast({
+    type: ToastType.error,
+    message: i18n.t("message.unexpected-error")
+  });
+};
+
 onMounted(() => {
   void initWorker();
   const language = getCookie(LANGUAGE_KEY);

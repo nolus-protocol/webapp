@@ -222,6 +222,67 @@ describe("BackendApi", () => {
     });
   });
 
+  describe("doFetch - 5xx server errors", () => {
+    it("should invoke onServerError once for a burst of 5xx responses (throttled)", async () => {
+      vi.useFakeTimers();
+      const api = new BackendApiClient();
+      const cb = vi.fn();
+      api.onServerError = cb;
+
+      fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "bad_gateway", message: "502" } }, 502));
+      await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
+      fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "bad_gateway", message: "502" } }, 502));
+      await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
+      fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "service_unavailable", message: "503" } }, 503));
+      await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
+
+      expect(cb).toHaveBeenCalledTimes(1);
+      expect(cb).toHaveBeenCalledWith(502, expect.stringContaining("/api/earn/stats"));
+    });
+
+    it("should invoke onServerError again after the throttle interval elapses", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+      const api = new BackendApiClient();
+      const cb = vi.fn();
+      api.onServerError = cb;
+
+      fetchMock.mockResolvedValueOnce(jsonResponse({}, 500));
+      await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
+
+      vi.setSystemTime(new Date("2026-01-01T00:00:11Z"));
+      fetchMock.mockResolvedValueOnce(jsonResponse({}, 500));
+      await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
+
+      expect(cb).toHaveBeenCalledTimes(2);
+    });
+
+    it("should NOT invoke onServerError for a non-429 4xx response", async () => {
+      const api = new BackendApiClient();
+      const cb = vi.fn();
+      api.onServerError = cb;
+
+      fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "bad_request", message: "nope" } }, 400));
+      await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
+
+      expect(cb).not.toHaveBeenCalled();
+    });
+
+    it("should invoke onRateLimited (not onServerError) on 429", async () => {
+      const api = new BackendApiClient();
+      const rateLimited = vi.fn();
+      const serverError = vi.fn();
+      api.onRateLimited = rateLimited;
+      api.onServerError = serverError;
+
+      fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "rate_limited", message: "slow down" } }, 429));
+      await expect(api.getEarnStats()).rejects.toBeInstanceOf(ApiError);
+
+      expect(rateLimited).toHaveBeenCalledTimes(1);
+      expect(serverError).not.toHaveBeenCalled();
+    });
+  });
+
   describe("doFetch - non-429 errors", () => {
     it("throws when 400 JSON body present (ApiError with status/code/message from body)", async () => {
       const api = new BackendApiClient();
