@@ -38,6 +38,49 @@ const RETRYABLE_STATUS_CODES: [u16; 2] = [429, 503];
 /// Milliseconds per second, for `Retry-After` (seconds) → millisecond conversion.
 const MS_PER_SEC: u64 = 1000;
 
+/// gRPC-gateway status code the Cosmos LCD returns for a missing gov vote —
+/// the generic `InvalidArgument`, which it also returns for malformed input,
+/// so the code alone cannot classify a "hasn't voted" response.
+const GRPC_CODE_INVALID_ARGUMENT: i32 = 3;
+
+/// Substring the Cosmos gov module places in the 400 body when a voter has no
+/// vote on a proposal. Paired with `GRPC_CODE_INVALID_ARGUMENT` it marks a
+/// "hasn't voted" response, distinct from e.g. a malformed bech32 address.
+const VOTE_NOT_FOUND_MARKER: &str = "not found for proposal";
+
+/// Maximum characters of an upstream error body embedded in a `ChainRpc`
+/// message. The body can echo request input (e.g. an attacker-supplied voter
+/// address), so an unbounded body would flow uncapped into the client error
+/// envelope and server logs.
+const ERROR_BODY_MAX_CHARS: usize = 256;
+
+/// Cap `body` at `ERROR_BODY_MAX_CHARS` characters for embedding in an error
+/// message, cutting on a char boundary. Classification (`is_vote_not_found`)
+/// must run on the full body before truncation.
+fn truncate_error_body(body: &str) -> &str {
+    body.char_indices()
+        .nth(ERROR_BODY_MAX_CHARS)
+        .map_or(body, |(boundary, _char)| &body[..boundary])
+}
+
+/// Classify a Cosmos LCD 400 body: `true` only for the gov "voter not found
+/// for proposal" signal (gRPC-gateway code 3 **and** the marker substring).
+/// Any other code-3 rejection (e.g. a malformed bech32 address) returns
+/// `false` so it keeps the caller's error path.
+fn is_vote_not_found(body: &str) -> bool {
+    #[derive(Deserialize)]
+    struct GrpcGatewayError {
+        code: i32,
+        message: String,
+    }
+
+    serde_json::from_str::<GrpcGatewayError>(body)
+        .map(|err| {
+            err.code == GRPC_CODE_INVALID_ARGUMENT && err.message.contains(VOTE_NOT_FOUND_MARKER)
+        })
+        .unwrap_or(false)
+}
+
 /// Simple jitter using system time nanoseconds (no rand crate needed).
 fn rand_jitter(max: u64) -> u64 {
     if max == 0 {
@@ -609,9 +652,17 @@ impl ChainClient {
         }
 
         if !response.status().is_success() {
+            let status = response.status();
+            let body = response.text().await.unwrap_or_default();
+            // A missing vote comes back as 400 (not 404) with a gRPC-gateway
+            // "voter not found for proposal" envelope — treat it as "hasn't
+            // voted", like the 404 path above. Every other 400 stays an error.
+            if status == reqwest::StatusCode::BAD_REQUEST && is_vote_not_found(&body) {
+                return Ok(None);
+            }
             return Err(AppError::ChainRpc {
                 chain: "nolus".to_string(),
-                message: format!("HTTP {}", response.status()),
+                message: format!("HTTP {}: {}", status, truncate_error_body(&body)),
             });
         }
 
@@ -1593,5 +1644,107 @@ mod tests {
         let rewards = result.unwrap();
         assert_eq!(rewards.rewards.len(), 1);
         assert_eq!(rewards.total.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn get_proposal_vote_returns_none_when_voter_has_not_voted() {
+        // The Cosmos LCD answers a missing vote with HTTP 400 and a
+        // gRPC-gateway envelope (code 3, "not found for proposal"), NOT 404.
+        // That must map to Ok(None) — "hasn't voted" — not a 502-triggering
+        // ChainRpc error.
+        let mock_server = setup_mock_server().await;
+        let client = create_test_client(&mock_server.uri());
+
+        let body = serde_json::json!({
+            "code": 3,
+            "message": "voter: nolus1abc not found for proposal: 42",
+            "details": []
+        });
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals/42/votes/nolus1abc"))
+            .respond_with(ResponseTemplate::new(400).set_body_json(&body))
+            .mount(&mock_server)
+            .await;
+
+        let result = client.get_proposal_vote("42", "nolus1abc").await;
+        assert!(
+            matches!(result, Ok(None)),
+            "missing vote (400 code 3) must map to Ok(None), got {result:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn get_proposal_vote_errors_on_other_400_such_as_malformed_address() {
+        // A malformed bech32 address is also gRPC code 3 but a different
+        // message. It must stay on the error path, not be swallowed as
+        // "hasn't voted".
+        let mock_server = setup_mock_server().await;
+        let client = create_test_client(&mock_server.uri());
+
+        let body = serde_json::json!({
+            "code": 3,
+            "message": "decoding bech32 failed: invalid checksum",
+            "details": []
+        });
+
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals/42/votes/badaddr"))
+            .respond_with(ResponseTemplate::new(400).set_body_json(&body))
+            .mount(&mock_server)
+            .await;
+
+        let result = client.get_proposal_vote("42", "badaddr").await;
+        assert!(
+            result.is_err(),
+            "a non-vote-not-found 400 must remain an error, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn truncate_error_body_passes_short_bodies_through_unchanged() {
+        let body = "short error body";
+        assert_eq!(truncate_error_body(body), body);
+    }
+
+    #[test]
+    fn truncate_error_body_caps_length_on_char_boundary() {
+        // Multibyte input: a byte-index cut would split a char and panic the
+        // slice; the cap must count chars and land on a boundary.
+        let body = "é".repeat(ERROR_BODY_MAX_CHARS + 10);
+        let truncated = truncate_error_body(&body);
+        assert_eq!(
+            truncated.chars().count(),
+            ERROR_BODY_MAX_CHARS,
+            "truncated body must carry exactly the cap in chars"
+        );
+    }
+
+    #[tokio::test]
+    async fn get_proposal_vote_bounds_oversized_error_body_in_message() {
+        // An upstream 400 with a huge body (which can echo attacker-supplied
+        // input) must not flow unbounded into the error message.
+        let mock_server = setup_mock_server().await;
+        let client = create_test_client(&mock_server.uri());
+
+        let oversized_body = "x".repeat(ERROR_BODY_MAX_CHARS * 4);
+        Mock::given(method("GET"))
+            .and(path("/cosmos/gov/v1/proposals/42/votes/nolus1abc"))
+            .respond_with(ResponseTemplate::new(400).set_body_string(oversized_body))
+            .mount(&mock_server)
+            .await;
+
+        let result = client.get_proposal_vote("42", "nolus1abc").await;
+        match result {
+            Err(AppError::ChainRpc { message, .. }) => {
+                let prefix_overhead = 64;
+                assert!(
+                    message.chars().count() <= ERROR_BODY_MAX_CHARS + prefix_overhead,
+                    "error message must embed at most the truncated body, got {} chars",
+                    message.chars().count()
+                );
+            }
+            other => panic!("expected ChainRpc error for oversized 400 body, got {other:?}"),
+        }
     }
 }
