@@ -102,6 +102,8 @@ import {
 // Backend URL from environment, falls back to same-origin (for Vite dev proxy)
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
+const SERVER_ERROR_TOAST_INTERVAL_MS = 10_000;
+
 /**
  * Main Backend API Client
  *
@@ -125,6 +127,16 @@ export class BackendApiClient {
    */
   onRateLimited: (() => void) | null = null;
   private rateLimitToastTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /**
+   * Callback invoked when the backend returns a server error (status >= 500).
+   * Set by App.vue to show a toast notification. Throttled to one invocation
+   * per SERVER_ERROR_TOAST_INTERVAL_MS so a burst of failing boot-time calls
+   * (many sitting inside Promise.allSettled) surfaces a single toast rather
+   * than one per failed request.
+   */
+  onServerError: ((status: number, url: string) => void) | null = null;
+  private lastServerErrorToastAt: number | null = null;
 
   constructor(baseUrl: string = BACKEND_URL) {
     this.baseUrl = baseUrl;
@@ -227,6 +239,16 @@ export class BackendApiClient {
         this.rateLimitToastTimeout = setTimeout(() => {
           this.rateLimitToastTimeout = null;
         }, 5000);
+      }
+      if (response.status >= 500 && this.onServerError) {
+        const now = Date.now();
+        if (
+          this.lastServerErrorToastAt === null ||
+          now - this.lastServerErrorToastAt >= SERVER_ERROR_TOAST_INTERVAL_MS
+        ) {
+          this.lastServerErrorToastAt = now;
+          this.onServerError(response.status, urlString);
+        }
       }
       const errorData = await response.json().catch(() => ({}));
       throw new ApiErrorClass(

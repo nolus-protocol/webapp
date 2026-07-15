@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use axum::{
+    extract::ConnectInfo,
     middleware as axum_middleware,
     routing::{delete, get, post},
     Router,
@@ -231,9 +232,12 @@ async fn main() -> anyhow::Result<()> {
     // Start server
     info!("Starting server on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal(sigterm))
-        .await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal(sigterm))
+    .await?;
     info!("Server shut down gracefully");
 
     Ok(())
@@ -286,6 +290,14 @@ fn build_cors_layer(server: &ServerConfig) -> CorsLayer {
                 .allow_headers(Any)
         }
     }
+}
+
+/// Pull the peer `ConnectInfo` that `into_make_service_with_connect_info`
+/// stores in the request extensions. Lets the rate limiter key a request with
+/// no forwarding headers on the connection's socket address instead of
+/// collapsing every header-less caller into one shared bucket.
+fn connect_info_of<B>(req: &axum::http::Request<B>) -> Option<ConnectInfo<SocketAddr>> {
+    req.extensions().get::<ConnectInfo<SocketAddr>>().copied()
 }
 
 fn create_router(state: Arc<AppState>) -> Router {
@@ -519,7 +531,8 @@ fn create_router(state: Arc<AppState>) -> Router {
         )
         .layer(axum_middleware::from_fn(move |req, next| {
             let state = standard_rate_limit.clone();
-            async move { rate_limit_middleware(state, None, req, next).await }
+            let connect_info = connect_info_of(&req);
+            async move { rate_limit_middleware(state, connect_info, req, next).await }
         }));
 
     // Write API routes (strict rate limit)
@@ -564,7 +577,8 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/intercom/hash", post(handlers::admin::intercom_hash))
         .layer(axum_middleware::from_fn(move |req, next| {
             let state = strict_rate_limit.clone();
-            async move { rate_limit_middleware(state, None, req, next).await }
+            let connect_info = connect_info_of(&req);
+            async move { rate_limit_middleware(state, connect_info, req, next).await }
         }));
 
     // Admin routes (protected with authentication middleware)

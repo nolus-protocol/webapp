@@ -9,9 +9,9 @@ use axum::{
     http::{HeaderMap, HeaderValue},
     Json,
 };
-use futures::future::try_join_all;
+use futures::future;
 use serde::{Deserialize, Serialize};
-use tracing::debug;
+use tracing::{debug, warn};
 use utoipa::{IntoParams, ToSchema};
 
 use crate::{error::AppError, external::chain, AppState};
@@ -117,8 +117,9 @@ pub struct PaginationInfo {
 /// proposals. The fresh tally for a single proposal is available on the
 /// per-id `/proposals/{id}/tally` endpoint, which still queries the chain
 /// directly. `?voter=` triggers a live `get_proposal_vote` fan-out across
-/// voting-period proposals only — a chain failure on any of those calls
-/// surfaces as 502.
+/// voting-period proposals only — a failed lookup is logged and degrades
+/// that proposal to `voted: false` ("hasn't voted") instead of failing the
+/// request.
 #[utoipa::path(
     get,
     path = "/api/governance/proposals",
@@ -134,7 +135,6 @@ pub struct PaginationInfo {
                 ("Cache-Age" = String, description = "Age in seconds of the cached snapshot. Present on `warm` responses, omitted on `cold`."),
             ),
         ),
-        (status = 502, description = "Upstream chain RPC error on live `?voter=` fan-out", body = crate::error::ErrorResponse),
     ),
 )]
 pub async fn get_proposals(
@@ -184,9 +184,9 @@ pub async fn get_proposals(
     let page: Vec<chain::Proposal> = visible.into_iter().take(limit).collect();
 
     // Live `?voter=` fan-out — only voting-period proposals trigger a vote
-    // call. A single chain error fails the whole request with 502; the
-    // 502 response shape is exactly what the frontend already handles for
-    // this endpoint.
+    // call. Lookups run concurrently and are tolerant: one failing lookup
+    // must not fail the whole list, so a per-proposal error degrades to the
+    // same "hasn't voted" shape (voted=false) rather than propagating.
     let voted_map: std::collections::HashMap<String, bool> =
         if let Some(voter) = query.voter.as_deref().filter(|v| !v.is_empty()) {
             let voting_ids: Vec<String> = page
@@ -200,15 +200,29 @@ pub async fn get_proposals(
                 let chain_client = chain_client.clone();
                 let voter = voter.clone();
                 async move {
-                    let res = chain_client.get_proposal_vote(&id, &voter).await?;
-                    let voted = match res {
-                        Some(vote_response) => !vote_response.vote.options.is_empty(),
-                        None => false,
-                    };
-                    Ok::<_, AppError>((id, voted))
+                    let outcome = chain_client.get_proposal_vote(&id, &voter).await;
+                    (id, outcome)
                 }
             });
-            try_join_all(futs).await?.into_iter().collect()
+            future::join_all(futs)
+                .await
+                .into_iter()
+                .map(|(id, outcome)| {
+                    let voted = match outcome {
+                        Ok(Some(vote_response)) => !vote_response.vote.options.is_empty(),
+                        Ok(None) => false,
+                        Err(error) => {
+                            warn!(
+                                proposal_id = %id,
+                                error = %error,
+                                "governance vote lookup failed; treating proposal as not voted"
+                            );
+                            false
+                        }
+                    };
+                    (id, voted)
+                })
+                .collect()
         } else {
             std::collections::HashMap::new()
         };
@@ -973,22 +987,37 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn governance_proposals_with_voter_upstream_failure_on_vote_returns_502() {
-        // Renamed from `governance_proposals_upstream_failure_returns_502`.
-        // After the cache refactor, the list endpoint without `?voter` no
-        // longer touches the chain — so a chain failure can only surface
-        // when fanning out vote calls. Populate the cache, mock vote 500,
-        // expect 502.
+    async fn governance_proposals_tolerates_vote_lookup_failure_and_degrades_to_not_voted() {
+        // A per-proposal vote lookup failure must NOT 502 the whole list: the
+        // failing proposal degrades to the "hasn't voted" shape (voted=false)
+        // while a sibling proposal whose lookup succeeds still reports its real
+        // vote. The response stays 200.
         let mock = MockServer::start().await;
         let state = state_with_chain_url(&mock.uri()).await;
         populate_proposals_cache(
             &state,
-            vec![sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD")],
+            vec![
+                sample_proposal("1", "PROPOSAL_STATUS_VOTING_PERIOD"),
+                sample_proposal("2", "PROPOSAL_STATUS_VOTING_PERIOD"),
+            ],
         );
 
+        // Proposal 1 vote lookup fails hard (500).
         Mock::given(wm_method("GET"))
             .and(wm_path("/cosmos/gov/v1/proposals/1/votes/nolus1xxxx"))
             .respond_with(ResponseTemplate::new(500).set_body_string("vote rpc unavailable"))
+            .mount(&mock)
+            .await;
+        // Proposal 2 vote lookup succeeds with a YES vote.
+        Mock::given(wm_method("GET"))
+            .and(wm_path("/cosmos/gov/v1/proposals/2/votes/nolus1xxxx"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+                "vote": {
+                    "proposal_id": "2",
+                    "voter": "nolus1xxxx",
+                    "options": [{ "option": "VOTE_OPTION_YES", "weight": "1.0" }]
+                }
+            })))
             .mount(&mock)
             .await;
 
@@ -1002,6 +1031,30 @@ mod tests {
             )
             .await
             .unwrap();
-        assert_eq!(resp.status(), StatusCode::BAD_GATEWAY);
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        let json: serde_json::Value =
+            serde_json::from_str(&body).expect("response body parses as JSON");
+        let proposals = json["proposals"]
+            .as_array()
+            .expect("response carries a proposals array");
+        let voted_of = |id: &str| {
+            proposals
+                .iter()
+                .find(|p| p["id"] == id)
+                .unwrap_or_else(|| panic!("proposal {id} present in response, body: {body}"))
+                ["voted"]
+                .clone()
+        };
+        assert_eq!(
+            voted_of("1"),
+            serde_json::json!(false),
+            "failed lookup must degrade proposal 1 to voted=false, body: {body}"
+        );
+        assert_eq!(
+            voted_of("2"),
+            serde_json::json!(true),
+            "successful lookup must report proposal 2 as voted=true, body: {body}"
+        );
     }
 }

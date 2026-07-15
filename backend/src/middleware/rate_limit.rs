@@ -605,9 +605,10 @@ mod tests {
     /// limiting is a blunt control applied uniformly to all connections. Nginx +
     /// authentication + CORS are the real security boundaries.
     ///
-    /// If you're considering changing this to fail-closed without headers, first
-    /// wire ConnectInfo through the router at main.rs::create_router (currently
-    /// hardcoded `None`), otherwise you'll reject all requests.
+    /// ConnectInfo is wired through main.rs (`into_make_service_with_connect_info`
+    /// plus the rate-limit closures in `create_router`), so a request with no
+    /// forwarding headers keys its bucket on the connection's peer address via
+    /// the fallback below instead of being rejected.
     #[test]
     fn extract_client_ip_trusts_xff_unconditionally_intentional() {
         // An attacker-controlled XFF value is returned verbatim. That's fine
@@ -644,6 +645,27 @@ mod tests {
             .header("x-forwarded-for", ip)
             .body(Body::empty())
             .expect("request builder cannot fail with valid header")
+    }
+
+    /// Router whose rate-limit layer receives a fixed peer `ConnectInfo`,
+    /// mirroring what `into_make_service_with_connect_info` supplies in
+    /// production. Lets header-less requests exercise the peer-addr fallback.
+    fn handler_router_with_peer(state: Arc<RateLimitState>, peer: SocketAddr) -> Router {
+        Router::new()
+            .route("/", get(|| async { "ok" }))
+            .layer(axum_middleware::from_fn(move |req, next| {
+                let state = state.clone();
+                async move {
+                    rate_limit_middleware(state, Some(ConnectInfo(peer)), req, next).await
+                }
+            }))
+    }
+
+    fn headerless_request() -> axum::http::Request<Body> {
+        axum::http::Request::builder()
+            .uri("/")
+            .body(Body::empty())
+            .expect("request builder cannot fail")
     }
 
     #[tokio::test]
@@ -736,6 +758,112 @@ mod tests {
                 resp.status(),
                 StatusCode::OK,
                 "whitelisted request {i} must pass"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn rate_limit_middleware_falls_back_to_peer_addr_when_no_headers() {
+        // With no XFF / X-Real-IP header, the middleware must key the bucket on
+        // the connection's peer address and allow the request, not blanket
+        // reject it with 429. A second header-less request from the same peer
+        // exhausts the burst, proving the peer addr is the bucket key.
+        let state = create_rate_limit_state(RateLimitConfig {
+            requests_per_second: 1,
+            burst_size: 1,
+            enabled: true,
+            whitelist: vec![],
+        });
+        let peer: SocketAddr = "203.0.113.9:54321"
+            .parse()
+            .expect("hard-coded peer socket addr parses");
+        let app = handler_router_with_peer(state, peer);
+
+        let r1 = app
+            .clone()
+            .oneshot(headerless_request())
+            .await
+            .expect("first header-less request completes");
+        assert_eq!(
+            r1.status(),
+            StatusCode::OK,
+            "header-less request must be allowed via peer-addr fallback"
+        );
+
+        let r2 = app
+            .oneshot(headerless_request())
+            .await
+            .expect("second header-less request completes");
+        assert_eq!(
+            r2.status(),
+            StatusCode::TOO_MANY_REQUESTS,
+            "second header-less request from same peer must be limited"
+        );
+    }
+
+    #[tokio::test]
+    async fn rate_limit_middleware_peer_addr_fallback_is_per_peer() {
+        // Two different peers, both header-less: each gets its own bucket.
+        // Exhausting peer A must not affect peer B.
+        let state = create_rate_limit_state(RateLimitConfig {
+            requests_per_second: 1,
+            burst_size: 1,
+            enabled: true,
+            whitelist: vec![],
+        });
+        let peer_a: SocketAddr = "203.0.113.9:1111".parse().expect("peer a parses");
+        let peer_b: SocketAddr = "198.51.100.7:2222".parse().expect("peer b parses");
+
+        let app_a = handler_router_with_peer(state.clone(), peer_a);
+        let app_b = handler_router_with_peer(state, peer_b);
+
+        let a1 = app_a
+            .clone()
+            .oneshot(headerless_request())
+            .await
+            .expect("peer A first request completes");
+        assert_eq!(a1.status(), StatusCode::OK);
+        let a2 = app_a
+            .oneshot(headerless_request())
+            .await
+            .expect("peer A second request completes");
+        assert_eq!(a2.status(), StatusCode::TOO_MANY_REQUESTS);
+
+        let b1 = app_b
+            .oneshot(headerless_request())
+            .await
+            .expect("peer B request completes");
+        assert_eq!(
+            b1.status(),
+            StatusCode::OK,
+            "peer B must be unaffected by peer A's exhausted bucket"
+        );
+    }
+
+    #[tokio::test]
+    async fn rate_limit_middleware_whitelisted_peer_addr_bypasses_limit_without_headers() {
+        // Whitelist preservation: a peer whose IP is whitelisted bypasses the
+        // limit even with no forwarding headers — the whitelist applies to the
+        // peer-addr fallback key too.
+        let peer: SocketAddr = "203.0.113.9:33333".parse().expect("peer parses");
+        let state = create_rate_limit_state(RateLimitConfig {
+            requests_per_second: 1,
+            burst_size: 1,
+            enabled: true,
+            whitelist: vec![peer.ip()],
+        });
+        let app = handler_router_with_peer(state, peer);
+
+        for i in 0..5 {
+            let resp = app
+                .clone()
+                .oneshot(headerless_request())
+                .await
+                .expect("whitelisted peer request completes");
+            assert_eq!(
+                resp.status(),
+                StatusCode::OK,
+                "whitelisted peer request {i} must pass"
             );
         }
     }
