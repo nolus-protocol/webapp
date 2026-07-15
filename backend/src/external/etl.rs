@@ -182,39 +182,6 @@ impl EtlClient {
             .await
     }
 
-    /// Search leases by address
-    pub async fn search_leases(
-        &self,
-        address: &str,
-        skip: u32,
-        limit: u32,
-        search: Option<&str>,
-    ) -> Result<Vec<String>, AppError> {
-        let skip_str = skip.to_string();
-        let limit_str = limit.to_string();
-        let url = self.url().with_optional_query(
-            "leases-search",
-            &[
-                ("address", Some(address)),
-                ("skip", Some(&skip_str)),
-                ("limit", Some(&limit_str)),
-                ("search", search),
-            ],
-        );
-        debug!("Searching leases from {}", url);
-
-        self.client
-            .get(&url)
-            .send()
-            .await
-            .with_context(API_NAME, "search leases")
-            .await?
-            .check_status(API_NAME, "leases search")
-            .await?
-            .parse_json(API_NAME, "leases search")
-            .await
-    }
-
     /// Fetch transaction history
     pub async fn fetch_transactions(
         &self,
@@ -475,7 +442,7 @@ pub struct EtlTvlResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use wiremock::matchers::{method, path, query_param, query_param_is_missing};
+    use wiremock::matchers::{method, path, query_param};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     fn test_client(url: &str) -> EtlClient {
@@ -862,49 +829,6 @@ mod tests {
             .unwrap();
         assert_eq!(resp.total, Some(1));
         assert_eq!(resp.data.len(), 1);
-    }
-
-    // ---- search_leases (88-89) ----
-
-    #[tokio::test]
-    async fn etl_search_leases_omits_none_search_param() {
-        let server = MockServer::start().await;
-        Mock::given(method("GET"))
-            .and(path("/api/leases-search"))
-            .and(query_param("address", "nolus1user"))
-            .and(query_param("skip", "0"))
-            .and(query_param("limit", "20"))
-            .and(query_param_is_missing("search"))
-            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!([])))
-            .mount(&server)
-            .await;
-
-        let client = test_client(&server.uri());
-        let leases = client
-            .search_leases("nolus1user", 0, 20, None)
-            .await
-            .unwrap();
-        assert!(leases.is_empty());
-    }
-
-    #[tokio::test]
-    async fn etl_search_leases_includes_search_when_some() {
-        let server = MockServer::start().await;
-        Mock::given(method("GET"))
-            .and(path("/api/leases-search"))
-            .and(query_param("search", "foo"))
-            .respond_with(
-                ResponseTemplate::new(200).set_body_json(serde_json::json!(["nolus1a", "nolus1b"])),
-            )
-            .mount(&server)
-            .await;
-
-        let client = test_client(&server.uri());
-        let leases = client
-            .search_leases("nolus1user", 0, 20, Some("foo"))
-            .await
-            .unwrap();
-        assert_eq!(leases.len(), 2);
     }
 
     // ---- fetch_transactions (90-91) ----
