@@ -194,7 +194,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { Dec } from "@keplr-wallet/unit";
 import StopLossDialog from "./StopLossDialog.vue";
 
@@ -219,7 +219,7 @@ function makeLease(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function factory() {
+function factory(provide: Record<string, unknown> = {}) {
   return mount(StopLossDialog, {
     global: {
       mocks: {
@@ -227,7 +227,8 @@ function factory() {
       },
       provide: {
         onShowToast: vi.fn(),
-        reload: vi.fn()
+        reload: vi.fn(),
+        ...provide
       }
     }
   });
@@ -283,6 +284,27 @@ describe("StopLossDialog.vue", () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain("message.stoppings-payout");
     expect(wrapper.text()).not.toContain('message.stoppings-payout {"amount":"0"}');
+    wrapper.unmount();
+  });
+
+  // the mode-selected toast must keep emitting the stop-loss key on the
+  // stop-loss path after the take-profit path is split off.
+  it("emits the stop-loss success toast on a completed submit", async () => {
+    hoisted.getLeaseDisplayData.mockReturnValue({
+      openingPrice: new Dec("100"),
+      totalDebt: new Dec("0"),
+      stableAsset: new Dec("1"),
+      unitAsset: new Dec("1")
+    });
+    const onShowToast = vi.fn();
+    const wrapper = factory({ onShowToast });
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("50");
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    expect(hoisted.loggerError).not.toHaveBeenCalled();
+    expect(onShowToast).toHaveBeenCalledWith(expect.objectContaining({ message: "message.stop-loss-toast" }));
     wrapper.unmount();
   });
 });

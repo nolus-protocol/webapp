@@ -339,6 +339,7 @@
     "take-profit": "Take Profit",
     "take-profit-price-per": "Take Profit price per",
     "take-profit-min-amount-error": "The minimum amount is {amount}",
+    "take-profit-toast": "Take Profit Set",
     "submit-btn": "Submit",
     "stop-loss-toast": "Stop Loss Set",
     "per": "per",

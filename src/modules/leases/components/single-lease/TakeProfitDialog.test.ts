@@ -195,7 +195,7 @@ vi.mock("web-components", () => ({
   ToastType: { success: "success", error: "error" }
 }));
 
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { Dec } from "@keplr-wallet/unit";
 import TakeProfitDialog from "./TakeProfitDialog.vue";
 
@@ -220,7 +220,7 @@ function makeLease(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function factory() {
+function factory(provide: Record<string, unknown> = {}) {
   return mount(TakeProfitDialog, {
     global: {
       mocks: {
@@ -228,7 +228,8 @@ function factory() {
       },
       provide: {
         onShowToast: vi.fn(),
-        reload: vi.fn()
+        reload: vi.fn(),
+        ...provide
       }
     }
   });
@@ -284,6 +285,63 @@ describe("TakeProfitDialog.vue", () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.text()).toContain("message.stoppings-payout");
     expect(wrapper.text()).not.toContain('message.stoppings-payout {"amount":"0"}');
+    wrapper.unmount();
+  });
+
+  // take-profit success must surface the take-profit toast, not the
+  // stop-loss toast both original SFCs unconditionally emitted.
+  it("emits the take-profit success toast on a completed submit", async () => {
+    const onShowToast = vi.fn();
+    const wrapper = factory({ onShowToast });
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("5");
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    expect(hoisted.loggerError).not.toHaveBeenCalled();
+    expect(onShowToast).toHaveBeenCalledWith(expect.objectContaining({ message: "message.take-profit-toast" }));
+    wrapper.unmount();
+  });
+
+  // getPercent take-profit branch must guard the zero divisor the
+  // stop-loss branch already guards; without the guard quo() throws, the
+  // submit is swallowed by operation()'s catch, and no toast is emitted.
+  it("completes the submit without throwing when the unit asset is zero (Long)", async () => {
+    hoisted.getLeaseDisplayData.mockReturnValue({
+      openingPrice: new Dec("1"),
+      totalDebt: new Dec("0"),
+      stableAsset: new Dec("1"),
+      unitAsset: new Dec("0")
+    });
+    const onShowToast = vi.fn();
+    const wrapper = factory({ onShowToast });
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("5");
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    expect(hoisted.loggerError).not.toHaveBeenCalled();
+    expect(onShowToast).toHaveBeenCalledWith(expect.objectContaining({ message: "message.take-profit-toast" }));
+    wrapper.unmount();
+  });
+
+  it("completes the submit without throwing when the unit asset is zero (Short)", async () => {
+    hoisted.configRef.positionType = "Short";
+    hoisted.getLeaseDisplayData.mockReturnValue({
+      openingPrice: new Dec("1"),
+      totalDebt: new Dec("0"),
+      stableAsset: new Dec("1"),
+      unitAsset: new Dec("0")
+    });
+    const onShowToast = vi.fn();
+    const wrapper = factory({ onShowToast });
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="amount"]').setValue("0.5");
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    expect(hoisted.loggerError).not.toHaveBeenCalled();
+    expect(onShowToast).toHaveBeenCalledWith(expect.objectContaining({ message: "message.take-profit-toast" }));
     wrapper.unmount();
   });
 });

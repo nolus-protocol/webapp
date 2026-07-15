@@ -317,6 +317,7 @@
     "take-profit": "Take Profit",
     "take-profit-price-per": "Цена Take Profit за",
     "take-profit-min-amount-error": "Минимальная сумма — {amount}",
+    "take-profit-toast": "Take Profit установлен",
     "submit-btn": "Подтвердить",
     "stop-loss-toast": "Stop Loss установлен",
     "per": "за",

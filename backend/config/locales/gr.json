@@ -317,6 +317,7 @@
     "take-profit": "Take Profit",
     "take-profit-price-per": "Τιμή Take Profit ανά",
     "take-profit-min-amount-error": "Το ελάχιστο ποσό είναι {amount}",
+    "take-profit-toast": "Ορίστηκε Take Profit",
     "submit-btn": "Υποβολή",
     "stop-loss-toast": "Ορίστηκε Stop Loss",
     "per": "ανά",

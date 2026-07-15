@@ -317,6 +317,7 @@
     "take-profit": "Take Profit",
     "take-profit-price-per": "Harga Take Profit per",
     "take-profit-min-amount-error": "Jumlah minimum adalah {amount}",
+    "take-profit-toast": "Take Profit Diatur",
     "submit-btn": "Kirim",
     "stop-loss-toast": "Stop Loss Diatur",
     "per": "per",

@@ -369,7 +369,7 @@ export function useTriggerDialog(mode: TriggerMode) {
         dialog?.value?.close();
         onShowToast({
           type: ToastType.success,
-          message: i18n.t("message.stop-loss-toast")
+          message: i18n.t(mode === "stop-loss" ? "message.stop-loss-toast" : "message.take-profit-toast")
         });
       } catch (error: unknown) {
         Logger.error(error);
@@ -399,10 +399,17 @@ export function useTriggerDialog(mode: TriggerMode) {
         return displayData.value.stableAsset.quo(displayData.value.unitAsset).mul(value);
       }
     } else {
-      const value = new Dec(amount.value);
+      const value = new Dec(amount.value.length === 0 ? 0 : amount.value);
       if (positionType === "Long") {
-        return displayData.value.stableAsset.quo(value.mul(displayData.value.unitAsset));
+        const v = value.mul(displayData.value.unitAsset);
+        if (v.isZero()) {
+          return new Dec(0);
+        }
+        return displayData.value.stableAsset.quo(v);
       } else {
+        if (displayData.value.unitAsset.isZero()) {
+          return new Dec(0);
+        }
         return displayData.value.stableAsset.quo(displayData.value.unitAsset).mul(value);
       }
     }
