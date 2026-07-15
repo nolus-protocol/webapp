@@ -5,7 +5,7 @@
  * typed event handling for price updates, balance changes, lease updates, etc.
  */
 
-import type { LeaseInfo, BalanceInfo, StakingPositionsResponse } from "./BackendApi";
+import type { LeaseInfo, BalanceInfo } from "./BackendApi";
 
 import { Logger } from "@/common/utils/Logger";
 
@@ -20,7 +20,7 @@ function getWsUrl(): string {
 /**
  * Subscription topics supported by the backend
  */
-export type SubscriptionTopic = "prices" | "balances" | "leases" | "tx_status" | "staking" | "skip_tx" | "earn";
+export type SubscriptionTopic = "prices" | "balances" | "leases" | "tx_status" | "skip_tx" | "earn";
 
 /**
  * Client -> Server messages
@@ -80,12 +80,6 @@ interface TxStatusMessage {
   error?: string;
 }
 
-interface StakingUpdateMessage {
-  type: "staking_update";
-  address: string;
-  data: StakingPositionsResponse;
-}
-
 interface SkipTxUpdateMessage {
   type: "skip_tx_update";
   tx_hash: string;
@@ -118,7 +112,6 @@ type ServerMessage =
   | BalanceUpdateMessage
   | LeaseUpdateMessage
   | TxStatusMessage
-  | StakingUpdateMessage
   | SkipTxUpdateMessage
   | EarnUpdateMessage;
 
@@ -129,7 +122,6 @@ export type PriceCallback = (prices: Record<string, string>) => void;
 export type BalanceCallback = (address: string, balances: BalanceInfo[]) => void;
 export type LeaseCallback = (lease: Partial<LeaseInfo> & Pick<LeaseInfo, "address" | "status">) => void;
 export type TxStatusCallback = (txHash: string, status: "pending" | "success" | "failed", error?: string) => void;
-export type StakingCallback = (address: string, data: StakingPositionsResponse) => void;
 export type SkipTxCallback = (update: {
   tx_hash: string;
   status: "pending" | "success" | "failed";
@@ -374,10 +366,6 @@ class WebSocketClientImpl {
           this.notifySubscribers(`tx_status:${message.tx_hash}`, message.tx_hash, message.status, message.error);
           break;
 
-        case "staking_update":
-          this.notifySubscribers(`staking:${message.address}`, message.address, message.data);
-          break;
-
         case "skip_tx_update":
           this.notifySubscribers(`skip_tx:${message.tx_hash}`, {
             tx_hash: message.tx_hash,
@@ -517,13 +505,6 @@ class WebSocketClientImpl {
    */
   subscribeTxStatus(txHash: string, chainId: string, callback: TxStatusCallback): Unsubscribe {
     return this.subscribe(`tx_status:${txHash}`, "tx_status", callback, { hash: txHash, chain_id: chainId });
-  }
-
-  /**
-   * Subscribe to staking position updates
-   */
-  subscribeStaking(address: string, callback: StakingCallback): Unsubscribe {
-    return this.subscribe(`staking:${address}`, "staking", callback, { address });
   }
 
   /**

@@ -1,15 +1,14 @@
 /**
  * Staking Store - Validators and staking positions from backend
  *
- * Uses WebSocket for real-time updates on staking positions.
- * Replaces direct Cosmos SDK queries.
+ * Positions load over REST: on wallet connect, on WebSocket reconnect, and
+ * after each staking transaction. Replaces direct Cosmos SDK queries.
  */
 
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import {
   BackendApi,
-  WebSocketClient,
   type ValidatorInfo,
   type StakingPosition,
   type StakingPositionsResponse,
@@ -18,7 +17,6 @@ import {
   type StakingParams
 } from "@/common/api";
 import { useWalletWatcher } from "@/common/composables/useWalletWatcher";
-import { useWebSocketLifecycle } from "@/common/composables/useWebSocketLifecycle";
 
 export const useStakingStore = defineStore("staking", () => {
   // State
@@ -138,31 +136,29 @@ export const useStakingStore = defineStore("staking", () => {
     }
   }
 
-  // WebSocket lifecycle: subscribe, fetch, unsubscribe, cleanup
-  const { setAddress, cleanup } = useWebSocketLifecycle({
-    address,
-    subscribe: (addr) =>
-      WebSocketClient.subscribeStaking(addr, (wsAddr, response) => {
-        if (wsAddr === address.value && response) {
-          if (response.delegations) delegations.value = response.delegations;
-          if (response.unbonding) unbonding.value = response.unbonding;
-          if (response.rewards) rewards.value = response.rewards;
-          if (response.total_staked) totalStaked.value = response.total_staked;
-          if (response.total_rewards) totalRewards.value = response.total_rewards;
-          lastUpdated.value = new Date();
-        }
-      }),
-    fetch: fetchPositions,
-    resetState: () => {
-      delegations.value = [];
-      unbonding.value = [];
-      rewards.value = [];
-      totalStaked.value = "0";
-      totalRewards.value = "0";
-      lastUpdated.value = null;
-      error.value = null;
+  function resetPositions(): void {
+    delegations.value = [];
+    unbonding.value = [];
+    rewards.value = [];
+    totalStaked.value = "0";
+    totalRewards.value = "0";
+    lastUpdated.value = null;
+    error.value = null;
+  }
+
+  async function setAddress(newAddress: string | null): Promise<void> {
+    address.value = newAddress;
+    resetPositions();
+
+    if (newAddress) {
+      await fetchPositions();
     }
-  });
+  }
+
+  function cleanup(): void {
+    address.value = null;
+    resetPositions();
+  }
 
   /**
    * Initialize the store
@@ -171,8 +167,8 @@ export const useStakingStore = defineStore("staking", () => {
     await Promise.all([fetchValidators(), fetchParams()]);
   }
 
-  // Self-register: watch wallet address changes from connectionStore.
-  useWalletWatcher(setAddress, cleanup);
+  // Self-register: watch wallet address changes; refetch on WS reconnect.
+  useWalletWatcher(setAddress, cleanup, fetchPositions);
 
   return {
     // State

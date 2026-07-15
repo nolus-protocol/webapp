@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
+import { reactive, nextTick } from "vue";
 
 // ThemeManager needs window.matchMedia at module import time.
 vi.hoisted(() => {
@@ -18,26 +19,16 @@ vi.hoisted(() => {
 });
 
 const hoisted = vi.hoisted(() => {
-  const captured: {
-    onStaking: ((addr: string, response: any) => void) | null;
-    unsubscribe: ReturnType<typeof vi.fn>;
-  } = {
-    onStaking: null,
-    unsubscribe: vi.fn()
-  };
-
   const BackendApi = {
     getValidators: vi.fn(),
     getStakingPositions: vi.fn(),
     getStakingParams: vi.fn()
   };
 
-  const subscribeStaking = vi.fn((addr: string, cb: (a: string, resp: any) => void) => {
-    captured.onStaking = cb;
-    return captured.unsubscribe;
-  });
+  // Regression guard: staking must never re-introduce a WS subscription.
+  const subscribeStaking = vi.fn();
 
-  return { captured, BackendApi, subscribeStaking };
+  return { BackendApi, subscribeStaking };
 });
 
 vi.mock("@/common/api", () => ({
@@ -49,36 +40,27 @@ vi.mock("@/common/api", () => ({
 
 // Stub the connection store so useWalletWatcher can read walletAddress/wsReconnectCount
 // without pulling in the real connection store (which imports all other stores).
-const connectionState = {
-  walletAddress: null as string | null,
-  wsReconnectCount: 0
-};
+// Rebuilt per test so a store's watchers only observe its own test's mutations.
+function makeConnectionState() {
+  return reactive({
+    walletAddress: null as string | null,
+    wsReconnectCount: 0
+  });
+}
+let connectionState = makeConnectionState();
 vi.mock("@/common/stores/connection", () => ({
   useConnectionStore: () => connectionState
 }));
 
 import { useStakingStore } from "./index";
 
-const { captured, BackendApi, subscribeStaking } = hoisted;
-
-function emitStaking(addr: string, response: any) {
-  const handler = captured.onStaking;
-  expect(handler).toBeTruthy();
-  (handler as (addr: string, response: any) => void)(addr, response);
-}
+const { BackendApi, subscribeStaking } = hoisted;
 
 describe("useStakingStore", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.resetAllMocks();
-    captured.onStaking = null;
-    captured.unsubscribe = vi.fn();
-    subscribeStaking.mockImplementation((_addr, cb) => {
-      captured.onStaking = cb;
-      return captured.unsubscribe;
-    });
-    connectionState.walletAddress = null;
-    connectionState.wsReconnectCount = 0;
+    connectionState = makeConnectionState();
     setActivePinia(createPinia());
   });
 
@@ -324,42 +306,6 @@ describe("useStakingStore", () => {
     expect(store.hasPositions).toBe(true);
   });
 
-  it("ws callback partially updates state only when address matches", async () => {
-    BackendApi.getStakingPositions.mockResolvedValueOnce({
-      delegations: [],
-      unbonding: [],
-      rewards: [],
-      total_staked: "0",
-      total_rewards: "0"
-    });
-
-    const store = useStakingStore();
-    await store.setAddress("nolus1x");
-
-    expect(captured.onStaking).not.toBeNull();
-
-    // Mismatched address: ignored
-    emitStaking("nolus1OTHER", {
-      delegations: [{ validator_address: "ignored", shares: "0", balance: { denom: "u", amount: "0" } }]
-    });
-    expect(store.delegations).toEqual([]);
-
-    // Null response: ignored (response is falsy)
-    emitStaking("nolus1x", null);
-    expect(store.delegations).toEqual([]);
-
-    // Matching address + partial response: fields only updated where present
-    emitStaking("nolus1x", {
-      delegations: [{ validator_address: "v1", shares: "1", balance: { denom: "u", amount: "5" } }],
-      total_staked: "5"
-      // rewards, unbonding, total_rewards omitted — should remain at defaults
-    });
-    expect(store.delegations.length).toBe(1);
-    expect(store.totalStaked).toBe("5");
-    expect(store.unbonding).toEqual([]);
-    expect(store.rewards).toEqual([]);
-  });
-
   it("initialize fetches validators and params concurrently", async () => {
     BackendApi.getValidators.mockResolvedValueOnce([]);
     BackendApi.getStakingParams.mockResolvedValueOnce({
@@ -375,7 +321,7 @@ describe("useStakingStore", () => {
     expect(BackendApi.getStakingParams).toHaveBeenCalledTimes(1);
   });
 
-  it("cleanup unsubscribes and resets state", async () => {
+  it("cleanup resets state", async () => {
     BackendApi.getStakingPositions.mockResolvedValueOnce({
       delegations: [{ validator_address: "v1", shares: "1", balance: { denom: "u", amount: "1" } }],
       unbonding: [],
@@ -389,9 +335,46 @@ describe("useStakingStore", () => {
     expect(store.delegations.length).toBe(1);
 
     store.cleanup();
-    expect(captured.unsubscribe).toHaveBeenCalledTimes(1);
     expect(store.address).toBeNull();
     expect(store.delegations).toEqual([]);
     expect(store.totalStaked).toBe("0");
+  });
+
+  it("refetches positions on websocket reconnect while a wallet is connected", async () => {
+    BackendApi.getStakingPositions.mockResolvedValue({
+      delegations: [],
+      unbonding: [],
+      rewards: [],
+      total_staked: "0",
+      total_rewards: "0"
+    });
+
+    connectionState.walletAddress = "nolus1x";
+    useStakingStore();
+    await nextTick();
+    expect(BackendApi.getStakingPositions).toHaveBeenCalledTimes(1);
+
+    connectionState.wsReconnectCount++;
+    await nextTick();
+    expect(BackendApi.getStakingPositions).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not register a websocket subscription for staking", async () => {
+    BackendApi.getStakingPositions.mockResolvedValue({
+      delegations: [],
+      unbonding: [],
+      rewards: [],
+      total_staked: "0",
+      total_rewards: "0"
+    });
+
+    connectionState.walletAddress = "nolus1x";
+    useStakingStore();
+    await nextTick();
+
+    connectionState.wsReconnectCount++;
+    await nextTick();
+
+    expect(subscribeStaking).not.toHaveBeenCalled();
   });
 });

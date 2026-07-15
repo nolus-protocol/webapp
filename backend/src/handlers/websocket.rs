@@ -5,7 +5,6 @@
 //! - balances: Balance updates for specific addresses
 //! - leases: Lease state changes for a user
 //! - tx_status: Transaction confirmation status
-//! - staking: Staking position updates
 //! - skip_tx: Cross-chain transaction tracking
 //! - earn: Earn position updates for a user
 
@@ -82,11 +81,6 @@ pub enum ServerMessage {
         #[serde(skip_serializing_if = "Option::is_none")]
         error: Option<String>,
     },
-    /// Staking update
-    StakingUpdate {
-        address: String,
-        data: serde_json::Value,
-    },
     /// Skip cross-chain transaction update
     SkipTxUpdate {
         tx_hash: String,
@@ -143,8 +137,6 @@ pub enum Subscription {
     Leases { address: String },
     /// Subscribe to transaction status
     TxStatus { hash: String, chain_id: String },
-    /// Subscribe to staking updates
-    Staking { address: String },
     /// Subscribe to Skip transaction tracking
     SkipTx {
         tx_hash: String,
@@ -197,14 +189,6 @@ impl Subscription {
                     .to_string();
                 Ok(Subscription::TxStatus { hash, chain_id })
             }
-            "staking" => {
-                let address = params
-                    .get("address")
-                    .and_then(|v| v.as_str())
-                    .ok_or("Missing 'address' parameter")?
-                    .to_string();
-                Ok(Subscription::Staking { address })
-            }
             "skip_tx" => {
                 let tx_hash = params
                     .get("tx_hash")
@@ -239,7 +223,6 @@ impl Subscription {
             Subscription::Balances { .. } => "balances",
             Subscription::Leases { .. } => "leases",
             Subscription::TxStatus { .. } => "tx_status",
-            Subscription::Staking { .. } => "staking",
             Subscription::SkipTx { .. } => "skip_tx",
             Subscription::Earn { .. } => "earn",
         }
@@ -1687,10 +1670,10 @@ mod tests {
     // Subscription parsing — additional edge cases
     // ------------------------------------------------------------------
 
-    /// skip_tx and earn topic parsing, plus staking — ensures full coverage
-    /// of the topic dispatch table.
+    /// skip_tx and earn topic parsing — ensures full coverage of the topic
+    /// dispatch table.
     #[test]
-    fn test_subscription_parsing_skip_tx_earn_staking() {
+    fn test_subscription_parsing_skip_tx_earn() {
         let sub = Subscription::from_client_message(
             "skip_tx",
             &serde_json::json!({"tx_hash": "H", "source_chain": "osmosis-1"}),
@@ -1706,20 +1689,11 @@ mod tests {
         )
         .unwrap();
         assert!(matches!(sub, Subscription::Earn { address } if address == "nolus1earn"));
-
-        let sub = Subscription::from_client_message(
-            "staking",
-            &serde_json::json!({"address": "nolus1stake"}),
-        )
-        .unwrap();
-        assert!(matches!(sub, Subscription::Staking { address } if address == "nolus1stake"));
     }
 
     /// Missing specific params for each topic surface `Err` — not panic.
     #[test]
     fn test_subscription_parsing_missing_params_all_topics() {
-        // staking: missing address
-        assert!(Subscription::from_client_message("staking", &serde_json::json!({})).is_err());
         // earn: missing address
         assert!(Subscription::from_client_message("earn", &serde_json::json!({})).is_err());
         // skip_tx: missing tx_hash
