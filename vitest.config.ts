@@ -110,7 +110,7 @@ export default mergeConfig(
           },
           "src/common/stores/earn/index.ts": {
             lines: 95,
-            branches: 85,
+            branches: 89,
             functions: 95,
             statements: 95
           },
@@ -122,14 +122,14 @@ export default mergeConfig(
           },
           "src/common/stores/leases/index.ts": {
             lines: 80,
-            branches: 80,
+            branches: 86,
             functions: 70,
             statements: 80
           },
           // Large stores — intentionally lower floors; breadth-over-depth.
           "src/common/stores/config/index.ts": {
             lines: 65,
-            branches: 80,
+            branches: 87,
             functions: 35,
             statements: 65
           },
