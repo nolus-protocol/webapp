@@ -47,10 +47,7 @@
         </template>
       </Alert>
 
-      <PriceWidget
-        :lease="lease"
-        :display-data="displayData"
-      />
+      <PriceWidget :lease="lease" />
       <PositionSummaryWidget
         :lease="lease"
         :display-data="displayData"
