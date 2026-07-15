@@ -18,14 +18,14 @@ vi.hoisted(() => {
 
 const hoisted = vi.hoisted(() => {
   const captured: {
-    onBalances: ((addr: string, balances: any) => void) | null;
+    onBalances: ((addr: string, balances: any, totalValueUsd: string) => void) | null;
     unsubscribe: ReturnType<typeof vi.fn>;
   } = { onBalances: null, unsubscribe: vi.fn() };
 
   const BackendApi = {
     getBalances: vi.fn()
   };
-  const subscribeBalances = vi.fn((_addr: string, cb: (addr: string, balances: any) => void) => {
+  const subscribeBalances = vi.fn((_addr: string, cb: (addr: string, balances: any, totalValueUsd: string) => void) => {
     captured.onBalances = cb;
     return captured.unsubscribe;
   });
@@ -66,10 +66,10 @@ import { useBalancesStore } from "./index";
 
 const { captured, BackendApi, subscribeBalances } = hoisted;
 
-function emitBalances(addr: string, balances: any) {
+function emitBalances(addr: string, balances: any, totalValueUsd = "0") {
   const handler = captured.onBalances;
   expect(handler).toBeTruthy();
-  (handler as (addr: string, balances: any) => void)(addr, balances);
+  (handler as (addr: string, balances: any, totalValueUsd: string) => void)(addr, balances, totalValueUsd);
 }
 
 type BalanceRec = {
@@ -308,6 +308,19 @@ describe("useBalancesStore", () => {
     const updated = store.balances[0];
     if (updated === undefined) throw new Error("expected one balance entry after the ws update");
     expect(updated.amount).toBe("5");
+  });
+
+  it("ws push updates balances AND totalValueUsd", async () => {
+    BackendApi.getBalances.mockResolvedValueOnce({
+      balances: [],
+      total_value_usd: "0"
+    });
+    const store = useBalancesStore();
+    await store.setAddress("nolus1x");
+
+    emitBalances("nolus1x", [mkBalance({ amount: "5" })], "50");
+    expect(store.balances.length).toBe(1);
+    expect(store.totalValueUsd).toBe("50");
   });
 
   it("ws callback ignores mismatched address", async () => {

@@ -72,7 +72,7 @@ pub struct BalancesResponse {
     pub total_value_usd: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct BalanceInfo {
     pub key: String,
     pub symbol: String,
@@ -80,6 +80,21 @@ pub struct BalanceInfo {
     pub amount: String,
     pub amount_usd: String,
     pub decimal_digits: u8,
+}
+
+/// Why balance computation could not produce a payload.
+///
+/// Lets the balance monitor skip such a tick silently while the REST handler
+/// surfaces the wrapped error verbatim.
+pub enum BalancesError {
+    /// A required cache (filter context, currencies, or prices) is not yet warm.
+    /// Carries the 503 the REST handler returns unchanged.
+    Unavailable(AppError),
+    /// The address failed validation. Carries the 400 the REST handler returns
+    /// unchanged.
+    Validation(AppError),
+    /// The chain balance query (or another downstream call) failed.
+    Chain(AppError),
 }
 
 /// List all currencies
@@ -196,21 +211,54 @@ pub async fn get_balances(
         });
     }
 
-    // Read filter context from cache
+    match compute_balances(&state, &query.address).await {
+        Ok(response) => Ok(Json(response)),
+        Err(
+            BalancesError::Unavailable(e) | BalancesError::Validation(e) | BalancesError::Chain(e),
+        ) => Err(e),
+    }
+}
+
+/// Compute visible balances and their aggregate USD value for an address.
+///
+/// Shared by the REST balances handler and the WebSocket balance monitor. Cold
+/// caches surface as `BalancesError::Unavailable` (503 for REST, skip for the
+/// monitor); chain failures surface as `BalancesError::Chain`.
+pub async fn compute_balances(
+    state: &AppState,
+    address: &str,
+) -> Result<BalancesResponse, BalancesError> {
+    if !crate::validation::is_valid_nolus_address(address) {
+        return Err(BalancesError::Validation(AppError::Validation {
+            message: "Invalid Nolus address format".to_string(),
+            field: Some("address".to_string()),
+            details: None,
+        }));
+    }
+
     let filter_ctx = state
         .data_cache
         .filter_context
-        .load_or_unavailable("Filter context")?;
+        .load_or_unavailable("Filter context")
+        .map_err(BalancesError::Unavailable)?;
 
-    // Read currencies and prices from cache, fetch balances from chain
     let currencies_response = state
         .data_cache
         .currencies
-        .load_or_unavailable("Currencies")?;
+        .load_or_unavailable("Currencies")
+        .map_err(BalancesError::Unavailable)?;
 
-    let prices_response = state.data_cache.prices.load_or_unavailable("Prices")?;
+    let prices_response = state
+        .data_cache
+        .prices
+        .load_or_unavailable("Prices")
+        .map_err(BalancesError::Unavailable)?;
 
-    let bank_balances = state.chain_client.get_all_balances(&query.address).await?;
+    let bank_balances = state
+        .chain_client
+        .get_all_balances(address)
+        .await
+        .map_err(BalancesError::Chain)?;
     let prices = &prices_response.prices;
 
     let mut balances = Vec::new();
@@ -260,10 +308,10 @@ pub async fn get_balances(
         // Note: Unknown denoms are now excluded (gated by default)
     }
 
-    Ok(Json(BalancesResponse {
+    Ok(BalancesResponse {
         balances,
         total_value_usd: total_usd.to_string(),
-    }))
+    })
 }
 
 /// Calculate price with LPN base and decimal adjustment
@@ -324,5 +372,23 @@ mod tests {
 
         // Zero amount should return "0"
         assert_eq!(calculate_price_with_decimals("100", "0", "1.0", 8, 6), "0");
+    }
+
+    /// An invalid address is rejected before any cache or chain access, as the
+    /// 400-mapped `Validation` error the REST balances handler already returns.
+    #[tokio::test]
+    async fn test_compute_balances_rejects_invalid_address() {
+        let state = crate::test_utils::test_app_state().await;
+        let err = super::compute_balances(&state, "not-a-valid-address")
+            .await
+            .unwrap_err();
+        match err {
+            super::BalancesError::Validation(crate::error::AppError::Validation {
+                field, ..
+            }) => {
+                assert_eq!(field, Some("address".to_string()));
+            }
+            _ => panic!("expected Validation for an invalid address"),
+        }
     }
 }

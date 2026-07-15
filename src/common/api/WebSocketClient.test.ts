@@ -233,13 +233,17 @@ describe("WebSocketClientImpl", () => {
       const callback = vi.fn();
       client.subscribeBalances("addr1", callback);
 
+      const balances = [
+        { key: "NLS@NOLUS", symbol: "NLS", denom: "unls", amount: "1000000", amount_usd: "150000", decimal_digits: 6 }
+      ];
       mockWs.simulateMessage({
         type: "balance_update",
         address: "addr1",
-        balances: { unls: "1000000" }
+        balances,
+        total_value_usd: "150000"
       });
 
-      expect(callback).toHaveBeenCalledWith("addr1", { unls: "1000000" });
+      expect(callback).toHaveBeenCalledWith("addr1", balances, "150000");
     });
 
     it("should handle lease updates", () => {

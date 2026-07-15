@@ -315,7 +315,12 @@ impl ChainClient {
 
     /// Query all bank balances for an address
     pub async fn get_all_balances(&self, address: &str) -> Result<Vec<BankBalance>, AppError> {
-        let url = format!("{}/cosmos/bank/v1beta1/balances/{}", self.rest_url, address);
+        // Valid bech32 is unaffected; prevents path-steering if any caller ever passes an unvalidated string.
+        let encoded_address = urlencoding::encode(address);
+        let url = format!(
+            "{}/cosmos/bank/v1beta1/balances/{}",
+            self.rest_url, encoded_address
+        );
 
         let response = self.chain_get(&url).await?;
 
