@@ -317,6 +317,7 @@
     "take-profit": "止盈",
     "take-profit-price-per": "止盈价（每",
     "take-profit-min-amount-error": "最小金额为 {amount}",
+    "take-profit-toast": "已设置止盈",
     "submit-btn": "提交",
     "stop-loss-toast": "已设置止损",
     "per": "每",

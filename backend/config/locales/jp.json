@@ -317,6 +317,7 @@
     "take-profit": "テイクプロフィット",
     "take-profit-price-per": "テイクプロフィット価格（単位）",
     "take-profit-min-amount-error": "最小金額は{amount}です",
+    "take-profit-toast": "テイクプロフィットを設定しました",
     "submit-btn": "送信",
     "stop-loss-toast": "ストップロスを設定しました",
     "per": "あたり",

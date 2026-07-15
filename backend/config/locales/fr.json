@@ -317,6 +317,7 @@
     "take-profit": "Take Profit",
     "take-profit-price-per": "Prix du Take Profit par",
     "take-profit-min-amount-error": "Le montant minimum est {amount}",
+    "take-profit-toast": "Take Profit défini",
     "submit-btn": "Soumettre",
     "stop-loss-toast": "Stop Loss défini",
     "per": "par",

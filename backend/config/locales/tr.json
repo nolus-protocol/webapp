@@ -317,6 +317,7 @@
     "take-profit": "Take Profit",
     "take-profit-price-per": "Take Profit fiyatı (birim)",
     "take-profit-min-amount-error": "Minimum tutar {amount}",
+    "take-profit-toast": "Take Profit Ayarlandı",
     "submit-btn": "Gönder",
     "stop-loss-toast": "Stop Loss Ayarlandı",
     "per": "başına",

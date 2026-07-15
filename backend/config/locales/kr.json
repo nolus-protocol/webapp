@@ -317,6 +317,7 @@
     "take-profit": "Take Profit",
     "take-profit-price-per": "Take Profit 가격:",
     "take-profit-min-amount-error": "최소 금액은 {amount}입니다",
+    "take-profit-toast": "Take Profit가 설정되었습니다",
     "submit-btn": "제출",
     "stop-loss-toast": "Stop Loss가 설정되었습니다",
     "per": "당",
