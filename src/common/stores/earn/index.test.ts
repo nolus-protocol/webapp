@@ -475,7 +475,7 @@ describe("useEarnStore", () => {
     expect(BackendApi.getEarnPositions).not.toHaveBeenCalled();
   });
 
-  it("ws callback replaces positions when address matches", async () => {
+  it("ws callback builds a placeholder for an unmatched position and keeps the REST total", async () => {
     BackendApi.getEarnPositions.mockResolvedValueOnce({ positions: [], total_deposited_usd: "0" });
 
     const store = useEarnStore();
@@ -489,12 +489,14 @@ describe("useEarnStore", () => {
           protocol: "p1",
           lpp_address: "l1",
           deposited_asset: "5",
-          deposited_lpn: "5"
+          deposited_lpn: "5",
+          rewards: "0"
         }
       ],
       "5.0"
     );
 
+    // No existing REST record for p1 → placeholder reconstruction (REST fields unknown yet).
     expect(store.positions.length).toBe(1);
     expect(store.positions[0]).toMatchObject({
       protocol: "p1",
@@ -505,7 +507,117 @@ describe("useEarnStore", () => {
       lpp_price: "1.0",
       current_apy: 0
     });
-    expect(store.totalDepositedUsd).toBe("5.0");
+    // Backend hardcodes total_deposited_usd="0.00" on WS pushes; the REST value ("0") is kept.
+    expect(store.totalDepositedUsd).toBe("0");
+  });
+
+  it("ws earn update ignores the WS total_deposited_usd and preserves the REST-derived value", async () => {
+    BackendApi.getEarnPositions.mockResolvedValueOnce({
+      positions: [
+        {
+          protocol: "p1",
+          lpp_address: "l1",
+          currency: "USDC",
+          deposited_nlpn: "100",
+          deposited_lpn: "100",
+          deposited_usd: "250.00",
+          lpp_price: "1.0",
+          current_apy: 5
+        }
+      ],
+      total_deposited_usd: "250.00"
+    });
+
+    const store = useEarnStore();
+    await store.setAddress("nolus1x");
+    expect(store.totalDepositedUsd).toBe("250.00");
+
+    // Backend hardcodes "0.00" on every WS push — it must NOT clobber the REST total.
+    emitEarn(
+      "nolus1x",
+      [{ protocol: "p1", lpp_address: "l1", deposited_asset: "100", deposited_lpn: "100", rewards: "0" }],
+      "0.00"
+    );
+
+    expect(store.totalDepositedUsd).toBe("250.00");
+  });
+
+  it("ws earn update merges WS-owned fields into a matched REST position, preserving REST-only fields", async () => {
+    BackendApi.getEarnPositions.mockResolvedValueOnce({
+      positions: [
+        {
+          protocol: "p1",
+          lpp_address: "l1",
+          currency: "USDC",
+          deposited_nlpn: "100",
+          deposited_lpn: "100",
+          deposited_usd: "250.00",
+          lpp_price: "1.05",
+          current_apy: 5
+        }
+      ],
+      total_deposited_usd: "250.00"
+    });
+
+    const store = useEarnStore();
+    await store.setAddress("nolus1x");
+
+    emitEarn(
+      "nolus1x",
+      [{ protocol: "p1", lpp_address: "l1", deposited_asset: "120", deposited_lpn: "126", rewards: "1" }],
+      "0.00"
+    );
+
+    const pos = store.getPosition("p1");
+    // WS-owned fields updated:
+    expect(pos?.deposited_nlpn).toBe("120");
+    expect(pos?.deposited_lpn).toBe("126");
+    // REST-only fields preserved (not degraded to placeholders):
+    expect(pos?.deposited_usd).toBe("250.00");
+    expect(pos?.current_apy).toBe(5);
+    expect(pos?.currency).toBe("USDC");
+    expect(pos?.lpp_price).toBe("1.05");
+  });
+
+  it("ws earn update drops store positions absent from the WS payload", async () => {
+    BackendApi.getEarnPositions.mockResolvedValueOnce({
+      positions: [
+        {
+          protocol: "p1",
+          lpp_address: "l1",
+          currency: "USDC",
+          deposited_nlpn: "1",
+          deposited_lpn: "1",
+          deposited_usd: "1",
+          lpp_price: "1",
+          current_apy: 1
+        },
+        {
+          protocol: "p2",
+          lpp_address: "l2",
+          currency: "USDC",
+          deposited_nlpn: "2",
+          deposited_lpn: "2",
+          deposited_usd: "2",
+          lpp_price: "1",
+          current_apy: 1
+        }
+      ],
+      total_deposited_usd: "3"
+    });
+
+    const store = useEarnStore();
+    await store.setAddress("nolus1x");
+    expect(store.positions.length).toBe(2);
+
+    // WS reports only p1 — p2 has been withdrawn and must drop (wholesale-replace removal semantics).
+    emitEarn(
+      "nolus1x",
+      [{ protocol: "p1", lpp_address: "l1", deposited_asset: "1", deposited_lpn: "1", rewards: "0" }],
+      "0.00"
+    );
+
+    expect(store.positions.map((p) => p.protocol)).toEqual(["p1"]);
   });
 
   it("ws callback ignores mismatched address", async () => {
