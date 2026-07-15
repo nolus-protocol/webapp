@@ -24,6 +24,9 @@ jobs:
   build-and-deploy:
     name: Build and deploy
     runs-on: [self-hosted, frontend-deploy]
+    timeout-minutes: 20
+    # SSH/rclone-based deploy: the job never touches GITHUB_TOKEN.
+    permissions: {}
 
     env:
       PATH: /root/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -32,12 +35,22 @@ jobs:
       HEALTH_PORT: ${{ inputs.health_port }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
+          cache: 'npm'
+
+      - name: Seed deploy host key into known_hosts
+        env:
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          touch ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+          key="$DEPLOY_HOST ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG6kfda2FTHl19Y7U4FjCl9Omos0a0MMb81hBE8tO/CS"
+          grep -qxF "$key" ~/.ssh/known_hosts || echo "$key" >> ~/.ssh/known_hosts
 
       - name: Build frontend (SPA)
         env:
@@ -49,6 +62,12 @@ jobs:
           npm run build
 
       - name: Build Rust backend
+        # The [self-hosted, frontend-deploy] runner keeps its workspace and the
+        # runner user's ~/.cargo + backend/target between runs, so cargo already
+        # builds incrementally from a warm local target. Swatinem/rust-cache is
+        # intentionally omitted: it round-trips target/ through the GitHub cache
+        # backend, which is slower than the persistent local dir on this runner.
+        # (The npm cache above is cheap and kept for parity with PR validation.)
         run: |
           cd backend
           cargo build --release
@@ -61,7 +80,7 @@ jobs:
 
       - name: Backup live binary + dist on deploy host
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
+          ssh -i ~/.ssh/id_ed25519 ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
             set -uo pipefail
             cd $DEPLOY_DIR 2>/dev/null || { echo "::warning::deploy dir $DEPLOY_DIR missing — first deploy, nothing to back up"; exit 0; }
             if [ -f nolus-backend ]; then
@@ -77,12 +96,12 @@ jobs:
 
       - name: Stop backend service (release binary lock)
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
+          ssh -i ~/.ssh/id_ed25519 ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
             sudo systemctl stop $SERVICE"
 
       - name: Deploy bundle via rclone
         run: |
-          rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519:$DEPLOY_DIR/ \
+          rclone sync deploy-bundle/ :sftp,host=${{ vars.DEPLOY_HOST }},user=${{ vars.DEPLOY_USER }},key_file=~/.ssh/id_ed25519,known_hosts_file=~/.ssh/known_hosts:$DEPLOY_DIR/ \
             --filter "- .env" \
             --filter "- config/" \
             --filter "- config/**" \
@@ -92,13 +111,13 @@ jobs:
 
       - name: Start backend + mark binary executable
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
+          ssh -i ~/.ssh/id_ed25519 ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "\
             chmod +x $DEPLOY_DIR/nolus-backend && \
             sudo systemctl start $SERVICE"
 
       - name: Health probe
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
+          ssh -i ~/.ssh/id_ed25519 ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
             set -u
             url="http://127.0.0.1:$HEALTH_PORT/api/health"
             echo "probing \$url"
@@ -118,7 +137,7 @@ jobs:
       - name: Rollback on failure
         if: failure()
         run: |
-          ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
+          ssh -i ~/.ssh/id_ed25519 ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }} "bash -s" <<REMOTE
             set -u
             cd $DEPLOY_DIR 2>/dev/null || { echo "::error::deploy dir missing, cannot roll back"; exit 1; }
             if [ ! -f nolus-backend.bak ] && [ ! -d dist.bak ]; then
