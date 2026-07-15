@@ -281,19 +281,33 @@ export default mergeConfig(
           },
           // Extracted lease composables with dedicated direct unit tests.
           // Floors sit just below current actuals; untested computeds
-          // (payout branches, the short quote-derivation getters) are
-          // intentionally out of scope for these logic-pinning suites.
+          // (payout branches, the per-position quote-derivation getters) are
+          // intentionally out of scope for these logic-pinning suites. The
+          // debounce/route/teardown machinery attributes to the shared core;
+          // the per-position files keep the strategy residue + getters.
           "src/modules/leases/components/single-lease/useTriggerDialog.ts": {
             lines: 85,
             branches: 65,
             functions: 90,
             statements: 85
           },
-          "src/modules/leases/components/new-lease/useShortLeaseDetails.ts": {
-            lines: 55,
+          "src/modules/leases/components/new-lease/useLeaseDetailsCore.ts": {
+            lines: 75,
             branches: 45,
             functions: 95,
+            statements: 75
+          },
+          "src/modules/leases/components/new-lease/useLongLeaseDetails.ts": {
+            lines: 55,
+            branches: 70,
+            functions: 95,
             statements: 55
+          },
+          "src/modules/leases/components/new-lease/useShortLeaseDetails.ts": {
+            lines: 35,
+            branches: 55,
+            functions: 95,
+            statements: 35
           },
           "src/router/index.ts": {
             lines: 75,
