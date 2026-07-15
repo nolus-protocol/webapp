@@ -172,7 +172,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, watch } from "vue";
+import { h } from "vue";
 import {
   AdvancedFormControl,
   Button,
@@ -181,39 +181,15 @@ import {
   Slider,
   Size,
   type AssetItemProps,
-  AssetItem,
-  ToastType
+  AssetItem
 } from "web-components";
-import { RouteNames } from "@/router";
 import { tabs } from "../types";
 import LongLeaseDetails from "@/modules/leases/components/new-lease/LongLeaseDetails.vue";
-import { useWalletStore } from "@/common/stores/wallet";
-import { useBalancesStore } from "@/common/stores/balances";
-import { useConfigStore } from "@/common/stores/config";
-import { usePricesStore } from "@/common/stores/prices";
-import { useHistoryStore } from "@/common/stores/history";
-import { classifyError, getMicroAmount, Logger, walletOperation } from "@/common/utils";
-import { formatDecAsUsd, formatUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
 import { NATIVE_NETWORK } from "../../../../config/global/network";
-import type { ExternalCurrency } from "@/common/types";
-import { INTEREST_DECIMALS, MAX_POSITION, MIN_POSITION, POSITIONS, SORT_LEASE, WASM_EVENTS } from "@/config/global";
-import { Dec } from "@keplr-wallet/unit";
-import { h } from "vue";
-import { useI18n } from "vue-i18n";
-import type { NolusWallet } from "@nolus/nolusjs";
-import { NolusClient } from "@nolus/nolusjs";
-import { Leaser } from "@nolus/nolusjs/build/contracts";
-import { useRouter } from "vue-router";
-import { useLeaseOpen } from "./useLeaseOpen";
+import { MAX_POSITION, MIN_POSITION, POSITIONS } from "@/config/global";
+import { useLongLeaseForm } from "./useLongLeaseForm";
 
 const activeTabIdx = 0;
-const walletStore = useWalletStore();
-const balancesStore = useBalancesStore();
-const configStore = useConfigStore();
-const pricesStore = usePricesStore();
-const historyStore = useHistoryStore();
-const i18n = useI18n();
-const router = useRouter();
 
 const {
   selectedCurrency,
@@ -222,364 +198,18 @@ const {
   isDisabled,
   amount,
   amountErrorMsg,
-  ltd,
   leaseApply,
-  errorInsufficientBalance,
   handleAmountChange,
   handleParentClick,
   onDrag,
-  validateMinMaxValues,
-  validateAmountAgainstBalance,
-  isDownPaymentAmountValid
-} = useLeaseOpen();
-
-const onShowToast = inject("onShowToast", (_data: { type: ToastType; message: string }) => {});
-const reload = inject("reload", () => {});
-
-watch(
-  () => configStore.initialized,
-  () => {
-    if (configStore.initialized) {
-      void onInit();
-    }
-  },
-  {
-    immediate: true
-  }
-);
-
-async function onInit() {
-  // Free interest is handled by a 3rd party service
-  // Asset filtering (ignore_long) is now done by the backend in /api/protocols/{protocol}/currencies
-}
-
-watch(
-  () => [selectedCurrency.value, amount.value, selectedLoanCurrency.value, ltd.value],
-  async () => {
-    amountErrorMsg.value = "";
-    if (!validateAmountAgainstBalance(currency.value)) {
-      leaseApply.value = null;
-      return;
-    }
-    if (await validateMinMaxValues(currency.value, coinList.value[selectedLoanCurrency.value])) {
-      void calculate();
-    } else {
-      leaseApply.value = null;
-    }
-  }
-);
-
-const totalBalances = computed(() => {
-  const currencies: ExternalCurrency[] = [];
-  // Use long protocols from gated protocols API
-  const longProtocols = configStore.longProtocolsForCurrentNetwork;
-
-  for (const protocol of longProtocols) {
-    // Get cached currencies for this protocol
-    const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol.protocol);
-
-    for (const currency of protocolCurrencies) {
-      // Find matching currency in currenciesData to get full info
-      const key = `${currency.ticker}@${protocol.protocol}`;
-      const currencyInfo = configStore.currenciesData?.[key];
-
-      if (currencyInfo) {
-        const balance = balancesStore.balances.find((b) => b.denom === currencyInfo.ibcData);
-        currencies.push({ ...currencyInfo, balance: balance } as ExternalCurrency);
-      }
-    }
-  }
-  return currencies;
-});
-
-const isShortEnabled = computed(() => {
-  // Use dynamic check from config store instead of hardcoded protocolsFilter
-  return configStore.hasShortProtocols(configStore.protocolFilter);
-});
-
-const isProtocolDisabled = computed(() => {
-  // Use dynamic check from config store instead of hardcoded protocolsFilter
-  return configStore.isNetworkDisabled(configStore.protocolFilter);
-});
-
-const currency = computed(() => {
-  return assets.value[selectedCurrency.value];
-});
-
-const selectedLoanOption = computed(() => {
-  return coinList.value[selectedLoanCurrency.value];
-});
-
-const advancedControlBindings = computed(() => {
-  return {
-    ...(errorInsufficientBalance.value ? { inputClass: "text-typography-error" } : {}),
-    ...(currency.value !== undefined ? { selectedCurrencyOption: currency.value } : {})
-  };
-});
-
-const assets = computed(() => {
-  const data = [];
-  // Use dynamic protocols from config store instead of hardcoded protocolsFilter.hold
-  const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
-  const b = ((balances.value as ExternalCurrency[]) ?? []).filter((item) => {
-    const [_, p] = item.key.split("@");
-
-    if (p === undefined) {
-      console.error(`LongForm: malformed currency key: ${item.key}`);
-      return false;
-    }
-    if (activeProtocols.includes(p)) {
-      return true;
-    }
-    return false;
-  });
-
-  for (const asset of b) {
-    const value = new Dec(asset.balance?.amount.toString() ?? 0, asset.decimal_digits);
-    const balance = formatTokenBalance(value);
-    const exactBalance = value.isZero() ? "0" : value.toString(asset.decimal_digits).replace(/\.?0+$/, "");
-    const denom = asset.ibcData;
-    const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
-    const stable = price.mul(value);
-
-    data.push({
-      name: asset.name,
-      value: denom,
-      label: asset.shortName,
-      shortName: asset.shortName,
-      icon: asset.icon,
-      decimal_digits: asset.decimal_digits,
-      balance: {
-        value: exactBalance,
-        customLabel: `${balance} ${asset.shortName}`,
-        ticker: asset.shortName,
-        denom: asset.balance?.denom,
-        amount: asset.balance?.amount
-      },
-      ibcData: (asset as ExternalCurrency).ibcData,
-      native: asset.native,
-      symbol: asset.symbol,
-      ticker: asset.ticker,
-      key: asset.key,
-      stable,
-      price: formatDecAsUsd(stable)
-    });
-  }
-  return data.sort((a, b) => {
-    return Number(b.stable.sub(a.stable).toString(8));
-  });
-});
-
-const coinList = computed(() => {
-  if (!currency.value?.key) {
-    return [];
-  }
-
-  const [_ticker, downPaymentProtocol] = currency.value.key.split("@");
-  if (downPaymentProtocol === undefined) {
-    console.error(`LongForm: malformed currency key: ${currency.value.key}`);
-    return [];
-  }
-
-  // Get currencies for the selected protocol that can be leased (group === "lease")
-  const protocolCurrencies = configStore.getCachedProtocolCurrencies(downPaymentProtocol);
-  const leaseCurrencies = protocolCurrencies.filter((c) => c.group === "lease");
-
-  // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
-  const list = leaseCurrencies.map((item) => {
-    return {
-      decimal_digits: item.decimals,
-      key: `${item.ticker}@${downPaymentProtocol}`,
-      ticker: item.ticker,
-      label: item.shortName,
-      value: item.bank_symbol,
-      icon: item.icon
-    };
-  });
-
-  const sortOrder = new Map(SORT_LEASE.map((t, i) => [t, i]));
-
-  return list.sort((a, b) => {
-    const aIndex = sortOrder.get(a.ticker);
-    const bIndex = sortOrder.get(b.ticker);
-    if (aIndex === undefined && bIndex === undefined) return 0;
-    if (aIndex !== undefined && bIndex === undefined) return -1;
-    if (aIndex === undefined && bIndex !== undefined) return 1;
-    return (aIndex as number) - (bIndex as number);
-  });
-});
-
-const calculatedBalance = computed(() => {
-  const asset = assets.value[selectedCurrency.value];
-  if (!asset) {
-    return formatUsd(0);
-  }
-  const price = new Dec(pricesStore.prices[asset.key]?.price ?? 0);
-  const v = amount?.value?.length ? amount?.value : "0";
-  const stable = price.mul(new Dec(v));
-  return formatDecAsUsd(stable);
-});
-
-const balances = computed(() => {
-  // Backend already filters out ignored assets in /api/protocols/{protocol}/currencies
-  return totalBalances.value.filter((item) => {
-    if (!item.key) {
-      return false;
-    }
-
-    const [ticker, protocol] = item.key?.split("@") ?? [];
-    if (protocol === undefined) {
-      console.error(`LongForm: malformed currency key: ${item.key}`);
-      return false;
-    }
-
-    // Get protocol currencies from cache and check if this is valid collateral
-    const protocolCurrencies = configStore.getCachedProtocolCurrencies(protocol);
-    const currencyInfo = protocolCurrencies.find((c) => c.ticker === ticker);
-
-    // Valid collateral: LPN, native, or lease currencies
-    if (currencyInfo) {
-      return currencyInfo.group === "lpn" || currencyInfo.group === "native" || currencyInfo.group === "lease";
-    }
-
-    return false;
-  });
-});
-
-async function calculate() {
-  try {
-    const selectedDownPaymentCurrency = currency.value;
-    const selectedCurrency = coinList.value[selectedLoanCurrency.value];
-    const downPayment = amount.value;
-
-    if (downPayment) {
-      if (selectedDownPaymentCurrency === undefined || selectedCurrency === undefined) {
-        throw new Error("down payment or lease currency is not selected");
-      }
-      const denom = selectedDownPaymentCurrency.balance.denom;
-      if (denom === undefined) {
-        throw new Error(`missing bank denom for ${selectedDownPaymentCurrency.key}`);
-      }
-      const microAmount = getMicroAmount(denom, downPayment);
-
-      const lease = selectedCurrency;
-
-      const [downPaymentTicker, protocol] = selectedDownPaymentCurrency.key.split("@");
-      const [leaseTicker] = lease.key.split("@");
-      if (downPaymentTicker === undefined || protocol === undefined || leaseTicker === undefined) {
-        throw new Error(`malformed currency key: ${selectedDownPaymentCurrency.key} / ${lease.key}`);
-      }
-
-      const contracts = configStore.contracts[protocol];
-      if (contracts === undefined || contracts.leaser === null) {
-        throw new Error(`no leaser contract configured for protocol ${protocol}`);
-      }
-
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-      const leaserClient = new Leaser(cosmWasmClient, contracts.leaser);
-
-      const makeLeaseApplyResp = await leaserClient.leaseQuote(
-        microAmount.mAmount.amount.toString(),
-        downPaymentTicker,
-        leaseTicker,
-        ltd.value
-      );
-
-      makeLeaseApplyResp.annual_interest_rate =
-        makeLeaseApplyResp.annual_interest_rate / Math.pow(10, INTEREST_DECIMALS);
-      makeLeaseApplyResp.annual_interest_rate_margin =
-        makeLeaseApplyResp.annual_interest_rate_margin / Math.pow(10, INTEREST_DECIMALS);
-
-      leaseApply.value = makeLeaseApplyResp;
-    } else {
-      leaseApply.value = null;
-    }
-  } catch (error) {
-    Logger.error("LongForm calculate error:", error);
-    amountErrorMsg.value = i18n.t(classifyError(error));
-    leaseApply.value = null;
-  }
-}
-
-async function onOpenLease() {
-  try {
-    isDisabled.value = true;
-    await walletOperation(openLease);
-  } catch (error: unknown) {
-    amountErrorMsg.value = i18n.t(classifyError(error));
-    Logger.error(error);
-  } finally {
-    isDisabled.value = false;
-  }
-}
-
-async function openLease() {
-  const wallet = walletStore.wallet as NolusWallet;
-  if (wallet && (await isDownPaymentAmountValid(currency.value, coinList.value[selectedLoanCurrency.value]))) {
-    try {
-      isLoading.value = true;
-
-      const selectedDownPaymentCurrency = currency.value;
-      const downPayment = amount.value;
-      const selectedCurrency = coinList.value[selectedLoanCurrency.value];
-
-      if (selectedDownPaymentCurrency === undefined || selectedCurrency === undefined) {
-        throw new Error("down payment or lease currency is not selected");
-      }
-      const denom = selectedDownPaymentCurrency.balance.denom;
-      if (denom === undefined) {
-        throw new Error(`missing bank denom for ${selectedDownPaymentCurrency.key}`);
-      }
-      const microAmount = getMicroAmount(denom, downPayment);
-
-      const funds = [
-        {
-          denom: microAmount.coinMinimalDenom,
-          amount: microAmount.mAmount.amount.toString()
-        }
-      ];
-
-      const cosmWasmClient = await NolusClient.getInstance().getCosmWasmClient();
-
-      const [leaseTicker, protocol] = selectedCurrency.key.split("@");
-      if (leaseTicker === undefined || protocol === undefined) {
-        throw new Error(`malformed lease currency key: ${selectedCurrency.key}`);
-      }
-
-      const contracts = configStore.contracts[protocol];
-      if (contracts === undefined || contracts.leaser === null) {
-        throw new Error(`no leaser contract configured for protocol ${protocol}`);
-      }
-
-      const leaserClient = new Leaser(cosmWasmClient, contracts.leaser);
-
-      const { txBytes } = await leaserClient.simulateOpenLeaseTx(wallet, leaseTicker, ltd.value, funds);
-
-      const tx = await walletStore.wallet?.broadcastTx(txBytes as Uint8Array);
-
-      const item = tx?.events.find((event) => {
-        return event.type === WASM_EVENTS["wasm-ls-request-loan"].key;
-      });
-
-      const data = item?.attributes[WASM_EVENTS["wasm-ls-request-loan"].index];
-      void balancesStore.fetchBalances();
-      void historyStore.loadActivities();
-      reload();
-      onShowToast({
-        type: ToastType.success,
-        message: i18n.t("message.currently-opening")
-      });
-
-      if (data === undefined) {
-        throw new Error("wasm-ls-request-loan event attribute missing from the broadcast result");
-      }
-      void router.push(`/${RouteNames.LEASES}/${data.value}`);
-    } catch (error: unknown) {
-      amountErrorMsg.value = i18n.t(classifyError(error));
-      Logger.error(error);
-    } finally {
-      isLoading.value = false;
-    }
-  }
-}
+  assets,
+  coinList,
+  currency,
+  selectedLoanOption,
+  advancedControlBindings,
+  calculatedBalance,
+  isShortEnabled,
+  isProtocolDisabled,
+  onOpenLease
+} = useLongLeaseForm();
 </script>
