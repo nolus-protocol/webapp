@@ -219,6 +219,11 @@ async fn main() -> anyhow::Result<()> {
         event_channels.contract_exec.subscribe(),
     )
     .await;
+    handlers::websocket::start_balance_monitor_task(
+        state.clone(),
+        event_channels.bank_transfer.subscribe(),
+    )
+    .await;
     handlers::websocket::start_stale_connection_reaper(state.clone()).await;
 
     // Build router

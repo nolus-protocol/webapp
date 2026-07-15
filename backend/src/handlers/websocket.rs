@@ -26,6 +26,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
 
+use crate::handlers::currencies;
 use crate::AppState;
 
 // ============================================================================
@@ -69,7 +70,8 @@ pub enum ServerMessage {
     BalanceUpdate {
         chain: String,
         address: String,
-        balances: Vec<BalanceInfo>,
+        balances: Vec<currencies::BalanceInfo>,
+        total_value_usd: String,
         timestamp: String,
     },
     /// Lease update
@@ -115,12 +117,6 @@ pub enum TxStatusValue {
     Pending,
     Success,
     Failed,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BalanceInfo {
-    pub denom: String,
-    pub amount: String,
 }
 
 // ============================================================================
@@ -298,6 +294,10 @@ pub struct WebSocketManager {
     skip_tx_states: DashMap<String, CachedSkipTxState>,
     /// Cached earn states for change detection (address -> state)
     earn_states: DashMap<String, CachedEarnState>,
+    /// Cached on-chain balances for change detection (address -> sorted (denom, amount) pairs).
+    /// Deliberately excludes USD-derived fields: amount_usd wiggles with price
+    /// refreshes, so comparing it would produce spurious pushes.
+    balance_states: DashMap<String, Vec<(String, String)>>,
     /// Reverse index: lease contract address -> owner address (for targeted event handling)
     lease_address_to_owner: DashMap<String, String>,
     /// Known LPP contract addresses (for filtering earn-relevant contract events)
@@ -313,6 +313,7 @@ impl WebSocketManager {
             lease_states: DashMap::new(),
             skip_tx_states: DashMap::new(),
             earn_states: DashMap::new(),
+            balance_states: DashMap::new(),
             lease_address_to_owner: DashMap::new(),
             lpp_contract_addresses: DashSet::new(),
         }
@@ -355,11 +356,18 @@ impl WebSocketManager {
     }
 
     /// Send balance update to relevant subscribers
-    pub fn send_balance_update(&self, chain: &str, address: &str, balances: Vec<BalanceInfo>) {
+    pub fn send_balance_update(
+        &self,
+        chain: &str,
+        address: &str,
+        balances: Vec<currencies::BalanceInfo>,
+        total_value_usd: String,
+    ) {
         let msg = Arc::new(ServerMessage::BalanceUpdate {
             chain: chain.to_string(),
             address: address.to_string(),
             balances,
+            total_value_usd,
             timestamp: chrono::Utc::now().to_rfc3339(),
         });
 
@@ -473,6 +481,15 @@ impl WebSocketManager {
                         ) =>
                     {
                         self.clear_earn_cache(address);
+                    }
+                    Subscription::Balances { addresses } => {
+                        for address in addresses {
+                            if !self.has_other_subscriber(|s| {
+                                matches!(s, Subscription::Balances { addresses: a } if a.contains(address))
+                            }) {
+                                self.clear_balance_cache(address);
+                            }
+                        }
                     }
                     Subscription::SkipTx { tx_hash, .. }
                         if !self.has_other_subscriber(|s| {
@@ -725,6 +742,56 @@ impl WebSocketManager {
                 }
             }
         }
+    }
+
+    // =========================================================================
+    // Balance Tracking
+    // =========================================================================
+
+    /// Get all unique addresses that have balance subscriptions.
+    pub fn get_subscribed_balance_addresses(&self) -> Vec<String> {
+        let mut addresses = HashSet::new();
+        for entry in self.connections.iter() {
+            for sub in &entry.value().subscriptions {
+                if let Subscription::Balances { addresses: subs } = sub {
+                    for a in subs {
+                        addresses.insert(a.clone());
+                    }
+                }
+            }
+        }
+        addresses.into_iter().collect()
+    }
+
+    /// Update cached on-chain balances and return true if the (denom, amount)
+    /// set changed. USD-derived fields are intentionally ignored: the same
+    /// holdings under different prices must NOT report a change.
+    pub fn update_balance_state(
+        &self,
+        address: &str,
+        balances: &[currencies::BalanceInfo],
+    ) -> bool {
+        let mut new_state: Vec<(String, String)> = balances
+            .iter()
+            .map(|b| (b.denom.clone(), b.amount.clone()))
+            .collect();
+        new_state.sort();
+
+        let changed = match self.balance_states.get(address) {
+            Some(old) => *old != new_state,
+            None => true,
+        };
+
+        if changed {
+            self.balance_states.insert(address.to_string(), new_state);
+        }
+
+        changed
+    }
+
+    /// Clear balance cache for an address (when they unsubscribe).
+    pub fn clear_balance_cache(&self, address: &str) {
+        self.balance_states.remove(address);
     }
 
     // =========================================================================
@@ -1586,6 +1653,156 @@ async fn check_earn_positions(state: &AppState, address: &str) -> Result<(), Str
     Ok(())
 }
 
+// ============================================================================
+// Balance Monitoring Task
+// ============================================================================
+
+/// Concurrency cap for the balance monitor's per-address chain fan-out — the
+/// house refresh-fan-out bound, kept off the shared chain-query semaphore.
+const BALANCE_MONITOR_FANOUT_CAP: usize = 8;
+
+/// Outcome of evaluating one address in a balance-monitor flush.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BalanceFlushOutcome {
+    Pushed,
+    Unchanged,
+    SkippedUnavailable,
+}
+
+/// Change-detect a freshly computed balance payload and push it to subscribers
+/// only if the on-chain holdings changed. Kept synchronous and independent of the
+/// chain client so the skip-on-unavailable branch is unit-testable in isolation.
+fn process_balance_compute(
+    manager: &WebSocketManager,
+    address: &str,
+    computed: Result<currencies::BalancesResponse, currencies::BalancesError>,
+) -> BalanceFlushOutcome {
+    match computed {
+        Ok(response) => {
+            if manager.update_balance_state(address, &response.balances) {
+                manager.send_balance_update(
+                    "nolus",
+                    address,
+                    response.balances,
+                    response.total_value_usd,
+                );
+                BalanceFlushOutcome::Pushed
+            } else {
+                BalanceFlushOutcome::Unchanged
+            }
+        }
+        // Push exactly what REST would serve; never a payload REST would have 503'd.
+        Err(currencies::BalancesError::Unavailable(_)) => BalanceFlushOutcome::SkippedUnavailable,
+        Err(currencies::BalancesError::Chain(e)) => {
+            debug!("Balance monitor chain query failed for {}: {}", address, e);
+            BalanceFlushOutcome::SkippedUnavailable
+        }
+    }
+}
+
+/// Start background task for balance monitoring, triggered by bank-transfer events.
+///
+/// Accumulates each tx's transfer participants, debounces, intersects with
+/// subscribed balance addresses, re-queries via the shared REST compute, and
+/// pushes on change. No periodic sweep — REST covers in-app actions.
+pub async fn start_balance_monitor_task(
+    state: Arc<AppState>,
+    mut bank_transfer_rx: tokio::sync::broadcast::Receiver<crate::chain_events::BankTransferEvent>,
+) {
+    tokio::spawn(async move {
+        loop {
+            let mut candidate_addresses: HashSet<String> = HashSet::new();
+            let mut do_full_recheck = false;
+
+            // Block until the first transfer event (or a lag signal).
+            match bank_transfer_rx.recv().await {
+                Ok(event) => candidate_addresses.extend(event.addresses),
+                Err(tokio::sync::broadcast::error::RecvError::Lagged(n)) => {
+                    warn!(
+                        "Balance monitor lagged {} events, re-checking all subscribed balance addresses",
+                        n
+                    );
+                    do_full_recheck = true;
+                }
+                Err(tokio::sync::broadcast::error::RecvError::Closed) => {
+                    error!("Bank transfer channel closed, balance monitor stopping");
+                    return;
+                }
+            }
+
+            if !do_full_recheck {
+                // Balances tolerate 10s staleness; REST covers in-app actions.
+                let debounce = tokio::time::sleep(Duration::from_secs(10));
+                tokio::pin!(debounce);
+                loop {
+                    tokio::select! {
+                        _ = &mut debounce => break,
+                        result = bank_transfer_rx.recv() => {
+                            match result {
+                                Ok(event) => {
+                                    candidate_addresses.extend(event.addresses);
+                                    continue;
+                                }
+                                Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
+                                    do_full_recheck = true;
+                                    break;
+                                }
+                                Err(tokio::sync::broadcast::error::RecvError::Closed) => return,
+                            }
+                        }
+                    }
+                }
+            }
+
+            let subscribed = state.ws_manager.get_subscribed_balance_addresses();
+            let addresses_to_check: Vec<String> = if do_full_recheck {
+                subscribed
+            } else {
+                let subscribed_set: HashSet<String> = subscribed.into_iter().collect();
+                candidate_addresses
+                    .into_iter()
+                    .filter(|a| subscribed_set.contains(a))
+                    .collect()
+            };
+
+            if addresses_to_check.is_empty() {
+                continue;
+            }
+
+            let pending = addresses_to_check.len();
+            let outcomes: Vec<BalanceFlushOutcome> = futures::stream::iter(addresses_to_check)
+                .map(|address| {
+                    let state = state.clone();
+                    async move {
+                        let computed = currencies::compute_balances(&state, &address).await;
+                        process_balance_compute(&state.ws_manager, &address, computed)
+                    }
+                })
+                .buffer_unordered(BALANCE_MONITOR_FANOUT_CAP)
+                .collect()
+                .await;
+
+            let pushed = outcomes
+                .iter()
+                .filter(|&&o| o == BalanceFlushOutcome::Pushed)
+                .count();
+            let unchanged = outcomes
+                .iter()
+                .filter(|&&o| o == BalanceFlushOutcome::Unchanged)
+                .count();
+            let unavailable = outcomes
+                .iter()
+                .filter(|&&o| o == BalanceFlushOutcome::SkippedUnavailable)
+                .count();
+
+            info!(
+                "Balance monitor flush: pending={} pushed={} unchanged={} unavailable={}",
+                pending, pushed, unchanged, unavailable
+            );
+        }
+    });
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1811,6 +2028,18 @@ mod tests {
         rx
     }
 
+    /// Build a `currencies::BalanceInfo` fixture for balance-monitor tests.
+    fn sample_balance(denom: &str, amount: &str, amount_usd: &str) -> currencies::BalanceInfo {
+        currencies::BalanceInfo {
+            key: format!("{denom}@NOLUS"),
+            symbol: denom.to_uppercase(),
+            denom: denom.to_string(),
+            amount: amount.to_string(),
+            amount_usd: amount_usd.to_string(),
+            decimal_digits: 6,
+        }
+    }
+
     #[tokio::test]
     async fn test_manager_add_and_remove_connection() {
         let m = WebSocketManager::new(5);
@@ -1930,15 +2159,23 @@ mod tests {
         m.send_balance_update(
             "nolus",
             "nolus1alice",
-            vec![BalanceInfo {
-                denom: "unls".to_string(),
-                amount: "100".to_string(),
-            }],
+            vec![sample_balance("unls", "100", "15")],
+            "0.15".to_string(),
         );
 
         let msg = rx_alice.try_recv().unwrap();
         match &*msg {
-            ServerMessage::BalanceUpdate { address, .. } => assert_eq!(address, "nolus1alice"),
+            ServerMessage::BalanceUpdate {
+                address,
+                balances,
+                total_value_usd,
+                ..
+            } => {
+                assert_eq!(address, "nolus1alice");
+                assert_eq!(balances.len(), 1);
+                assert_eq!(balances[0].denom, "unls");
+                assert_eq!(total_value_usd, "0.15");
+            }
             _ => panic!("expected BalanceUpdate"),
         }
         assert!(rx_bob.try_recv().is_err());
@@ -2276,6 +2513,212 @@ mod tests {
         let mut changed = st.clone();
         changed.positions[0].rewards = "6".to_string();
         assert!(m.update_earn_state("alice", changed));
+    }
+
+    // ------------------------------------------------------------------
+    // Balance monitoring
+    // ------------------------------------------------------------------
+
+    /// get_subscribed_balance_addresses flattens per-subscription address Vecs
+    /// and dedups across connections.
+    #[tokio::test]
+    async fn test_get_subscribed_balance_addresses_dedupes() {
+        let m = WebSocketManager::new(16);
+        let _r1 = register_conn(&m, "c1");
+        let _r2 = register_conn(&m, "c2");
+
+        m.add_subscription(
+            "c1",
+            Subscription::Balances {
+                addresses: vec!["shared".to_string(), "a".to_string()],
+            },
+        )
+        .unwrap();
+        m.add_subscription(
+            "c2",
+            Subscription::Balances {
+                addresses: vec!["shared".to_string(), "b".to_string()],
+            },
+        )
+        .unwrap();
+
+        let mut got = m.get_subscribed_balance_addresses();
+        got.sort();
+        assert_eq!(
+            got,
+            vec!["a".to_string(), "b".to_string(), "shared".to_string()]
+        );
+    }
+
+    /// update_balance_state keys change detection on (denom, amount) ONLY — the
+    /// same holdings under a different price must NOT report a change.
+    #[tokio::test]
+    async fn test_update_balance_state_change_detection() {
+        let m = WebSocketManager::new(16);
+
+        // First insert → change.
+        assert!(m.update_balance_state("alice", &[sample_balance("unls", "100", "15")]));
+        // Identical → no change.
+        assert!(!m.update_balance_state("alice", &[sample_balance("unls", "100", "15")]));
+        // Same (denom, amount), different USD → still no change.
+        assert!(!m.update_balance_state("alice", &[sample_balance("unls", "100", "999")]));
+        // Amount changed → change.
+        assert!(m.update_balance_state("alice", &[sample_balance("unls", "101", "15")]));
+        // Order-independent: reordering the same set is not a change.
+        assert!(m.update_balance_state(
+            "alice",
+            &[
+                sample_balance("unls", "101", "15"),
+                sample_balance("uusdc", "5", "5"),
+            ],
+        ));
+        assert!(!m.update_balance_state(
+            "alice",
+            &[
+                sample_balance("uusdc", "5", "5"),
+                sample_balance("unls", "101", "15"),
+            ],
+        ));
+    }
+
+    /// process_balance_compute pushes only on a real (denom, amount) change and
+    /// reports Unchanged when only the USD value moved.
+    #[tokio::test]
+    async fn test_process_balance_compute_pushes_on_change_only() {
+        let m = WebSocketManager::new(16);
+        let mut rx = register_conn(&m, "c1");
+        m.add_subscription(
+            "c1",
+            Subscription::Balances {
+                addresses: vec!["nolus1a".to_string()],
+            },
+        )
+        .unwrap();
+
+        let response = currencies::BalancesResponse {
+            balances: vec![sample_balance("unls", "100", "15")],
+            total_value_usd: "15".to_string(),
+        };
+        assert_eq!(
+            process_balance_compute(&m, "nolus1a", Ok(response)),
+            BalanceFlushOutcome::Pushed
+        );
+        let msg = rx.try_recv().unwrap();
+        match &*msg {
+            ServerMessage::BalanceUpdate {
+                address,
+                total_value_usd,
+                ..
+            } => {
+                assert_eq!(address, "nolus1a");
+                assert_eq!(total_value_usd, "15");
+            }
+            _ => panic!("expected BalanceUpdate"),
+        }
+
+        // Same (denom, amount), only USD moved → Unchanged, no second push.
+        let response_reprice = currencies::BalancesResponse {
+            balances: vec![sample_balance("unls", "100", "999")],
+            total_value_usd: "999".to_string(),
+        };
+        assert_eq!(
+            process_balance_compute(&m, "nolus1a", Ok(response_reprice)),
+            BalanceFlushOutcome::Unchanged
+        );
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// A cold-cache compute result skips the push entirely and leaves the cache
+    /// untouched — exercisable without a live chain client.
+    #[tokio::test]
+    async fn test_process_balance_compute_skips_on_unavailable() {
+        let m = WebSocketManager::new(16);
+        let mut rx = register_conn(&m, "c1");
+        m.add_subscription(
+            "c1",
+            Subscription::Balances {
+                addresses: vec!["nolus1a".to_string()],
+            },
+        )
+        .unwrap();
+
+        let unavailable = Err(currencies::BalancesError::Unavailable(
+            crate::error::AppError::ServiceUnavailable {
+                message: "Prices not yet available".to_string(),
+            },
+        ));
+        assert_eq!(
+            process_balance_compute(&m, "nolus1a", unavailable),
+            BalanceFlushOutcome::SkippedUnavailable
+        );
+        // Nothing pushed to the subscriber.
+        assert!(rx.try_recv().is_err());
+        // Cache untouched: a subsequent first real compute still registers a change.
+        assert!(m.update_balance_state("nolus1a", &[sample_balance("unls", "1", "0")]));
+    }
+
+    /// A chain failure also skips the push and leaves the cache untouched.
+    #[tokio::test]
+    async fn test_process_balance_compute_skips_on_chain_error() {
+        let m = WebSocketManager::new(16);
+        let mut rx = register_conn(&m, "c1");
+        m.add_subscription(
+            "c1",
+            Subscription::Balances {
+                addresses: vec!["nolus1a".to_string()],
+            },
+        )
+        .unwrap();
+
+        let chain_err = Err(currencies::BalancesError::Chain(
+            crate::error::AppError::ChainRpc {
+                chain: "nolus".to_string(),
+                message: "HTTP 502".to_string(),
+            },
+        ));
+        assert_eq!(
+            process_balance_compute(&m, "nolus1a", chain_err),
+            BalanceFlushOutcome::SkippedUnavailable
+        );
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// Balance cache is cleared when the last subscriber for an address
+    /// disconnects, mirroring the earn/lease cleanup.
+    #[tokio::test]
+    async fn test_remove_connection_cleans_up_balance_cache() {
+        let m = WebSocketManager::new(16);
+        let _rx = register_conn(&m, "c1");
+        m.add_subscription(
+            "c1",
+            Subscription::Balances {
+                addresses: vec!["nolus1a".to_string()],
+            },
+        )
+        .unwrap();
+        m.update_balance_state("nolus1a", &[sample_balance("unls", "1", "0")]);
+        assert!(m.balance_states.get("nolus1a").is_some());
+
+        m.remove_connection("c1");
+        assert!(m.balance_states.get("nolus1a").is_none());
+    }
+
+    /// When another connection still subscribes the same address, its balance
+    /// cache survives one subscriber disconnecting.
+    #[tokio::test]
+    async fn test_remove_connection_preserves_balance_cache_with_other_subscriber() {
+        let m = WebSocketManager::new(16);
+        let _rx1 = register_conn(&m, "c1");
+        let _rx2 = register_conn(&m, "c2");
+        let sub = Subscription::Balances {
+            addresses: vec!["nolus1a".to_string()],
+        };
+        m.add_subscription("c1", sub.clone()).unwrap();
+        m.add_subscription("c2", sub).unwrap();
+        m.update_balance_state("nolus1a", &[sample_balance("unls", "1", "0")]);
+
+        m.remove_connection("c1");
+        assert!(m.balance_states.get("nolus1a").is_some());
     }
 
     /// `remove_connection` cleans up the skip_tx state cache when no other

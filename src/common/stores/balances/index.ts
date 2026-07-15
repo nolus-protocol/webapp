@@ -193,9 +193,10 @@ export const useBalancesStore = defineStore("balances", () => {
   const { setAddress, cleanup } = useWebSocketLifecycle({
     address,
     subscribe: (addr) =>
-      WebSocketClient.subscribeBalances(addr, (wsAddr, newBalances) => {
+      WebSocketClient.subscribeBalances(addr, (wsAddr, newBalances, newTotalValueUsd) => {
         if (wsAddr === address.value && Array.isArray(newBalances)) {
           balances.value = newBalances;
+          totalValueUsd.value = newTotalValueUsd;
           lastUpdated.value = new Date();
         }
       }),

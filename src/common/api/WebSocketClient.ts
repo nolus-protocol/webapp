@@ -66,6 +66,7 @@ interface BalanceUpdateMessage {
   type: "balance_update";
   address: string;
   balances: BalanceInfo[];
+  total_value_usd: string;
 }
 
 interface LeaseUpdateMessage {
@@ -119,7 +120,7 @@ type ServerMessage =
  * Callback types for each subscription
  */
 export type PriceCallback = (prices: Record<string, string>) => void;
-export type BalanceCallback = (address: string, balances: BalanceInfo[]) => void;
+export type BalanceCallback = (address: string, balances: BalanceInfo[], totalValueUsd: string) => void;
 export type LeaseCallback = (lease: Partial<LeaseInfo> & Pick<LeaseInfo, "address" | "status">) => void;
 export type TxStatusCallback = (txHash: string, status: "pending" | "success" | "failed", error?: string) => void;
 export type SkipTxCallback = (update: {
@@ -355,7 +356,12 @@ class WebSocketClientImpl {
           break;
 
         case "balance_update":
-          this.notifySubscribers(`balances:${message.address}`, message.address, message.balances);
+          this.notifySubscribers(
+            `balances:${message.address}`,
+            message.address,
+            message.balances,
+            message.total_value_usd
+          );
           break;
 
         case "lease_update":

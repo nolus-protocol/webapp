@@ -7,6 +7,7 @@
 //! On disconnect: reconnects with exponential backoff (1s → 30s max).
 //! No timer fallback — data goes stale visibly via `Cached<T>.age_secs()`.
 
+use std::collections::HashSet;
 use std::time::Duration;
 
 use futures::{SinkExt, StreamExt};
@@ -27,6 +28,12 @@ const BLOCK_SILENCE_TIMEOUT: Duration = Duration::from_secs(60);
 /// How often the watchdog ticks to re-evaluate block silence.
 const WATCHDOG_INTERVAL: Duration = Duration::from_secs(10);
 
+/// Nolus fee-collector module account. Every fee-paying tx emits a `transfer`
+/// event crediting this account, so an unfiltered transfer branch would fire on
+/// ~100% of chain txs and flood the channel. Verified live against
+/// `/cosmos/auth/v1beta1/module_accounts/fee_collector`.
+const FEE_COLLECTOR_ADDRESS: &str = "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc";
+
 /// Pure predicate for the block-silence watchdog — kept outside
 /// `connect_and_listen` so it's trivially unit-testable.
 fn block_silence_exceeded(elapsed: Duration) -> bool {
@@ -45,6 +52,15 @@ pub struct ContractExecEvent {
     pub tx_hash: String,
 }
 
+/// Bank-transfer event extracted from CometBFT Tx events.
+///
+/// One event per tx, carrying the deduped set of all non-fee-collector transfer
+/// participants (recipients and senders) across every `transfer` event in the tx.
+#[derive(Debug, Clone)]
+pub struct BankTransferEvent {
+    pub addresses: Vec<String>,
+}
+
 /// Broadcast channels for dispatching chain events to consumers.
 ///
 /// Uses `tokio::sync::broadcast` so multiple receivers can subscribe independently.
@@ -56,6 +72,9 @@ pub struct EventChannels {
     pub new_block: broadcast::Sender<u64>,
     /// Fires on each wasm contract execution within a transaction.
     pub contract_exec: broadcast::Sender<ContractExecEvent>,
+    /// Fires once per tx that moved bank funds for one or more non-fee-collector
+    /// addresses.
+    pub bank_transfer: broadcast::Sender<BankTransferEvent>,
 }
 
 impl Default for EventChannels {
@@ -68,9 +87,13 @@ impl EventChannels {
     pub fn new() -> Self {
         let (new_block, _) = broadcast::channel(64);
         let (contract_exec, _) = broadcast::channel(256);
+        // Transfer events outnumber wasm events even after fee filtering; per-tx
+        // dedup keeps the message rate ≈ tx rate, with headroom for burst blocks.
+        let (bank_transfer, _) = broadcast::channel(1024);
         Self {
             new_block,
             contract_exec,
+            bank_transfer,
         }
     }
 }
@@ -317,40 +340,67 @@ impl ChainEventClient {
             None => return,
         };
 
+        // Deduped set of all non-fee-collector transfer participants across every
+        // `transfer` event in this tx — dispatched as ONE BankTransferEvent below.
+        let mut transfer_addresses: HashSet<String> = HashSet::new();
+
         for event in events {
-            if event["type"].as_str() != Some("wasm") {
-                continue;
-            }
+            let event_type = event["type"].as_str();
 
-            let attrs = match event["attributes"].as_array() {
-                Some(a) => a,
-                None => continue,
-            };
+            if event_type == Some("wasm") {
+                let attrs = match event["attributes"].as_array() {
+                    Some(a) => a,
+                    None => continue,
+                };
 
-            let mut contract_address = String::new();
-            let mut action = None;
+                let mut contract_address = String::new();
+                let mut action = None;
 
-            for attr in attrs {
-                match attr["key"].as_str() {
-                    Some("contract_address") | Some("_contract_address") => {
+                for attr in attrs {
+                    match attr["key"].as_str() {
+                        Some("contract_address") | Some("_contract_address") => {
+                            if let Some(v) = attr["value"].as_str() {
+                                contract_address = v.to_string();
+                            }
+                        }
+                        Some("action") => {
+                            action = attr["value"].as_str().map(|s| s.to_string());
+                        }
+                        _ => {}
+                    }
+                }
+
+                if !contract_address.is_empty() {
+                    let _ = self.channels.contract_exec.send(ContractExecEvent {
+                        contract_address,
+                        action,
+                        tx_hash: tx_hash.clone(),
+                    });
+                }
+            } else if event_type == Some("transfer") {
+                let attrs = match event["attributes"].as_array() {
+                    Some(a) => a,
+                    None => continue,
+                };
+
+                // A single transfer event can carry repeated recipient/sender/amount
+                // triples (MsgMultiSend) — iterate every attribute, not just the first pair.
+                for attr in attrs {
+                    if let Some("recipient" | "sender") = attr["key"].as_str() {
                         if let Some(v) = attr["value"].as_str() {
-                            contract_address = v.to_string();
+                            if !v.is_empty() && v != FEE_COLLECTOR_ADDRESS {
+                                transfer_addresses.insert(v.to_string());
+                            }
                         }
                     }
-                    Some("action") => {
-                        action = attr["value"].as_str().map(|s| s.to_string());
-                    }
-                    _ => {}
                 }
             }
+        }
 
-            if !contract_address.is_empty() {
-                let _ = self.channels.contract_exec.send(ContractExecEvent {
-                    contract_address,
-                    action,
-                    tx_hash: tx_hash.clone(),
-                });
-            }
+        if !transfer_addresses.is_empty() {
+            let _ = self.channels.bank_transfer.send(BankTransferEvent {
+                addresses: transfer_addresses.into_iter().collect(),
+            });
         }
     }
 }
@@ -798,6 +848,147 @@ mod tests {
         }"#;
 
         client.handle_message(msg);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// A single transfer event carrying repeated recipient/sender triples
+    /// (MsgMultiSend) yields ONE BankTransferEvent with every participant deduped.
+    #[test]
+    fn test_transfer_event_collects_all_recipients_deduped() {
+        let channels = EventChannels::new();
+        let mut rx = channels.bank_transfer.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH"] },
+                "data": { "value": { "TxResult": { "result": { "events": [{
+                    "type": "transfer",
+                    "attributes": [
+                        { "key": "recipient", "value": "nolus1a" },
+                        { "key": "sender", "value": "nolus1b" },
+                        { "key": "amount", "value": "100unls" },
+                        { "key": "recipient", "value": "nolus1c" },
+                        { "key": "sender", "value": "nolus1b" },
+                        { "key": "amount", "value": "200unls" }
+                    ]
+                }] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
+        let event = rx.try_recv().unwrap();
+        let mut addresses = event.addresses.clone();
+        addresses.sort();
+        assert_eq!(addresses, vec!["nolus1a", "nolus1b", "nolus1c"]);
+        // Exactly one event dispatched for the tx.
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// The fee-collector recipient is filtered out of the participant set; a real
+    /// counterparty in the same transfer still survives.
+    #[test]
+    fn test_transfer_event_filters_fee_collector() {
+        let channels = EventChannels::new();
+        let mut rx = channels.bank_transfer.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH"] },
+                "data": { "value": { "TxResult": { "result": { "events": [{
+                    "type": "transfer",
+                    "attributes": [
+                        { "key": "recipient", "value": "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc" },
+                        { "key": "sender", "value": "nolus1payer" },
+                        { "key": "amount", "value": "5unls" }
+                    ]
+                }] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
+        let event = rx.try_recv().unwrap();
+        assert_eq!(event.addresses, vec!["nolus1payer".to_string()]);
+        // Guard: the fixture's filtered recipient must match the production constant.
+        assert_eq!(
+            FEE_COLLECTOR_ADDRESS,
+            "nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc"
+        );
+    }
+
+    /// Several transfer events within one tx collapse into a single deduped
+    /// BankTransferEvent.
+    #[test]
+    fn test_multiple_transfer_events_dedup_into_one() {
+        let channels = EventChannels::new();
+        let mut rx = channels.bank_transfer.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH"] },
+                "data": { "value": { "TxResult": { "result": { "events": [
+                    {"type":"transfer","attributes":[
+                        {"key":"recipient","value":"nolus1a"},
+                        {"key":"sender","value":"nolus1b"}
+                    ]},
+                    {"type":"transfer","attributes":[
+                        {"key":"recipient","value":"nolus1a"},
+                        {"key":"sender","value":"nolus1c"}
+                    ]}
+                ] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
+        let event = rx.try_recv().unwrap();
+        let mut addresses = event.addresses.clone();
+        addresses.sort();
+        assert_eq!(addresses, vec!["nolus1a", "nolus1b", "nolus1c"]);
+        assert!(rx.try_recv().is_err());
+    }
+
+    /// A tx whose only transfer participants are the fee collector dispatches
+    /// nothing — the whole surviving set is empty.
+    #[test]
+    fn test_fee_collector_only_transfers_dispatch_nothing() {
+        let channels = EventChannels::new();
+        let mut rx = channels.bank_transfer.subscribe();
+        let client = ChainEventClient {
+            ws_url: "wss://test/websocket".to_string(),
+            channels,
+        };
+
+        let msg = r#"{
+            "result": {
+                "query": "tm.event='Tx'",
+                "events": { "tx.hash": ["HASH"] },
+                "data": { "value": { "TxResult": { "result": { "events": [
+                    {"type":"transfer","attributes":[
+                        {"key":"recipient","value":"nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc"},
+                        {"key":"sender","value":"nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc"}
+                    ]},
+                    {"type":"transfer","attributes":[
+                        {"key":"recipient","value":"nolus17xpfvakm2amg962yls6f84z3kell8c5lxfnlfc"}
+                    ]}
+                ] } } } }
+            }
+        }"#;
+        client.handle_message(msg);
+
         assert!(rx.try_recv().is_err());
     }
 }
