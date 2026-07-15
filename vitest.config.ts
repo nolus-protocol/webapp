@@ -279,6 +279,22 @@ export default mergeConfig(
             functions: 50,
             statements: 65
           },
+          // Extracted lease composables with dedicated direct unit tests.
+          // Floors sit just below current actuals; untested computeds
+          // (payout branches, the short quote-derivation getters) are
+          // intentionally out of scope for these logic-pinning suites.
+          "src/modules/leases/components/single-lease/useTriggerDialog.ts": {
+            lines: 85,
+            branches: 65,
+            functions: 90,
+            statements: 85
+          },
+          "src/modules/leases/components/new-lease/useShortLeaseDetails.ts": {
+            lines: 55,
+            branches: 45,
+            functions: 95,
+            statements: 55
+          },
           "src/router/index.ts": {
             lines: 75,
             branches: 70,
