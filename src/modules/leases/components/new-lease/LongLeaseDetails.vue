@@ -122,25 +122,9 @@ import type { LeaseApply } from "@nolus/nolusjs/build/contracts";
 import BigNumber from "@/common/components/BigNumber.vue";
 import PositionPreviewChart from "./PositionPreviewChart.vue";
 import { SvgIcon } from "web-components";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { MONTHS, NATIVE_CURRENCY } from "@/config/global";
-import { getAdaptivePriceDecimals, formatPrice } from "@/common/utils/NumberFormatUtils";
-import { usePricesStore } from "@/common/stores/prices";
-import { useConfigStore } from "@/common/stores/config";
-import { LeaseMath } from "@/common/utils";
-import { getCurrencyByTicker, getLpnByProtocol } from "@/common/utils/CurrencyLookup";
-
+import { NATIVE_CURRENCY } from "@/config/global";
 import { Dec } from "@keplr-wallet/unit";
-import { CurrencyUtils } from "@nolus/nolusjs";
-import { SkipRouter } from "@/common/utils/SkipRoute";
-
-// Debounce window for the two Promise.all'd Skip API calls fired when the
-// lease quote changes. Must stay comfortably above the Leaser contract call
-// latency so rapid slider drags collapse to a single fire — a shorter window
-// let slow contract responses trigger back-to-back setSwapFee runs and hit
-// the backend's /api/swap/route strict rate limit (2 RPS, burst 5).
-const timeOut = 600;
-let time: NodeJS.Timeout;
+import { useLongLeaseDetails } from "./useLongLeaseDetails";
 
 const props = defineProps<{
   lease: LeaseApply | null | undefined;
@@ -148,240 +132,26 @@ const props = defineProps<{
   downpaymenAmount: string;
   downpaymentCurrency: string;
 }>();
-const pricesStore = usePricesStore();
-const configStore = useConfigStore();
-const swapFee = ref(0);
-const swapStableFee = ref(0);
 
-onMounted(async () => {
-  // Free interest is handled by a 3rd party service
-});
-
-onUnmounted(() => {
-  clearTimeout(time);
-});
-
-watch(
-  () => [props.lease],
-  () => {
-    void setSwapFee();
-  }
-);
-
-const isFreeLease = computed(() => {
-  // Free interest is handled by a 3rd party service
-  return false;
-});
-
-const annualInterestRate = computed(() => {
-  return ((props.lease?.annual_interest_rate ?? 0) + (props.lease?.annual_interest_rate_margin ?? 0)) / MONTHS;
-});
-
-const sizeAmount = computed(() => {
-  if (!props.lease?.total?.amount) {
-    return "0";
-  }
-
-  const total = new Dec(props.lease?.total.amount ?? "0").sub(swapFeeAmount.value);
-  return total.truncate().toString();
-});
-
-const stable = computed(() => {
-  const price = new Dec(pricesStore.prices[asset.value?.key as string]?.price ?? 0);
-  const v = props.lease?.total?.amount ?? "0";
-  const stable = price.mul(new Dec(v, asset.value?.decimal_digits ?? 0)).sub(new Dec(swapStableFee.value));
-
-  return stable.toString();
-});
-
-const asset = computed(() => {
-  const currency = configStore.currenciesData?.[props.loanCurrency];
-  return currency;
-});
-
-const lpn = computed(() => {
-  const dpa = downPaymentAsset.value;
-  if (dpa === undefined) {
-    return null;
-  }
-  const [, p] = dpa.key.split("@");
-  if (p === undefined) {
-    return null;
-  }
-  return getLpnByProtocol(p);
-});
-
-const downPaymentAsset = computed(() => {
-  const currency = configStore.currenciesData?.[props.downpaymentCurrency];
-  return currency;
-});
-
-const downPaymentAmount = computed(() => {
-  const dpa = downPaymentAsset.value;
-  if (dpa === undefined) {
-    return "0";
-  }
-  const price = new Dec(pricesStore.prices[dpa.key]?.price ?? 0);
-  const decimals = new Dec(10 ** dpa.decimal_digits);
-  const v = downPaymentStable.value;
-  const amount = v.quo(price).mul(decimals);
-  return amount.truncate().toString();
-});
-
-const downPaymentStable = computed(() => {
-  const dpa = downPaymentAsset.value;
-  if (dpa === undefined) {
-    return new Dec(0);
-  }
-  const price = new Dec(pricesStore.prices[dpa.key]?.price ?? 0);
-  const v = props.downpaymenAmount.length === 0 ? "0" : props.downpaymenAmount;
-  const stable = price.mul(new Dec(v));
-  return stable;
-});
-
-const borrowAmount = computed(() => {
-  const a = asset.value;
-  if (a === undefined) {
-    return "0";
-  }
-  const price = new Dec(pricesStore.prices[a.key]?.price ?? 0);
-  const decimals = new Dec(10 ** a.decimal_digits);
-  const v = borrowStable.value;
-  const amount = v.quo(price).mul(decimals);
-  return amount.truncate().toString();
-});
-
-const swapFeeAmount = computed(() => {
-  const a = asset.value;
-  if (a === undefined) {
-    return new Dec(0);
-  }
-  const price = new Dec(pricesStore.prices[a.key]?.price ?? 0);
-  const decimals = new Dec(10 ** a.decimal_digits);
-  const v = new Dec(swapStableFee.value);
-  const amount = v.quo(price).mul(decimals);
-  return amount;
-});
-
-const borrowStable = computed(() => {
-  const l = lpn.value;
-  if (l === null) {
-    return new Dec(0);
-  }
-  const price = new Dec(pricesStore.prices[l.key]?.price ?? 0);
-  const v = props.lease?.borrow?.amount ?? "0";
-  const stable = price.mul(new Dec(v, l.decimal_digits));
-  return stable;
-});
-
-const currentPriceDecimals = computed(() => {
-  return getAdaptivePriceDecimals(Number(pricesStore.prices[props.loanCurrency]?.price ?? 0));
-});
-
-const calculateLique = computed(() => {
-  const d = getLquidation();
-  if (d.isZero()) {
-    return `${d.toString(2)}`;
-  }
-  return formatPrice(d.toString(8));
-});
-
-const percentLique = computed(() => {
-  const a = asset.value;
-  // Use the currency key to get the price, not ibcData
-  const price = new Dec(pricesStore.prices[a?.key as string]?.price ?? "0", a?.decimal_digits ?? 0);
-  const lprice = getLquidation();
-
-  if (lprice.isZero() || price.isZero()) {
-    return `0`;
-  }
-
-  const p = price.sub(lprice).quo(price);
-  return `-${p.abs().mul(new Dec(100)).toString(0)}`;
-});
-
-function getLquidation() {
-  const lease = props.lease;
-  if (lease && lease.borrow.ticker && lease.total.ticker) {
-    const unitAssetInfo = getCurrencyByTicker(lease.borrow.ticker);
-    const stableAssetInfo = getCurrencyByTicker(lease.total.ticker);
-
-    const unitAsset = new Dec(getBorrowedAmount(), Number(unitAssetInfo.decimal_digits));
-
-    const stableAsset = new Dec(getTotalAmount(), Number(stableAssetInfo.decimal_digits));
-    return LeaseMath.calculateLiquidation(unitAsset, stableAsset);
-  }
-
-  return new Dec(0);
-}
-
-function getBorrowedAmount() {
-  const borrow = props.lease?.borrow;
-
-  if (borrow) {
-    const amount = new Dec(borrow?.amount ?? 0).truncate();
-    return amount;
-  }
-
-  return new Dec(0).truncate();
-}
-
-function getTotalAmount() {
-  const total = props.lease?.total;
-  return new Dec(total?.amount ?? 0).truncate();
-}
-
-async function setSwapFee() {
-  clearTimeout(time);
-  const lease = props.lease;
-  if (lease) {
-    time = setTimeout(() => {
-      void (async () => {
-        const currency = downPaymentAsset.value;
-        const a = asset.value;
-        if (currency === undefined || a === undefined) return;
-        const [_, p] = a.key.split("@");
-        if (p === undefined) return;
-
-        const microAmount = CurrencyUtils.convertDenomToMinimalDenom(
-          props.downpaymenAmount,
-          currency.ibcData,
-          currency.decimal_digits
-        ).amount.toString();
-
-        const lpn = getLpnByProtocol(p);
-        if (lpn === null) return;
-        let amountIn = 0;
-        let amountOut = 0;
-        await Promise.all([
-          SkipRouter.getRoute(currency.ibcData, a.ibcData, microAmount).then((data) => {
-            amountIn += Number(data.usd_amount_in ?? 0);
-            amountOut += Number(data.usd_amount_out ?? 0);
-
-            return Number(data?.swap_price_impact_percent ?? 0);
-          }),
-          SkipRouter.getRoute(lpn.ibcData, a.ibcData, lease.borrow.amount).then((data) => {
-            amountIn += Number(data.usd_amount_in ?? 0);
-            amountOut += Number(data.usd_amount_out ?? 0);
-
-            return Number(data?.swap_price_impact_percent ?? 0);
-          })
-        ]);
-        const out_a = Math.max(amountOut, amountIn);
-        const in_a = Math.min(amountOut, amountIn);
-
-        const diff = out_a - in_a;
-        swapStableFee.value = diff;
-        let fee = 0;
-
-        if (in_a > 0) {
-          fee = diff / in_a;
-        }
-        swapFee.value = fee;
-      })();
-    }, timeOut);
-  }
-}
+const {
+  pricesStore,
+  swapStableFee,
+  sizeAmount,
+  asset,
+  stable,
+  borrowStable,
+  borrowAmount,
+  downPaymentStable,
+  downPaymentAmount,
+  downPaymentAsset,
+  annualInterestRate,
+  isFreeLease,
+  percentLique,
+  calculateLique,
+  currentPriceDecimals,
+  lpn,
+  swapFeeAmount
+} = useLongLeaseDetails(props);
 </script>
 <style lang="scss" scoped>
 .fadeHeight-enter-active,
