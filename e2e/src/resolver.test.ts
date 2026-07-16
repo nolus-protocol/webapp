@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseHostResolver } from "./resolver.js";
+import { buildHostResolverRules, parseHostResolver } from "./resolver.js";
 
 describe("parseHostResolver", () => {
   it("returns no overrides for an undefined value", () => {
@@ -37,5 +37,27 @@ describe("parseHostResolver", () => {
     const result = parseHostResolver("=198.51.100.7");
     expect(result.overrides.size).toBe(0);
     expect(result.errors).toEqual(["pair 1 has an empty host"]);
+  });
+});
+
+describe("buildHostResolverRules", () => {
+  it("returns an empty string for no overrides", () => {
+    expect(buildHostResolverRules(new Map())).toBe("");
+  });
+
+  it("renders a single MAP rule", () => {
+    expect(buildHostResolverRules(new Map([["app-dev.nolus.io", "198.51.100.7"]]))).toBe(
+      "MAP app-dev.nolus.io 198.51.100.7"
+    );
+  });
+
+  it("joins multiple MAP rules with a comma", () => {
+    const rules = buildHostResolverRules(
+      new Map([
+        ["a.example", "198.51.100.1"],
+        ["b.example", "198.51.100.2"]
+      ])
+    );
+    expect(rules).toBe("MAP a.example 198.51.100.1, MAP b.example 198.51.100.2");
   });
 });

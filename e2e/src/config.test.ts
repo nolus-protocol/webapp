@@ -5,7 +5,8 @@ import {
   DEFAULT_WS_PUSH_TIMEOUT_MS,
   deriveWsUrl,
   isValidNolusAddress,
-  parseConfig
+  parseConfig,
+  parseT1Config
 } from "./config.js";
 
 const VALID_ADDRESS = "nolus10hvz04hh92xzct5hxnpsn5h2fp3p4amm28vhvp";
@@ -153,5 +154,44 @@ describe("parseConfig", () => {
       throw new Error("expected failure");
     }
     expect(result.errors).toEqual(["E2E_RATE_MIN_PERCENT (90) must not exceed E2E_RATE_MAX_PERCENT (10)"]);
+  });
+});
+
+describe("parseT1Config", () => {
+  it("accepts only E2E_BASE_URL and does not require an address", () => {
+    const result = parseT1Config({ E2E_BASE_URL: VALID_BASE });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config.baseUrl).toBe(VALID_BASE);
+    expect(result.config.hostOverrides.size).toBe(0);
+  });
+
+  it("reuses the host-resolver pairs", () => {
+    const result = parseT1Config({ E2E_BASE_URL: VALID_BASE, E2E_HOST_RESOLVER: "app-dev.nolus.io=198.51.100.7" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config.hostOverrides.get("app-dev.nolus.io")).toBe("198.51.100.7");
+  });
+
+  it("fails hard with a descriptive error when E2E_BASE_URL is missing", () => {
+    const result = parseT1Config({});
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected failure");
+    }
+    expect(result.errors).toEqual(["E2E_BASE_URL is required (https origin of the SPA/API)"]);
+  });
+
+  it("prefixes a malformed host-resolver pair", () => {
+    const result = parseT1Config({ E2E_BASE_URL: VALID_BASE, E2E_HOST_RESOLVER: "nodelimiter" });
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected failure");
+    }
+    expect(result.errors).toEqual([`E2E_HOST_RESOLVER: pair 1 is missing "=" (expected host=target)`]);
   });
 });

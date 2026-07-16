@@ -213,3 +213,31 @@ export function parseConfig(env: Record<string, string | undefined>): ConfigResu
     }
   };
 }
+
+export interface T1Config {
+  baseUrl: string;
+  hostOverrides: Map<string, string>;
+}
+
+export type T1ConfigResult = { ok: true; config: T1Config } | { ok: false; errors: string[] };
+
+/**
+ * The T1 (browser smoke) subset: only E2E_BASE_URL is required and the optional
+ * E2E_HOST_RESOLVER pairs are reused. It shares the exact field parsers with the
+ * full T0 config so the two never drift.
+ */
+export function parseT1Config(env: Record<string, string | undefined>): T1ConfigResult {
+  const errors: string[] = [];
+
+  const base = parseBaseUrlField(env, errors);
+  const resolver = parseHostResolver(env.E2E_HOST_RESOLVER);
+  for (const message of resolver.errors) {
+    errors.push(`E2E_HOST_RESOLVER: ${message}`);
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, config: { baseUrl: base.baseUrl, hostOverrides: resolver.overrides } };
+}

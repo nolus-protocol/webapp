@@ -7,7 +7,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test.ts", "src/t0.ts", "src/http.ts", "src/ws.ts"],
+      exclude: ["src/**/*.test.ts", "src/t0.ts", "src/http.ts", "src/ws.ts", "src/t1/**"],
       reporter: ["text", "json-summary"],
       // Ratchet floors pinned just under measured actuals. The pure modules
       // (config/decimal/report/validate) sit at 97-100%; the global is pulled down by
