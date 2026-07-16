@@ -9,7 +9,8 @@
   },
   "scripts": {
     "t0": "tsx src/t0.ts",
-    "t1": "playwright test --config playwright.config.ts",
+    "t1": "playwright test --config playwright.config.ts --project=desktop-light --project=desktop-dark --project=mobile",
+    "t2": "playwright test --config playwright.config.ts --project=t2",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
@@ -19,6 +20,9 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@cosmjs/amino": "0.38.1",
+    "@cosmjs/crypto": "0.38.1",
+    "@cosmjs/encoding": "0.38.1",
     "undici": "8.7.0",
     "ws": "8.21.1"
   },

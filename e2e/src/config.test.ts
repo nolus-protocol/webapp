@@ -6,8 +6,14 @@ import {
   deriveWsUrl,
   isValidNolusAddress,
   parseConfig,
-  parseT1Config
+  parseT1Config,
+  parseT2Config,
+  PUBLIC_FALLBACK_MNEMONIC
 } from "./config.js";
+
+// The canonical public all-zeros BIP-39 vector, used only to exercise the parser's
+// happy path — never a realistic secret.
+const VALID_MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
 const VALID_ADDRESS = "nolus10hvz04hh92xzct5hxnpsn5h2fp3p4amm28vhvp";
 const VALID_BASE = "https://app-dev.nolus.io";
@@ -193,5 +199,54 @@ describe("parseT1Config", () => {
       throw new Error("expected failure");
     }
     expect(result.errors).toEqual([`E2E_HOST_RESOLVER: pair 1 is missing "=" (expected host=target)`]);
+  });
+});
+
+describe("parseT2Config", () => {
+  it("accepts a primary mnemonic and falls back to the public vector for the secondary", () => {
+    const result = parseT2Config({ E2E_WALLET_MNEMONIC: VALID_MNEMONIC });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config.primaryMnemonic).toBe(VALID_MNEMONIC);
+    expect(result.config.secondaryMnemonic).toBe(PUBLIC_FALLBACK_MNEMONIC);
+  });
+
+  it("uses an explicit secondary mnemonic when provided", () => {
+    const result = parseT2Config({
+      E2E_WALLET_MNEMONIC: VALID_MNEMONIC,
+      E2E_WALLET_MNEMONIC_2: PUBLIC_FALLBACK_MNEMONIC
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config.secondaryMnemonic).toBe(PUBLIC_FALLBACK_MNEMONIC);
+  });
+
+  it("requires E2E_WALLET_MNEMONIC and names only the variable", () => {
+    const result = parseT2Config({});
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected failure");
+    }
+    expect(result.errors).toEqual([
+      "E2E_WALLET_MNEMONIC is required (a BIP-39 mnemonic of 12/15/18/21/24 lowercase words)"
+    ]);
+  });
+
+  it("rejects a malformed mnemonic without echoing its value", () => {
+    const badValue = "Two Words";
+    const result = parseT2Config({ E2E_WALLET_MNEMONIC: badValue });
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected failure");
+    }
+    expect(result.errors).toEqual(["E2E_WALLET_MNEMONIC must be a BIP-39 mnemonic of 12/15/18/21/24 lowercase words"]);
+    for (const message of result.errors) {
+      expect(message).not.toContain("Two");
+      expect(message).not.toContain("Words");
+    }
   });
 });

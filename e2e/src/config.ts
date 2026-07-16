@@ -241,3 +241,87 @@ export function parseT1Config(env: Record<string, string | undefined>): T1Config
 
   return { ok: true, config: { baseUrl: base.baseUrl, hostOverrides: resolver.overrides } };
 }
+
+const MNEMONIC_WORD_COUNTS = new Set([12, 15, 18, 21, 24]);
+const MNEMONIC_WORD = /^[a-z]+$/;
+
+/**
+ * A deliberately public, unfunded BIP-39 test vector (the standard CosmJS docs
+ * mnemonic). It holds no assets on any chain and is used connect-only as the fallback
+ * second identity when E2E_WALLET_MNEMONIC_2 is unset. Never point real funds at it.
+ */
+export const PUBLIC_FALLBACK_MNEMONIC = "enlist hip relief stomach skate base shallow young switch frequent cry park";
+
+export interface T2Config {
+  primaryMnemonic: string;
+  secondaryMnemonic: string;
+}
+
+export type T2ConfigResult = { ok: true; config: T2Config } | { ok: false; errors: string[] };
+
+/**
+ * A plausible BIP-39 mnemonic is 12/15/18/21/24 lowercase words. This is a shape gate,
+ * not a checksum: it is enough to reject an obviously wrong value while — critically —
+ * never needing to echo the value to report the failure.
+ */
+function isPlausibleMnemonic(value: string): boolean {
+  const words = value.trim().split(/\s+/);
+  if (!MNEMONIC_WORD_COUNTS.has(words.length)) {
+    return false;
+  }
+  return words.every((word) => MNEMONIC_WORD.test(word));
+}
+
+interface MnemonicFieldSpec {
+  raw: string | undefined;
+  name: string;
+  required: boolean;
+  fallback: string;
+}
+
+function parseMnemonicField(spec: MnemonicFieldSpec, errors: string[]): string {
+  const trimmed = spec.raw?.trim();
+  if (!trimmed) {
+    if (spec.required) {
+      errors.push(`${spec.name} is required (a BIP-39 mnemonic of 12/15/18/21/24 lowercase words)`);
+      return "";
+    }
+    return spec.fallback;
+  }
+  if (!isPlausibleMnemonic(trimmed)) {
+    errors.push(`${spec.name} must be a BIP-39 mnemonic of 12/15/18/21/24 lowercase words`);
+    return spec.fallback;
+  }
+  return trimmed;
+}
+
+/**
+ * The T2 (scripted-wallet) subset. E2E_WALLET_MNEMONIC is required; E2E_WALLET_MNEMONIC_2
+ * is optional and falls back to the public unfunded test vector so the two-identity spec
+ * always has a distinct second account. Error messages name the offending variable only
+ * and never echo any part of a mnemonic — the same posture the file holds for
+ * E2E_HOST_RESOLVER.
+ */
+export function parseT2Config(env: Record<string, string | undefined>): T2ConfigResult {
+  const errors: string[] = [];
+
+  const primaryMnemonic = parseMnemonicField(
+    { raw: env.E2E_WALLET_MNEMONIC, name: "E2E_WALLET_MNEMONIC", required: true, fallback: "" },
+    errors
+  );
+  const secondaryMnemonic = parseMnemonicField(
+    {
+      raw: env.E2E_WALLET_MNEMONIC_2,
+      name: "E2E_WALLET_MNEMONIC_2",
+      required: false,
+      fallback: PUBLIC_FALLBACK_MNEMONIC
+    },
+    errors
+  );
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, config: { primaryMnemonic, secondaryMnemonic } };
+}
