@@ -3,19 +3,33 @@ import tseslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
 
 export default tseslint.config(
-  { ignores: ["node_modules", "results", "dist"] },
+  { ignores: ["node_modules", "results", "dist", "coverage"] },
   js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.strictTypeChecked,
   {
     languageOptions: {
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname
       }
+    },
+    rules: {
+      "no-console": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "@typescript-eslint/consistent-type-imports": "error",
+      "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
+      "max-lines-per-function": ["error", { max: 40, skipBlankLines: true, skipComments: true }],
+      complexity: ["error", 12]
     }
   },
   {
-    files: ["**/*.js"],
+    files: ["**/*.test.ts"],
+    rules: {
+      "max-lines-per-function": "off"
+    }
+  },
+  {
+    files: ["**/*.js", "*.config.ts", "vitest.config.ts"],
     extends: [tseslint.configs.disableTypeChecked]
   },
   prettier

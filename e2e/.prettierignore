@@ -1,5 +1,5 @@
 node_modules/
 results/
 coverage/
-.env
-.env.*
+dist/
+package-lock.json
