@@ -47,6 +47,10 @@ export function createLookup(overrides: Map<string, string>): LookupFunction {
   };
 }
 
+export function buildHostResolverRules(overrides: Map<string, string>): string {
+  return [...overrides].map(([host, target]) => `MAP ${host} ${target}`).join(", ");
+}
+
 export function createUndiciConnector(overrides: Map<string, string>): buildConnector.connector {
   const base = buildConnector({});
   return (options, callback) => {

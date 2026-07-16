@@ -134,6 +134,44 @@ jobs:
             exit 1
           REMOTE
 
+      - name: Post-deploy verification (t0+t1)
+        id: e2e
+        continue-on-error: true
+        env:
+          E2E_BASE_URL: https://${{ inputs.base_domain }}
+          E2E_WS_URL: wss://${{ inputs.base_domain }}/ws
+          E2E_HOST_RESOLVER: ${{ inputs.base_domain }}=${{ vars.DEPLOY_HOST }}
+          E2E_READONLY_ADDRESS: ${{ vars.E2E_READONLY_ADDRESS }}
+          BASE_DOMAIN: ${{ inputs.base_domain }}
+        run: |
+          set -uo pipefail
+          cd e2e || exit 1
+          npm ci
+          npx playwright install chromium
+          t0_rc=0
+          npm run t0 || t0_rc=$?
+          t1_rc=0
+          npm run t1 || t1_rc=$?
+          if [ "$t0_rc" -ne 0 ] || [ "$t1_rc" -ne 0 ]; then
+            failed=""
+            [ "$t0_rc" -ne 0 ] && failed="t0"
+            [ "$t1_rc" -ne 0 ] && failed="${failed:+$failed }t1"
+            echo "::error::post-deploy verification failed ($failed); e2e artifacts uploaded as e2e-${BASE_DOMAIN}"
+            exit 1
+          fi
+
+      - name: Upload e2e artifacts
+        if: always() && steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-${{ inputs.base_domain }}
+          path: |
+            e2e/results/
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Rollback on failure
         if: failure()
         run: |

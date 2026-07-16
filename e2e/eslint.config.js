@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
 
 export default tseslint.config(
-  { ignores: ["node_modules", "results", "dist", "coverage"] },
+  { ignores: ["node_modules", "results", "dist", "coverage", "playwright-report", "test-results"] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   {
@@ -23,7 +23,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ["**/*.test.ts"],
+    files: ["**/*.test.ts", "**/*.spec.ts"],
     rules: {
       "max-lines-per-function": "off"
     }

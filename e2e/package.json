@@ -9,6 +9,7 @@
   },
   "scripts": {
     "t0": "tsx src/t0.ts",
+    "t1": "playwright test --config playwright.config.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.61.1",
     "@types/node": "26.1.1",
     "@types/ws": "8.18.1",
     "@vitest/coverage-v8": "4.1.10",

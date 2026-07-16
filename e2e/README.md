@@ -9,8 +9,8 @@ It is a separate npm package (its own `package.json` and lockfile) so the repo-r
 
 ## Tiers
 
-The suite is organized into tiers of increasing fidelity. This package currently
-ships **T0** only.
+The suite is organized into tiers of increasing fidelity. This package ships **T0**
+(API/WS cross-checks) and **T1** (a read-only browser smoke).
 
 | Tier | Scope                                                               | Wallet | Browser |
 | ---- | ------------------------------------------------------------------- | ------ | ------- |
@@ -56,13 +56,14 @@ never binary floats.
 
 ### Scripts
 
-| Script                            | Purpose                               |
-| --------------------------------- | ------------------------------------- |
-| `npm run t0`                      | Run the T0 suite.                     |
-| `npm run typecheck`               | `tsc --noEmit`.                       |
-| `npm run lint`                    | ESLint (type-checked), zero warnings. |
-| `npm run format` / `format:check` | Prettier.                             |
-| `npm test`                        | Vitest unit tests.                    |
+| Script                            | Purpose                                |
+| --------------------------------- | -------------------------------------- |
+| `npm run t0`                      | Run the T0 suite.                      |
+| `npm run t1`                      | Run the T1 browser smoke (Playwright). |
+| `npm run typecheck`               | `tsc --noEmit`.                        |
+| `npm run lint`                    | ESLint (type-checked), zero warnings.  |
+| `npm run format` / `format:check` | Prettier.                              |
+| `npm test`                        | Vitest unit tests.                     |
 
 ## The T0 checks
 
@@ -135,8 +136,90 @@ The run prints one JSON document to stdout and writes the same document to
 **Exit code:** `1` if any check has status `fail`, otherwise `0`. A `skip` never fails
 the run. The `E2E_HOST_RESOLVER` value is never present anywhere in the output.
 
+## The T1 browser smoke
+
+T1 drives a real headless Chromium against the live origin and asserts that every
+wallet-less route renders and behaves, and that a handful of rendered numbers match the
+API they come from. It never connects a wallet.
+
+```bash
+cd e2e
+E2E_BASE_URL=https://app-dev.nolus.io npm run t1
+```
+
+### Projects
+
+Three projects run every spec, so each assertion is checked at all three surfaces:
+
+| Project         | Viewport   | Theme | Extra assertion        |
+| --------------- | ---------- | ----- | ---------------------- |
+| `desktop-light` | 1440 x 900 | light |                        |
+| `desktop-dark`  | 1440 x 900 | dark  | `html.dark` is present |
+| `mobile`        | 390 x 844  | light |                        |
+
+Theme (`theme_data`) and language (`language` = `en`) are seeded into `localStorage`
+before the SPA boots. The viewport is fixed per project because the app reads its mobile
+breakpoint once at component setup.
+
+### What the route smoke asserts
+
+For each of the eight wallet-less routes (`/`, `/assets`, `/earn`, `/positions`,
+`/stake`, `/activities`, `/vote`, `/stats`) the smoke loads the page, waits for the app
+shell to become interactive, then holds a short window and asserts a per-route budget:
+
+- zero `console.error` and zero uncaught page errors,
+- zero failed same-origin requests (responses with status `>= 400`, plus request
+  failures other than aborts); third-party origins are reported, not budgeted,
+- exactly one WebSocket to a URL ending `/ws` opens, receives a
+  `{"type":"subscribed","topic":"prices"}` acknowledgement, and stays open through the
+  observation window.
+
+Console warnings are recorded as test annotations without failing the run.
+
+### The math-to-UI bridge
+
+`bridge.spec.ts` proves that rendered numbers equal the numbers the backend serves:
+
+- `/stats` overview: TVL, Tx Volume and Realized PnL (the three figures visible at every
+  viewport) are each compared against `GET /api/etl/batch/stats-overview`
+  (`tvl.total_value_locked`, `tx_volume.total_tx_value`, `realized_pnl_stats.amount`).
+  The rendered value is read from the AnimateNumber `aria-label`, the expected value is
+  formatted with the same compact-currency options the app uses, and the API value is
+  re-fetched on each attempt so a live price tick does not flake the assertion. A
+  within-one-percent tolerance on the parsed compact string is the documented fallback.
+- `/assets` zero-state: the wallet-less assets table total renders the formatted zero
+  value (`$0.00`), a real formatting-path check.
+
+The API reads inside the bridge go through the package's own undici client with the host
+resolver, because a browser API request context does not honor the Chromium host-resolver
+rules.
+
+### Post-deploy behavior
+
+The deploy workflow runs t0 and t1 after the health probe as a single non-blocking step
+(`continue-on-error`). A failure is loud (a workflow error annotation naming which tier
+failed) but never fails the deploy or triggers rollback. On failure the `results/`,
+`playwright-report/` and `test-results/` directories are uploaded as an artifact for
+triage.
+
+### T1 environment variables
+
+| Variable            | Required | Meaning                                                                                                                                                  |
+| ------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `E2E_BASE_URL`      | yes      | HTTPS origin of the SPA/API. A missing value fails config load loudly before any browser launches.                                                       |
+| `E2E_HOST_RESOLVER` | no       | Optional `host=target` connect overrides, reused from T0. Drives both the browser resolver rules and the bridge's API client. Its value is never echoed. |
+
+T1 does not use `E2E_READONLY_ADDRESS`; it is wallet-less.
+
 ## Known coverage gaps
 
+- The funded-wallet Dashboard and Assets wallet totals are **not** bridged. There is no
+  wallet-less path to load balances for a chosen address (seeding `localStorage` is inert;
+  the balances store only fetches after a real extension connect), so that bridge belongs
+  to the T2 scripted-wallet tier. Today the T1 bridge binds the wallet-independent `/stats`
+  figures and the `/assets` zero-state total.
+- Every new route must gain a T1 route-smoke entry in `routes.spec.ts`. A route added
+  without one is a silent gap, not a passing test.
 - `ws-rest-parity` may report `skip` on a quiet address: the backend only pushes a
   `balance_update` when a live on-chain transfer touches the subscribed address. A
   deterministic trigger arrives with the T2 wallet tier. Until then the wire-shape

@@ -1,5 +1,7 @@
 node_modules/
 results/
 coverage/
+playwright-report/
+test-results/
 .env
 .env.*
