@@ -4,6 +4,7 @@ import { WS_ACK_TIMEOUT_MS } from "../config.js";
 import { compareWithinTolerance } from "../decimal.js";
 import { getJson } from "../http.js";
 import { runBalanceSubscription, WsAckError } from "../ws.js";
+import type { PushOutcome } from "../ws.js";
 import { parseBalancesResponse } from "../validate.js";
 import type { BalanceInfo, BalanceUpdateFrame, CheckResult } from "../types.js";
 
@@ -164,9 +165,20 @@ function chainMismatchResult(ctx: ParityContext, update: BalanceUpdateFrame): Ch
   };
 }
 
+function malformedPushResult(ctx: ParityContext, detail: string): CheckResult {
+  return {
+    ...ctx.base,
+    status: "fail",
+    durationMs: elapsed(ctx),
+    observed: { phase: "push", error: detail },
+    expected: { frame: "balance_update matching the documented wire shape" },
+    reason: "balance_update frame failed shape validation"
+  };
+}
+
 async function acquirePush(ctx: ParityContext): Promise<PhaseOutcome<BalanceUpdateFrame>> {
   const { params } = ctx;
-  let update: BalanceUpdateFrame | null;
+  let outcome: PushOutcome;
   try {
     const result = await runBalanceSubscription({
       wsUrl: params.wsUrl,
@@ -174,18 +186,21 @@ async function acquirePush(ctx: ParityContext): Promise<PhaseOutcome<BalanceUpda
       pushTimeoutMs: params.pushTimeoutMs,
       lookup: params.lookup
     });
-    update = result.update;
+    outcome = result.outcome;
   } catch (error) {
     return { ok: false, result: subscribeFailureResult(ctx, error) };
   }
 
-  if (update === null) {
+  if (outcome.kind === "none") {
     return { ok: false, result: noPushResult(ctx) };
   }
-  if (update.chain !== EXPECTED_CHAIN) {
-    return { ok: false, result: chainMismatchResult(ctx, update) };
+  if (outcome.kind === "malformed") {
+    return { ok: false, result: malformedPushResult(ctx, outcome.detail) };
   }
-  return { ok: true, value: update };
+  if (outcome.update.chain !== EXPECTED_CHAIN) {
+    return { ok: false, result: chainMismatchResult(ctx, outcome.update) };
+  }
+  return { ok: true, value: outcome.update };
 }
 
 async function fetchRestSnapshot(ctx: ParityContext): Promise<PhaseOutcome<BalanceSnapshot>> {

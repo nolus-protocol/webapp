@@ -139,7 +139,10 @@ the run. The `E2E_HOST_RESOLVER` value is never present anywhere in the output.
 
 - `ws-rest-parity` may report `skip` on a quiet address: the backend only pushes a
   `balance_update` when a live on-chain transfer touches the subscribed address. A
-  deterministic trigger arrives with the T2 wallet tier.
+  deterministic trigger arrives with the T2 wallet tier. Until then the wire-shape
+  classification of pushed frames is exercised in unit tests against byte-exact
+  fixtures; a malformed `balance_update` (shape drift) fails the check rather than
+  masking as a timeout skip.
 - `rate-unit-sanity` is vacuous (degenerate pass) for an address with no open leases.
 - `totals-reconcile` is degenerate for an unfunded address (zero balances).
 

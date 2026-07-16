@@ -67,26 +67,27 @@ async function main(): Promise<void> {
 
   const config = parsed.config;
   const dispatch = buildDispatch(config.hostOverrides);
+  try {
+    const startedAt = new Date().toISOString();
+    const checks = await runAllChecks(config, dispatch);
+    const finishedAt = new Date().toISOString();
 
-  const startedAt = new Date().toISOString();
-  const checks = await runAllChecks(config, dispatch);
-  const finishedAt = new Date().toISOString();
+    const doc = assembleDocument({
+      startedAt,
+      finishedAt,
+      baseUrl: config.baseUrl,
+      address: config.readonlyAddress,
+      checks
+    });
 
-  const doc = assembleDocument({
-    startedAt,
-    finishedAt,
-    baseUrl: config.baseUrl,
-    address: config.readonlyAddress,
-    checks
-  });
-
-  const filePath = writeDocument(doc, config.resultsDir);
-  process.stdout.write(`${JSON.stringify(doc, null, 2)}\n`);
-  process.stderr.write(`t0 results written to ${filePath}\n`);
-  process.exitCode = exitCodeFor(doc);
-
-  if (dispatch.dispatcher !== undefined) {
-    await dispatch.dispatcher.close();
+    const filePath = writeDocument(doc, config.resultsDir);
+    process.stdout.write(`${JSON.stringify(doc, null, 2)}\n`);
+    process.stderr.write(`t0 results written to ${filePath}\n`);
+    process.exitCode = exitCodeFor(doc);
+  } finally {
+    if (dispatch.dispatcher !== undefined) {
+      await dispatch.dispatcher.close();
+    }
   }
 }
 

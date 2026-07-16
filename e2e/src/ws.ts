@@ -8,8 +8,11 @@ const BALANCES_TOPIC = "balances";
 
 export class WsAckError extends Error {}
 
+export type PushOutcome =
+  { kind: "update"; update: BalanceUpdateFrame } | { kind: "malformed"; detail: string } | { kind: "none" };
+
 export interface BalanceSubscriptionResult {
-  update: BalanceUpdateFrame | null;
+  outcome: PushOutcome;
 }
 
 interface ServerFrame {
@@ -19,17 +22,20 @@ interface ServerFrame {
   message?: string;
 }
 
-export function parseFrame(data: unknown): ServerFrame | null {
+function decodeJson(data: unknown): unknown {
   const text = typeof data === "string" ? data : Buffer.isBuffer(data) ? data.toString("utf8") : null;
   if (text === null) {
     return null;
   }
-  let value: unknown;
   try {
-    value = JSON.parse(text);
+    return JSON.parse(text);
   } catch {
     return null;
   }
+}
+
+export function parseFrame(data: unknown): ServerFrame | null {
+  const value = decodeJson(data);
   if (typeof value !== "object" || value === null) {
     return null;
   }
@@ -134,57 +140,62 @@ function waitForAck(socket: WebSocket, topic: string, timeoutMs: number): Promis
   });
 }
 
-function matchBalanceUpdate(data: unknown, address: string): BalanceUpdateFrame | null {
-  const frame = parseFrame(data);
-  if (frame === null || frame.type !== "balance_update") {
-    return null;
+// Classification must run on the RAW decoded frame: parseFrame deliberately keeps only
+// the control-frame fields (type/topic/code/message), so validating its output would
+// reject every genuine balance_update. A frame that claims to be a balance_update but
+// fails shape validation is reported as "malformed" (shape drift), never ignored.
+export function classifyBalanceUpdate(data: unknown, address: string): PushOutcome {
+  const value = decodeJson(data);
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return { kind: "none" };
   }
-  let parsed: BalanceUpdateFrame;
+  // Sanctioned assertion: same index-signature narrowing as parseFrame above.
+  const record = value as Record<string, unknown>;
+  if (record.type !== "balance_update") {
+    return { kind: "none" };
+  }
+  let update: BalanceUpdateFrame;
   try {
-    parsed = parseBalanceUpdateFrame(frame);
-  } catch {
-    return null;
+    update = parseBalanceUpdateFrame(record);
+  } catch (error) {
+    return { kind: "malformed", detail: error instanceof Error ? error.message : String(error) };
   }
-  return parsed.address === address ? parsed : null;
+  return update.address === address ? { kind: "update", update } : { kind: "none" };
 }
 
 // Push-wait phase: a missing push (timeout), a peer close, or a transport error all
-// resolve `null` (no push observed). The `error` listener is load-bearing: without it a
-// socket `error` in this window is an unhandled EventEmitter event, which crashes the
-// process before t0.json is written and the later checks run.
-function waitForBalanceUpdate(
-  socket: WebSocket,
-  address: string,
-  timeoutMs: number
-): Promise<BalanceUpdateFrame | null> {
+// resolve `{ kind: "none" }` (no push observed). The `error` listener is load-bearing:
+// without it a socket `error` in this window is an unhandled EventEmitter event, which
+// crashes the process before t0.json is written and the later checks run.
+function waitForBalanceUpdate(socket: WebSocket, address: string, timeoutMs: number): Promise<PushOutcome> {
   return new Promise((resolvePromise) => {
     const timer = setTimeout(() => {
       cleanup();
-      resolvePromise(null);
+      resolvePromise({ kind: "none" });
     }, timeoutMs);
 
     const onMessage = (data: unknown): void => {
-      const match = matchBalanceUpdate(data, address);
-      if (match !== null) {
+      const outcome = classifyBalanceUpdate(data, address);
+      if (outcome.kind !== "none") {
         cleanup();
-        resolvePromise(match);
+        resolvePromise(outcome);
       }
     };
-    const onSettleNull = (): void => {
+    const onSettleNone = (): void => {
       cleanup();
-      resolvePromise(null);
+      resolvePromise({ kind: "none" });
     };
 
     function cleanup(): void {
       clearTimeout(timer);
       socket.off("message", onMessage);
-      socket.off("close", onSettleNull);
-      socket.off("error", onSettleNull);
+      socket.off("close", onSettleNone);
+      socket.off("error", onSettleNone);
     }
 
     socket.on("message", onMessage);
-    socket.on("close", onSettleNull);
-    socket.on("error", onSettleNull);
+    socket.on("close", onSettleNone);
+    socket.on("error", onSettleNone);
   });
 }
 
@@ -207,11 +218,11 @@ export async function runBalanceSubscription(options: {
     await waitForOpen(socket, WS_ACK_TIMEOUT_MS);
     socket.send(subscribeFrame("subscribe", options.address));
     await waitForAck(socket, BALANCES_TOPIC, WS_ACK_TIMEOUT_MS);
-    const update = await waitForBalanceUpdate(socket, options.address, options.pushTimeoutMs);
+    const outcome = await waitForBalanceUpdate(socket, options.address, options.pushTimeoutMs);
     if (socket.readyState === WebSocket.OPEN) {
       socket.send(subscribeFrame("unsubscribe", options.address));
     }
-    return { update };
+    return { outcome };
   } finally {
     closeQuietly(socket);
   }
