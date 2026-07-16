@@ -10,7 +10,8 @@ It is a separate npm package (its own `package.json` and lockfile) so the repo-r
 ## Tiers
 
 The suite is organized into tiers of increasing fidelity. This package ships **T0**
-(API/WS cross-checks) and **T1** (a read-only browser smoke).
+(API/WS cross-checks), **T1** (a read-only browser smoke), and **T2** (scripted-wallet
+flows: connect, offline signing, disconnect).
 
 | Tier | Scope                                                               | Wallet | Browser |
 | ---- | ------------------------------------------------------------------- | ------ | ------- |
@@ -60,6 +61,7 @@ never binary floats.
 | --------------------------------- | -------------------------------------- |
 | `npm run t0`                      | Run the T0 suite.                      |
 | `npm run t1`                      | Run the T1 browser smoke (Playwright). |
+| `npm run t2`                      | Run the T2 scripted-wallet flows.      |
 | `npm run typecheck`               | `tsc --noEmit`.                        |
 | `npm run lint`                    | ESLint (type-checked), zero warnings.  |
 | `npm run format` / `format:check` | Prettier.                              |
@@ -211,13 +213,61 @@ triage.
 
 T1 does not use `E2E_READONLY_ADDRESS`; it is wallet-less.
 
+## The T2 scripted-wallet flows
+
+T2 drives the app's **real** Keplr connect flow against the live origin, but with no
+browser extension: a scripted `window.keplr` provider is injected before the SPA boots.
+The provider implements exactly the four methods the app calls (`enable`,
+`experimentalSuggestChain`, `getOfflineSignerOnlyAmino`, `getOfflineSignerAuto`) and
+proxies signing to a CosmJS wallet running in Node. **The mnemonic never enters the
+browser** — only a derived address, a base64 public key, and per-call amino
+signatures cross the page boundary.
+
+```bash
+cd e2e
+E2E_BASE_URL=https://app-dev.nolus.io \
+E2E_WALLET_MNEMONIC="<throwaway 12/24-word mnemonic>" \
+npm run t2
+```
+
+The `t2` project runs on a desktop viewport with the light theme. Connect needs no
+funds, so any freshly generated mnemonic works; the funded account is only required for
+the future T3 transactional tier.
+
+### What T2 asserts
+
+- **Connect** — opens the app, clicks the real Connect → Keplr controls, and asserts the
+  app reaches the connected state: `localStorage.wallet_connect_mechanism === "extension"`
+  and the header renders the derived `nolus1…` address. It also pins that
+  `window.keplr.isKeplr === undefined` (the #155 regression class: real Keplr's Cosmos
+  provider exposes no such marker, so the app must not branch on one).
+- **Offline signing** — signs a representative bank-send amino doc through the stub and
+  verifies in Node that the returned secp256k1 signature is cryptographically valid over
+  `sha256(serializeSignDoc(doc))`, with no popup and no signing network request.
+- **Disconnect** — drives the disconnect UI and asserts the wallet storage keys are
+  cleared and the app returns to the disconnected state.
+- **Two identities** — connects the fallback second identity and asserts its derived
+  address differs from the primary's.
+- **Secret hygiene** — asserts no three-word mnemonic window appears in the collected
+  console output, the connected page content, or the injected init-script source.
+
+### T2 environment variables
+
+| Variable                | Required | Meaning                                                                                                                                                                     |
+| ----------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `E2E_BASE_URL`          | yes      | HTTPS origin of the SPA/API. Fails config load loudly before any browser launches.                                                                                          |
+| `E2E_HOST_RESOLVER`     | no       | Optional `host=target` connect overrides, reused from T0/T1. Its value is never echoed.                                                                                     |
+| `E2E_WALLET_MNEMONIC`   | yes      | BIP-39 mnemonic (12/15/18/21/24 lowercase words) for the primary scripted account. Validated for shape only; **never echoed anywhere**, including error output and results. |
+| `E2E_WALLET_MNEMONIC_2` | no       | Optional second mnemonic for the two-identity spec. When unset it falls back to a fixed, publicly-known, unfunded CosmJS test vector used connect-only.                     |
+
 ## Known coverage gaps
 
-- The funded-wallet Dashboard and Assets wallet totals are **not** bridged. There is no
-  wallet-less path to load balances for a chosen address (seeding `localStorage` is inert;
-  the balances store only fetches after a real extension connect), so that bridge belongs
-  to the T2 scripted-wallet tier. Today the T1 bridge binds the wallet-independent `/stats`
-  figures and the `/assets` zero-state total.
+- The funded-wallet Dashboard and Assets wallet totals are **not** bridged. T2 now scripts
+  a real Keplr connect (so the balances store does fetch for the connected address), but
+  the T2 accounts are deliberately unfunded — connect needs no funds. Bridging the rendered
+  Dashboard/Assets totals against `/api/balances` for a funded account is tracked in **#282**.
+  Today the T1 bridge binds the wallet-independent `/stats` figures and the `/assets`
+  zero-state total.
 - Every new route must gain a T1 route-smoke entry in `routes.spec.ts`. A route added
   without one is a silent gap, not a passing test.
 - `ws-rest-parity` may report `skip` on a quiet address: the backend only pushes a

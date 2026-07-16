@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 import { parseT1Config } from "./src/config.js";
 import { buildHostResolverRules } from "./src/resolver.js";
-import type { T1Options } from "./src/t1/support.js";
+import type { T2Options } from "./src/t2/support.js";
 
 const parsed = parseT1Config(process.env);
 if (!parsed.ok) {
@@ -13,8 +13,8 @@ const resolverRules = buildHostResolverRules(hostOverrides);
 const launchArgs = resolverRules.length > 0 ? [`--host-resolver-rules=${resolverRules}`] : [];
 const isCI = Boolean(process.env.CI);
 
-export default defineConfig<T1Options>({
-  testDir: "src/t1",
+export default defineConfig<T2Options>({
+  testMatch: "**/*.spec.ts",
   fullyParallel: true,
   forbidOnly: isCI,
   workers: 2,
@@ -36,15 +36,23 @@ export default defineConfig<T1Options>({
   projects: [
     {
       name: "desktop-light",
+      testDir: "src/t1",
       use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
     },
     {
       name: "desktop-dark",
+      testDir: "src/t1",
       use: { viewport: { width: 1440, height: 900 }, themeData: "dark" }
     },
     {
       name: "mobile",
+      testDir: "src/t1",
       use: { viewport: { width: 390, height: 844 }, themeData: "light" }
+    },
+    {
+      name: "t2",
+      testDir: "src/t2",
+      use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
     }
   ]
 });
