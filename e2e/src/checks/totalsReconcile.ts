@@ -15,13 +15,23 @@ export interface ReconcileResult {
   note?: string;
 }
 
-export function reconcileTotals(balances: BalanceInfo[], totalValueUsd: string, toleranceUsd: number): ReconcileResult {
-  const entryCount = balances.length;
-  const sum = sumDecimalStrings(balances.map((balance) => balance.amount_usd));
-  const comparison = compareWithinTolerance(sum, totalValueUsd, toleranceUsd);
+export interface ReconcileInput {
+  balances: BalanceInfo[];
+  totalValueUsd: string;
+  toleranceUsd: string;
+}
 
-  const observed = { sum, totalValueUsd, diff: comparison.diff, entryCount };
-  const expected = { withinToleranceUsd: toleranceUsd };
+export function reconcileTotals(input: ReconcileInput): ReconcileResult {
+  const entryCount = input.balances.length;
+  const sum = sumDecimalStrings(input.balances.map((balance) => balance.amount_usd));
+  const comparison = compareWithinTolerance({
+    actual: sum,
+    expected: input.totalValueUsd,
+    tolerance: input.toleranceUsd
+  });
+
+  const observed = { sum, totalValueUsd: input.totalValueUsd, diff: comparison.diff, entryCount };
+  const expected = { withinToleranceUsd: input.toleranceUsd };
 
   if (!comparison.within) {
     return { status: "fail", observed, expected };
@@ -35,7 +45,7 @@ export function reconcileTotals(balances: BalanceInfo[], totalValueUsd: string, 
 export async function runTotalsReconcile(params: {
   baseUrl: string;
   address: string;
-  toleranceUsd: number;
+  toleranceUsd: string;
   dispatcher: Dispatcher | undefined;
 }): Promise<CheckResult> {
   const startedAt = Date.now();
@@ -48,7 +58,11 @@ export async function runTotalsReconcile(params: {
   try {
     const json = await getJson(`${params.baseUrl}/api/balances?address=${params.address}`, params.dispatcher);
     const parsed = parseBalancesResponse(json);
-    const result = reconcileTotals(parsed.balances, parsed.total_value_usd, params.toleranceUsd);
+    const result = reconcileTotals({
+      balances: parsed.balances,
+      totalValueUsd: parsed.total_value_usd,
+      toleranceUsd: params.toleranceUsd
+    });
     return {
       ...base,
       status: result.status,

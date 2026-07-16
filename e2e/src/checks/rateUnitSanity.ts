@@ -11,6 +11,11 @@ const IDENTITY_EPSILON = 1e-6;
 const PERMILLE_TO_PERCENT_DIVISOR = 10;
 const PERMILLE_LEAK_MIN_INTEGER = 100;
 
+export interface RateBand {
+  minPercent: number;
+  maxPercent: number;
+}
+
 export interface RateFailure {
   index: number;
   loanRate: number;
@@ -27,17 +32,12 @@ export interface RateCheckResult {
   note?: string;
 }
 
-function inspectLease(
-  index: number,
-  interest: InterestInfo,
-  minPercent: number,
-  maxPercent: number
-): RateFailure | null {
+function inspectLease(index: number, interest: InterestInfo, band: RateBand): RateFailure | null {
   const { loan_rate: loanRate, margin_rate: marginRate, annual_rate_percent: annualRatePercent } = interest;
   const reasons: string[] = [];
 
-  if (!(annualRatePercent >= minPercent && annualRatePercent < maxPercent)) {
-    reasons.push(`annual_rate_percent ${annualRatePercent} outside band [${minPercent}, ${maxPercent})`);
+  if (!(annualRatePercent >= band.minPercent && annualRatePercent < band.maxPercent)) {
+    reasons.push(`annual_rate_percent ${annualRatePercent} outside band [${band.minPercent}, ${band.maxPercent})`);
   }
 
   const identityExpected = (loanRate + marginRate) / PERMILLE_TO_PERCENT_DIVISOR;
@@ -60,10 +60,10 @@ function inspectLease(
   return { index, loanRate, marginRate, annualRatePercent, reasons, permilleLeakSignature };
 }
 
-export function checkLeaseRates(interests: InterestInfo[], minPercent: number, maxPercent: number): RateCheckResult {
+export function checkLeaseRates(interests: InterestInfo[], band: RateBand): RateCheckResult {
   const failures: RateFailure[] = [];
   interests.forEach((interest, index) => {
-    const failure = inspectLease(index, interest, minPercent, maxPercent);
+    const failure = inspectLease(index, interest, band);
     if (failure !== null) {
       failures.push(failure);
     }
@@ -71,7 +71,7 @@ export function checkLeaseRates(interests: InterestInfo[], minPercent: number, m
 
   const inspectedCount = interests.length;
   const expected = {
-    band: { minPercent, maxPercentExclusive: maxPercent },
+    band: { minPercent: band.minPercent, maxPercentExclusive: band.maxPercent },
     identity: `annual_rate_percent == (loan_rate + margin_rate) / ${PERMILLE_TO_PERCENT_DIVISOR}`,
     identityEpsilon: IDENTITY_EPSILON
   };
@@ -88,8 +88,7 @@ export function checkLeaseRates(interests: InterestInfo[], minPercent: number, m
 export async function runRateUnitSanity(params: {
   baseUrl: string;
   address: string;
-  minPercent: number;
-  maxPercent: number;
+  band: RateBand;
   dispatcher: Dispatcher | undefined;
 }): Promise<CheckResult> {
   const startedAt = Date.now();
@@ -101,7 +100,7 @@ export async function runRateUnitSanity(params: {
     const interests = parsed.leases
       .map((lease) => lease.interest)
       .filter((interest): interest is InterestInfo => interest !== undefined);
-    const result = checkLeaseRates(interests, params.minPercent, params.maxPercent);
+    const result = checkLeaseRates(interests, params.band);
     return {
       ...base,
       status: result.status,

@@ -1,12 +1,23 @@
+const DECIMAL_PATTERN = /^-?\d+(\.\d+)?$/;
+
 interface ParsedDecimal {
   negative: boolean;
   intDigits: string;
   fracDigits: string;
 }
 
+export function isDecimalString(value: string): boolean {
+  return DECIMAL_PATTERN.test(value.trim());
+}
+
+export function isNonNegativeDecimalString(value: string): boolean {
+  const trimmed = value.trim();
+  return DECIMAL_PATTERN.test(trimmed) && !trimmed.startsWith("-");
+}
+
 function parseDecimal(value: string, name: string): ParsedDecimal {
   const trimmed = value.trim();
-  if (!/^-?\d+(\.\d+)?$/.test(trimmed)) {
+  if (!DECIMAL_PATTERN.test(trimmed)) {
     throw new Error(`${name} is not a decimal number: "${value}"`);
   }
   const negative = trimmed.startsWith("-");
@@ -45,21 +56,27 @@ export interface ToleranceComparison {
   diff: string;
 }
 
-export function compareWithinTolerance(left: string, right: string, tolerance: number): ToleranceComparison {
-  const parsedLeft = parseDecimal(left, "left");
-  const parsedRight = parseDecimal(right, "right");
-  const parsedTolerance = parseDecimal(tolerance.toString(), "tolerance");
+export interface ToleranceInput {
+  actual: string;
+  expected: string;
+  tolerance: string;
+}
+
+export function compareWithinTolerance(input: ToleranceInput): ToleranceComparison {
+  const parsedActual = parseDecimal(input.actual, "actual");
+  const parsedExpected = parseDecimal(input.expected, "expected");
+  const parsedTolerance = parseDecimal(input.tolerance, "tolerance");
   const scale = Math.max(
-    parsedLeft.fracDigits.length,
-    parsedRight.fracDigits.length,
+    parsedActual.fracDigits.length,
+    parsedExpected.fracDigits.length,
     parsedTolerance.fracDigits.length
   );
 
-  const scaledLeft = toScaledBigInt(parsedLeft, scale);
-  const scaledRight = toScaledBigInt(parsedRight, scale);
+  const scaledActual = toScaledBigInt(parsedActual, scale);
+  const scaledExpected = toScaledBigInt(parsedExpected, scale);
   const scaledTolerance = toScaledBigInt(parsedTolerance, scale);
 
-  const rawDiff = scaledLeft - scaledRight;
+  const rawDiff = scaledActual - scaledExpected;
   const absDiff = rawDiff < 0n ? -rawDiff : rawDiff;
 
   return {

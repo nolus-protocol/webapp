@@ -19,7 +19,7 @@ interface ServerFrame {
   message?: string;
 }
 
-function parseFrame(data: unknown): ServerFrame | null {
+export function parseFrame(data: unknown): ServerFrame | null {
   const text = typeof data === "string" ? data : Buffer.isBuffer(data) ? data.toString("utf8") : null;
   if (text === null) {
     return null;
@@ -33,11 +33,24 @@ function parseFrame(data: unknown): ServerFrame | null {
   if (typeof value !== "object" || value === null) {
     return null;
   }
+  // Sanctioned assertion: a typeof/null guard narrows to non-null `object` but cannot
+  // give TypeScript an index signature, so reading fields needs this cast. Each field
+  // below is then individually type-checked; no unchecked field reaches the result.
   const record = value as Record<string, unknown>;
   if (typeof record.type !== "string") {
     return null;
   }
-  return record as unknown as ServerFrame;
+  const frame: ServerFrame = { type: record.type };
+  if (typeof record.topic === "string") {
+    frame.topic = record.topic;
+  }
+  if (typeof record.code === "string") {
+    frame.code = record.code;
+  }
+  if (typeof record.message === "string") {
+    frame.message = record.message;
+  }
+  return frame;
 }
 
 function subscribeFrame(action: "subscribe" | "unsubscribe", address: string): string {
@@ -121,6 +134,24 @@ function waitForAck(socket: WebSocket, topic: string, timeoutMs: number): Promis
   });
 }
 
+function matchBalanceUpdate(data: unknown, address: string): BalanceUpdateFrame | null {
+  const frame = parseFrame(data);
+  if (frame === null || frame.type !== "balance_update") {
+    return null;
+  }
+  let parsed: BalanceUpdateFrame;
+  try {
+    parsed = parseBalanceUpdateFrame(frame);
+  } catch {
+    return null;
+  }
+  return parsed.address === address ? parsed : null;
+}
+
+// Push-wait phase: a missing push (timeout), a peer close, or a transport error all
+// resolve `null` (no push observed). The `error` listener is load-bearing: without it a
+// socket `error` in this window is an unhandled EventEmitter event, which crashes the
+// process before t0.json is written and the later checks run.
 function waitForBalanceUpdate(
   socket: WebSocket,
   address: string,
@@ -133,23 +164,13 @@ function waitForBalanceUpdate(
     }, timeoutMs);
 
     const onMessage = (data: unknown): void => {
-      const frame = parseFrame(data);
-      if (frame === null || frame.type !== "balance_update") {
-        return;
+      const match = matchBalanceUpdate(data, address);
+      if (match !== null) {
+        cleanup();
+        resolvePromise(match);
       }
-      let parsed: BalanceUpdateFrame;
-      try {
-        parsed = parseBalanceUpdateFrame(frame);
-      } catch {
-        return;
-      }
-      if (parsed.address !== address) {
-        return;
-      }
-      cleanup();
-      resolvePromise(parsed);
     };
-    const onClose = (): void => {
+    const onSettleNull = (): void => {
       cleanup();
       resolvePromise(null);
     };
@@ -157,11 +178,13 @@ function waitForBalanceUpdate(
     function cleanup(): void {
       clearTimeout(timer);
       socket.off("message", onMessage);
-      socket.off("close", onClose);
+      socket.off("close", onSettleNull);
+      socket.off("error", onSettleNull);
     }
 
     socket.on("message", onMessage);
-    socket.on("close", onClose);
+    socket.on("close", onSettleNull);
+    socket.on("error", onSettleNull);
   });
 }
 

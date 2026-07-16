@@ -1,6 +1,7 @@
+import { isNonNegativeDecimalString } from "./decimal.js";
 import { parseHostResolver } from "./resolver.js";
 
-export const DEFAULT_USD_TOLERANCE = 0.05;
+export const DEFAULT_USD_TOLERANCE = "0.05";
 export const DEFAULT_WS_PUSH_TIMEOUT_MS = 60000;
 export const DEFAULT_RATE_MIN_PERCENT = 0;
 export const DEFAULT_RATE_MAX_PERCENT = 100;
@@ -13,13 +14,15 @@ const NOLUS_PREFIX = "nolus1";
 const BECH32_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
 const MIN_ADDRESS_LENGTH = 44;
 const MAX_ADDRESS_LENGTH = 66;
+const HTTP_SCHEMES = ["http:", "https:"];
+const WS_SCHEMES = ["ws:", "wss:"];
 
 export interface Config {
   baseUrl: string;
   wsUrl: string;
   readonlyAddress: string;
   hostOverrides: Map<string, string>;
-  usdTolerance: number;
+  usdTolerance: string;
   wsPushTimeoutMs: number;
   rateMinPercent: number;
   rateMaxPercent: number;
@@ -50,127 +53,145 @@ export function deriveWsUrl(baseUrl: string): string {
   return `${scheme}//${url.host}/ws`;
 }
 
-function parseHttpUrl(value: string): URL | null {
+function parseUrl(value: string, schemes: string[]): URL | null {
   let url: URL;
   try {
     url = new URL(value);
   } catch {
     return null;
   }
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    return null;
-  }
-  return url;
+  return schemes.includes(url.protocol) ? url : null;
 }
 
-function parseWsUrl(value: string): URL | null {
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    return null;
-  }
-  if (url.protocol !== "ws:" && url.protocol !== "wss:") {
-    return null;
-  }
-  return url;
+interface NumberFieldSpec {
+  raw: string;
+  name: string;
+  fallback: number;
+  isValid: (value: number) => boolean;
+  requirement: string;
 }
 
-function parseNonNegativeNumber(raw: string, name: string, errors: string[], fallback: number): number {
-  const value = Number(raw);
-  if (!Number.isFinite(value) || value < 0) {
-    errors.push(`${name} must be a non-negative number (got "${raw}")`);
-    return fallback;
+function parseNumberField(spec: NumberFieldSpec, errors: string[]): number {
+  const value = Number(spec.raw);
+  if (!spec.isValid(value)) {
+    errors.push(`${spec.name} must be ${spec.requirement} (got "${spec.raw}")`);
+    return spec.fallback;
   }
   return value;
 }
 
-function parseFiniteNumber(raw: string, name: string, errors: string[], fallback: number): number {
-  const value = Number(raw);
-  if (!Number.isFinite(value)) {
-    errors.push(`${name} must be a finite number (got "${raw}")`);
-    return fallback;
-  }
-  return value;
+interface BaseUrlField {
+  baseUrl: string;
+  parsed: URL | null;
 }
 
-function parsePositiveInteger(raw: string, name: string, errors: string[], fallback: number): number {
-  const value = Number(raw);
-  if (!Number.isInteger(value) || value <= 0) {
-    errors.push(`${name} must be a positive integer (got "${raw}")`);
+function parseBaseUrlField(env: Record<string, string | undefined>, errors: string[]): BaseUrlField {
+  const raw = env.E2E_BASE_URL?.trim();
+  if (!raw) {
+    errors.push("E2E_BASE_URL is required (https origin of the SPA/API)");
+    return { baseUrl: "", parsed: null };
+  }
+  const parsed = parseUrl(raw, HTTP_SCHEMES);
+  if (!parsed) {
+    errors.push(`E2E_BASE_URL must be a valid http(s) URL (got "${raw}")`);
+    return { baseUrl: "", parsed: null };
+  }
+  return { baseUrl: raw, parsed };
+}
+
+function parseAddressField(env: Record<string, string | undefined>, errors: string[]): string {
+  const raw = env.E2E_READONLY_ADDRESS?.trim();
+  if (!raw) {
+    errors.push("E2E_READONLY_ADDRESS is required (a nolus1 account address)");
+    return "";
+  }
+  if (!isValidNolusAddress(raw)) {
+    errors.push(`E2E_READONLY_ADDRESS must be a nolus1 bech32 address (got "${raw}")`);
+    return "";
+  }
+  return raw;
+}
+
+function parseWsUrlField(env: Record<string, string | undefined>, errors: string[], base: BaseUrlField): string {
+  const raw = env.E2E_WS_URL?.trim();
+  if (raw) {
+    if (!parseUrl(raw, WS_SCHEMES)) {
+      errors.push(`E2E_WS_URL must be a valid ws(s) URL (got "${raw}")`);
+      return "";
+    }
+    return raw;
+  }
+  return base.parsed ? deriveWsUrl(base.baseUrl) : "";
+}
+
+function parseToleranceField(env: Record<string, string | undefined>, errors: string[]): string {
+  const raw = env.E2E_USD_TOLERANCE;
+  if (raw === undefined) {
+    return DEFAULT_USD_TOLERANCE;
+  }
+  if (!isNonNegativeDecimalString(raw)) {
+    errors.push(`E2E_USD_TOLERANCE must be a non-negative decimal (got "${raw}")`);
+    return DEFAULT_USD_TOLERANCE;
+  }
+  return raw.trim();
+}
+
+function parseWsPushTimeoutField(env: Record<string, string | undefined>, errors: string[]): number {
+  const raw = env.E2E_WS_PUSH_TIMEOUT_MS;
+  if (raw === undefined) {
+    return DEFAULT_WS_PUSH_TIMEOUT_MS;
+  }
+  return parseNumberField(
+    {
+      raw,
+      name: "E2E_WS_PUSH_TIMEOUT_MS",
+      fallback: DEFAULT_WS_PUSH_TIMEOUT_MS,
+      isValid: (value) => Number.isInteger(value) && value > 0,
+      requirement: "a positive integer"
+    },
+    errors
+  );
+}
+
+interface RateBandField {
+  min: number;
+  max: number;
+}
+
+function parseRatePercentField(raw: string | undefined, name: string, fallback: number, errors: string[]): number {
+  if (raw === undefined) {
     return fallback;
   }
-  return value;
+  return parseNumberField(
+    { raw, name, fallback, isValid: (value) => Number.isFinite(value), requirement: "a finite number" },
+    errors
+  );
+}
+
+function parseRateBandField(env: Record<string, string | undefined>, errors: string[]): RateBandField {
+  const min = parseRatePercentField(env.E2E_RATE_MIN_PERCENT, "E2E_RATE_MIN_PERCENT", DEFAULT_RATE_MIN_PERCENT, errors);
+  const max = parseRatePercentField(env.E2E_RATE_MAX_PERCENT, "E2E_RATE_MAX_PERCENT", DEFAULT_RATE_MAX_PERCENT, errors);
+  if (min > max) {
+    errors.push(`E2E_RATE_MIN_PERCENT (${min}) must not exceed E2E_RATE_MAX_PERCENT (${max})`);
+  }
+  return { min, max };
 }
 
 export function parseConfig(env: Record<string, string | undefined>): ConfigResult {
   const errors: string[] = [];
 
-  const rawBaseUrl = env.E2E_BASE_URL?.trim();
-  let baseUrl = "";
-  let baseUrlParsed: URL | null = null;
-  if (!rawBaseUrl) {
-    errors.push("E2E_BASE_URL is required (https origin of the SPA/API)");
-  } else {
-    baseUrlParsed = parseHttpUrl(rawBaseUrl);
-    if (!baseUrlParsed) {
-      errors.push(`E2E_BASE_URL must be a valid http(s) URL (got "${rawBaseUrl}")`);
-    } else {
-      baseUrl = rawBaseUrl;
-    }
-  }
-
-  const rawAddress = env.E2E_READONLY_ADDRESS?.trim();
-  let readonlyAddress = "";
-  if (!rawAddress) {
-    errors.push("E2E_READONLY_ADDRESS is required (a nolus1 account address)");
-  } else if (!isValidNolusAddress(rawAddress)) {
-    errors.push(`E2E_READONLY_ADDRESS must be a nolus1 bech32 address (got "${rawAddress}")`);
-  } else {
-    readonlyAddress = rawAddress;
-  }
-
-  let wsUrl = "";
-  const rawWsUrl = env.E2E_WS_URL?.trim();
-  if (rawWsUrl) {
-    if (!parseWsUrl(rawWsUrl)) {
-      errors.push(`E2E_WS_URL must be a valid ws(s) URL (got "${rawWsUrl}")`);
-    } else {
-      wsUrl = rawWsUrl;
-    }
-  } else if (baseUrlParsed) {
-    wsUrl = deriveWsUrl(baseUrl);
-  }
+  const base = parseBaseUrlField(env, errors);
+  const readonlyAddress = parseAddressField(env, errors);
+  const wsUrl = parseWsUrlField(env, errors, base);
 
   const resolver = parseHostResolver(env.E2E_HOST_RESOLVER);
   for (const message of resolver.errors) {
     errors.push(`E2E_HOST_RESOLVER: ${message}`);
   }
 
-  const usdTolerance =
-    env.E2E_USD_TOLERANCE === undefined
-      ? DEFAULT_USD_TOLERANCE
-      : parseNonNegativeNumber(env.E2E_USD_TOLERANCE, "E2E_USD_TOLERANCE", errors, DEFAULT_USD_TOLERANCE);
-
-  const wsPushTimeoutMs =
-    env.E2E_WS_PUSH_TIMEOUT_MS === undefined
-      ? DEFAULT_WS_PUSH_TIMEOUT_MS
-      : parsePositiveInteger(env.E2E_WS_PUSH_TIMEOUT_MS, "E2E_WS_PUSH_TIMEOUT_MS", errors, DEFAULT_WS_PUSH_TIMEOUT_MS);
-
-  const rateMinPercent =
-    env.E2E_RATE_MIN_PERCENT === undefined
-      ? DEFAULT_RATE_MIN_PERCENT
-      : parseFiniteNumber(env.E2E_RATE_MIN_PERCENT, "E2E_RATE_MIN_PERCENT", errors, DEFAULT_RATE_MIN_PERCENT);
-
-  const rateMaxPercent =
-    env.E2E_RATE_MAX_PERCENT === undefined
-      ? DEFAULT_RATE_MAX_PERCENT
-      : parseFiniteNumber(env.E2E_RATE_MAX_PERCENT, "E2E_RATE_MAX_PERCENT", errors, DEFAULT_RATE_MAX_PERCENT);
-
-  if (rateMinPercent > rateMaxPercent) {
-    errors.push(`E2E_RATE_MIN_PERCENT (${rateMinPercent}) must not exceed E2E_RATE_MAX_PERCENT (${rateMaxPercent})`);
-  }
-
+  const usdTolerance = parseToleranceField(env, errors);
+  const wsPushTimeoutMs = parseWsPushTimeoutField(env, errors);
+  const band = parseRateBandField(env, errors);
   const resultsDir = env.E2E_RESULTS_DIR?.trim() || DEFAULT_RESULTS_DIR;
 
   if (errors.length > 0) {
@@ -180,14 +201,14 @@ export function parseConfig(env: Record<string, string | undefined>): ConfigResu
   return {
     ok: true,
     config: {
-      baseUrl,
+      baseUrl: base.baseUrl,
       wsUrl,
       readonlyAddress,
       hostOverrides: resolver.overrides,
       usdTolerance,
       wsPushTimeoutMs,
-      rateMinPercent,
-      rateMaxPercent,
+      rateMinPercent: band.min,
+      rateMaxPercent: band.max,
       resultsDir
     }
   };

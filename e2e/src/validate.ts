@@ -11,6 +11,9 @@ function asRecord(value: unknown, path: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(`${path} must be an object`);
   }
+  // Sanctioned assertion: the guards above narrow to a non-null, non-array `object`, but
+  // the compiler cannot synthesize an index signature from them; every field is read
+  // back through the typed `as*` helpers below, so no unchecked value escapes.
   return value as Record<string, unknown>;
 }
 
