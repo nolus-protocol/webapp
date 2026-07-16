@@ -3,6 +3,11 @@ import type { Page, Request } from "@playwright/test";
 import type { AminoSignResponse, StdSignDoc } from "@cosmjs/amino";
 import { Agent } from "undici";
 import type { Dispatcher } from "undici";
+import { parseT1Config, parseT2Config } from "../config.js";
+import { createUndiciConnector } from "../resolver.js";
+import { getJson } from "../http.js";
+import { createWalletIdentity, verifyAminoSignature } from "../signer.js";
+import { buildKeplrInitScript, buildSignAminoScript, isKeplrExpression, lastChainIdExpression } from "./keplr.js";
 
 interface WalletLabels {
   connect: string;
@@ -10,11 +15,10 @@ interface WalletLabels {
   disconnect: string;
 }
 
-import { parseT1Config, parseT2Config } from "../config.js";
-import { createUndiciConnector } from "../resolver.js";
-import { getJson } from "../http.js";
-import { createWalletIdentity, verifyAminoSignature } from "../signer.js";
-import { buildKeplrInitScript, buildSignAminoScript, isKeplrExpression, lastChainIdExpression } from "./keplr.js";
+interface AddressTruncation {
+  front: number;
+  back: number;
+}
 
 const APP_SHELL_TIMEOUT = 20000;
 const CONNECT_TIMEOUT = 30000;
@@ -55,7 +59,7 @@ test.afterAll(async () => {
   if (dispatcher !== undefined) await dispatcher.close();
 });
 
-function truncateAddress(address: string, front: number, back: number): string {
+function truncateAddress(address: string, { front, back }: AddressTruncation): string {
   return `${address.substring(0, front)}...${address.substring(address.length - back)}`;
 }
 
@@ -69,7 +73,7 @@ async function connectKeplr(page: Page): Promise<void> {
 }
 
 async function assertConnected(page: Page, address: string): Promise<void> {
-  const shortName = truncateAddress(address, 8, 4);
+  const shortName = truncateAddress(address, { front: 8, back: 4 });
   await expect(page.getByRole("button", { name: shortName, exact: true })).toBeVisible({ timeout: CONNECT_TIMEOUT });
   const mechanism = await page.evaluate<string | null>(`localStorage.getItem(${JSON.stringify(MECHANISM_KEY)})`);
   expect(mechanism).toBe(EXTENSION_MECHANISM);
@@ -136,6 +140,9 @@ test.describe("scripted keplr connect", () => {
     page.on("popup", () => (popupOpened = true));
     const signRequests: string[] = [];
     const onRequest = (req: Request): void => {
+      // Only non-GET same-origin traffic is relevant: a broadcast/sign call would be a
+      // POST, whereas GETs here are unrelated background polling (prices/balances).
+      if (req.method() === "GET") return;
       const url = new URL(req.url());
       if (url.host === apiHost && url.pathname.startsWith("/api/")) signRequests.push(url.pathname);
     };
@@ -149,7 +156,7 @@ test.describe("scripted keplr connect", () => {
     expect(response.signature.pub_key.value).toBe(wallet.pubkeyBase64);
     expect(verifyAminoSignature(response)).toBe(true);
     expect(popupOpened, "signing must not open a popup").toBe(false);
-    expect(signRequests, "signing must not trigger a same-origin API request").toEqual([]);
+    expect(signRequests, "signing must not trigger a non-GET same-origin API request").toEqual([]);
   });
 
   test("disconnects through the UI and clears wallet storage", async ({ page, budget, wallet }) => {
@@ -159,7 +166,9 @@ test.describe("scripted keplr connect", () => {
     await connectKeplr(page);
     await assertConnected(page, wallet.address);
 
-    await page.getByRole("button", { name: truncateAddress(wallet.address, 8, 4), exact: true }).click();
+    await page
+      .getByRole("button", { name: truncateAddress(wallet.address, { front: 8, back: 4 }), exact: true })
+      .click();
     const accountCard = page.locator("div.bg-neutral-bg-1").filter({ hasText: NETWORK_LABEL });
     await accountCard.getByRole("button").last().click();
     await page.getByRole("button", { name: labels.disconnect, exact: true }).click();
@@ -212,8 +221,8 @@ test.describe("secondary identity", () => {
     await waitForAppShell(page);
     await connectKeplr(page);
     await assertConnected(page, wallet.address);
-    await expect(page.getByRole("button", { name: truncateAddress(primary.address, 8, 4), exact: true })).toHaveCount(
-      0
-    );
+    await expect(
+      page.getByRole("button", { name: truncateAddress(primary.address, { front: 8, back: 4 }), exact: true })
+    ).toHaveCount(0);
   });
 });

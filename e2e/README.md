@@ -260,6 +260,10 @@ the future T3 transactional tier.
 | `E2E_WALLET_MNEMONIC`   | yes      | BIP-39 mnemonic (12/15/18/21/24 lowercase words) for the primary scripted account. Validated for shape only; **never echoed anywhere**, including error output and results. |
 | `E2E_WALLET_MNEMONIC_2` | no       | Optional second mnemonic for the two-identity spec. When unset it falls back to a fixed, publicly-known, unfunded CosmJS test vector used connect-only.                     |
 
+The stub exposes a signing binding that any JavaScript running in the page can call,
+so `E2E_WALLET_MNEMONIC` must only ever hold a dedicated, disposable e2e test wallet —
+never a personal or production key.
+
 ## Known coverage gaps
 
 - The funded-wallet Dashboard and Assets wallet totals are **not** bridged. T2 now scripts
