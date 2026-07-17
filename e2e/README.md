@@ -713,8 +713,11 @@ unit-tested against fixtures shaped like the real responses (hash `symbol`, obje
 Environment / precondition failures are skipped, not failed (`classifyAndRoute`); only `app`
 failures are reds. A swap-route probe distinguishes a genuine no-route (a precondition) from a
 probe **error** (API/network failure → an `environment` skip with its own reason), never silently
-reporting an error as no-route; and every lease-downpayment skip annotates `matrix-skip` with the
-plan reason. The taxonomy is extended with two precondition signals for these flows:
+reporting an error as no-route. Skip signals a routing failure as a non-2xx (a `502` has been
+observed) whose body carries a `SWAP_ROUTE_FAILED` code / "no routes found" message; the pure
+`isNoRouteFailure` (unit-tested) reclassifies that sanitized error text back to a no-route
+precondition rather than an environment flake. Every lease-downpayment skip annotates `matrix-skip`
+with the plan reason. The taxonomy is extended with two precondition signals for these flows:
 `lease-amount-range` (a downpayment below/above the lease range) and `swap-amount-too-small` (a
 dust amount with no Skip route, distinct from a genuine `liquidity` outage). Stake gates: undelegate
 is gated on the **7-entry unbonding cap** per validator (rotating the target when near it via
@@ -728,13 +731,19 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   value lives ONLY in the element's `aria-label` (the T1 bridge technique). `renderFigure.ts`
   (`findAnimatedFigure` / `findAnimatedFigureWithinTolerance` / `findPositiveAnimatedFigure`) reads
   the aria-label, and the pure normalization/compare is `figureText.ts` (unit-tested). The
-  stake-delegated total, earn total, lease detail size + USD, and the swap From-side NLS balance all
-  read the aria-label with the oracle as the expectation source.
-- **Earn currency-variant selection.** SupplyForm/WithdrawForm list EVERY protocol LPN variant as a
-  currency option and default to one that may hold zero balance, so the amount would validate against
-  an empty variant. Before typing, the spec resolves the funded USDC variant (`heldUsdcTicker`) and
-  `selectCurrencyVariant` drives the AdvancedFormControl picker — a `Dropdown` atom (per web-components
-  source) whose `aria-expanded` trigger opens a teleported searchable AssetItem list — to select it.
+  stake-delegated total, earn total, and lease detail size + USD all read the aria-label with the
+  oracle as the expectation source.
+- **Currency-variant selection is picked AND verified.** SupplyForm/WithdrawForm/SwapForm list EVERY
+  protocol variant as a currency option and default to one that may hold zero balance, so an amount
+  would validate against an empty variant. `selectCurrencyVariant` drives the AdvancedFormControl
+  picker — per web-components source a `role=combobox` trigger (carrying the field id) that opens a
+  teleported searchable `role=listbox` of AssetItem rows filtered on `option.value`/`ibcData`. It
+  opens the combobox, filters the search to the funded variant, clicks the first filtered row, then
+  **verifies the pick landed**: the trigger must show the expected asset family and the balance beside
+  it must read positive. That positive-balance wait also rides out the balances-load timing gap — the
+  app recomputes amount validation only on input events, so typing before the balance loads sticks a
+  stale error. The pick+verify retries once, then FAILS LOUDLY: a selection that didn't take must
+  never let a spec type into the wrong (or zero) asset.
 - **Lease-config lazy-cache pre-warm.** The backend `get_lease_config` handler warms its per-protocol
   cache lazily and returns `503 Cache not yet populated` until the first request; after a deploy burst
   the flow suite's own reads are the first, and both of `leaseProtocolConfigs`' paced retries land in
@@ -768,6 +777,11 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   genuine no-ranges state) it throws `lease-config-unavailable` — a first-class `environment` signal
   that skips-and-retries next run, rather than returning empty and reporting a permanent-looking
   "no eligible protocol".
+- **Swap direction is held USDC -> NLS.** The dust swap spends ~$1 of the funded USDC variant into
+  NLS, not NLS into USDC: USDC has real staging value, whereas a `unls` -> USDC dust is economically
+  null and Skip finds no route for it. The routability probe runs in the SAME direction as the
+  executed swap, the spend is charged against the **USDC cap** (journal action `swap`, `charged` in
+  USDC micro), and the post-swap assertion is that the NLS balance strictly increases.
 - **Swap tracking (`skip_tx` is dead code).** The `skip_tx` WS topic is not driven by the app —
   swaps are tracked by client polling (`SkipRouter.fetchStatus` in `useSwapForm.ts`). `swap.spec.ts`
   therefore asserts via the UI's polled terminal state and post-swap balances, not a WS event. This

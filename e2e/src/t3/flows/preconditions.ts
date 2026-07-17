@@ -57,6 +57,17 @@ export function hasSwapRoute(payload: unknown): boolean {
   return BigInt(amountOut) > 0n;
 }
 
+// Skip returns a routing failure as a non-2xx (a 502 has been observed) whose body carries a
+// `SWAP_ROUTE_FAILED` code / "no routes found" message. That is semantically a NO-ROUTE (a
+// precondition to skip), not a network/API error — so the route probe must reclassify it rather
+// than report an environment flake. Matched defensively against the sanitized error text.
+const NO_ROUTE_MARKERS = [/SWAP_ROUTE_FAILED/i, /no\s+routes?\s+found/i, /no\s+route/i];
+
+/** Whether a failed route probe's (sanitized) error text signals a genuine no-route, not an API/network error. */
+export function isNoRouteFailure(message: string): boolean {
+  return NO_ROUTE_MARKERS.some((marker) => marker.test(message));
+}
+
 /** The POST body of a `/api/swap/route` routability probe (backend `RouteRequest`). */
 export interface SwapRouteRequest {
   source_asset_denom: string;
