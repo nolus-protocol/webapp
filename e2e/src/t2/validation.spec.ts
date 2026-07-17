@@ -193,7 +193,7 @@ test.describe("funded-dependent boundary cells", () => {
   test("stake undelegate over-position requires an existing delegation", async ({ page, budget, wallet }, testInfo) => {
     budget.route = "/stake/undelegate";
     allowStagingNoise(budget);
-    const hasDelegation = await probeHasEntries(ctx, `/api/staking/positions?address=${wallet.address}`, "positions");
+    const hasDelegation = await probeHasEntries(ctx, `/api/staking/positions?address=${wallet.address}`, "delegations");
     requireOrSkip(testInfo, expectFunded, hasDelegation, "connected wallet has no delegation to over-undelegate");
     // Undelegate's submit catch never calls classifyError (logs only) — a submit failure
     // renders nothing (a documented app gap), so this cell asserts only the reactive
