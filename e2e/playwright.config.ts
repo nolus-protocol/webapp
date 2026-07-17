@@ -108,6 +108,16 @@ export default defineConfig<T2Options>({
       retries: 0,
       dependencies: ["t2", "ratelimit"],
       use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
+    },
+    {
+      // The tx-engine live smoke, appended to the dependency chain so it inherits the full
+      // serialization; a settle delay in the spec refills the strict rate bucket after ratelimit.
+      name: "t3-engine",
+      testDir: "src/t3",
+      testMatch: ["**/engine.spec.ts"],
+      retries: 0,
+      dependencies: ["t2", "ratelimit", "receive"],
+      use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
     }
   ]
 });

@@ -1,5 +1,6 @@
 import { isNonNegativeDecimalString } from "./decimal.js";
 import { parseHostResolver } from "./resolver.js";
+import { NATIVE_DECIMALS, toMicroAmount } from "./transfer.js";
 
 export const DEFAULT_USD_TOLERANCE = "0.05";
 export const DEFAULT_WS_PUSH_TIMEOUT_MS = 60000;
@@ -384,4 +385,79 @@ export function parseMatrixConfig(env: Record<string, string | undefined>): Matr
   }
 
   return { ok: true, config: { chainRpc, receiveTimeoutMs, expectFunded } };
+}
+
+export const USDC_DECIMALS = 6;
+export const DEFAULT_WALLET2_LOW_WATER_NLS = "5";
+export const DEFAULT_WALLET2_LOW_WATER_MICRO = toMicroAmount(DEFAULT_WALLET2_LOW_WATER_NLS, NATIVE_DECIMALS);
+export const DEFAULT_T3_RESULTS_DIR = "./results";
+
+export interface T3Config {
+  spendCapNlsMicro: string;
+  spendCapUsdcMicro: string;
+  wallet2LowWaterMicro: string;
+  resultsDir: string;
+}
+
+export type T3ConfigResult = { ok: true; config: T3Config } | { ok: false; errors: string[] };
+
+interface MicroAmountFieldSpec {
+  raw: string | undefined;
+  name: string;
+  required: boolean;
+  fallback: string;
+  decimals: number;
+}
+
+function parseMicroAmountField(spec: MicroAmountFieldSpec, errors: string[]): string {
+  const trimmed = spec.raw?.trim();
+  if (!trimmed) {
+    if (spec.required) {
+      errors.push(`${spec.name} is required (a non-negative decimal amount)`);
+    }
+    return spec.fallback;
+  }
+  try {
+    return toMicroAmount(trimmed, spec.decimals);
+  } catch {
+    errors.push(`${spec.name} must be a non-negative decimal amount (got "${trimmed}")`);
+    return spec.fallback;
+  }
+}
+
+/**
+ * The T3 (tx-engine) subset. Both spend caps are required and are converted from a decimal
+ * amount to native micro units at parse (scaled-integer only, via the transfer helpers) so the
+ * accounting never touches a float. `E2E_WALLET2_LOW_WATER` is the wallet-2 native low-water
+ * floor (decimal NLS, default 5). No cap value is a secret, so — unlike the mnemonics — an
+ * invalid value is echoed to name the offending input.
+ */
+export function parseT3Config(env: Record<string, string | undefined>): T3ConfigResult {
+  const errors: string[] = [];
+
+  const spendCapNlsMicro = parseMicroAmountField(
+    { raw: env.E2E_SPEND_CAP_NLS, name: "E2E_SPEND_CAP_NLS", required: true, fallback: "0", decimals: NATIVE_DECIMALS },
+    errors
+  );
+  const spendCapUsdcMicro = parseMicroAmountField(
+    { raw: env.E2E_SPEND_CAP_USDC, name: "E2E_SPEND_CAP_USDC", required: true, fallback: "0", decimals: USDC_DECIMALS },
+    errors
+  );
+  const wallet2LowWaterMicro = parseMicroAmountField(
+    {
+      raw: env.E2E_WALLET2_LOW_WATER,
+      name: "E2E_WALLET2_LOW_WATER",
+      required: false,
+      fallback: DEFAULT_WALLET2_LOW_WATER_MICRO,
+      decimals: NATIVE_DECIMALS
+    },
+    errors
+  );
+  const resultsDir = env.E2E_T3_RESULTS_DIR?.trim() || DEFAULT_T3_RESULTS_DIR;
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, config: { spendCapNlsMicro, spendCapUsdcMicro, wallet2LowWaterMicro, resultsDir } };
 }

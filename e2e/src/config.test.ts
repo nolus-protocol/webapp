@@ -9,6 +9,7 @@ import {
   parseT1Config,
   parseT2Config,
   parseMatrixConfig,
+  parseT3Config,
   DEFAULT_RECEIVE_TIMEOUT_MS,
   PUBLIC_FALLBACK_MNEMONIC
 } from "./config.js";
@@ -303,5 +304,57 @@ describe("parseMatrixConfig", () => {
       throw new Error("expected failure");
     }
     expect(timeout.errors[0]).toContain("E2E_RECEIVE_TIMEOUT_MS");
+  });
+});
+
+describe("parseT3Config", () => {
+  it("requires both spend caps and reports them together", () => {
+    const result = parseT3Config({});
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected failure");
+    }
+    expect(result.errors.some((m) => m.startsWith("E2E_SPEND_CAP_NLS"))).toBe(true);
+    expect(result.errors.some((m) => m.startsWith("E2E_SPEND_CAP_USDC"))).toBe(true);
+  });
+
+  it("converts decimal caps to micro units and defaults the low-water floor and results dir", () => {
+    const result = parseT3Config({ E2E_SPEND_CAP_NLS: "1", E2E_SPEND_CAP_USDC: "0" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config).toEqual({
+      spendCapNlsMicro: "1000000",
+      spendCapUsdcMicro: "0",
+      wallet2LowWaterMicro: "5000000",
+      resultsDir: "./results"
+    });
+  });
+
+  it("honours an explicit low-water floor and results dir", () => {
+    const result = parseT3Config({
+      E2E_SPEND_CAP_NLS: "0.5",
+      E2E_SPEND_CAP_USDC: "2.5",
+      E2E_WALLET2_LOW_WATER: "10",
+      E2E_T3_RESULTS_DIR: "/tmp/out"
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config.spendCapNlsMicro).toBe("500000");
+    expect(result.config.spendCapUsdcMicro).toBe("2500000");
+    expect(result.config.wallet2LowWaterMicro).toBe("10000000");
+    expect(result.config.resultsDir).toBe("/tmp/out");
+  });
+
+  it("rejects a non-decimal cap without throwing", () => {
+    const result = parseT3Config({ E2E_SPEND_CAP_NLS: "abc", E2E_SPEND_CAP_USDC: "0" });
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected failure");
+    }
+    expect(result.errors.some((m) => m.startsWith("E2E_SPEND_CAP_NLS must be a non-negative decimal"))).toBe(true);
   });
 });

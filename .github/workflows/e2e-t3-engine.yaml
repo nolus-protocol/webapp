@@ -1,0 +1,61 @@
+name: E2E T3 tx engine (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_domain:
+        description: "Target host the smoke runs against (e.g. app-dev.nolus.io)"
+        required: true
+        type: string
+
+concurrency:
+  group: e2e-t3-engine-${{ inputs.base_domain }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  t3-engine:
+    name: T3 tx engine smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Run the T3 tx engine smoke
+        id: t3
+        working-directory: e2e
+        env:
+          E2E_BASE_URL: https://${{ inputs.base_domain }}
+          E2E_WS_URL: wss://${{ inputs.base_domain }}/ws
+          E2E_HOST_RESOLVER: ${{ inputs.base_domain }}=${{ vars.DEPLOY_HOST }}
+          E2E_READONLY_ADDRESS: ${{ vars.E2E_READONLY_ADDRESS }}
+          E2E_WALLET_MNEMONIC: ${{ secrets.E2E_WALLET_MNEMONIC }}
+          E2E_WALLET_MNEMONIC_2: ${{ secrets.E2E_WALLET_MNEMONIC_2 }}
+          E2E_SPEND_CAP_NLS: '1'
+          E2E_SPEND_CAP_USDC: '0'
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install chromium
+          npm run t3:engine
+
+      - name: Upload T3 journal + report artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-t3-${{ inputs.base_domain }}
+          path: |
+            e2e/results/
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
