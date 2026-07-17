@@ -29,10 +29,10 @@ export default defineConfig({
       // unit tests. Floors track actuals while this branch evolves; once merged, the
       // shipped baseline is one-way: raise as coverage improves, never lower.
       thresholds: {
-        statements: 84,
-        branches: 82,
-        functions: 79,
-        lines: 84
+        statements: 88,
+        branches: 83,
+        functions: 86,
+        lines: 88
       }
     }
   }

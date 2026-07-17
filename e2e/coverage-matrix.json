@@ -1,0 +1,667 @@
+{
+  "routes": ["/", "/assets", "/earn", "/positions", "/stake", "/activities", "/vote", "/stats"],
+  "components": ["shell", "primary-figure", "secondary-figure", "visual", "ws"],
+  "states": ["loading", "empty", "error", "populated"],
+  "cells": [
+    {
+      "route": "/",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/stake",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/stake",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/stake",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/stake",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/stake",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "shell",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is a transient boot phase; interactivity is asserted by the boot gate"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "shell",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/boot.spec.ts",
+        "label": "fixture-mode boots"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "shell",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "shell",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "visual",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "visual-local-only",
+        "reason": "screenshot baseline in visual.spec.ts; local-only, non-gating (CI runs no browsers)"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "ws",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-ws-garbage-graceful"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "ws",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-ws-hang-graceful"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/bridge.spec.ts",
+        "label": "bridge-stats-tvl"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "secondary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/bridge.spec.ts",
+        "label": "bridge-stats-mutation-bites"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "primary-figure",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-postboot-degraded"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "primary-figure",
+      "state": "empty",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "stats analytics are always populated; no distinct empty state"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "primary-figure",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is transient; shell boot gate covers it"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "primary-figure",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/bridge.spec.ts",
+        "label": "bridge-assets-zero"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "assets table populated needs a funded wallet; covered by the live T2 suite + oracle unit vectors"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "primary-figure",
+      "state": "error",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "balances fault requires a connected wallet"
+      }
+    },
+    {
+      "route": "/assets",
+      "component": "primary-figure",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is transient; shell boot gate covers it"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "primary-figure",
+      "state": "empty",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-governance-cold-empty"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "schemaless-unvalidated",
+        "reason": "governance/proposals is schemaless; fixture shape-mirrored + live key-set guard; figure-level bridge is a follow-up"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "primary-figure",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-governance-cold-empty"
+      }
+    },
+    {
+      "route": "/vote",
+      "component": "primary-figure",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is transient; shell boot gate covers it"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/integrity.spec.ts",
+        "label": "integrity-shell"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "primary-figure",
+      "state": "empty",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "earn pools are always present; no empty state wallet-less"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "primary-figure",
+      "state": "error",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/ui/faults.spec.ts",
+        "label": "fault-boot-config-whitescreen"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "primary-figure",
+      "state": "loading",
+      "mapping": {
+        "type": "gap",
+        "category": "transient-state",
+        "reason": "loading is transient; shell boot gate covers it"
+      }
+    },
+    {
+      "route": "/earn",
+      "component": "secondary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "earn user totals need a funded wallet; covered by live + oracle"
+      }
+    },
+    {
+      "route": "/",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "dashboard total needs a funded wallet; oracle-covered + live"
+      }
+    },
+    {
+      "route": "/",
+      "component": "secondary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "dashboard PnL sign/amount need a funded wallet; oracle computePnl covers the math"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "positions list rows need an open lease; live-gated"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "secondary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "single-lease size/PnL/liquidation need an open lease; oracle lease vectors cover the math"
+      }
+    },
+    {
+      "route": "/stake",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "delegated amount needs a delegation; live-gated"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "primary-figure",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "schemaless-unvalidated",
+        "reason": "activities are schemaless ETL; ordering is an unenforced client-side gap (documented)"
+      }
+    }
+  ]
+}

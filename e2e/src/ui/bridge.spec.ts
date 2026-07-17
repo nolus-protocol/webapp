@@ -36,6 +36,7 @@ test.describe("fixture-mode math bridge — /stats overview", () => {
 
   for (const figure of figures) {
     test(`${figure.id}: rendered equals oracle-recomputed compact`, async ({ page, fixtureMode }) => {
+      // coverage: bridge-stats-tvl | bridge-stats-txvolume | bridge-stats-realizedpnl
       await fixtureMode.boot(page, "/stats");
       const container = figureContainer(page, fixtureLabel(figure.label));
       await expect(container).toBeVisible();
