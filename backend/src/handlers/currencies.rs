@@ -288,10 +288,7 @@ pub async fn compute_balances(
             let decimal_factor = 10_f64.powi(i32::from(currency.decimal_digits));
             let human_amount = amount_f64 / decimal_factor;
 
-            let price_usd = prices
-                .get(&currency.key)
-                .and_then(|p| p.price_usd.parse::<f64>().ok())
-                .unwrap_or(0.0);
+            let price_usd = resolve_price_usd(prices, &currency.key, &currency.ticker);
 
             let amount_usd = human_amount * price_usd;
             total_usd += amount_usd;
@@ -312,6 +309,26 @@ pub async fn compute_balances(
         balances,
         total_value_usd: total_usd.to_string(),
     })
+}
+
+/// Resolve a held currency's USD price from the oracle price feed.
+///
+/// Prices are keyed `TICKER@PROTOCOL` and are sparse: each protocol's oracle
+/// only publishes the tickers it quotes plus its own LPN, so a currency's exact
+/// `key` frequently has no price entry even though the same ticker is priced
+/// under another protocol. Returns `0.0` when the ticker has no price at all.
+fn resolve_price_usd(prices: &HashMap<String, PriceInfo>, key: &str, ticker: &str) -> f64 {
+    prices
+        .get(key)
+        .or_else(|| {
+            let prefix = format!("{ticker}@");
+            prices
+                .iter()
+                .find(|(k, _)| k.starts_with(&prefix))
+                .map(|(_, price)| price)
+        })
+        .and_then(|p| p.price_usd.parse::<f64>().ok())
+        .unwrap_or(0.0)
 }
 
 /// Calculate price with LPN base and decimal adjustment
@@ -390,5 +407,67 @@ mod tests {
             }
             _ => panic!("expected Validation for an invalid address"),
         }
+    }
+
+    use super::{resolve_price_usd, PriceInfo};
+    use std::collections::HashMap;
+
+    fn price(key: &str, price_usd: &str) -> (String, PriceInfo) {
+        (
+            key.to_string(),
+            PriceInfo {
+                key: key.to_string(),
+                symbol: key.split('@').next().unwrap_or(key).to_string(),
+                price_usd: price_usd.to_string(),
+            },
+        )
+    }
+
+    /// Regression for the balances USD-join miss: a held denom (USDC_NOBLE) maps
+    /// to a currency whose `key` is a protocol the price feed does not publish
+    /// under (`...-ATOM`), while the same ticker IS priced under another protocol
+    /// (`...-USDC_NOBLE` = $1). The exact-key-only lookup collapsed amount_usd to
+    /// 0; resolution must fall back to the ticker's price.
+    #[test]
+    fn resolve_price_falls_back_to_ticker_when_exact_key_absent() {
+        let prices: HashMap<String, PriceInfo> = [
+            price("USDC_NOBLE@OSMOSIS-OSMOSIS-USDC_NOBLE", "1"),
+            price("USDC_NOBLE@OSMOSIS-OSMOSIS-ALL_BTC", "1.0000000000000002"),
+            price("NLS@OSMOSIS-OSMOSIS-USDC_NOBLE", "0.00122679"),
+        ]
+        .into_iter()
+        .collect();
+
+        let resolved = resolve_price_usd(&prices, "USDC_NOBLE@OSMOSIS-OSMOSIS-ATOM", "USDC_NOBLE");
+        assert!(
+            (resolved - 1.0).abs() < 1e-9,
+            "expected ~1.0 via ticker fallback, got {resolved}"
+        );
+    }
+
+    /// The exact protocol-scoped key still wins when present (most-specific price).
+    #[test]
+    fn resolve_price_prefers_exact_key() {
+        let prices: HashMap<String, PriceInfo> = [
+            price("ATOM@OSMOSIS-OSMOSIS-ATOM", "4.20"),
+            price("ATOM@OSMOSIS-OSMOSIS-USDC_NOBLE", "4.25"),
+        ]
+        .into_iter()
+        .collect();
+
+        let resolved = resolve_price_usd(&prices, "ATOM@OSMOSIS-OSMOSIS-ATOM", "ATOM");
+        assert!(
+            (resolved - 4.20).abs() < 1e-9,
+            "expected exact key 4.20, got {resolved}"
+        );
+    }
+
+    /// No price for the ticker anywhere → 0.0 (unchanged behavior).
+    #[test]
+    fn resolve_price_zero_when_ticker_unpriced() {
+        let prices: HashMap<String, PriceInfo> = [price("NLS@OSMOSIS-OSMOSIS-USDC_NOBLE", "0.001")]
+            .into_iter()
+            .collect();
+        assert_eq!(resolve_price_usd(&prices, "FOO@BAR", "FOO"), 0.0);
     }
 }
