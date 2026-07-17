@@ -14,6 +14,9 @@ export default defineConfig({
         "src/http.ts",
         "src/ws.ts",
         "src/broadcast.ts",
+        "src/t3/journalStore.ts",
+        "src/t3/runtime.ts",
+        "src/t3/repair.ts",
         "src/t1/**",
         "src/t2/**",
         // Browser glue (Playwright fixtures / specs) is exercised by the live and

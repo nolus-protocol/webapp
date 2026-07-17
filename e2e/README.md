@@ -477,6 +477,142 @@ codegen, regenerate the schemas and fail on drift, then the e2e package gate
 (typecheck → format:check → lint → test:coverage) and the coverage-matrix guard. This is the
 static gate scope of issue #305. The live and fixture-mode browser tiers run out of band.
 
+## The T3 tx engine
+
+The T3 layer (`src/t3/`) is the value-moving substrate the mutation specs (#283) and the
+reporting tier (#285) build on. It is not a user-facing surface, so it adds nothing to the
+coverage matrix; its guarantees are covered by unit tests instead. Every module except the
+network/fs/browser glue (`journalStore.ts`, `runtime.ts`, `repair.ts`, the `*.spec.ts` smoke)
+is pure and unit-tested — the same split the rest of the suite uses for its coverage floor.
+
+### T3 environment variables
+
+| Variable                | Required | Default     | Meaning                                                                              |
+| ----------------------- | -------- | ----------- | ------------------------------------------------------------------------------------ |
+| `E2E_SPEND_CAP_NLS`     | yes (T3) | —           | Cumulative NLS spend cap, decimal NLS, converted to micro units at parse             |
+| `E2E_SPEND_CAP_USDC`    | yes (T3) | —           | Cumulative USDC spend cap, decimal USDC, converted to micro units at parse           |
+| `E2E_WALLET2_LOW_WATER` | no       | `5`         | Wallet-2 native low-water floor (decimal NLS); below it the report carries a warning |
+| `E2E_T3_RESULTS_DIR`    | no       | `./results` | Directory for the journal and leftover-state report                                  |
+
+These reuse the fail-closed, all-or-nothing parse the rest of `config.ts` uses (`parseT3Config`):
+every field is validated, errors accumulate, and no value is echoed except the caps (which are
+not secrets). The wallet mnemonics come from the T2 variables (`E2E_WALLET_MNEMONIC`,
+`E2E_WALLET_MNEMONIC_2`) and are never echoed.
+
+### Spend cap semantics
+
+The cap bounds **worst-case gross outflow, not net loss**. "Spend" is the attached funds plus a
+deterministic gas-fee upper bound (an explicit fee, or a simulated amount times a ceiling
+multiplier); the gas fee counts against the NLS cap. Accounting is **per-denom, in native micro
+units** (scaled bigints via the `transfer.ts` helpers — never a float).
+
+There is **no refund credit**. A close or unbond returns funds to the wallet later, but crediting
+that back into the cap would re-open headroom and defeat the risk bound, so the accounting is
+one-way. The check is a strict **pre-sign gate**: `projected = spent + pending + candidate`; if a
+candidate would push any denom over its cap it returns `spend-cap-abort` and is **never signed or
+broadcast**. Because the queue holds each wallet's slot until commit and the primary is the sole
+spend actor, at most one governed spend is ever in flight, so at abort time nothing value-moving
+is pending — the abort cannot silently drop a signed-but-uncommitted transaction.
+
+One outflow is deliberately **outside** the SpendCap: the gas the UI-driven orphan-repair path spends. Repair runs the app's own market-close flow, whose gas the engine does not construct and cannot pre-size, so it is not gated by the cap; its worst case is bounded instead by the `maxAttempts` cap (3) times a dust per-close gas. The cap's gross-outflow guarantee therefore covers the governed spend and counterparty paths, not the repair path.
+
+### Serialization and commit-release
+
+`SerialQueue` is a per-wallet async FIFO: never two in-flight submissions per wallet key. A
+wallet's slot is released only when its executor's returned promise **settles on commit**
+(DeliverTx / block commit), never on the broadcast ack — resolving early would let the next
+submission sign against a stale account sequence. Redelegations additionally hold a class mutex
+that serializes them across every wallet (Cosmos forbids a delegator holding two concurrent
+redelegations). A shared token bucket paces both submissions and API reads from one budget
+(strict 2 RPS / burst 5 on `/api/swap/*`; standard 20 RPS / burst 50) because nginx rewrites
+`X-Forwarded-For`, so the whole suite counts as a single client IP.
+
+Retries on any spend path are **0** by contract. The kill switch (a spend-cap abort or an explicit
+`abort`) drains nothing: the in-flight commit completes, every further submission is refused, and
+the leftover report is emitted.
+
+### Journal and leftover-state report (the #285 contract)
+
+Before any broadcast the engine appends a write-ahead **intent** record (intent, wallet role,
+denoms/amounts, spec, timestamp) to a JSONL journal under the results dir and `fsync`s it; the
+**outcome** (txhash, commit result, classified failure) is appended when the submission settles.
+A hard crash therefore still leaves the write-ahead records on disk.
+
+The machine-readable leftover report (`t3-report.json`) is emitted on **every terminal path** —
+success, app-failure, and spend-cap-abort. Shape (`version: 1`):
+
+```json
+{
+  "suite": "t3",
+  "version": 1,
+  "generatedAt": "<iso8601>",
+  "terminal": "success | app-failure | spend-cap-abort | crash",
+  "openLeases": [{ "address": "...", "protocol": "...", "status": "opened" }],
+  "pendingUnbondings": [{ "validatorAddress": "...", "entries": 2, "balanceMicro": "..." }],
+  "unfinishedSwaps": [{ "seq": 1, "spec": "...", "denoms": [{ "denom": "...", "micro": "..." }] }],
+  "spend": [{ "denom": "nls", "capMicro": "...", "spentMicro": "..." }],
+  "warnings": ["..."]
+}
+```
+
+`openLeases` and `pendingUnbondings` are the chain-enumerated sweep results; `unfinishedSwaps`
+come from the journal because a swap is not chain-queryable. Every free-text field — journal
+specs and memos, classified failure reasons, and every network read error on the sweep path — is
+run through `sanitizeRpc`, so no RPC host, embedded credential, or bare IP can reach the journal,
+the report, or a CI artifact.
+
+### Reconciliation policy
+
+The pre-run sweep enumerates `GET /api/leases?address=` and `GET /api/staking/positions?address=`.
+The staking response is built from three independent chain calls, each of which can come back
+empty on an upstream failure, so **partial-empty data is normal** and handled as empty — a
+non-empty result is never assumed.
+
+- Only leases with `status === "opened"` that are **orphaned** (older than the orphan grace period,
+  attempt-guarded via a persisted state file) are queued for UI-driven repair. Once a lease's
+  attempt count reaches the cap it becomes **report-only** and is never retried again.
+- `opening` / `closing` / `paid_off` / `closed` / `liquidated` are **tolerated and reported, never
+  force-repaired**.
+- Pending / dust unbondings inside the 21-day window are expected leftover state — recognized and
+  skipped.
+
+All sweep reads go through the shared pacer.
+
+**Design note — repair drives the app UI.** Orphan-lease repair does **not** construct a close
+transaction in the suite. The production app builds every transaction client-side via
+`@nolus/nolusjs` (a real market-close carries a Skip route plus funds), and the backend's
+unsigned-tx endpoints (`/api/leases/close` and friends) are a phantom surface the app never calls.
+Repair therefore drives the app's market-close flow through Playwright and the existing Keplr stub
+(`t3/repair.ts`, built on the `t2` app-driver patterns), exercising the exact production
+construction path with no duplicated tx logic. For #284 the repair helper ships with its UI driver;
+live execution is CI-gated.
+
+### Precondition gates
+
+The failure taxonomy (`taxonomy.ts`) classifies every failure as `environment` (HTTP 429, relayer/
+IBC delay, price move between quote and execution, node/RPC unavailability, chain-state timeout),
+`app` (assertion failures, app error surfaces, contract rejects that are not liquidity/timing), or
+`precondition` (unfunded, the 7-entry unbonding cap per delegator/validator pair, a maturing
+redelegation lock, missing Osmosis-side funds). A precondition is skipped-not-failed leftover
+state, never a red. All error text is sanitized before it is stored or annotated.
+
+### Wallet roles
+
+The engine asserts its wallet roles at construction: the **primary** is the only governed spend
+actor; **wallet-2 (secondary)** acts only as a receive-side / micro-send counterparty. It also
+refuses to run under Playwright worker parallelism > 1, so the serialization guarantees hold.
+
+### CI (the `e2e-t3-engine.yaml` workflow)
+
+`e2e-t3-engine.yaml` is `workflow_dispatch`-only: it installs the e2e package and runs
+`npm run t3:engine` (the live engine smoke — sweep in enumerate/report mode, a serialization proof,
+a spend-cap dry proof, and the single operator-approved live broadcast: a dust native send between
+the primary and wallet-2). Base URL and host resolver are composed from the `base_domain` input and
+the `DEPLOY_HOST` var exactly as `deploy.yaml` does — never hardcoded. Per-run caps are tiny
+(`E2E_SPEND_CAP_NLS=1`, `E2E_SPEND_CAP_USDC=0`). Journal and report artifacts are uploaded on every
+run, not only on failure. The nightly schedule for this smoke belongs to issue #285, not this
+workflow.
+
 ## Conventions
 
 Every PR that adds or changes a user-facing surface (route, form, flow, rendered value,
