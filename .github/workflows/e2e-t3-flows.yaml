@@ -48,6 +48,30 @@ jobs:
           npx playwright install --with-deps chromium
           npm run t3:flows
 
+      - name: Scrub the resolver target from artifacts before upload
+        if: always()
+        working-directory: e2e
+        env:
+          RESOLVER_TARGET: ${{ vars.DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          target="${RESOLVER_TARGET:-}"
+          if [ -z "$target" ]; then
+            echo "artifact scrub: no resolver target configured; nothing to redact"
+            exit 0
+          fi
+          total=0
+          for dir in results playwright-report test-results; do
+            [ -d "$dir" ] || continue
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              n=$(grep -oaF -- "$target" "$f" | wc -l | tr -d ' ')
+              total=$((total + n))
+              perl -pi -e 'BEGIN{$t=$ENV{"RESOLVER_TARGET"}} s/\Q$t\E/<redacted-host>/g' "$f"
+            done < <(grep -rIlF -- "$target" "$dir" 2>/dev/null || true)
+          done
+          echo "artifact scrub: redacted ${total} occurrence(s) of the resolver target across results/ playwright-report/ test-results/"
+
       - name: Upload T3 flow journal + report artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

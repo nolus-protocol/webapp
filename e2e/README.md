@@ -624,14 +624,14 @@ real per-run caps `E2E_SPEND_CAP_NLS=100` / `E2E_SPEND_CAP_USDC=50` and a 45-min
 
 ### The flows
 
-| Spec            | Flow                                                                |
-| --------------- | ------------------------------------------------------------------- |
-| `lease.spec.ts` | One alternating-side lease: open, oracle-checked figures, leftover  |
-| `earn.spec.ts`  | Supply then withdraw dust USDC; rendered earn total vs the oracle   |
-| `stake.spec.ts` | Delegate / undelegate / redelegate / claim dust NLS, gated          |
-| `send.spec.ts`  | Native NLS send primary -> wallet-2 through the engine              |
-| `ibc.spec.ts`   | Deposit + withdraw Nolus <-> Osmosis, skip-gated on Osmosis funding |
-| `swap.spec.ts`  | Quote -> execute a dust swap, tracked by the app's polled status    |
+| Spec            | Flow                                                                     |
+| --------------- | ------------------------------------------------------------------------ |
+| `lease.spec.ts` | One lease, full lifecycle: open → TP/SL → repay → partial → market close |
+| `earn.spec.ts`  | Supply then withdraw dust USDC; rendered earn total vs the oracle        |
+| `stake.spec.ts` | Delegate / undelegate / redelegate / claim dust NLS, gated               |
+| `send.spec.ts`  | Native NLS send primary -> wallet-2 through the engine                   |
+| `ibc.spec.ts`   | Deposit + withdraw Nolus <-> Osmosis, skip-gated on Osmosis funding      |
+| `swap.spec.ts`  | Quote -> execute a dust swap, tracked by the app's polled status         |
 
 Pure helpers (side selection, the seq allocator, the tolerance comparator, precondition probes)
 are unit-tested (`*.test.ts`); the run singleton, live API reads, and the form driver are
@@ -674,8 +674,19 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   therefore asserts via the UI's polled terminal state and post-swap balances, not a WS event. This
   is a deliberate deviation from `#283`'s WS-tracked acceptance wording.
 - **Engine journal actions.** `journal.ts`'s `IntentAction` gains `earn-supply`, `earn-withdraw`,
-  `stake-claim`, and `ibc-transfer` — the value-moving actions these flows introduce that the `#284`
-  engine did not yet represent. Additive only; no existing behaviour changes.
+  `stake-claim`, `ibc-transfer`, and `lease-repay` — the value-moving actions these flows introduce
+  that the `#284` engine did not yet represent. Additive only; no existing behaviour changes.
+- **Crash-restart cap seeding.** `getRunContext` seeds the SpendCap's spent-state from the journal's
+  committed outcomes (`seedCapFromJournal`) at singleton construction, from the same journal that
+  seeds the seq allocator, so a worker restart cannot rebuild a full-budget cap and double-spend the
+  operator budget. A spend-cap abort is journaled with a first-class `precondition/spend-cap-abort`
+  classification, never `app/unclassified`.
+- **Artifact scrubbing.** `e2e-t3-flows.yaml` uploads `playwright-report/` and `test-results/`, whose
+  browser traces bypass the in-suite `sanitizeRpc` and can embed the host-resolver target. A
+  pre-upload scrub step redacts every occurrence of the `E2E_HOST_RESOLVER` target (`vars.DEPLOY_HOST`)
+  across the uploaded dirs and logs the redaction count. The `e2e-t3-engine.yaml` smoke uploads the
+  same trace dirs and should adopt the identical scrub step (its journal/report are already sanitized;
+  only the browser traces are the residual leak surface).
 - **IBC is inert until funded.** `ibc.spec.ts` is entirely skip-gated on an Osmosis-side funding
   probe (escalated to a hard failure under `E2E_EXPECT_FUNDED`); its structure is complete but the
   live path stays inert until the counterparty side is funded.

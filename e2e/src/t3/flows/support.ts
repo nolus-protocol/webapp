@@ -28,6 +28,7 @@ import { writeReportFile } from "../journalStore.js";
 import type { OpenLease, PendingUnbonding, TerminalPath } from "../report.js";
 import { seqAllocatorFromJournal } from "./seq.js";
 import type { SeqAllocator } from "./seq.js";
+import { seedCapFromJournal } from "./capSeed.js";
 import { dayOfYearUtc, resolveLeaseSideSetting, resolveLeaseSides } from "./sideSelection.js";
 import type { LeaseSide } from "./sideSelection.js";
 
@@ -156,6 +157,10 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
   const queue = new SerialQueue();
   const cap = spendCapFromMicros({ nlsMicro: config.t3.spendCapNlsMicro, usdcMicro: config.t3.spendCapUsdcMicro });
   const store = new JournalStore(config.t3.resultsDir);
+  // A worker restart re-enters here with a full-budget cap; seed both the cap spent-state and the
+  // seq allocator from the same journal so the operator budget can never be double-spent.
+  const journal = store.readAll();
+  seedCapFromJournal(cap, journal);
 
   runContext = {
     ctx,
@@ -163,7 +168,7 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
     cap,
     queue,
     store,
-    seq: seqAllocatorFromJournal(store.readAll()),
+    seq: seqAllocatorFromJournal(journal),
     primary: roles.primary,
     secondary: roles.secondary,
     primaryMnemonic: config.t2.primaryMnemonic,
@@ -177,11 +182,6 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
     leaseSides: resolveLeaseSides(config.leaseSetting, dayOfYearUtc(new Date()))
   };
   return runContext;
-}
-
-/** Reset the singleton — test-support only, called between the worker's specs is never needed. */
-export function resetRunContext(): void {
-  runContext = undefined;
 }
 
 /** Record a machine-readable skip and abort the current test as skipped (never a red). */
