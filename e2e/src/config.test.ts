@@ -8,6 +8,8 @@ import {
   parseConfig,
   parseT1Config,
   parseT2Config,
+  parseMatrixConfig,
+  DEFAULT_RECEIVE_TIMEOUT_MS,
   PUBLIC_FALLBACK_MNEMONIC
 } from "./config.js";
 
@@ -248,5 +250,58 @@ describe("parseT2Config", () => {
       expect(message).not.toContain("Two");
       expect(message).not.toContain("Words");
     }
+  });
+});
+
+describe("parseMatrixConfig", () => {
+  it("defaults to no rpc override, the default receive timeout, and skip mode", () => {
+    const result = parseMatrixConfig({});
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config.chainRpc).toBeUndefined();
+    expect(result.config.receiveTimeoutMs).toBe(DEFAULT_RECEIVE_TIMEOUT_MS);
+    expect(result.config.expectFunded).toBe(false);
+  });
+
+  it("accepts an rpc override, custom timeout, and funded mode", () => {
+    const result = parseMatrixConfig({
+      E2E_CHAIN_RPC: "https://rpc.nolus.network",
+      E2E_RECEIVE_TIMEOUT_MS: "90000",
+      E2E_EXPECT_FUNDED: "1"
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error("expected success");
+    }
+    expect(result.config.chainRpc).toBe("https://rpc.nolus.network");
+    expect(result.config.receiveTimeoutMs).toBe(90000);
+    expect(result.config.expectFunded).toBe(true);
+  });
+
+  it("treats assorted truthy spellings of E2E_EXPECT_FUNDED as funded", () => {
+    for (const raw of ["true", "YES", "on", " 1 "]) {
+      const result = parseMatrixConfig({ E2E_EXPECT_FUNDED: raw });
+      expect(result.ok && result.config.expectFunded).toBe(true);
+    }
+    const off = parseMatrixConfig({ E2E_EXPECT_FUNDED: "0" });
+    expect(off.ok && off.config.expectFunded).toBe(false);
+  });
+
+  it("rejects a non-http rpc override and a non-positive timeout", () => {
+    const rpc = parseMatrixConfig({ E2E_CHAIN_RPC: "ftp://rpc" });
+    expect(rpc.ok).toBe(false);
+    if (rpc.ok) {
+      throw new Error("expected failure");
+    }
+    expect(rpc.errors[0]).toContain("E2E_CHAIN_RPC");
+
+    const timeout = parseMatrixConfig({ E2E_RECEIVE_TIMEOUT_MS: "0" });
+    expect(timeout.ok).toBe(false);
+    if (timeout.ok) {
+      throw new Error("expected failure");
+    }
+    expect(timeout.errors[0]).toContain("E2E_RECEIVE_TIMEOUT_MS");
   });
 });
