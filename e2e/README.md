@@ -113,6 +113,18 @@ asserts:
 
 With zero inspected leases the check **passes** with a degenerate note.
 
+### `priced-balances-nonzero`
+
+Fetches `GET /api/balances`, `GET /api/currencies`, and `GET /api/prices` for the
+configured address. Each balance denom is resolved to its ticker via `/api/currencies`
+(the shared `denomResolver` used by the T3 tier — assets are identified by bank denom,
+never by the entry's `symbol`/`amount_usd`). For every balance whose ticker has **any**
+`TICKER@…` price key in `/api/prices` and a positive held amount, it asserts
+`amount_usd` parses to a value **strictly greater than zero**. This guards the balances
+USD-join: a held, priced asset must never render at $0. Zero-balance entries and entries
+whose ticker has no price key are **exempt**. With no priced, non-zero balances the check
+**passes** with a degenerate note.
+
 ## Machine-readable output
 
 The run prints one JSON document to stdout and writes the same document to
