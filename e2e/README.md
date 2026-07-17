@@ -314,14 +314,14 @@ Every leaf form funnels its amount-field errors through the web-components
 so assertions are auto-retrying `toContainText`. Expected strings come from the live
 `GET /api/locales/en` (the deploy host can drift from the repo), never hard-coded.
 
-| Cell                           | Form route               | Trigger                       | Asserted outcome                               |
-| ------------------------------ | ------------------------ | ----------------------------- | ---------------------------------------------- |
-| lease long / short             | `/positions/open/{type}` | amount over an empty balance  | `invalid-balance-big` ("Insufficient balance") |
-| earn supply / withdraw         | `/earn/{type}`           | amount over an empty balance  | `invalid-balance-big`                          |
-| stake delegate / undelegate    | `/stake/{type}`          | amount over an empty balance  | `invalid-balance-big` + click-has-no-effect    |
-| lease long below-minimum       | `/positions/open/long`   | funded, priced, below the min | min/max error (funded-gated → skip)            |
-| earn withdraw over-position    | `/earn/withdraw`         | more than the LP deposit      | over-position error (funded-gated → skip)      |
-| stake undelegate over-position | `/stake/undelegate`      | more than the delegation      | over-position error (funded-gated → skip)      |
+| Cell                           | Form route               | Trigger                       | Asserted outcome                                                                                                          |
+| ------------------------------ | ------------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| lease long / short             | `/positions/open/{type}` | amount over an empty balance  | `invalid-balance-big` ("Insufficient balance")                                                                            |
+| earn supply / withdraw         | `/earn/{type}`           | amount over an empty balance  | `invalid-balance-big`                                                                                                     |
+| stake delegate / undelegate    | `/stake/{type}`          | amount over an empty balance  | `invalid-balance-big` + click-has-no-effect                                                                               |
+| lease long below-minimum       | `/positions/open/long`   | funded, priced, below the min | `lease-min-error` ("Amount must be between …"), asserted by its live-resolved literal prefix; funded → asserts, else skip |
+| earn withdraw over-position    | `/earn/withdraw`         | over the LP deposit           | `invalid-balance-big` (reactive `validateAmountV2` over the deposit); funded + deposit → asserts, else skip               |
+| stake undelegate over-position | `/stake/undelegate`      | over the delegation           | `invalid-balance-big` (reactive `validateAmountV2` over the delegation); funded + delegation → asserts, else skip         |
 
 `validateAmountAgainstBalance` gates before `validateMinMaxValues` (issue #192), so a
 zero-balance wallet can only reach insufficient-balance; below-min/above-max and the

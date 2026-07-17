@@ -75,10 +75,16 @@ export function sanitizeRpc(text: string, rpcUrl: string): string {
   let out = text;
   if (rpcUrl.length > 0) out = out.split(rpcUrl).join(RPC_PLACEHOLDER);
   if (host.length > 0) out = out.split(host).join(RPC_PLACEHOLDER);
-  // Also redact credential userinfo (`user:pass@`) and bare IPv4[:port] — a connection
-  // error reports the resolved address (e.g. "connect ECONNREFUSED 1.2.3.4:26657"), not
-  // the hostname the two replacements above cover.
+  // Also redact credential userinfo (`user:pass@`) and a bare resolved address — a
+  // connection error reports the resolved IP, not the hostname the two replacements above
+  // cover: "connect ECONNREFUSED 1.2.3.4:26657" (IPv4) or "connect ECONNREFUSED
+  // [fd00::1]:26657" (undici brackets IPv6). Order: credentials, then IPv6 (bracketed, then
+  // the bare `addr:port` form), then IPv4. The bare-IPv6 group count is bounded (2-7 groups
+  // after the first) so the address:port shape stays specific and the match cannot backtrack
+  // catastrophically on a long hex-and-colon run.
   out = out.replace(/[A-Za-z0-9._~%+-]+:[^@\s/]+@/g, `${RPC_PLACEHOLDER}@`);
+  out = out.replace(/\[[0-9a-fA-F:.]+\](?::\d+)?/g, RPC_PLACEHOLDER);
+  out = out.replace(/\b[0-9a-fA-F]{0,4}(?::[0-9a-fA-F]{0,4}){2,7}:\d+\b/g, RPC_PLACEHOLDER);
   out = out.replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?\b/g, RPC_PLACEHOLDER);
   return out;
 }
