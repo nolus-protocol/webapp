@@ -635,6 +635,13 @@ belongs to issue #285, not this workflow.
 
 ## The T3 value-moving flows
 
+### Rendered-figure and form-driving conventions (live-run hardening)
+
+- Animated figures (AnimateNumber) carry their true formatted value only in `aria-label` — innerText is the digit-roller ladder. Every rendered-figure assertion reads the aria-label and waits for two consecutive equal reads before comparing.
+- Multi-variant currency forms (earn supply/withdraw) select the wallet's funded USDC variant in the currency picker before typing; the default option can be a zero-balance variant whose validation error would otherwise persist.
+- Redelegate is the app's jailed-validator recovery control (rendered only on a jailed row, icon-only): the spec runs only when the wallet holds a delegation to a jailed validator and skips cleanly otherwise.
+- Lease protocol configs warm lazily server-side (503 until first request): the run pre-warms every protocol's config with one paced read at start so the cache is warm minutes later when the lease plan loads them; the paced retry and the transient classification remain as fallback.
+
 The T3 flow specs (`src/t3/flows/`, the `t3-flows` Playwright project) are the `#283` mutation
 journeys built on the tx engine. They run `workflow_dispatch`-only via `npm run t3:flows` (which
 pins `--workers=1`; the singleton engine constructor throws under worker parallelism > 1), appended

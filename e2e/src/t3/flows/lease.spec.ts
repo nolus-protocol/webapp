@@ -32,7 +32,8 @@ import { planLeaseDownpayment } from "./leasePlan.js";
 import type { LeaseDownpaymentPlan } from "./leasePlan.js";
 import { resolveShortLeaseStable } from "./sideSelection.js";
 import type { LeaseSide } from "./sideSelection.js";
-import { assertNonZeroBasis, assertWithinTolerance } from "./tolerance.js";
+import { assertNonZeroBasis } from "./tolerance.js";
+import { findAnimatedFigure, findAnimatedFigureWithinTolerance } from "./renderFigure.js";
 import { USDC_DENOM } from "./denoms.js";
 import { bankDenomOf, heldUsdcVariant } from "./denomResolver.js";
 
@@ -73,13 +74,6 @@ function oracleSize(lease: Record<string, unknown>, side: LeaseSide): string {
     ...(ticker !== undefined ? { cryptoShortName: ticker } : {}),
     cryptoPriceUsd: dec(readString(lease, "price"))
   }).value;
-}
-
-/** The first `$`-prefixed amount rendered in a dialog, digits only, or undefined. */
-function firstUsdAmount(text: string): string | undefined {
-  const match = text.match(/\$\s?([0-9][0-9,]*(?:\.[0-9]+)?)/);
-  const raw = match?.[1];
-  return raw === undefined ? undefined : raw.replace(/,/g, "");
 }
 
 /** Open the take-profit / stop-loss trigger dialog, set a trigger, and submit (submit-btn → toast). */
@@ -126,17 +120,13 @@ async function assertOpenedLeaseOracle(
   await expect(page.getByText(address, { exact: false }).first()).toBeVisible({ timeout: TERMINAL_MS });
 
   testInfo.annotations.push({ type: "matrix", description: "flow-lease-detail" });
-  const dialogText = await openDetailDialog(page, address, TERMINAL_MS);
+  await openDetailDialog(page, address, TERMINAL_MS);
+  const dialog = page.locator("#dialog-scroll").first();
   const expectedUsd = dec(readString(opened, "asset_value_usd")).toString(2);
   assertNonZeroBasis({ value: expectedUsd, description: `${side} lease value` });
-  expect(dialogText).toContain(oracleSize(opened, side));
-  const renderedUsd = firstUsdAmount(dialogText);
-  if (renderedUsd !== undefined) {
-    assertWithinTolerance(
-      { actual: renderedUsd, expected: expectedUsd, tolerance: run.usdTolerance },
-      `${side} lease rendered value vs oracle`
-    );
-  }
+  // The detail figures animate via AnimateNumber — assert against the aria-label, not innerText.
+  expect(await findAnimatedFigure(dialog, oracleSize(opened, side), TERMINAL_MS)).toBe(true);
+  expect(await findAnimatedFigureWithinTolerance(dialog, expectedUsd, run.usdTolerance, TERMINAL_MS)).toBe(true);
 
   testInfo.annotations.push({ type: "matrix", description: "flow-lease-crossfield" });
   const spot = dec(readString(opened, "price"));

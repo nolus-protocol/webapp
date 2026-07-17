@@ -24,6 +24,7 @@ import type { DenomAmount, IntentAction, WalletRole } from "../journal.js";
 import { classify } from "../taxonomy.js";
 import type { FailureCategory } from "../taxonomy.js";
 import { readJson } from "../runtime.js";
+import { prewarmLeaseConfigs } from "./apiReads.js";
 import { writeReportFile } from "../journalStore.js";
 import type { OpenLease, PendingUnbonding, TerminalPath } from "../report.js";
 import { seqAllocatorFromJournal } from "./seq.js";
@@ -198,6 +199,9 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
     currencyResolver,
     pricesPayload
   };
+  // Fire-and-forget: warm the lazy per-protocol lease-config cache now (start of the flows phase)
+  // so it is populated minutes before lease.spec asks — the backend 503s until first request.
+  void prewarmLeaseConfigs(ctx, () => queue.pace("standard")).catch(() => undefined);
   return runContext;
 }
 

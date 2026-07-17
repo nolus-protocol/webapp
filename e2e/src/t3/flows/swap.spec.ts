@@ -9,11 +9,12 @@ import {
   spendCommittedOrSkip,
   annotateSkipAndStop
 } from "./support.js";
-import { typeAmount, requireOrSkip, waitForFundedFromNls } from "../../t2/matrixHelpers.js";
+import { typeAmount, requireOrSkip } from "../../t2/matrixHelpers.js";
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
 import { usdcMicro, probeSwapRoute, fetchBalances } from "./apiReads.js";
 import { heldUsdcVariant } from "./denomResolver.js";
 import { waitForAmountAccepted } from "./formDriver.js";
+import { findPositiveAnimatedFigure } from "./renderFigure.js";
 
 // Quote -> execute a dust swap (#283 flow 6). The Skip WS topic is DEAD CODE — the app tracks
 // swaps by client polling (SkipRouter.fetchStatus in useSwapForm.ts), so this asserts through the
@@ -84,7 +85,9 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
 
   await connectFlow(page, run, "/assets/swap");
   await page.locator("#swap-1").waitFor({ state: "visible", timeout: 15000 });
-  await waitForFundedFromNls(page);
+  // The From-side NLS balance renders via AnimateNumber; wait for a positive value in its aria-label
+  // (not the digit-roller innerText) so typing validates against the funded balance, not a zero read.
+  expect(await findPositiveAnimatedFigure(page.locator("#dialog-scroll").first(), 20000)).toBe(true);
   await typeAmount(page, "swap-1", SWAP_NLS);
   await waitForAmountAccepted(page);
 

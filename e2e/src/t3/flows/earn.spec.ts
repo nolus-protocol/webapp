@@ -7,8 +7,9 @@ import { USDC_DECIMALS } from "../../config.js";
 import { toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { formatDecAsUsd } from "../../oracle/format.js";
-import { usdcMicro } from "./apiReads.js";
-import { submitForm, waitForAmountAccepted } from "./formDriver.js";
+import { usdcMicro, heldUsdcTicker } from "./apiReads.js";
+import { submitForm, waitForAmountAccepted, selectCurrencyVariant } from "./formDriver.js";
+import { findAnimatedFigure } from "./renderFigure.js";
 import { readJson } from "../runtime.js";
 import { assertNonZeroBasis } from "./tolerance.js";
 import { USDC_DENOM } from "./denoms.js";
@@ -61,6 +62,12 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   );
 
   await connectFlow(page, run, "/earn/supply");
+  // SupplyForm lists every protocol LPN variant and defaults to one that may hold zero balance;
+  // select the funded USDC variant so the amount validates against a real balance, not a zero one.
+  const heldUsdc = await heldUsdcTicker(run.ctx, wallet.address, run.currencyResolver);
+  if (heldUsdc !== undefined) {
+    await selectCurrencyVariant(page, "receive-send", heldUsdc, TERMINAL_MS);
+  }
   await typeAmount(page, "receive-send", DUST_USDC);
   await waitForAmountAccepted(page);
   await spendCommittedOrSkip(testInfo, run, {
@@ -77,10 +84,14 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   await page.goto("/earn", { waitUntil: "domcontentloaded" });
   const total = await earnDepositUsd(run.ctx, wallet.address);
   assertNonZeroBasis({ value: total.toString(2), description: "earn deposit total" });
-  const rendered = await page.locator("#app").innerText();
-  expect(rendered).toContain(formatDecAsUsd(total));
+  // The earn total renders via AnimateNumber — read the aria-label, not the digit-roller innerText.
+  expect(await findAnimatedFigure(page.locator("#app"), formatDecAsUsd(total), TERMINAL_MS)).toBe(true);
 
   await connectFlow(page, run, "/earn/withdraw");
+  // The withdraw options come from the LP positions; select the variant just supplied.
+  if (heldUsdc !== undefined) {
+    await selectCurrencyVariant(page, "receive-send", heldUsdc, TERMINAL_MS);
+  }
   await typeAmount(page, "receive-send", DUST_USDC);
   await waitForAmountAccepted(page);
   await spendCommittedOrSkip(testInfo, run, {
