@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "delegations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "validator_address": {
+            "type": "string"
+          },
+          "validator_moniker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shares": {
+            "type": "string",
+            "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+            "minLength": 1
+          },
+          "balance": {
+            "type": "object",
+            "properties": {
+              "denom": {
+                "type": "string"
+              },
+              "amount": {
+                "type": "string",
+                "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "denom",
+              "amount"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "validator_address",
+          "shares",
+          "balance"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "unbonding": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "validator_address": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "completion_time": {
+                  "type": "string"
+                },
+                "balance": {
+                  "type": "string",
+                  "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                  "minLength": 1
+                },
+                "creation_height": {
+                  "type": "string",
+                  "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "completion_time",
+                "balance",
+                "creation_height"
+              ],
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": [
+          "validator_address",
+          "entries"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "rewards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "validator_address": {
+            "type": "string"
+          },
+          "rewards": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "denom": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "string",
+                  "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "denom",
+                "amount"
+              ],
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": [
+          "validator_address",
+          "rewards"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "total_staked": {
+      "type": "string",
+      "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+      "minLength": 1
+    },
+    "total_rewards": {
+      "type": "string",
+      "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "delegations",
+    "unbonding",
+    "rewards",
+    "total_staked",
+    "total_rewards"
+  ],
+  "additionalProperties": {}
+}

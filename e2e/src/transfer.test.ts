@@ -93,6 +93,28 @@ describe("sanitizeRpc", () => {
     expect(out).toBe("connect ECONNREFUSED <rpc>");
   });
 
+  it("redacts a bracketed IPv6[:port] from a connection error", () => {
+    const out = sanitizeRpc("connect ECONNREFUSED [fd00::1]:26657", "https://rpc.nolus.network");
+    expect(out).not.toContain("fd00::1");
+    expect(out).toBe("connect ECONNREFUSED <rpc>");
+  });
+
+  it("redacts a bracketed IPv6 with no port", () => {
+    const out = sanitizeRpc("dial tcp [2001:db8::abcd] failed", "https://rpc.nolus.network");
+    expect(out).not.toContain("2001:db8");
+    expect(out).toBe("dial tcp <rpc> failed");
+  });
+
+  it("redacts a bare compressed IPv6:port from error text", () => {
+    const out = sanitizeRpc("connect ECONNREFUSED fd00::1:26657", "https://rpc.nolus.network");
+    expect(out).not.toContain("fd00::1");
+    expect(out).toBe("connect ECONNREFUSED <rpc>");
+  });
+
+  it("leaves a scoped `::` reference that is not an address:port untouched", () => {
+    expect(sanitizeRpc("thrown from Foo::bar", "https://rpc.nolus.network")).toBe("thrown from Foo::bar");
+  });
+
   it("is a no-op when the text has no rpc reference", () => {
     expect(sanitizeRpc("plain error", "https://rpc.nolus.network")).toBe("plain error");
   });

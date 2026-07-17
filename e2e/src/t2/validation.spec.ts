@@ -1,13 +1,6 @@
 import { test, expect } from "./support.js";
 import type { OriginContext, ConnectLabels } from "./appDriver.js";
-import {
-  resolveOrigin,
-  fetchLocale,
-  readConnectLabels,
-  messageValue,
-  connectThenGoto,
-  CONNECT_TIMEOUT
-} from "./appDriver.js";
+import { resolveOrigin, fetchLocale, readConnectLabels, messageValue, connectThenGoto } from "./appDriver.js";
 import {
   typeAmount,
   assertFieldError,
@@ -104,13 +97,25 @@ let ctx: OriginContext;
 let locale: unknown;
 let labels: ConnectLabels;
 let insufficientBalance: string;
+let leaseRangeError: string;
 let expectFunded: boolean;
+
+/**
+ * The invariant literal of an interpolated locale message — everything before the first
+ * `{placeholder}`. `lease-min-error` ("Amount must be between {minAmount} {symbol} …") yields
+ * "Amount must be between", a live-resolved assertion target whose min/max/symbol values are
+ * runtime-dependent and must not be hard-coded.
+ */
+function literalPrefix(message: string): string {
+  return message.split("{")[0]?.trim() ?? "";
+}
 
 test.beforeAll(async () => {
   ctx = resolveOrigin();
   locale = await fetchLocale(ctx);
   labels = readConnectLabels(locale);
   insufficientBalance = messageValue(locale, "invalid-balance-big");
+  leaseRangeError = literalPrefix(messageValue(locale, "lease-min-error"));
   const matrix = parseMatrixConfig(process.env);
   if (!matrix.ok) throw new Error(`matrix config error: ${matrix.errors.join("; ")}`);
   expectFunded = matrix.config.expectFunded;
@@ -175,19 +180,31 @@ test.describe("funded-dependent boundary cells", () => {
       "connected wallet holds no native balance for a lease down payment"
     );
     // A funded run continues here; the throwaway-wallet local run stops at the skip above.
+    // A tiny priced amount clears the balance gate (issue #192 gates balance before min/max)
+    // but sits below the protocol minimum, so the reactive validation resolves the min/max
+    // range message (`lease-min-error`, "Amount must be between {min} {symbol} and {max} …") —
+    // asserted by its live-resolved invariant prefix, never the runtime-dependent bounds.
     await connectThenGoto(page, labels, wallet.address, "/positions/open/long");
     await typeAmount(page, "receive-send", "0.0001");
-    await expect(fieldError(page)).toBeVisible({ timeout: CONNECT_TIMEOUT });
+    await assertFieldError(page, leaseRangeError);
   });
+
+  // A sentinel amount comfortably above any held LP deposit / delegation, so the reactive
+  // over-position validation is genuinely reached rather than accepting a within-position value.
+  const OVER_POSITION_AMOUNT = "100000000";
 
   test("earn withdraw over-position requires an existing LP deposit", async ({ page, budget, wallet }, testInfo) => {
     budget.route = "/earn/withdraw";
     allowStagingNoise(budget);
     const hasDeposit = await probeHasEntries(ctx, `/api/earn/positions?address=${wallet.address}`, "positions");
     requireOrSkip(testInfo, expectFunded, hasDeposit, "connected wallet has no LP deposit to over-withdraw");
+    // WithdrawForm.validateInputs runs validateAmountV2(amount, deposit): an amount over the
+    // deposit resolves to `invalid-balance-big` ("Insufficient balance"), the same reactive
+    // string the empty-balance cell shows — the two are distinguished by trigger (funded +
+    // over-position here vs empty balance there), never by message.
     await connectThenGoto(page, labels, wallet.address, "/earn/withdraw");
-    await typeAmount(page, "receive-send", "1");
-    await expect(fieldError(page)).toBeVisible({ timeout: CONNECT_TIMEOUT });
+    await typeAmount(page, "receive-send", OVER_POSITION_AMOUNT);
+    await assertFieldError(page, insufficientBalance);
   });
 
   test("stake undelegate over-position requires an existing delegation", async ({ page, budget, wallet }, testInfo) => {
@@ -195,11 +212,12 @@ test.describe("funded-dependent boundary cells", () => {
     allowStagingNoise(budget);
     const hasDelegation = await probeHasEntries(ctx, `/api/staking/positions?address=${wallet.address}`, "delegations");
     requireOrSkip(testInfo, expectFunded, hasDelegation, "connected wallet has no delegation to over-undelegate");
-    // Undelegate's submit catch never calls classifyError (logs only) — a submit failure
-    // renders nothing (a documented app gap), so this cell asserts only the reactive
-    // over-amount validation, never a submit-failure message.
+    // UndelegateForm.validateInputs runs validateAmountV2(amount, delegatedBalance): an amount
+    // over the delegation resolves to `invalid-balance-big` reactively. The submit catch never
+    // calls classifyError (a submit failure renders nothing — documented app gap), so this cell
+    // asserts only the reactive over-amount validation, never a submit-failure message.
     await connectThenGoto(page, labels, wallet.address, "/stake/undelegate");
-    await typeAmount(page, "receive-send", "1");
-    await expect(fieldError(page)).toBeVisible({ timeout: CONNECT_TIMEOUT });
+    await typeAmount(page, "receive-send", OVER_POSITION_AMOUNT);
+    await assertFieldError(page, insufficientBalance);
   });
 });

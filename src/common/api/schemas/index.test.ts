@@ -8,7 +8,9 @@ import {
   EarnPoolSchema,
   EarnPositionsResponseSchema,
   GasFeeConfigResponseSchema,
-  SkipRouteConfigSchema
+  SkipRouteConfigSchema,
+  ProposalsResponseSchema,
+  StakingPositionsResponseSchema
 } from "./index";
 
 // These tests exercise the Zod runtime validation schemas that guard the
@@ -446,5 +448,107 @@ describe("SkipRouteConfigSchema", () => {
     if (result.success) {
       expect((result.data as Record<string, unknown>).swap_currency_osmosis).toBe("USDC");
     }
+  });
+});
+
+// ===========================================================================
+// ProposalsResponseSchema
+// ===========================================================================
+
+describe("ProposalsResponseSchema", () => {
+  const proposal = (overrides: Record<string, unknown> = {}) => ({
+    id: "337",
+    status: "PROPOSAL_STATUS_PASSED",
+    final_tally_result: {
+      yes_count: "173872067484325",
+      abstain_count: "0",
+      no_count: "0",
+      no_with_veto_count: "0"
+    },
+    title: "Close Inactive Market",
+    summary: "…",
+    messages: [{ "@type": "/cosmwasm.wasm.v1.MsgSudoContract" }],
+    metadata: "Close Inactive Market",
+    ...overrides
+  });
+
+  it("should accept a valid proposals response", () => {
+    const result = ProposalsResponseSchema.safeParse({
+      proposals: [proposal()],
+      pagination: { total: "99", next_key: null }
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept a proposal missing the optional tally/time fields (deposit-period)", () => {
+    const result = ProposalsResponseSchema.safeParse({
+      proposals: [{ id: "340", status: "PROPOSAL_STATUS_DEPOSIT_PERIOD", messages: [] }],
+      pagination: { total: "1" }
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject a non-numeric tally count", () => {
+    const result = ProposalsResponseSchema.safeParse({
+      proposals: [
+        proposal({
+          final_tally_result: { yes_count: "many", abstain_count: "0", no_count: "0", no_with_veto_count: "0" }
+        })
+      ],
+      pagination: { total: "1" }
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject a proposal missing the required messages field", () => {
+    const { messages: _messages, ...noMessages } = proposal();
+    const result = ProposalsResponseSchema.safeParse({ proposals: [noMessages], pagination: { total: "1" } });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ===========================================================================
+// StakingPositionsResponseSchema
+// ===========================================================================
+
+describe("StakingPositionsResponseSchema", () => {
+  const delegation = (balance: unknown) => ({
+    validator_address: "nolusvaloper1one",
+    validator_moniker: "One",
+    shares: "1000000000",
+    balance
+  });
+  const wrap = (deleg: unknown) => ({
+    delegations: [deleg],
+    unbonding: [],
+    rewards: [{ validator_address: "nolusvaloper1one", rewards: [{ denom: "unls", amount: "12500000" }] }],
+    total_staked: "1000.00",
+    total_rewards: "12.50"
+  });
+
+  it("should accept a valid positions response", () => {
+    const result = StakingPositionsResponseSchema.safeParse(wrap(delegation({ denom: "unls", amount: "1000000000" })));
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept an all-empty response", () => {
+    const result = StakingPositionsResponseSchema.safeParse({
+      delegations: [],
+      unbonding: [],
+      rewards: [],
+      total_staked: "0",
+      total_rewards: "0"
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject a delegation whose balance is a flat string, not the { denom, amount } object", () => {
+    const result = StakingPositionsResponseSchema.safeParse(wrap(delegation("1000000000")));
+    expect(result.success).toBe(false);
+  });
+
+  it("should reject a non-numeric balance amount", () => {
+    const result = StakingPositionsResponseSchema.safeParse(wrap(delegation({ denom: "unls", amount: "lots" })));
+    expect(result.success).toBe(false);
   });
 });

@@ -203,3 +203,100 @@ export const SkipRouteConfigSchema = z
     )
   })
   .passthrough();
+
+// =============================================================================
+// Governance (proposals)
+// =============================================================================
+
+const TallyResultSchema = z
+  .object({
+    yes_count: numericString,
+    abstain_count: numericString,
+    no_count: numericString,
+    no_with_veto_count: numericString
+  })
+  .passthrough();
+
+const ProposalInfoSchema = z
+  .object({
+    id: z.string(),
+    status: z.string(),
+    final_tally_result: TallyResultSchema.nullish(),
+    submit_time: z.string().nullish(),
+    deposit_end_time: z.string().nullish(),
+    voting_start_time: z.string().nullish(),
+    voting_end_time: z.string().nullish(),
+    title: z.string().nullish(),
+    summary: z.string().nullish(),
+    messages: z.array(z.unknown()),
+    metadata: z.string().nullish(),
+    tally: TallyResultSchema.nullish(),
+    voted: z.boolean().nullish()
+  })
+  .passthrough();
+
+export const ProposalsResponseSchema = z
+  .object({
+    proposals: z.array(ProposalInfoSchema),
+    pagination: z
+      .object({
+        total: numericString,
+        next_key: z.string().nullish()
+      })
+      .passthrough()
+  })
+  .passthrough();
+
+// =============================================================================
+// Staking (positions)
+// =============================================================================
+
+// The balance/reward coins are BalanceInfoSimple OBJECTS ({ denom, amount }), not flat
+// strings — reading them as strings is what dropped every delegation/reward upstream.
+const BalanceInfoSimpleSchema = z
+  .object({
+    denom: z.string(),
+    amount: numericString
+  })
+  .passthrough();
+
+const StakingPositionSchema = z
+  .object({
+    validator_address: z.string(),
+    validator_moniker: z.string().nullish(),
+    shares: numericString,
+    balance: BalanceInfoSimpleSchema
+  })
+  .passthrough();
+
+const UnbondingEntrySchema = z
+  .object({
+    completion_time: z.string(),
+    balance: numericString,
+    creation_height: numericString
+  })
+  .passthrough();
+
+const UnbondingPositionSchema = z
+  .object({
+    validator_address: z.string(),
+    entries: z.array(UnbondingEntrySchema)
+  })
+  .passthrough();
+
+const ValidatorRewardSchema = z
+  .object({
+    validator_address: z.string(),
+    rewards: z.array(BalanceInfoSimpleSchema)
+  })
+  .passthrough();
+
+export const StakingPositionsResponseSchema = z
+  .object({
+    delegations: z.array(StakingPositionSchema),
+    unbonding: z.array(UnbondingPositionSchema),
+    rewards: z.array(ValidatorRewardSchema),
+    total_staked: numericString,
+    total_rewards: numericString
+  })
+  .passthrough();

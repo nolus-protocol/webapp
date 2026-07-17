@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "proposals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "final_tally_result": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "yes_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  },
+                  "abstain_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  },
+                  "no_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  },
+                  "no_with_veto_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "yes_count",
+                  "abstain_count",
+                  "no_count",
+                  "no_with_veto_count"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "submit_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "deposit_end_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "voting_start_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "voting_end_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "messages": {
+            "type": "array",
+            "items": {}
+          },
+          "metadata": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tally": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "yes_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  },
+                  "abstain_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  },
+                  "no_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  },
+                  "no_with_veto_count": {
+                    "type": "string",
+                    "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "yes_count",
+                  "abstain_count",
+                  "no_count",
+                  "no_with_veto_count"
+                ],
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "voted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "messages"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "next_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "total"
+      ],
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "proposals",
+    "pagination"
+  ],
+  "additionalProperties": {}
+}
