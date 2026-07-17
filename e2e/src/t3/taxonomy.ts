@@ -39,6 +39,11 @@ function pattern(rule: PatternRule): Rule {
 const RULES: Rule[] = [
   pattern({
     category: "precondition",
+    signal: "spend-cap-abort",
+    regex: /spend[-\s]?cap[-\s]?abort|spend cap (reached|exceeded|hit)/i
+  }),
+  pattern({
+    category: "precondition",
     signal: "unfunded",
     regex: /unfunded|insufficient funds|not funded|no balance/i
   }),

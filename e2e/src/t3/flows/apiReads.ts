@@ -17,7 +17,7 @@ function listAt(payload: unknown, key: string): unknown[] {
 
 /** Sum of an address's micro balances whose denom contains `denomSubstr` (case-insensitive). */
 export async function microBalanceByDenom(ctx: OriginContext, address: string, denomSubstr: string): Promise<bigint> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/balances?address=${address}`);
+  const payload = await readJson(ctx, `${ctx.origin}/api/balances?address=${encodeURIComponent(address)}`);
   let total = 0n;
   for (const entry of listAt(payload, "balances")) {
     const denom = readString(entry, "denom") ?? "";
@@ -31,7 +31,7 @@ export async function microBalanceByDenom(ctx: OriginContext, address: string, d
 
 /** The first lease enumerated for `address` with `status === "opened"`, or undefined. */
 export async function openedLease(ctx: OriginContext, address: string): Promise<Record<string, unknown> | undefined> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/leases?address=${address}`);
+  const payload = await readJson(ctx, `${ctx.origin}/api/leases?address=${encodeURIComponent(address)}`);
   for (const entry of listAt(payload, "leases")) {
     const record = asRecord(entry);
     if (record !== undefined && readString(record, "status") === "opened") {
@@ -43,7 +43,7 @@ export async function openedLease(ctx: OriginContext, address: string): Promise<
 
 /** Raw `/api/leases/config/<protocol>` payload for downpayment-range resolution. */
 export async function leaseConfig(ctx: OriginContext, protocol: string): Promise<unknown> {
-  return readJson(ctx, `${ctx.origin}/api/leases/config/${protocol}`);
+  return readJson(ctx, `${ctx.origin}/api/leases/config/${encodeURIComponent(protocol)}`);
 }
 
 /** The first protocol key from `/api/leases/config`, or throws if none resolvable. */
@@ -68,7 +68,7 @@ export async function unbondingEntriesFor(
   address: string,
   validatorAddress: string
 ): Promise<number> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${address}`);
+  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
   for (const entry of listAt(payload, "unbonding")) {
     if (readString(entry, "validator_address") === validatorAddress) {
       const entries = asRecord(entry)?.entries;

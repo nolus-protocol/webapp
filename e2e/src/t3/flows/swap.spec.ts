@@ -30,18 +30,31 @@ let run: RunContext;
 async function probeRoute(ctx: RunContext["ctx"], amountMicro: string): Promise<boolean> {
   const payload = await readJson(
     ctx,
-    `${ctx.origin}/api/swap/route?from=${NATIVE_DENOM}&to=ibc/usdc&amount=${amountMicro}`
+    `${ctx.origin}/api/swap/route?from=${encodeURIComponent(NATIVE_DENOM)}&to=${encodeURIComponent("ibc/usdc")}&amount=${encodeURIComponent(amountMicro)}`
   ).catch(() => null);
   return hasSwapRoute(payload);
 }
 
-async function pollSwapTerminal(page: Page): Promise<boolean> {
-  const text = await page
+type SwapTerminal = "success" | "failure" | "pending";
+
+async function swapDialogText(page: Page): Promise<string> {
+  return page
     .locator("#dialog-scroll")
     .first()
     .innerText()
     .catch(() => "");
-  return /done|success|completed|failed|error/i.test(text);
+}
+
+/** The app's polled swap state — success and failure are both terminal, only failure must not pass. */
+async function swapTerminal(page: Page): Promise<SwapTerminal> {
+  const text = (await swapDialogText(page)).toLowerCase();
+  if (/failed|error|rejected/.test(text)) {
+    return "failure";
+  }
+  if (/done|success|completed/.test(text)) {
+    return "success";
+  }
+  return "pending";
 }
 
 test.beforeAll(async () => {
@@ -87,11 +100,14 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
           .first()
           .click({ timeout: TERMINAL_MS });
         await expect
-          .poll(() => pollSwapTerminal(page), {
+          .poll(() => swapTerminal(page), {
             message: "swap should reach a polled terminal state",
             timeout: TERMINAL_MS
           })
-          .toBe(true);
+          .not.toBe("pending");
+        if ((await swapTerminal(page)) === "failure") {
+          throw new Error(`swap reached a failed terminal state: ${(await swapDialogText(page)).slice(0, 200)}`);
+        }
       }
     });
     if (outcome.status === "spend-cap-abort") {
@@ -105,11 +121,11 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
 
   await expect
     .poll(() => microBalanceByDenom(run.ctx, wallet.address, "usdc"), {
-      message: "the swapped-to USDC balance should settle at or above the pre-swap balance",
+      message: "the swapped-to USDC balance should strictly increase after a committed swap",
       timeout: TERMINAL_MS,
       intervals: [3000, 5000, 5000, 5000]
     })
-    .toBeGreaterThanOrEqual(usdcBefore);
+    .toBeGreaterThan(usdcBefore);
 
   reportLeftover(run, testInfo, { terminal: "success" });
 });

@@ -6,6 +6,7 @@ export type LeaseSideSetting = LeaseSide | "both";
 export type SideSettingResult = { ok: true; setting: LeaseSideSetting | undefined } | { ok: false; error: string };
 
 const LEASE_GROUP = "lease";
+const MS_PER_DAY = 86400000;
 
 /**
  * Day of year (1–366) in UTC. The lease side alternates on this parity so consecutive
@@ -15,7 +16,7 @@ const LEASE_GROUP = "lease";
 export function dayOfYearUtc(date: Date): number {
   const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 1);
   const elapsed = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - startOfYear;
-  return Math.floor(elapsed / 86400000) + 1;
+  return Math.floor(elapsed / MS_PER_DAY) + 1;
 }
 
 /** Even day-of-year opens a long, odd opens a short — the default alternation scheme. */

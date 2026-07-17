@@ -31,7 +31,7 @@ const TERMINAL_MS = 120000;
 let run: RunContext;
 
 async function earnDepositUsd(ctx: RunContext["ctx"], address: string): Promise<Decimal> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/earn/positions?address=${address}`);
+  const payload = await readJson(ctx, `${ctx.origin}/api/earn/positions?address=${encodeURIComponent(address)}`);
   const positions =
     typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).positions : [];
   let total = Decimal.zero();
@@ -103,7 +103,7 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   await connectFlow(page, run, "/earn/withdraw");
   await typeAmount(page, "receive-send", DUST_USDC);
   try {
-    await journaledSpend(run, {
+    const outcome = await journaledSpend(run, {
       spec: "t3-flow-earn",
       action: "earn-withdraw",
       walletRole: "primary",
@@ -112,6 +112,10 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
       denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
       execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "withdraw"), terminalMs: TERMINAL_MS })
     });
+    if (outcome.status === "spend-cap-abort") {
+      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
+      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
+    }
   } catch (error) {
     reportLeftover(run, testInfo, { terminal: "app-failure" });
     classifyAndRoute(testInfo, error, run.chain.rpcUrl);

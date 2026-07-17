@@ -36,7 +36,7 @@ interface Delegation {
 }
 
 async function delegations(ctx: RunContext["ctx"], address: string): Promise<Delegation[]> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${address}`);
+  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
   const list = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).delegations : [];
   const out: Delegation[] = [];
   if (Array.isArray(list)) {
@@ -138,7 +138,7 @@ test("stake undelegate is precondition-gated on the per-validator unbonding-entr
   await typeAmount(page, "receive-send", DUST_NLS);
   const requiredMicro = BigInt(toMicroAmount(DUST_NLS, NATIVE_DECIMALS));
   try {
-    await journaledSpend(run, {
+    const outcome = await journaledSpend(run, {
       spec: "t3-flow-stake",
       action: "undelegate",
       walletRole: "primary",
@@ -148,6 +148,10 @@ test("stake undelegate is precondition-gated on the per-validator unbonding-entr
       memo: `undelegate target ${target ?? ""}`,
       execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "undelegate"), terminalMs: TERMINAL_MS })
     });
+    if (outcome.status === "spend-cap-abort") {
+      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
+      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
+    }
   } catch (error) {
     reportLeftover(run, testInfo, { terminal: "app-failure" });
     classifyAndRoute(testInfo, error, run.chain.rpcUrl);
@@ -160,7 +164,7 @@ test("stake undelegate is precondition-gated on the per-validator unbonding-entr
 });
 
 async function maturingRedelegationCount(ctx: RunContext["ctx"], address: string): Promise<number> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${address}`);
+  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
   const list = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).redelegation : [];
   return Array.isArray(list) ? list.length : 0;
 }
@@ -186,7 +190,7 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
   await connectFlow(page, run, "/stake");
   const requiredMicro = BigInt(toMicroAmount(DUST_NLS, NATIVE_DECIMALS));
   try {
-    await journaledSpend(run, {
+    const outcome = await journaledSpend(run, {
       spec: "t3-flow-stake",
       action: "redelegate",
       walletRole: "primary",
@@ -203,6 +207,10 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
         await submitForm(page, { submitLabel: messageValue(run.locale, "redelegate"), terminalMs: TERMINAL_MS });
       }
     });
+    if (outcome.status === "spend-cap-abort") {
+      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
+      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
+    }
   } catch (error) {
     reportLeftover(run, testInfo, { terminal: "app-failure" });
     classifyAndRoute(testInfo, error, run.chain.rpcUrl);
@@ -212,7 +220,7 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
 });
 
 async function accruedRewardMicro(ctx: RunContext["ctx"], address: string): Promise<bigint> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${address}`);
+  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
   const rewards = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).rewards : [];
   let total = 0n;
   if (Array.isArray(rewards)) {
@@ -245,7 +253,7 @@ test("stake claim is tolerance-gated and skips cleanly when accrued rewards are 
 
   await connectFlow(page, run, "/stake");
   try {
-    await journaledSpend(run, {
+    const outcome = await journaledSpend(run, {
       spec: "t3-flow-stake",
       action: "stake-claim",
       walletRole: "primary",
@@ -257,6 +265,10 @@ test("stake claim is tolerance-gated and skips cleanly when accrued rewards are 
         await submitForm(page, { submitLabel: messageValue(run.locale, "claim"), terminalMs: TERMINAL_MS });
       }
     });
+    if (outcome.status === "spend-cap-abort") {
+      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
+      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
+    }
   } catch (error) {
     reportLeftover(run, testInfo, { terminal: "app-failure" });
     classifyAndRoute(testInfo, error, run.chain.rpcUrl);

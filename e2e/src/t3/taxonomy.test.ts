@@ -45,6 +45,12 @@ describe("classify precondition", () => {
     expect(classify({ message: "amount too small to route" }).signal).toBe("swap-amount-too-small");
     expect(classify({ message: "insufficient liquidity, no route found" }).signal).toBe("liquidity");
   });
+
+  it("classifies a spend-cap abort as a first-class precondition, never app/unclassified", () => {
+    const result = classify({ message: "spend-cap-abort on usdc" });
+    expect(result.category).toBe("precondition");
+    expect(result.signal).toBe("spend-cap-abort");
+  });
 });
 
 describe("classify redaction", () => {

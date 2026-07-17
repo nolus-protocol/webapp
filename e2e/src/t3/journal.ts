@@ -8,6 +8,7 @@ export type IntentAction =
   | "swap"
   | "lease-open"
   | "lease-close"
+  | "lease-repay"
   | "delegate"
   | "undelegate"
   | "redelegate"

@@ -6,7 +6,8 @@ import {
   journaledSpend,
   reportLeftover,
   skipIfHalted,
-  classifyAndRoute
+  classifyAndRoute,
+  annotateSkipAndStop
 } from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, readString } from "../../t2/matrixHelpers.js";
@@ -33,9 +34,10 @@ let run: RunContext;
  * that would strand value with no return leg.
  */
 async function osmosisFunded(ctx: RunContext["ctx"], address: string): Promise<boolean> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/balances?address=${address}&network=osmosis`).catch(
-    () => null
-  );
+  const payload = await readJson(
+    ctx,
+    `${ctx.origin}/api/balances?address=${encodeURIComponent(address)}&network=osmosis`
+  ).catch(() => null);
   const balances = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).balances : [];
   return Array.isArray(balances) && balances.some((entry) => (readString(entry, "amount") ?? "0") !== "0");
 }
@@ -68,7 +70,7 @@ test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis sid
   const requiredMicro = BigInt(toMicroAmount(DUST_USDC, USDC_DECIMALS));
   await connectFlow(page, run, "/assets");
   try {
-    await journaledSpend(run, {
+    const deposit = await journaledSpend(run, {
       spec: "t3-flow-ibc",
       action: "ibc-transfer",
       walletRole: "primary",
@@ -85,6 +87,12 @@ test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis sid
         await submitForm(page, { submitLabel: messageValue(run.locale, "transfer"), terminalMs: TERMINAL_MS });
       }
     });
+    // A cap abort on the deposit halts the engine; skip the withdraw leg cleanly rather than let
+    // the second submission throw EngineHaltedError and cascade a red.
+    if (deposit.status === "spend-cap-abort") {
+      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
+      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${deposit.check.overDenom}`);
+    }
     await journaledSpend(run, {
       spec: "t3-flow-ibc",
       action: "ibc-transfer",
@@ -107,6 +115,9 @@ test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis sid
     classifyAndRoute(testInfo, error, run.chain.rpcUrl);
   }
 
-  expect(funded).toBe(true);
+  const ibcIntents = run.store
+    .readAll()
+    .filter((record) => record.type === "intent" && record.action === "ibc-transfer");
+  expect(ibcIntents.length).toBeGreaterThanOrEqual(2);
   reportLeftover(run, testInfo, { terminal: "success" });
 });
