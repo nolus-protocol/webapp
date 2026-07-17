@@ -11,8 +11,8 @@ import {
 } from "./support.js";
 import { typeAmount, requireOrSkip, waitForFundedFromNls } from "../../t2/matrixHelpers.js";
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
-import { usdcMicro, probeSwapRoute } from "./apiReads.js";
-import { USDC_DENOM } from "./denoms.js";
+import { usdcMicro, probeSwapRoute, fetchBalances } from "./apiReads.js";
+import { heldUsdcVariant } from "./denomResolver.js";
 import { waitForAmountAccepted } from "./formDriver.js";
 
 // Quote -> execute a dust swap (#283 flow 6). The Skip WS topic is DEAD CODE — the app tracks
@@ -62,7 +62,16 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   budget.route = "/assets/swap";
 
   const amountMicro = toMicroAmount(SWAP_NLS, NATIVE_DECIMALS);
-  const route = await probeSwapRoute(run.ctx, NATIVE_DENOM, USDC_DENOM, amountMicro);
+  // Probe (and swap) into the USDC variant the wallet actually holds so the routability answer
+  // matches the balance the post-swap assertion reads; USDC_NOBLE is the fresh-wallet fallback.
+  const destDenom = heldUsdcVariant(run.currencyResolver, await fetchBalances(run.ctx, wallet.address));
+  if (destDenom === undefined) {
+    annotateSkipAndStop(testInfo, "environment", "USDC bank denom unresolved from /api/currencies");
+  }
+  const route = await probeSwapRoute(
+    { ctx: run.ctx, queue: run.queue, chainId: run.chain.chainId },
+    { sourceDenom: NATIVE_DENOM, destDenom, amountMicro }
+  );
   if (route.status === "error") {
     annotateSkipAndStop(testInfo, "environment", `swap route probe failed: ${route.reason}`);
   }

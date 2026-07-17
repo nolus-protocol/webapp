@@ -57,6 +57,36 @@ export function hasSwapRoute(payload: unknown): boolean {
   return BigInt(amountOut) > 0n;
 }
 
+/** The POST body of a `/api/swap/route` routability probe (backend `RouteRequest`). */
+export interface SwapRouteRequest {
+  source_asset_denom: string;
+  source_asset_chain_id: string;
+  dest_asset_denom: string;
+  dest_asset_chain_id: string;
+  amount_in: string;
+}
+
+/**
+ * Build the swap-route probe body. `/api/swap/route` is a POST endpoint (a GET 405s); the app's
+ * own `SkipRouter.getRoute` defaults both chain ids to the connected Nolus chain for a same-chain
+ * quote, so a routability probe mirrors that — both ids are the Nolus chain id, and the dust amount
+ * is the forward `amount_in`. Source and dest must be resolved bank denoms, never tickers.
+ */
+export function buildSwapRouteRequest(args: {
+  sourceDenom: string;
+  destDenom: string;
+  amountMicro: string;
+  chainId: string;
+}): SwapRouteRequest {
+  return {
+    source_asset_denom: args.sourceDenom,
+    source_asset_chain_id: args.chainId,
+    dest_asset_denom: args.destDenom,
+    dest_asset_chain_id: args.chainId,
+    amount_in: args.amountMicro
+  };
+}
+
 interface DownpaymentRange {
   currency: string;
   min: Decimal;

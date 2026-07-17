@@ -1,12 +1,32 @@
 import { describe, expect, it } from "vitest";
 import {
   UNBONDING_ENTRY_CAP,
+  buildSwapRouteRequest,
   hasSwapRoute,
   pickUnbondingValidator,
   remainsAboveMin,
   resolveDownpaymentFloorUsd,
   unbondingEntryGate
 } from "./preconditions.js";
+
+describe("buildSwapRouteRequest", () => {
+  it("builds a forward POST body with both chain ids set to the Nolus chain", () => {
+    expect(
+      buildSwapRouteRequest({
+        sourceDenom: "unls",
+        destDenom: "ibc/ED07",
+        amountMicro: "45000000",
+        chainId: "pirin-1"
+      })
+    ).toEqual({
+      source_asset_denom: "unls",
+      source_asset_chain_id: "pirin-1",
+      dest_asset_denom: "ibc/ED07",
+      dest_asset_chain_id: "pirin-1",
+      amount_in: "45000000"
+    });
+  });
+});
 
 describe("unbondingEntryGate", () => {
   it("has room below the cap and none at or above it", () => {
