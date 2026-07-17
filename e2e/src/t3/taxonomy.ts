@@ -57,6 +57,17 @@ const RULES: Rule[] = [
     signal: "osmosis-side-funds",
     regex: /osmosis.*(funds|balance|liquidity is missing)|missing osmosis/i
   }),
+  pattern({
+    category: "precondition",
+    signal: "lease-amount-range",
+    regex:
+      /down\s?payment.*(too (small|low|large|high)|below|above|out of range)|lease.*(min|max).*(rejected|exceeded)/i
+  }),
+  pattern({
+    category: "precondition",
+    signal: "swap-amount-too-small",
+    regex: /amount too small|below.*minimum.*swap|dust.*(no route|not routable)|too small to route/i
+  }),
   {
     category: "environment",
     signal: "rate-limited",

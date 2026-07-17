@@ -35,6 +35,16 @@ describe("classify precondition", () => {
     expect(classify({ message: "redelegation is in progress for this delegator" }).signal).toBe("redelegation-lock");
     expect(classify({ message: "missing osmosis balance for the swap leg" }).category).toBe("precondition");
   });
+
+  it("classifies a lease down-payment range rejection as precondition", () => {
+    expect(classify({ message: "down payment is below the minimum for this lease" }).signal).toBe("lease-amount-range");
+    expect(classify({ message: "downpayment too large, out of range" }).category).toBe("precondition");
+  });
+
+  it("classifies a dust swap with no routable amount as precondition, distinct from a liquidity outage", () => {
+    expect(classify({ message: "amount too small to route" }).signal).toBe("swap-amount-too-small");
+    expect(classify({ message: "insufficient liquidity, no route found" }).signal).toBe("liquidity");
+  });
 });
 
 describe("classify redaction", () => {

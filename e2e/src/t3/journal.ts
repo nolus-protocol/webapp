@@ -4,7 +4,17 @@ import type { Classification } from "./taxonomy.js";
 export type WalletRole = "primary" | "secondary";
 
 export type IntentAction =
-  "native-send" | "swap" | "lease-open" | "lease-close" | "delegate" | "undelegate" | "redelegate";
+  | "native-send"
+  | "swap"
+  | "lease-open"
+  | "lease-close"
+  | "delegate"
+  | "undelegate"
+  | "redelegate"
+  | "earn-supply"
+  | "earn-withdraw"
+  | "stake-claim"
+  | "ibc-transfer";
 
 export interface DenomAmount {
   denom: string;
