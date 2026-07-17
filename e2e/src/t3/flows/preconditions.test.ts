@@ -3,6 +3,7 @@ import {
   UNBONDING_ENTRY_CAP,
   buildSwapRouteRequest,
   hasSwapRoute,
+  isNoRouteFailure,
   pickUnbondingValidator,
   remainsAboveMin,
   resolveDownpaymentFloorUsd,
@@ -67,6 +68,20 @@ describe("hasSwapRoute", () => {
     expect(hasSwapRoute({ amount_out: "0" })).toBe(false);
     expect(hasSwapRoute({ amount_out: "none" })).toBe(false);
     expect(hasSwapRoute(null)).toBe(false);
+  });
+});
+
+describe("isNoRouteFailure", () => {
+  it("classifies a Skip routing failure (code or message) as a no-route", () => {
+    expect(isNoRouteFailure('POST /api/swap/route returned HTTP 502: {"code":"SWAP_ROUTE_FAILED"}')).toBe(true);
+    expect(isNoRouteFailure("no routes found for the requested pair")).toBe(true);
+    expect(isNoRouteFailure("Error: no route available")).toBe(true);
+  });
+
+  it("leaves a genuine network/API error as an error", () => {
+    expect(isNoRouteFailure("POST /api/swap/route returned HTTP 500: internal error")).toBe(false);
+    expect(isNoRouteFailure("connect ECONNREFUSED")).toBe(false);
+    expect(isNoRouteFailure("returned a non-JSON body")).toBe(false);
   });
 });
 

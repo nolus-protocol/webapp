@@ -10,19 +10,20 @@ import {
   annotateSkipAndStop
 } from "./support.js";
 import { typeAmount, requireOrSkip } from "../../t2/matrixHelpers.js";
-import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
-import { usdcMicro, probeSwapRoute, fetchBalances } from "./apiReads.js";
-import { heldUsdcVariant } from "./denomResolver.js";
-import { waitForAmountAccepted } from "./formDriver.js";
-import { findPositiveAnimatedFigure } from "./renderFigure.js";
+import { NATIVE_DENOM, toMicroAmount } from "../../transfer.js";
+import { USDC_DECIMALS } from "../../config.js";
+import { usdcMicro, probeSwapRoute, nativeMicro, heldUsdcTicker } from "./apiReads.js";
+import { bankDenomOf } from "./denomResolver.js";
+import { waitForAmountAccepted, selectCurrencyVariant } from "./formDriver.js";
 
 // Quote -> execute a dust swap (#283 flow 6). The Skip WS topic is DEAD CODE — the app tracks
 // swaps by client polling (SkipRouter.fetchStatus in useSwapForm.ts), so this asserts through the
-// UI's polled terminal state and post-swap balances, NOT a WS event. A dust amount routinely has
-// no route, which is a precondition skip (not a red): the route is pre-probed before executing.
-// No matrix cell. Deviation from #283's acceptance wording (WS-tracked) documented in the README.
+// UI's polled terminal state and post-swap balances, NOT a WS event. The direction is HELD USDC ->
+// NLS: USDC has real staging value, whereas a unls -> USDC dust has no route (economically null).
+// A no-route answer is a precondition skip (not a red): the route is pre-probed in the SAME
+// direction before executing. No matrix cell. Deviation from #283's WS-tracked wording is in the README.
 
-const SWAP_NLS = "0.01";
+const SWAP_USDC = "1";
 const TERMINAL_MS = 120000;
 
 let run: RunContext;
@@ -62,43 +63,63 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   test.setTimeout(TERMINAL_MS * 2);
   budget.route = "/assets/swap";
 
-  const amountMicro = toMicroAmount(SWAP_NLS, NATIVE_DECIMALS);
-  // Probe (and swap) into the USDC variant the wallet actually holds so the routability answer
-  // matches the balance the post-swap assertion reads; USDC_NOBLE is the fresh-wallet fallback.
-  const destDenom = heldUsdcVariant(run.currencyResolver, await fetchBalances(run.ctx, wallet.address));
-  if (destDenom === undefined) {
+  const amountMicro = toMicroAmount(SWAP_USDC, USDC_DECIMALS);
+  // Spend the USDC variant the wallet actually holds -> NLS, so the routability probe, the cap
+  // charge, and the picked From asset all name the same real balance.
+  const usdcTicker = await heldUsdcTicker(run.ctx, wallet.address, run.currencyResolver);
+  if (usdcTicker === undefined) {
+    annotateSkipAndStop(testInfo, "precondition", "no funded USDC variant to swap from");
+  }
+  const sourceDenom = bankDenomOf(run.currencyResolver, usdcTicker);
+  if (sourceDenom === undefined) {
     annotateSkipAndStop(testInfo, "environment", "USDC bank denom unresolved from /api/currencies");
   }
+  const usdcHeld = await usdcMicro(run.ctx, wallet.address, run.currencyResolver);
+  requireOrSkip(
+    testInfo,
+    run.matrix.expectFunded,
+    usdcHeld > BigInt(amountMicro),
+    `primary holds ${usdcHeld.toString()} micro-USDC, below the ${amountMicro} a $${SWAP_USDC} swap needs`
+  );
+
   const route = await probeSwapRoute(
     { ctx: run.ctx, queue: run.queue, chainId: run.chain.chainId },
-    { sourceDenom: NATIVE_DENOM, destDenom, amountMicro }
+    { sourceDenom, destDenom: NATIVE_DENOM, amountMicro }
   );
   if (route.status === "error") {
     annotateSkipAndStop(testInfo, "environment", `swap route probe failed: ${route.reason}`);
   }
-  requireOrSkip(
-    testInfo,
-    run.matrix.expectFunded,
-    route.status === "routable",
-    "no Skip route for the dust swap amount"
-  );
+  if (route.status !== "routable") {
+    annotateSkipAndStop(testInfo, "precondition", `no Skip route for the $${SWAP_USDC} USDC->NLS swap`);
+  }
 
   await connectFlow(page, run, "/assets/swap");
   await page.locator("#swap-1").waitFor({ state: "visible", timeout: 15000 });
-  // The From-side NLS balance renders via AnimateNumber; wait for a positive value in its aria-label
-  // (not the digit-roller innerText) so typing validates against the funded balance, not a zero read.
-  expect(await findPositiveAnimatedFigure(page.locator("#dialog-scroll").first(), 20000)).toBe(true);
-  await typeAmount(page, "swap-1", SWAP_NLS);
+  // Set From = the held USDC variant, To = NLS; each pick is verified to have landed on a positive
+  // balance so typing validates against a real balance (not the default or an unloaded zero).
+  await selectCurrencyVariant(page, {
+    fieldId: "swap-1",
+    search: usdcTicker,
+    expectContains: "USDC",
+    timeoutMs: TERMINAL_MS
+  });
+  await selectCurrencyVariant(page, {
+    fieldId: "swap-2",
+    search: "NLS",
+    expectContains: "NLS",
+    timeoutMs: TERMINAL_MS
+  });
+  await typeAmount(page, "swap-1", SWAP_USDC);
   await waitForAmountAccepted(page);
 
-  const usdcBefore = await usdcMicro(run.ctx, wallet.address, run.currencyResolver);
+  const nlsBefore = await nativeMicro(run.ctx, wallet.address);
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-swap",
     action: "swap",
     walletRole: "primary",
     walletKey: run.primary.key,
-    items: [{ denom: "nls", micro: BigInt(amountMicro) }],
-    denoms: [{ denom: NATIVE_DENOM, micro: amountMicro }],
+    items: [{ denom: "usdc", micro: BigInt(amountMicro) }],
+    denoms: [{ denom: sourceDenom, micro: amountMicro }],
     execute: async () => {
       await run.queue.pace("strict");
       // The swap runs on the click (no confirmation dialog); track the app's polled terminal state.
@@ -116,12 +137,12 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   });
 
   await expect
-    .poll(() => usdcMicro(run.ctx, wallet.address, run.currencyResolver), {
-      message: "the swapped-to USDC balance should strictly increase after a committed swap",
+    .poll(() => nativeMicro(run.ctx, wallet.address), {
+      message: "the swapped-to NLS balance should strictly increase after a committed swap",
       timeout: TERMINAL_MS,
       intervals: [3000, 5000, 5000, 5000]
     })
-    .toBeGreaterThan(usdcBefore);
+    .toBeGreaterThan(nlsBefore);
 
   reportLeftover(run, testInfo, { terminal: "success" });
 });

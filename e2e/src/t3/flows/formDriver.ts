@@ -133,30 +133,70 @@ export async function clickLocatorAndSettle(
   await awaitTerminal(page, label, terminalMs);
 }
 
+export interface CurrencyVariantSelection {
+  /** The AdvancedFormControl `id` (e.g. "receive-send", "swap-1"), carried on both the amount
+   * `<input>` and the picker's `role=combobox` trigger. */
+  fieldId: string;
+  /** Search term filtering the option list — matched against the option `value` (the LPN key,
+   * e.g. "USDC_NOBLE@osmosis-noble") or `ibcData`, so a resolver ticker or bank denom both work. */
+  search: string;
+  /** A substring the trigger's label must contain once selected (the shortName family, e.g. "USDC"
+   * / "NLS") — proof the pick landed on the intended asset, not the zero-balance default. */
+  expectContains: string;
+  timeoutMs: number;
+}
+
+const CURRENCY_SEARCH_INPUT = "#input-search-input";
+const SELECT_BALANCE_WAIT_MS = 15000;
+
+/** The numeric balance the picker shows beside its trigger (customLabel "0.05 USDC"), 0 when none. */
+async function pickerBalance(balance: Locator): Promise<number> {
+  const text = await balance.innerText().catch(() => "");
+  const match = text.replace(/[\s,]/g, "").match(/-?\d+(\.\d+)?/);
+  return match === null ? 0 : Number(match[0]);
+}
+
 /**
  * Select a funded currency variant in an AdvancedFormControl currency picker before typing, so the
- * amount validates against a held balance instead of the zero-balance default option. Per the
- * web-components source the picker is a `Dropdown` atom: its trigger is a button carrying
- * `aria-expanded`, which opens a (Teleport-portaled) searchable list of AssetItem rows. So: click
- * the collapsed trigger, filter the search to the target variant, then click the matching row. Every
- * step's failure is swallowed so a form that already defaults to the right variant still proceeds.
+ * amount validates against a held balance, not the zero-balance default option. Per the
+ * web-components source the picker's trigger is a `role=combobox` button carrying the field id; it
+ * opens a Teleport-portaled searchable `role=listbox` of AssetItem rows filtered on `option.value`
+ * / `ibcData` / label. So: open the combobox, filter the search to the variant, click the first
+ * filtered row. The selection is then VERIFIED — the trigger must show the expected asset family and
+ * the balance beside it must read positive (which also rides out the balances-load timing gap, since
+ * the app only recomputes amount validation on input events). Retries the whole open→pick once, then
+ * FAILS LOUDLY: a pick that didn't take must never let a spec type into the wrong (or zero) asset.
  */
-export async function selectCurrencyVariant(page: Page, label: string, timeoutMs: number): Promise<void> {
-  await page
-    .getByRole("button", { expanded: false })
-    .first()
-    .click({ timeout: timeoutMs })
-    .catch(() => undefined);
-  await page
-    .getByRole("textbox")
-    .last()
-    .fill(label)
-    .catch(() => undefined);
-  await page
-    .getByText(label, { exact: false })
-    .last()
-    .click({ timeout: timeoutMs })
-    .catch(() => undefined);
+export async function selectCurrencyVariant(page: Page, selection: CurrencyVariantSelection): Promise<void> {
+  const { fieldId, search, expectContains, timeoutMs } = selection;
+  const combobox = page.locator(`button[role="combobox"]#${fieldId}`);
+  const balance = combobox
+    .locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " flex-col ")][1]')
+    .locator("span.text-typography-link")
+    .first();
+  const searchInput = page.locator(CURRENCY_SEARCH_INPUT);
+  const listbox = page.getByRole("listbox");
+  const waitMs = Math.min(timeoutMs, SELECT_BALANCE_WAIT_MS);
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await combobox.click({ timeout: timeoutMs }).catch(() => undefined);
+    await searchInput.fill(search, { timeout: timeoutMs }).catch(() => undefined);
+    await listbox
+      .locator("li")
+      .first()
+      .click({ timeout: timeoutMs })
+      .catch(() => undefined);
+    try {
+      await expect(combobox).toContainText(new RegExp(expectContains, "i"), { timeout: waitMs });
+      await expect.poll(() => pickerBalance(balance), { timeout: waitMs }).toBeGreaterThan(0);
+      return;
+    } catch {
+      // Selection did not land (default still showing, or balance not yet positive) — re-pick once.
+    }
+  }
+  throw new Error(
+    `currency variant "${search}" not selected in "${fieldId}": the picker never showed ${expectContains} with a positive balance`
+  );
 }
 
 /** Open a position/lease detail dialog by its on-chain address and wait for the dialog to render. */

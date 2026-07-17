@@ -7,7 +7,8 @@ import { parseDownpaymentRanges } from "./preconditions.js";
 import type { ProtocolConfig } from "./leasePlan.js";
 import { heldMicro, priceUsdOf, microToUsd, tickersMatching } from "./denomResolver.js";
 import type { ResolvedAsset } from "./denomResolver.js";
-import { hasSwapRoute, buildSwapRouteRequest } from "./preconditions.js";
+import { hasSwapRoute, buildSwapRouteRequest, isNoRouteFailure } from "./preconditions.js";
+import { NATIVE_DENOM, NATIVE_DECIMALS } from "../../transfer.js";
 
 // Node-side, host-resolver-aware reads of the live API used by the flow specs to build the
 // oracle inputs and precondition probes. Coverage-excluded browser/network glue (see
@@ -90,9 +91,19 @@ export async function probeSwapRoute(deps: SwapProbeDeps, args: SwapProbeArgs): 
     await deps.queue.pace("strict");
     payload = await postJson(deps.ctx, `${deps.ctx.origin}/api/swap/route`, body);
   } catch (error) {
-    return { status: "error", reason: error instanceof Error ? error.message : String(error) };
+    const message = error instanceof Error ? error.message : String(error);
+    return isNoRouteFailure(message) ? { status: "no-route" } : { status: "error", reason: message };
   }
   return { status: hasSwapRoute(payload) ? "routable" : "no-route" };
+}
+
+/** The wallet's native NLS micro balance (the swap-into asset for the reversed dust swap). */
+export async function nativeMicro(ctx: OriginContext, address: string): Promise<bigint> {
+  return heldMicro(await fetchBalances(ctx, address), {
+    ticker: "NLS",
+    bankSymbols: [NATIVE_DENOM],
+    decimalDigits: NATIVE_DECIMALS
+  });
 }
 
 /** The first lease enumerated for `address` with `status === "opened"`, or undefined. */

@@ -66,7 +66,12 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   // select the funded USDC variant so the amount validates against a real balance, not a zero one.
   const heldUsdc = await heldUsdcTicker(run.ctx, wallet.address, run.currencyResolver);
   if (heldUsdc !== undefined) {
-    await selectCurrencyVariant(page, heldUsdc, TERMINAL_MS);
+    await selectCurrencyVariant(page, {
+      fieldId: "receive-send",
+      search: heldUsdc,
+      expectContains: "USDC",
+      timeoutMs: TERMINAL_MS
+    });
   }
   await typeAmount(page, "receive-send", DUST_USDC);
   await waitForAmountAccepted(page);
@@ -90,7 +95,12 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   await connectFlow(page, run, "/earn/withdraw");
   // The withdraw options come from the LP positions; select the variant just supplied.
   if (heldUsdc !== undefined) {
-    await selectCurrencyVariant(page, heldUsdc, TERMINAL_MS);
+    await selectCurrencyVariant(page, {
+      fieldId: "receive-send",
+      search: heldUsdc,
+      expectContains: "USDC",
+      timeoutMs: TERMINAL_MS
+    });
   }
   await typeAmount(page, "receive-send", DUST_USDC);
   await waitForAmountAccepted(page);
