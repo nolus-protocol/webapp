@@ -7,6 +7,7 @@ import { createLookup, createUndiciConnector } from "./resolver.js";
 import { runWsRestParity } from "./checks/wsRestParity.js";
 import { runTotalsReconcile } from "./checks/totalsReconcile.js";
 import { runRateUnitSanity } from "./checks/rateUnitSanity.js";
+import { runPricedBalancesNonzero } from "./checks/pricedBalancesNonzero.js";
 import { assembleDocument, exitCodeFor, writeDocument } from "./report.js";
 import type { CheckResult } from "./types.js";
 
@@ -47,7 +48,12 @@ async function runAllChecks(config: Config, dispatch: Dispatch): Promise<CheckRe
     band: { minPercent: config.rateMinPercent, maxPercent: config.rateMaxPercent },
     dispatcher: dispatch.dispatcher
   });
-  return [parity, totals, rate];
+  const pricedBalances = await runPricedBalancesNonzero({
+    baseUrl: config.baseUrl,
+    address: config.readonlyAddress,
+    dispatcher: dispatch.dispatcher
+  });
+  return [parity, totals, rate, pricedBalances];
 }
 
 function reportConfigErrors(errors: string[]): void {
