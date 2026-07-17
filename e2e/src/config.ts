@@ -3,6 +3,7 @@ import { parseHostResolver } from "./resolver.js";
 
 export const DEFAULT_USD_TOLERANCE = "0.05";
 export const DEFAULT_WS_PUSH_TIMEOUT_MS = 60000;
+export const DEFAULT_RECEIVE_TIMEOUT_MS = 60000;
 export const DEFAULT_RATE_MIN_PERCENT = 0;
 export const DEFAULT_RATE_MAX_PERCENT = 100;
 export const DEFAULT_RESULTS_DIR = "./results";
@@ -324,4 +325,63 @@ export function parseT2Config(env: Record<string, string | undefined>): T2Config
   }
 
   return { ok: true, config: { primaryMnemonic, secondaryMnemonic } };
+}
+
+export interface MatrixConfig {
+  chainRpc: string | undefined;
+  receiveTimeoutMs: number;
+  expectFunded: boolean;
+}
+
+export type MatrixConfigResult = { ok: true; config: MatrixConfig } | { ok: false; errors: string[] };
+
+function parseChainRpcField(env: Record<string, string | undefined>, errors: string[]): string | undefined {
+  const raw = env.E2E_CHAIN_RPC?.trim();
+  if (!raw) {
+    return undefined;
+  }
+  if (!parseUrl(raw, HTTP_SCHEMES)) {
+    errors.push(`E2E_CHAIN_RPC must be a valid http(s) URL (got "${raw}")`);
+    return undefined;
+  }
+  return raw;
+}
+
+function parseReceiveTimeoutField(env: Record<string, string | undefined>, errors: string[]): number {
+  const raw = env.E2E_RECEIVE_TIMEOUT_MS;
+  if (raw === undefined) {
+    return DEFAULT_RECEIVE_TIMEOUT_MS;
+  }
+  return parseNumberField(
+    {
+      raw,
+      name: "E2E_RECEIVE_TIMEOUT_MS",
+      fallback: DEFAULT_RECEIVE_TIMEOUT_MS,
+      isValid: (value) => Number.isInteger(value) && value > 0,
+      requirement: "a positive integer"
+    },
+    errors
+  );
+}
+
+const TRUTHY = new Set(["1", "true", "yes", "on"]);
+
+/**
+ * The T2 matrix/receive knobs, orthogonal to the wallet mnemonics. `E2E_CHAIN_RPC`
+ * overrides the chain RPC otherwise derived from the live `/api/config`; `E2E_EXPECT_FUNDED`
+ * turns an unmet funded precondition (lease min/max, over-position, receive) into a failure
+ * instead of a skip (CI mode with the funded primary).
+ */
+export function parseMatrixConfig(env: Record<string, string | undefined>): MatrixConfigResult {
+  const errors: string[] = [];
+
+  const chainRpc = parseChainRpcField(env, errors);
+  const receiveTimeoutMs = parseReceiveTimeoutField(env, errors);
+  const expectFunded = TRUTHY.has((env.E2E_EXPECT_FUNDED ?? "").trim().toLowerCase());
+
+  if (errors.length > 0) {
+    return { ok: false, errors };
+  }
+
+  return { ok: true, config: { chainRpc, receiveTimeoutMs, expectFunded } };
 }

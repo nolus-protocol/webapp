@@ -52,6 +52,27 @@ export default defineConfig<T2Options>({
     {
       name: "t2",
       testDir: "src/t2",
+      // The parallel-safe matrix: connect, validation, classify, reconnect. Rate-limit and
+      // receive are separate serialized projects (below).
+      testMatch: ["**/connect.spec.ts", "**/validation.spec.ts", "**/classify.spec.ts", "**/reconnect.spec.ts"],
+      use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
+    },
+    {
+      // The strict rate-limit bucket is shared per client IP, so this must not run
+      // concurrently with any other egress: it depends on t2 and runs after it, alone.
+      name: "ratelimit",
+      testDir: "src/t2",
+      testMatch: ["**/ratelimit.spec.ts"],
+      dependencies: ["t2"],
+      use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
+    },
+    {
+      // A live on-chain send; runs last and never retries so a retry can't double-send.
+      name: "receive",
+      testDir: "src/t2",
+      testMatch: ["**/receive.spec.ts"],
+      retries: 0,
+      dependencies: ["t2", "ratelimit"],
       use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
     }
   ]

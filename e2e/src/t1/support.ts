@@ -13,12 +13,25 @@ export interface WsState {
   frames: number;
 }
 
+/**
+ * Per-spec allowlist for entries a spec deliberately provokes. A T2 spec that drives a
+ * 429/500 (classify, rate-limit) or a WebSocket drop (`[WebSocket] Error`) declares the
+ * exact patterns it expects; anything not matched still fails the budget. Defaults are
+ * empty, so T1 (and any spec that never touches this) keeps the strict clean-budget check
+ * verbatim. Page errors are never allowlisted — an uncaught page error is never expected.
+ */
+export interface BudgetAllow {
+  consoleErrors: RegExp[];
+  failedRequests: RegExp[];
+}
+
 export interface BudgetState {
   route: string;
   consoleErrors: string[];
   consoleWarnings: string[];
   pageErrors: string[];
   failedRequests: string[];
+  allow: BudgetAllow;
   ws: WsState;
 }
 
@@ -35,6 +48,7 @@ function createBudgetState(): BudgetState {
     consoleWarnings: [],
     pageErrors: [],
     failedRequests: [],
+    allow: { consoleErrors: [], failedRequests: [] },
     ws: { sawWsUrl: false, openedAt: 0, ackReceived: false, closed: false, frames: 0 }
   };
 }
@@ -103,6 +117,10 @@ function attachCollectors(page: Page, state: BudgetState, originHost: string): v
   attachWsListener(page, state.ws);
 }
 
+function unexpected(entries: string[], allow: RegExp[]): string[] {
+  return entries.filter((entry) => !allow.some((pattern) => pattern.test(entry)));
+}
+
 function assertBudgetClean(state: BudgetState, testInfo: TestInfo): void {
   const route = state.route || "(unset)";
   if (state.consoleWarnings.length > 0) {
@@ -111,11 +129,11 @@ function assertBudgetClean(state: BudgetState, testInfo: TestInfo): void {
       description: `${route}: ${state.consoleWarnings.join(" | ")}`
     });
   }
-  expect(state.consoleErrors, `console errors on ${route}: ${state.consoleErrors.join(" | ")}`).toEqual([]);
+  const consoleErrors = unexpected(state.consoleErrors, state.allow.consoleErrors);
+  const failedRequests = unexpected(state.failedRequests, state.allow.failedRequests);
+  expect(consoleErrors, `console errors on ${route}: ${consoleErrors.join(" | ")}`).toEqual([]);
   expect(state.pageErrors, `page errors on ${route}: ${state.pageErrors.join(" | ")}`).toEqual([]);
-  expect(state.failedRequests, `failed same-origin requests on ${route}: ${state.failedRequests.join(" | ")}`).toEqual(
-    []
-  );
+  expect(failedRequests, `failed same-origin requests on ${route}: ${failedRequests.join(" | ")}`).toEqual([]);
 }
 
 export const test = base.extend<T1Options & T1Fixtures>({

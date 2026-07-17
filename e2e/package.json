@@ -9,8 +9,11 @@
   },
   "scripts": {
     "t0": "tsx src/t0.ts",
-    "t1": "playwright test --config playwright.config.ts --project=desktop-light --project=desktop-dark --project=mobile",
-    "t2": "playwright test --config playwright.config.ts --project=t2",
+    "t1": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t1.json playwright test --config playwright.config.ts --project=desktop-light --project=desktop-dark --project=mobile",
+    "t2": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t2.json playwright test --config playwright.config.ts --workers=1 --project=t2 --project=ratelimit --project=receive",
+    "t2:matrix": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t2.json playwright test --config playwright.config.ts --workers=1 --project=t2",
+    "t2:ratelimit": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t2.json playwright test --config playwright.config.ts --workers=1 --project=ratelimit",
+    "t2:receive": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t2.json playwright test --config playwright.config.ts --workers=1 --project=receive",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
@@ -23,6 +26,7 @@
     "@cosmjs/amino": "0.38.1",
     "@cosmjs/crypto": "0.38.1",
     "@cosmjs/encoding": "0.38.1",
+    "@cosmjs/stargate": "0.38.1",
     "undici": "8.7.0",
     "ws": "8.21.1"
   },
