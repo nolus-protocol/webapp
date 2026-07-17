@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "protocol": {
+      "type": "string"
+    },
+    "lpp_address": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "total_deposited": {
+      "type": "string",
+      "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+      "minLength": 1
+    },
+    "total_deposited_usd": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "apy": {
+      "type": "number"
+    },
+    "utilization": {
+      "type": "number"
+    },
+    "available_liquidity": {
+      "type": "string",
+      "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+      "minLength": 1
+    },
+    "deposit_capacity": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "protocol",
+    "lpp_address",
+    "currency",
+    "total_deposited",
+    "apy",
+    "utilization",
+    "available_liquidity"
+  ],
+  "additionalProperties": {}
+}

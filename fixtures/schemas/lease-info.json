@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "address": {
+      "type": "string"
+    },
+    "protocol": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "opening",
+        "opened",
+        "paid_off",
+        "closing",
+        "closed",
+        "liquidated"
+      ]
+    },
+    "amount": {
+      "type": "object",
+      "properties": {
+        "ticker": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "amount_usd": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "ticker",
+        "amount"
+      ],
+      "additionalProperties": {}
+    },
+    "debt": {
+      "type": "object",
+      "properties": {
+        "ticker": {
+          "type": "string"
+        },
+        "principal": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "overdue_margin": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "overdue_interest": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "due_margin": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "due_interest": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "total": {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        "total_usd": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "ticker",
+        "principal",
+        "overdue_margin",
+        "overdue_interest",
+        "due_margin",
+        "due_interest",
+        "total"
+      ],
+      "additionalProperties": {}
+    },
+    "interest": {
+      "type": "object",
+      "properties": {
+        "loan_rate": {
+          "type": "number"
+        },
+        "margin_rate": {
+          "type": "number"
+        },
+        "annual_rate_percent": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "loan_rate",
+        "margin_rate",
+        "annual_rate_percent"
+      ],
+      "additionalProperties": {}
+    },
+    "pnl": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "string",
+              "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+              "minLength": 1
+            },
+            "percent": {
+              "type": "string",
+              "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+              "minLength": 1
+            },
+            "downpayment": {
+              "type": "string",
+              "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+              "minLength": 1
+            },
+            "pnl_positive": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "amount",
+            "percent",
+            "downpayment",
+            "pnl_positive"
+          ],
+          "additionalProperties": {}
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "liquidation_price": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "address",
+    "protocol",
+    "status",
+    "amount",
+    "debt",
+    "interest"
+  ],
+  "additionalProperties": {}
+}

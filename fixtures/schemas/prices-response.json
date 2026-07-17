@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "prices": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "price_usd": {
+            "type": "string",
+            "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "key",
+          "symbol",
+          "price_usd"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "prices",
+    "updated_at"
+  ],
+  "additionalProperties": {}
+}

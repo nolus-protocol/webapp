@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "gas_prices": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+        "minLength": 1
+      }
+    },
+    "gas_multiplier": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  },
+  "required": [
+    "gas_prices",
+    "gas_multiplier"
+  ],
+  "additionalProperties": {}
+}
