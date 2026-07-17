@@ -70,7 +70,20 @@ jobs:
               perl -pi -e 'BEGIN{$t=$ENV{"RESOLVER_TARGET"}} s/\Q$t\E/<redacted-host>/g' "$f"
             done < <(grep -rIlF -- "$target" "$dir" 2>/dev/null || true)
           done
-          echo "artifact scrub: redacted ${total} occurrence(s) of the resolver target across results/ playwright-report/ test-results/"
+          # Second pass WITHOUT -I: any file still matching after text redaction is binary (a
+          # trace.zip or screenshot the sanitizer can't rewrite) — delete it outright so the
+          # resolver target never ships inside an opaque artifact.
+          deleted=0
+          for dir in results playwright-report test-results; do
+            [ -d "$dir" ] || continue
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              echo "artifact scrub: deleting binary artifact containing the resolver target: $f"
+              rm -f "$f"
+              deleted=$((deleted + 1))
+            done < <(grep -rlF -- "$target" "$dir" 2>/dev/null || true)
+          done
+          echo "artifact scrub: redacted ${total} text occurrence(s); deleted ${deleted} binary file(s) across results/ playwright-report/ test-results/"
 
       - name: Upload T3 flow journal + report artifacts
         if: always()

@@ -30,6 +30,13 @@ export interface JournalIntent {
   walletRole: WalletRole;
   action: IntentAction;
   denoms: DenomAmount[];
+  /**
+   * The cap-charged amounts (native micro) actually reserved against the SpendCap for this intent,
+   * keyed by cap denom. Distinct from `denoms`, which is display data an inflow action may report
+   * as positive while charging nothing. Restart cap-seeding reconstructs spent-state from this
+   * field exclusively, so a re-entered run never re-charges a zero-charge inflow.
+   */
+  charged?: DenomAmount[];
   memo?: string;
 }
 
@@ -64,6 +71,7 @@ export interface IntentInput {
   walletRole: WalletRole;
   action: IntentAction;
   denoms: DenomAmount[];
+  charged?: DenomAmount[];
   memo?: string;
 }
 
@@ -77,6 +85,9 @@ export function buildIntent(input: IntentInput): JournalIntent {
     action: input.action,
     denoms: input.denoms.map((d) => ({ denom: redact(d.denom), micro: d.micro }))
   };
+  if (input.charged !== undefined) {
+    record.charged = input.charged.map((c) => ({ denom: redact(c.denom), micro: c.micro }));
+  }
   if (input.memo !== undefined) {
     record.memo = redact(input.memo);
   }

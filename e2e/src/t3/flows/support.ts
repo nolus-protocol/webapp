@@ -185,9 +185,10 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
 }
 
 /** Record a machine-readable skip and abort the current test as skipped (never a red). */
-export function annotateSkipAndStop(testInfo: TestInfo, category: FailureCategory, reason: string): void {
+export function annotateSkipAndStop(testInfo: TestInfo, category: FailureCategory, reason: string): never {
   testInfo.annotations.push({ type: SKIP_ANNOTATION, description: `${category}: ${reason}` });
   testInfo.skip(true, reason);
+  throw new Error("unreachable: testInfo.skip did not stop execution");
 }
 
 /**
@@ -212,7 +213,6 @@ export function classifyAndRoute(testInfo: TestInfo, error: unknown, rpcUrl: str
     throw error instanceof Error ? error : new Error(String(error));
   }
   annotateSkipAndStop(testInfo, classification.category, `${classification.signal}: ${classification.reason}`);
-  throw new Error("unreachable");
 }
 
 export interface JournaledSpendParams<T> {
@@ -265,6 +265,10 @@ export async function journaledSpend<T>(run: RunContext, params: JournaledSpendP
       walletRole: params.walletRole,
       action: params.action,
       denoms: params.denoms,
+      // The cap-charged SpendItems actually reserved — the ONLY source restart cap-seeding reads.
+      // Display `denoms` can carry a positive amount an inflow action never charged; `charged`
+      // mirrors what the SpendCap counted, so a restart never re-charges a zero-charge inflow.
+      charged: params.items.map((item) => ({ denom: item.denom, micro: item.micro.toString() })),
       ...(params.memo !== undefined ? { memo: params.memo } : {})
     })
   );
@@ -284,6 +288,32 @@ export async function journaledSpend<T>(run: RunContext, params: JournaledSpendP
     );
     throw error;
   }
+}
+
+/**
+ * Run a governed spend and return its committed value, or terminate the test: a thrown broadcast
+ * error is journaled + classified-and-routed, and a spend-cap abort is a clean precondition skip
+ * with a `spend-cap-abort` leftover report. The abort branch sits AFTER the try (like a
+ * `requireOrSkip`) so the skip throw is never caught by the error path and mis-reported as an app
+ * failure — `classifyAndRoute` can never receive the skip sentinel.
+ */
+export async function spendCommittedOrSkip<T>(
+  testInfo: TestInfo,
+  run: RunContext,
+  params: JournaledSpendParams<T>
+): Promise<T> {
+  let outcome: SpendOutcome<T>;
+  try {
+    outcome = await journaledSpend(run, params);
+  } catch (error) {
+    reportLeftover(run, testInfo, { terminal: "app-failure" });
+    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
+  }
+  if (outcome.status === "spend-cap-abort") {
+    reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
+    annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
+  }
+  return outcome.value;
 }
 
 export interface LeftoverInput {
