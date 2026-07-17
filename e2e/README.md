@@ -646,13 +646,26 @@ coverage-excluded browser/network glue, the same split the rest of the suite use
 The lease side alternates by **UTC day-of-year parity** — even opens a long, odd a short — unless
 `E2E_LEASE_SIDE` (`long` / `short` / `both`) pins it. `both` is reserved for a future raised-cap
 run: when the second open would exceed the USDC cap it precondition-skips rather than aborting.
-USDC is the only viable downpayment denom (NLS is priced ~$0 on staging, so its USD figures are
-vacuous and its ranges unreachable). The protocol is resolved live from `GET /api/config`'s
-top-level `protocols[]` — `selectLeaseProtocol` picks the first identifier naming the downpayment
-ticker whose `GET /api/leases/config/<protocol>` carries a matching downpayment range (the bare
-`/api/leases/config` endpoint 400s — the protocol param is required). The lease minimum downpayment
-is **$40 USD-equivalent**, read from that per-protocol config at test time, never hardcoded. One
-lease cycle per run is roughly $42 gross, which fits the $50 USDC cap. A short lease asserts its
+No protocol accepts USDC or NLS as a lease downpayment — the `downpayment_ranges` keys are lease
+**assets** (ATOM / OSMO / WETH / …), and the wallet holds only NLS + USDC. So the downpayment is
+planned by `planLeaseDownpayment` over the eligible protocol configs (loaded from `GET /api/config`
+`protocols[]`, each `GET /api/leases/config/<protocol>`; empty/failed configs are dropped) and the
+wallet's per-asset USD holdings:
+
+1. **Use held** — prefer a ranged asset the wallet already holds at ≥ its range min (no swap; this
+   recycles the asset a prior run acquired, so acquisition becomes a no-op on later nights).
+2. **Acquire** — if nothing held qualifies and the USDC balance covers `min + buffer`, acquire the
+   target asset (**OSMO** — ranged by both the long and short protocols) by swapping ~$45 USDC
+   through the engine: a routability probe first, then an engine-governed, journaled `swap` charged
+   against the **USDC cap**, precondition-skipping if there is no route.
+3. **Skip** — no held asset and an unaffordable/unroutable acquisition is a machine-readable
+   precondition skip, never a red.
+
+**Cap honesty (no silent uncapped-denom surprises):** the acquisition swap is capped in USDC. The
+subsequent lease legs then move the acquired **OSMO**, whose outflow is journaled with a **zero cap
+charge** (`items: [{nls, 0n}]`, display `denoms` carry the OSMO amount) and is physically bounded by
+the amount acquired. The caps therefore bound the acquisition, not the recycled asset. One lease
+cycle per run is roughly $45 USDC of acquisition, within the $50 USDC cap. A short lease asserts its
 opened position ticker equals `resolveShortLeaseStable(currencies)` (the lease-group stable, never
 the downpayment/LPN) — the `#283` short-side acceptance criterion. The rendered lease USD value is
 checked against the oracle within `E2E_USD_TOLERANCE` via `assertWithinTolerance`, and every such

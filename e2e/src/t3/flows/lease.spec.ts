@@ -1,35 +1,52 @@
 import { test, expect } from "./support.js";
 import type { Page, TestInfo } from "@playwright/test";
 import type { RunContext } from "./support.js";
-import { getRunContext, connectFlow, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
+import {
+  getRunContext,
+  connectFlow,
+  reportLeftover,
+  skipIfHalted,
+  spendCommittedOrSkip,
+  annotateSkipAndStop
+} from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, readString } from "../../t2/matrixHelpers.js";
 import { USDC_DECIMALS } from "../../config.js";
 import { toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { computeLiquidation, leaseSizeCell } from "../../oracle/lease.js";
-import { microBalanceByDenom, openedLease, leaseConfig, resolveLeaseProtocol, currencies } from "./apiReads.js";
+import { microBalanceByDenom, openedLease, leaseProtocolConfigs, heldAssetUsd, currencies } from "./apiReads.js";
 import { submitForm, openDetailDialog } from "./formDriver.js";
-import { resolveDownpaymentFloorUsd, remainsAboveMin } from "./preconditions.js";
+import { remainsAboveMin, hasSwapRoute } from "./preconditions.js";
+import { planLeaseDownpayment } from "./leasePlan.js";
+import type { LeaseDownpaymentPlan } from "./leasePlan.js";
 import { resolveShortLeaseStable } from "./sideSelection.js";
 import type { LeaseSide } from "./sideSelection.js";
 import { assertNonZeroBasis, assertWithinTolerance } from "./tolerance.js";
 import { USDC_DENOM } from "./denoms.js";
+import { readJson } from "../runtime.js";
 
 // The alternating-side single-lease lifecycle (#283 flow 1), run same-run on ONE opened lease so
 // the pre-run sweep never sees a cross-run orphan: open → TP/SL create + edit → dust repay
 // (min_transaction) → partial close (leaving ≥ min_asset) → market close. The side is chosen by
-// UTC day-of-year parity unless E2E_LEASE_SIDE pins it; USDC is the only viable downpayment denom
-// (NLS is priced ~$0, so its USD figures are vacuous). Post-flow math is asserted against the
-// EXISTING render oracle on the non-zero-priced collateral leg, and each teardown step is checked
-// against chain-enumerated state. Matrix labels: flow-lease-row, flow-lease-detail,
-// flow-lease-crossfield.
+// UTC day-of-year parity unless E2E_LEASE_SIDE pins it. No protocol accepts USDC/NLS as
+// downpayment (ranges are lease assets), so the downpayment is planned by `planLeaseDownpayment`:
+// prefer a held ranged asset (recycled from a prior run), else ACQUIRE the target (OSMO) by
+// swapping USDC through the engine (capped in USDC), else precondition-skip. The subsequent lease
+// legs move the acquired OSMO, whose outflow is journaled but bounded by the acquired amount — the
+// caps bound the acquisition, not the recycled asset. Post-flow math is asserted against the
+// EXISTING render oracle on the non-zero-priced collateral leg. Matrix labels: flow-lease-row,
+// flow-lease-detail, flow-lease-crossfield.
 
 const TERMINAL_MS = 150000;
 const MIN_ASSET_USDC = "15";
 const MIN_TRANSACTION_USDC = "0.01";
 const TP_TRIGGER_PERCENT = "5";
 const TP_EDIT_PERCENT = "8";
+const ACQUIRE_TARGET = "OSMO";
+const ACQUIRE_BUFFER_USD = "5";
+// OSMO's decimals for converting a micro balance to the downpayment form amount (CI-confirmed).
+const OSMO_DECIMALS = 6;
 
 let run: RunContext;
 
@@ -124,6 +141,93 @@ async function assertOpenedLeaseOracle(
   }
 }
 
+/** The wallet's USDC balance expressed in USD (USDC ~ $1 at 6 decimals). */
+async function usdcHeldUsd(ctx: RunContext["ctx"], address: string): Promise<Decimal> {
+  return Decimal.fromAtomics((await microBalanceByDenom(ctx, address, "usdc")).toString(), USDC_DECIMALS);
+}
+
+/** Whether a USDC → target swap route exists for the acquisition amount (dust routinely has none). */
+async function acquireRoutable(ctx: RunContext["ctx"], acquireUsdcMicro: string): Promise<boolean> {
+  const payload = await readJson(
+    ctx,
+    `${ctx.origin}/api/swap/route?from=${encodeURIComponent(USDC_DENOM)}&to=${encodeURIComponent(ACQUIRE_TARGET)}&amount=${encodeURIComponent(acquireUsdcMicro)}`
+  ).catch(() => null);
+  return hasSwapRoute(payload);
+}
+
+/** Acquire the downpayment asset by swapping USDC through the engine — capped in USDC, route-gated. */
+async function acquireDownpaymentAsset(page: Page, testInfo: TestInfo, acquireUsd: Decimal): Promise<void> {
+  const acquireMicro = toMicroAmount(acquireUsd.toString(USDC_DECIMALS), USDC_DECIMALS);
+  requireOrSkip(
+    testInfo,
+    run.matrix.expectFunded,
+    await acquireRoutable(run.ctx, acquireMicro),
+    `no swap route to acquire the ${ACQUIRE_TARGET} downpayment`
+  );
+  await connectFlow(page, run, "/assets/swap");
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-lease-acquire",
+    action: "swap",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "usdc", micro: BigInt(acquireMicro) }],
+    denoms: [{ denom: USDC_DENOM, micro: acquireMicro }],
+    memo: `acquire ${ACQUIRE_TARGET} downpayment`,
+    execute: async () => {
+      await run.queue.pace("strict");
+      await page.locator("#swap-1").waitFor({ state: "visible", timeout: 15000 });
+      await page.getByRole("button", { name: /swap/i }).last().click({ timeout: TERMINAL_MS });
+      await page
+        .getByRole("button", { name: /confirm|submit/i })
+        .first()
+        .click({ timeout: TERMINAL_MS });
+      await expect(page.locator("div.toast")).toBeVisible({ timeout: TERMINAL_MS });
+    }
+  });
+}
+
+interface ResolvedDownpayment {
+  asset: string;
+  protocol: string;
+  amount: string;
+  micro: bigint;
+}
+
+/** Plan and secure the downpayment (held / acquire / skip), returning the target-asset amount to open with. */
+async function resolveDownpayment(
+  page: Page,
+  testInfo: TestInfo,
+  address: string,
+  side: LeaseSide
+): Promise<ResolvedDownpayment> {
+  const plan: LeaseDownpaymentPlan = planLeaseDownpayment({
+    protocols: await leaseProtocolConfigs(run.ctx),
+    heldUsd: await heldAssetUsd(run.ctx, address),
+    usdcUsd: await usdcHeldUsd(run.ctx, address),
+    acquireTarget: ACQUIRE_TARGET,
+    acquireBufferUsd: Decimal.fromString(ACQUIRE_BUFFER_USD)
+  });
+  if (plan.kind === "skip") {
+    annotateSkipAndStop(testInfo, "precondition", `lease downpayment unavailable: ${plan.reason}`);
+  }
+  if (plan.kind === "acquire") {
+    await acquireDownpaymentAsset(page, testInfo, plan.acquireUsd);
+  }
+  const micro = await microBalanceByDenom(run.ctx, address, ACQUIRE_TARGET.toLowerCase());
+  requireOrSkip(
+    testInfo,
+    run.matrix.expectFunded,
+    micro > 0n,
+    `no ${ACQUIRE_TARGET} balance to fund the ${side} lease downpayment`
+  );
+  return {
+    asset: plan.asset,
+    protocol: plan.protocol,
+    amount: Decimal.fromAtomics(micro.toString(), OSMO_DECIMALS).toString(OSMO_DECIMALS),
+    micro
+  };
+}
+
 test.beforeAll(async () => {
   run = await getRunContext(test.info());
 });
@@ -138,29 +242,21 @@ test("a single alternating-side lease runs its full lifecycle through the engine
   const side: LeaseSide = run.leaseSides[0] ?? "long";
   budget.route = `/positions/open/${side}`;
 
-  const protocol = await resolveLeaseProtocol(run.ctx, "USDC");
-  const floorUsd = resolveDownpaymentFloorUsd(await leaseConfig(run.ctx, protocol));
-  const downpayment = floorUsd.add(Decimal.fromString("2")).toString(2);
-  const requiredMicro = BigInt(toMicroAmount(downpayment, USDC_DECIMALS));
-  const balance = await microBalanceByDenom(run.ctx, wallet.address, "usdc");
-  requireOrSkip(
-    testInfo,
-    run.matrix.expectFunded,
-    balance > requiredMicro,
-    `primary holds ${balance.toString()} micro-USDC, below the ${requiredMicro.toString()} a ${side} lease needs`
-  );
+  // Plan the downpayment: a held ranged asset, an acquisition swap, or a clean precondition skip.
+  const downpayment = await resolveDownpayment(page, testInfo, wallet.address, side);
 
   await connectFlow(page, run, `/positions/open/${side}`);
-  await typeAmount(page, "receive-send", downpayment);
+  await typeAmount(page, "receive-send", downpayment.amount);
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-lease",
     action: "lease-open",
     walletRole: "primary",
     walletKey: run.primary.key,
-    items: [{ denom: "usdc", micro: requiredMicro }],
-    denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
+    items: [{ denom: "nls", micro: 0n }],
+    denoms: [{ denom: downpayment.asset, micro: downpayment.micro.toString() }],
     execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "open-position"), terminalMs: TERMINAL_MS })
   });
+  const protocol = downpayment.protocol;
 
   await page.goto("/positions", { waitUntil: "domcontentloaded" });
   const lease = await openedLease(run.ctx, wallet.address);
