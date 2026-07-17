@@ -70,7 +70,7 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
       fieldId: "receive-send",
       search: heldUsdc,
       expectContains: "USDC",
-      timeoutMs: TERMINAL_MS
+      side: "source"
     });
   }
   await typeAmount(page, "receive-send", DUST_USDC);
@@ -99,7 +99,7 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
       fieldId: "receive-send",
       search: heldUsdc,
       expectContains: "USDC",
-      timeoutMs: TERMINAL_MS
+      side: "source"
     });
   }
   await typeAmount(page, "receive-send", DUST_USDC);

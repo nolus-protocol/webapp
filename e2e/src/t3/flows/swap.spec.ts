@@ -95,19 +95,20 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
 
   await connectFlow(page, run, "/assets/swap");
   await page.locator("#swap-1").waitFor({ state: "visible", timeout: 15000 });
-  // Set From = the held USDC variant, To = NLS; each pick is verified to have landed on a positive
-  // balance so typing validates against a real balance (not the default or an unloaded zero).
+  // Set From = the held USDC variant (source, balance-verified so typing validates against a real,
+  // loaded balance) and To = NLS (destination — the To block renders no Balance span, so verified by
+  // ticker only).
   await selectCurrencyVariant(page, {
     fieldId: "swap-1",
     search: usdcTicker,
     expectContains: "USDC",
-    timeoutMs: TERMINAL_MS
+    side: "source"
   });
   await selectCurrencyVariant(page, {
     fieldId: "swap-2",
     search: "NLS",
     expectContains: "NLS",
-    timeoutMs: TERMINAL_MS
+    side: "destination"
   });
   await typeAmount(page, "swap-1", SWAP_USDC);
   await waitForAmountAccepted(page);

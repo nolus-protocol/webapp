@@ -135,7 +135,8 @@ export async function clickLocatorAndSettle(
 
 export interface CurrencyVariantSelection {
   /** The AdvancedFormControl `id` (e.g. "receive-send", "swap-1"), carried on both the amount
-   * `<input>` and the picker's `role=combobox` trigger. */
+   * `<input>` and the picker's `role=combobox` trigger. NOT unique page-wide — "receive-send" is
+   * shared by SupplyForm and WithdrawForm — so every locator here is scoped to the open dialog. */
   fieldId: string;
   /** Search term filtering the option list — matched against the option `value` (the LPN key,
    * e.g. "USDC_NOBLE@osmosis-noble") or `ibcData`, so a resolver ticker or bank denom both work. */
@@ -143,11 +144,24 @@ export interface CurrencyVariantSelection {
   /** A substring the trigger's label must contain once selected (the shortName family, e.g. "USDC"
    * / "NLS") — proof the pick landed on the intended asset, not the zero-balance default. */
   expectContains: string;
-  timeoutMs: number;
+  /**
+   * Which side of the trade this picker feeds. A `source` picker (earn supply, earn withdraw, swap
+   * From) spends a balance, so its pick is verified by the balance beside the trigger polling
+   * positive — that also guards the balances-load timing gap (the app recomputes amount validation
+   * only on input, so typing before the balance loads sticks a stale error). A `destination` picker
+   * (swap To) receives, and the To block renders NO Balance span at all, so a balance poll would
+   * hang forever and eat the test budget; a destination pick is verified by the trigger ticker ONLY.
+   * (The round-1 reviewer prescribed exactly this source/destination split; adopting it here.)
+   */
+  side: "source" | "destination";
 }
 
 const CURRENCY_SEARCH_INPUT = "#input-search-input";
-const SELECT_BALANCE_WAIT_MS = 15000;
+// Bound every picker action to a few seconds so a miss surfaces as the loud selection error in
+// seconds — a picker failure must never consume the whole (120s) test budget the way an unbounded
+// wait against a mis-targeted control did (earn hung 360s on the BTC default).
+const PICKER_ACTION_MS = 5000;
+const BALANCE_POLL_MS = 10000;
 
 /** The numeric balance the picker shows beside its trigger (customLabel "0.05 USDC"), 0 when none. */
 async function pickerBalance(balance: Locator): Promise<number> {
@@ -158,44 +172,50 @@ async function pickerBalance(balance: Locator): Promise<number> {
 
 /**
  * Select a funded currency variant in an AdvancedFormControl currency picker before typing, so the
- * amount validates against a held balance, not the zero-balance default option. Per the
+ * amount validates against a real balance, not the zero-balance default option. Per the
  * web-components source the picker's trigger is a `role=combobox` button carrying the field id; it
  * opens a Teleport-portaled searchable `role=listbox` of AssetItem rows filtered on `option.value`
  * / `ibcData` / label. So: open the combobox, filter the search to the variant, click the first
- * filtered row. The selection is then VERIFIED — the trigger must show the expected asset family and
- * the balance beside it must read positive (which also rides out the balances-load timing gap, since
- * the app only recomputes amount validation on input events). Retries the whole open→pick once, then
- * FAILS LOUDLY: a pick that didn't take must never let a spec type into the wrong (or zero) asset.
+ * filtered row, then VERIFY the pick landed — the trigger must show the expected asset family, and a
+ * `source` picker's balance must additionally read positive (see {@link CurrencyVariantSelection.side}).
+ * Every locator is scoped to the open dialog (the field id is not page-unique) and every action is
+ * time-bounded. Retries the whole open→pick once, then FAILS LOUDLY: a pick that didn't take must
+ * never let a spec type into the wrong (or zero) asset.
  */
 export async function selectCurrencyVariant(page: Page, selection: CurrencyVariantSelection): Promise<void> {
-  const { fieldId, search, expectContains, timeoutMs } = selection;
-  const combobox = page.locator(`button[role="combobox"]#${fieldId}`);
+  const { fieldId, search, expectContains, side } = selection;
+  // The trigger and its balance live inside the open dialog; the search box and option list are
+  // Teleported to <body>, so those stay page-level (only the open dropdown renders them).
+  const dialog = page.locator("#dialog-scroll").last();
+  const combobox = dialog.locator(`button[role="combobox"]#${fieldId}`);
   const balance = combobox
     .locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " flex-col ")][1]')
     .locator("span.text-typography-link")
     .first();
   const searchInput = page.locator(CURRENCY_SEARCH_INPUT);
   const listbox = page.getByRole("listbox");
-  const waitMs = Math.min(timeoutMs, SELECT_BALANCE_WAIT_MS);
 
   for (let attempt = 0; attempt < 2; attempt++) {
-    await combobox.click({ timeout: timeoutMs }).catch(() => undefined);
-    await searchInput.fill(search, { timeout: timeoutMs }).catch(() => undefined);
+    await combobox.click({ timeout: PICKER_ACTION_MS }).catch(() => undefined);
+    await searchInput.fill(search, { timeout: PICKER_ACTION_MS }).catch(() => undefined);
     await listbox
       .locator("li")
       .first()
-      .click({ timeout: timeoutMs })
+      .click({ timeout: PICKER_ACTION_MS })
       .catch(() => undefined);
     try {
-      await expect(combobox).toContainText(new RegExp(expectContains, "i"), { timeout: waitMs });
-      await expect.poll(() => pickerBalance(balance), { timeout: waitMs }).toBeGreaterThan(0);
+      await expect(combobox).toContainText(new RegExp(expectContains, "i"), { timeout: PICKER_ACTION_MS });
+      if (side === "source") {
+        await expect.poll(() => pickerBalance(balance), { timeout: BALANCE_POLL_MS }).toBeGreaterThan(0);
+      }
       return;
     } catch {
       // Selection did not land (default still showing, or balance not yet positive) — re-pick once.
     }
   }
+  const balanceNote = side === "source" ? " with a positive balance" : "";
   throw new Error(
-    `currency variant "${search}" not selected in "${fieldId}": the picker never showed ${expectContains} with a positive balance`
+    `currency variant "${search}" not selected in "${fieldId}": the picker never showed ${expectContains}${balanceNote}`
   );
 }
 
