@@ -14,7 +14,8 @@ import {
   probeNativeMicroBalance,
   allowStagingNoise,
   readSwapFromNls,
-  waitForSwapReady
+  waitForSwapReady,
+  readString
 } from "./matrixHelpers.js";
 import { getJson } from "../http.js";
 import { parseT2Config, parseMatrixConfig } from "../config.js";
@@ -46,15 +47,6 @@ let senderMnemonic: string;
 let senderAddress: string;
 let receiveTimeoutMs: number;
 let expectFunded: boolean;
-
-function readString(root: unknown, ...path: string[]): string | undefined {
-  let cur: unknown = root;
-  for (const key of path) {
-    if (typeof cur !== "object" || cur === null || !(key in cur)) return undefined;
-    cur = (cur as Record<string, unknown>)[key];
-  }
-  return typeof cur === "string" ? cur : undefined;
-}
 
 async function resolveChain(matrixRpc: string | undefined): Promise<ChainSettings> {
   const config = await getJson(`${ctx.origin}/api/config`, ctx.dispatcher);
@@ -107,21 +99,22 @@ test("a live on-chain receive increases the rendered balance", async ({ page, bu
   allowStagingNoise(budget);
   test.setTimeout(receiveTimeoutMs + 60000);
 
-  // The sender (secondary/wallet-2) must be funded above the send amount; probe before
-  // touching the chain so an unfunded pot skips cleanly instead of broadcasting a failure.
+  // The sender (secondary/wallet-2) must cover the amount AND the gas fee; probe before
+  // touching the chain so a pot funded between amount and amount+fee skips cleanly instead
+  // of broadcasting a tx that fails on insufficient funds.
   const coin = makeSendCoin(SEND_AMOUNT_NLS);
+  const fee = makeFee(DEFAULT_GAS_LIMIT, chain.gasPrice, NATIVE_DENOM);
+  const required = BigInt(coin.amount) + BigInt(fee.amount[0]?.amount ?? "0");
   const senderBalance = await probeNativeMicroBalance(ctx, senderAddress);
   requireOrSkip(
     testInfo,
     expectFunded,
-    senderBalance > BigInt(coin.amount),
-    `sender ${senderAddress} is not funded enough for a ${SEND_AMOUNT_NLS} NLS send`
+    senderBalance > required,
+    `sender ${senderAddress} is not funded enough for a ${SEND_AMOUNT_NLS} NLS send plus fee`
   );
 
   await openSwapNls(page, wallet.address);
   const before = await readSwapFromNls(page);
-
-  const fee = makeFee(DEFAULT_GAS_LIMIT, chain.gasPrice, NATIVE_DENOM);
   const result = await broadcastSend({
     rpcUrl: chain.rpcUrl,
     senderMnemonic,

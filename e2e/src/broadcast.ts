@@ -75,7 +75,10 @@ export async function broadcastSend(params: BroadcastSendParams): Promise<Broadc
     return { txHash: result.transactionHash, height: result.height, sender };
   } catch (error) {
     const raw = error instanceof Error ? error.message : String(error);
-    throw new Error(sanitizeRpc(raw, rpcUrl), { cause: error });
+    // The caught error embeds the raw RPC endpoint; attaching it as `cause` would re-leak
+    // (via any cause-chain walker) exactly what sanitizeRpc strips, so it is dropped.
+    // eslint-disable-next-line preserve-caught-error
+    throw new Error(sanitizeRpc(raw, rpcUrl));
   } finally {
     client?.disconnect();
   }

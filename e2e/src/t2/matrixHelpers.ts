@@ -6,17 +6,23 @@ import { getJson } from "../http.js";
 
 export const FIELD_ERROR = "div.text-typography-error";
 
+// Page-shell analytics/governance READ endpoints observed transiently 5xx-ing (or dropping)
+// on staging. They load on navigation but are orthogonal to the form/swap behavior these
+// specs assert. Scoped by URL so a 5xx on any endpoint a spec actually drives — the swap
+// route, a quote, or the balance read a validation depends on — still fails the budget. This
+// is a maintained allowlist of documented flaky reads; add a path only after observing it.
+const STAGING_FLAKY_PATHS = /\/api\/(etl|governance)\//;
+
 /**
- * Live staging can transiently 5xx (or drop the connection) on analytics/ETL chart fetches
- * that are orthogonal to the form/swap behavior these specs assert — the app logs the
- * failure and carries on. Allowlist those so a QA run is not flaky on an unrelated backend
- * hiccup; genuine 4xx and app console errors still fail the budget. classify/ratelimit add
- * their own tight per-status allowlist entries on top of this.
+ * Allowlist the transient page-shell read failures orthogonal to the form/swap behavior
+ * these specs assert — the app logs the failure and carries on. Failed requests are scoped
+ * to the documented flaky paths (so an unrelated 5xx still fails); the browser's
+ * `Failed to load resource` / `Failed to fetch` console lines carry no URL, so they are
+ * allowed generally but are backstopped by the URL-scoped failedRequests gate above.
+ * classify/ratelimit add their own tight per-status allowlist entries on top of this.
  */
 export function allowStagingNoise(budget: BudgetState): void {
-  budget.allow.failedRequests.push(/HTTP 5\d\d/);
-  // The browser logs a `Failed to load resource` console error for every failed response,
-  // and a `Failed to fetch` TypeError when the connection itself drops.
+  budget.allow.failedRequests.push(STAGING_FLAKY_PATHS);
   budget.allow.consoleErrors.push(/Failed to fetch/);
   budget.allow.consoleErrors.push(/Failed to load resource.*status of 5\d\d/);
 }
@@ -108,7 +114,8 @@ export async function assertFieldError(page: Page, expected: string): Promise<vo
   await expect(fieldError(page)).toContainText(expected, { timeout: 15000 });
 }
 
-function readString(root: unknown, ...path: string[]): string | undefined {
+/** Walk a nested `unknown` by string keys and return the leaf only if it is a string. */
+export function readString(root: unknown, ...path: string[]): string | undefined {
   let cur: unknown = root;
   for (const key of path) {
     if (typeof cur !== "object" || cur === null || !(key in cur)) return undefined;

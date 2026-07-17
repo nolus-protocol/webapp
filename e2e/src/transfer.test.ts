@@ -80,6 +80,19 @@ describe("sanitizeRpc", () => {
     expect(out).toContain("<rpc>");
   });
 
+  it("redacts credential userinfo that is not part of the rpc url", () => {
+    const out = sanitizeRpc("connect to bob:hunter2@host.internal failed", "https://rpc.nolus.network");
+    expect(out).not.toContain("hunter2");
+    expect(out).not.toContain("bob:hunter2");
+    expect(out).toContain("<rpc>@");
+  });
+
+  it("redacts a bare resolved IPv4[:port] from a connection error", () => {
+    const out = sanitizeRpc("connect ECONNREFUSED 1.2.3.4:26657", "https://rpc.nolus.network");
+    expect(out).not.toContain("1.2.3.4");
+    expect(out).toBe("connect ECONNREFUSED <rpc>");
+  });
+
   it("is a no-op when the text has no rpc reference", () => {
     expect(sanitizeRpc("plain error", "https://rpc.nolus.network")).toBe("plain error");
   });

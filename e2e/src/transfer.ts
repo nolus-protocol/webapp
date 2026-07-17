@@ -75,5 +75,10 @@ export function sanitizeRpc(text: string, rpcUrl: string): string {
   let out = text;
   if (rpcUrl.length > 0) out = out.split(rpcUrl).join(RPC_PLACEHOLDER);
   if (host.length > 0) out = out.split(host).join(RPC_PLACEHOLDER);
+  // Also redact credential userinfo (`user:pass@`) and bare IPv4[:port] — a connection
+  // error reports the resolved address (e.g. "connect ECONNREFUSED 1.2.3.4:26657"), not
+  // the hostname the two replacements above cover.
+  out = out.replace(/[A-Za-z0-9._~%+-]+:[^@\s/]+@/g, `${RPC_PLACEHOLDER}@`);
+  out = out.replace(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(?::\d+)?\b/g, RPC_PLACEHOLDER);
   return out;
 }
