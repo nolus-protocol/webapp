@@ -8,7 +8,7 @@ import { USDC_DECIMALS } from "../../config.js";
 import { toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { computeLiquidation, leaseSizeCell } from "../../oracle/lease.js";
-import { microBalanceByDenom, openedLease, leaseConfig, firstProtocol, currencies } from "./apiReads.js";
+import { microBalanceByDenom, openedLease, leaseConfig, resolveLeaseProtocol, currencies } from "./apiReads.js";
 import { submitForm, openDetailDialog } from "./formDriver.js";
 import { resolveDownpaymentFloorUsd, remainsAboveMin } from "./preconditions.js";
 import { resolveShortLeaseStable } from "./sideSelection.js";
@@ -138,7 +138,7 @@ test("a single alternating-side lease runs its full lifecycle through the engine
   const side: LeaseSide = run.leaseSides[0] ?? "long";
   budget.route = `/positions/open/${side}`;
 
-  const protocol = await firstProtocol(run.ctx);
+  const protocol = await resolveLeaseProtocol(run.ctx, "USDC");
   const floorUsd = resolveDownpaymentFloorUsd(await leaseConfig(run.ctx, protocol));
   const downpayment = floorUsd.add(Decimal.fromString("2")).toString(2);
   const requiredMicro = BigInt(toMicroAmount(downpayment, USDC_DECIMALS));

@@ -647,8 +647,11 @@ The lease side alternates by **UTC day-of-year parity** — even opens a long, o
 `E2E_LEASE_SIDE` (`long` / `short` / `both`) pins it. `both` is reserved for a future raised-cap
 run: when the second open would exceed the USDC cap it precondition-skips rather than aborting.
 USDC is the only viable downpayment denom (NLS is priced ~$0 on staging, so its USD figures are
-vacuous and its ranges unreachable). The lease minimum downpayment is **$40 USD-equivalent**,
-resolved **live** from `GET /api/leases/config/<protocol>` at test time, never hardcoded. One
+vacuous and its ranges unreachable). The protocol is resolved live from `GET /api/config`'s
+top-level `protocols[]` — `selectLeaseProtocol` picks the first identifier naming the downpayment
+ticker whose `GET /api/leases/config/<protocol>` carries a matching downpayment range (the bare
+`/api/leases/config` endpoint 400s — the protocol param is required). The lease minimum downpayment
+is **$40 USD-equivalent**, read from that per-protocol config at test time, never hardcoded. One
 lease cycle per run is roughly $42 gross, which fits the $50 USDC cap. A short lease asserts its
 opened position ticker equals `resolveShortLeaseStable(currencies)` (the lease-group stable, never
 the downpayment/LPN) — the `#283` short-side acceptance criterion. The rendered lease USD value is
@@ -701,7 +704,10 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   step (its journal/report are already sanitized; only the browser traces are the residual leak surface).
 - **IBC is inert until funded.** `ibc.spec.ts` is entirely skip-gated on an Osmosis-side funding
   probe (escalated to a hard failure under `E2E_EXPECT_FUNDED`); its structure is complete but the
-  live path stays inert until the counterparty side is funded.
+  live path stays inert until the counterparty side is funded. The probe uses the bech32-re-encoded
+  Osmosis address (`toOsmosisAddress`, `osmo1…` — the raw `nolus1…` HRP is rejected by the Osmosis
+  chain), and the probe + skip decision run **network-only, before any page navigation or the
+  console-budget window opens**, so an unfunded run never navigates and never trips console errors.
 - **Send receiver credit.** `send.spec.ts` renders the sender's debit (the Swap From=NLS technique)
   and confirms the receiver's credit through the balances API, since a second rendered session would
   need a reconnect and break the single-broadcast model.

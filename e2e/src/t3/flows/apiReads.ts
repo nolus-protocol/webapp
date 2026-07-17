@@ -1,6 +1,7 @@
 import type { OriginContext } from "../../t2/appDriver.js";
 import { readString } from "../../t2/matrixHelpers.js";
 import { readJson } from "../runtime.js";
+import { selectLeaseProtocol } from "./leaseProtocol.js";
 
 // Node-side, host-resolver-aware reads of the live API used by the flow specs to build the
 // oracle inputs and precondition probes. Coverage-excluded browser/network glue (see
@@ -46,14 +47,25 @@ export async function leaseConfig(ctx: OriginContext, protocol: string): Promise
   return readJson(ctx, `${ctx.origin}/api/leases/config/${encodeURIComponent(protocol)}`);
 }
 
-/** The first protocol key from `/api/leases/config`, or throws if none resolvable. */
-export async function firstProtocol(ctx: OriginContext): Promise<string> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/leases/config`);
-  const protocol = Object.keys(asRecord(payload) ?? {})[0];
-  if (protocol === undefined) {
-    throw new Error("no lease protocol resolvable from /api/leases/config");
-  }
-  return protocol;
+/** The protocol identifiers from `/api/config` (top-level `protocols: string[]`). */
+export async function leaseProtocols(ctx: OriginContext): Promise<string[]> {
+  const payload = await readJson(ctx, `${ctx.origin}/api/config`);
+  const protocols = asRecord(payload)?.protocols;
+  return Array.isArray(protocols) ? protocols.filter((p): p is string => typeof p === "string") : [];
+}
+
+/**
+ * Resolve a lease protocol for the given downpayment ticker: the deterministic first `/api/config`
+ * protocol naming the ticker whose `/api/leases/config/<protocol>` carries a matching downpayment
+ * range. The bare `/api/leases/config` endpoint 400s (the protocol param is required), so the list
+ * comes from `/api/config`, never that endpoint.
+ */
+export async function resolveLeaseProtocol(ctx: OriginContext, downpaymentTicker: string): Promise<string> {
+  return selectLeaseProtocol({
+    protocols: await leaseProtocols(ctx),
+    downpaymentTicker,
+    loadConfig: (protocol) => leaseConfig(ctx, protocol)
+  });
 }
 
 /** The currencies list for lease-group stable resolution. */

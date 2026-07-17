@@ -8,6 +8,7 @@ import { toMicroAmount } from "../../transfer.js";
 import { submitForm } from "./formDriver.js";
 import { readJson } from "../runtime.js";
 import { USDC_DENOM } from "./denoms.js";
+import { toOsmosisAddress } from "./address.js";
 
 // IBC deposit + withdraw Nolus <-> Osmosis (#283 flow 5). ENTIRELY skip-gated on a funded
 // Osmosis-side probe: the whole flow is inert until that funding is confirmed, at which point
@@ -44,10 +45,12 @@ test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis sid
   wallet
 }, testInfo) => {
   skipIfHalted(testInfo, run);
-  test.setTimeout(TERMINAL_MS * 3);
-  budget.route = "/assets";
 
-  const funded = await osmosisFunded(run.ctx, wallet.address);
+  // Network-only gate: derive the Osmosis-side address (bech32 re-encode; probing with the raw
+  // nolus HRP is rejected by the Osmosis chain) and decide the skip BEFORE opening the page or the
+  // console-budget window, so an unfunded run never navigates and never trips console errors.
+  const osmosisAddress = toOsmosisAddress(wallet.address);
+  const funded = await osmosisFunded(run.ctx, osmosisAddress);
   requireOrSkip(
     testInfo,
     run.matrix.expectFunded,
@@ -55,6 +58,8 @@ test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis sid
     "Osmosis counterparty side is not funded for an IBC round trip"
   );
 
+  test.setTimeout(TERMINAL_MS * 3);
+  budget.route = "/assets";
   const requiredMicro = BigInt(toMicroAmount(DUST_USDC, USDC_DECIMALS));
   await connectFlow(page, run, "/assets");
   // The deposit leg's own cap abort skips the whole test (spendCommittedOrSkip), so the withdraw
