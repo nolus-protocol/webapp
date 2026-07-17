@@ -85,6 +85,8 @@ export function readAttempts(resultsDir: string): Map<string, number> {
 }
 
 export function writeAttempts(resultsDir: string, attempts: Map<string, number>): void {
-  const path = join(resolve(resultsDir), ATTEMPTS_FILE_NAME);
+  const dir = resolve(resultsDir);
+  mkdirSync(dir, { recursive: true });
+  const path = join(dir, ATTEMPTS_FILE_NAME);
   writeFileSync(path, `${JSON.stringify(Object.fromEntries(attempts), null, 2)}\n`, "utf8");
 }
