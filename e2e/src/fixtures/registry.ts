@@ -4,9 +4,10 @@
  * browser-side fixture-mode interceptor, so the two never drift.
  *
  * `schema` names a whole-body object schema; `itemSchema` names a per-element schema for
- * a bare-array body (e.g. `/api/earn/pools`). Endpoints with neither are schemaless
- * (all `/api/etl/*`, `/api/governance/*`, `/api/staking/*`, and the config scaffolding):
- * their fixtures are shape-mirrored and guarded live against key-set drift, never parsed.
+ * a bare-array body (e.g. `/api/earn/pools`). Endpoints with neither are schemaless (the
+ * `/api/etl/*` batch/series endpoints, the remaining `/api/governance/*` and `/api/staking/*`
+ * scaffolding, and the config endpoints): their fixtures are shape-mirrored and guarded live
+ * against key-set drift, never parsed.
  */
 
 export type FixtureScope = "common" | "stats" | "vote" | "wallet";
@@ -18,7 +19,9 @@ export type SchemaName =
   | "earn-pool"
   | "earn-positions-response"
   | "balances-response"
-  | "skip-route-config";
+  | "skip-route-config"
+  | "proposals-response"
+  | "staking-positions-response";
 
 export interface FixtureRoute {
   /** Stable id for the coverage matrix and diagnostics. */
@@ -154,7 +157,8 @@ const VOTE: readonly FixtureRoute[] = [
     id: "proposals",
     pattern: /^\/api\/governance\/proposals$/,
     file: "routes/vote/governance-proposals.json",
-    scope: "vote"
+    scope: "vote",
+    schema: "proposals-response"
   },
   {
     id: "params-tallying",
@@ -190,7 +194,8 @@ const WALLET: readonly FixtureRoute[] = [
     id: "staking-positions",
     pattern: /^\/api\/staking\/positions$/,
     file: "wallet/staking-positions.json",
-    scope: "wallet"
+    scope: "wallet",
+    schema: "staking-positions-response"
   },
   {
     id: "user-dashboard",

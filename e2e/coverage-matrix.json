@@ -530,7 +530,7 @@
       "mapping": {
         "type": "gap",
         "category": "schemaless-unvalidated",
-        "reason": "governance/proposals is schemaless; fixture shape-mirrored + live key-set guard; figure-level bridge is a follow-up"
+        "reason": "governance/proposals fixture is now schema-validated by ProposalsResponseSchema; the open gap is the figure-level render bridge, which no spec asserts yet"
       }
     },
     {
