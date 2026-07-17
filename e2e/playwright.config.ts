@@ -23,14 +23,14 @@ export default defineConfig<T2Options>({
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: "playwright-report" }],
-    ["json", { outputFile: "results/t1.json" }]
+    ["json", { outputFile: "results/playwright-report.json" }]
   ],
   use: {
     baseURL: baseUrl,
     headless: true,
     browserName: "chromium",
     screenshot: "only-on-failure",
-    trace: isCI ? "on-first-retry" : "off",
+    trace: "retain-on-failure",
     launchOptions: { args: launchArgs }
   },
   projects: [

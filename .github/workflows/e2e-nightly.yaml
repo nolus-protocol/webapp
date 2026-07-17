@@ -1,0 +1,282 @@
+name: E2E nightly (scheduled full run)
+
+on:
+  schedule:
+    # 03:17 UTC — deliberately off the deploy window so a nightly never races a cutover.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      base_domain:
+        description: "Target host to run against; falls back to the E2E_NIGHTLY_BASE_DOMAIN repo variable."
+        required: false
+        type: string
+      prerelease:
+        description: "Pre-release full run before a release cutover (same tiers as the nightly)."
+        required: false
+        default: false
+        type: boolean
+
+# Serialize with the deploy workflow's live e2e phase on the one per-host rate-limit bucket:
+# nightly and post-deploy runs must never hit the strict bucket at the same time. The group
+# expression is duplicated here (a top-level concurrency key cannot read a step output); the
+# tiers below take their base domain from the single resolve step instead.
+concurrency:
+  group: e2e-live-${{ inputs.base_domain || vars.E2E_NIGHTLY_BASE_DOMAIN }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    name: Nightly full suite
+    runs-on: [self-hosted, frontend-deploy]
+    timeout-minutes: 75
+
+    env:
+      E2E_READONLY_ADDRESS: ${{ vars.E2E_READONLY_ADDRESS }}
+      E2E_WALLET_MNEMONIC: ${{ secrets.E2E_WALLET_MNEMONIC }}
+      E2E_WALLET_MNEMONIC_2: ${{ secrets.E2E_WALLET_MNEMONIC_2 }}
+      E2E_SPEND_CAP_NLS: '100'
+      E2E_SPEND_CAP_USDC: '50'
+      E2E_SCRUB_VALUE: ${{ vars.DEPLOY_HOST }}
+      E2E_ALERT_WEBHOOK: ${{ secrets.E2E_ALERT_WEBHOOK }}
+      E2E_USDC_LOW_WATER: ${{ vars.E2E_USDC_LOW_WATER }}
+
+    steps:
+      - name: Resolve target base domain
+        env:
+          INPUT_BASE_DOMAIN: ${{ inputs.base_domain }}
+          VAR_BASE_DOMAIN: ${{ vars.E2E_NIGHTLY_BASE_DOMAIN }}
+          RESOLVER_TARGET: ${{ vars.DEPLOY_HOST }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          set -euo pipefail
+          # Mask the resolver target (and the composed host-resolver pair) in ALL subsequent step
+          # logs before anything can echo it. Artifacts are scrubbed on disk; tier stdout/stderr is
+          # not, so an undici connect error printing the internal host would otherwise land in the
+          # public Actions log unredacted.
+          if [ -n "${RESOLVER_TARGET:-}" ]; then
+            echo "::add-mask::${RESOLVER_TARGET}"
+          fi
+          base="${INPUT_BASE_DOMAIN:-}"
+          if [ -z "$base" ]; then base="${VAR_BASE_DOMAIN:-}"; fi
+          if [ -z "$base" ]; then
+            echo "::error::no base domain resolved — pass base_domain on dispatch or set the E2E_NIGHTLY_BASE_DOMAIN repo variable (the cron path has no inputs and depends on the variable)"
+            exit 1
+          fi
+          # Reject anything that is not a bare hostname BEFORE writing $GITHUB_ENV — a dispatch
+          # input carrying a newline could otherwise inject extra environment entries.
+          if [[ ! "$base" =~ ^[A-Za-z0-9.-]+$ ]]; then
+            echo "::error::resolved base domain is not a bare hostname; refusing to continue"
+            exit 1
+          fi
+          if [ -n "${RESOLVER_TARGET:-}" ]; then
+            echo "::add-mask::${base}=${RESOLVER_TARGET}"
+          fi
+          {
+            echo "BASE_DOMAIN=$base"
+            echo "E2E_BASE_URL=https://$base"
+            echo "E2E_WS_URL=wss://$base/ws"
+            echo "E2E_HOST_RESOLVER=$base=${RESOLVER_TARGET}"
+          } >> "$GITHUB_ENV"
+          echo "resolved base domain from ${INPUT_BASE_DOMAIN:+dispatch input}${INPUT_BASE_DOMAIN:-the repo variable}; prerelease run: ${PRERELEASE:-false}"
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: |
+          set -euo pipefail
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Clear stale artifacts from any prior run
+        working-directory: e2e
+        run: |
+          set -euo pipefail
+          # Start from a clean slate so `results/report.json` is present iff THIS run's report cli
+          # wrote it — the heartbeat's crash test then keys off presence alone, with no stale-file
+          # ambiguity to reason around.
+          rm -rf results test-results playwright-report
+
+      - name: Budget pre-flight (primary USDC low-water)
+        id: preflight
+        continue-on-error: true
+        working-directory: e2e
+        run: npm run report:preflight
+
+      - name: t0 API/WS cross-checks
+        id: t0
+        continue-on-error: true
+        working-directory: e2e
+        run: npm run t0
+
+      - name: t1 UI smoke
+        id: t1
+        continue-on-error: true
+        working-directory: e2e
+        run: npm run t1
+
+      - name: t2 wallet tier
+        id: t2
+        continue-on-error: true
+        working-directory: e2e
+        run: npm run t2
+
+      - name: t3 tx engine smoke
+        id: t3engine
+        continue-on-error: true
+        working-directory: e2e
+        run: npm run t3:engine
+
+      - name: t3 value-moving flows
+        id: t3flows
+        continue-on-error: true
+        working-directory: e2e
+        run: npm run t3:flows
+
+      - name: Scrub the resolver target from artifacts
+        if: always()
+        working-directory: e2e
+        env:
+          RESOLVER_TARGET: ${{ vars.DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          target="${RESOLVER_TARGET:-}"
+          if [ -z "$target" ]; then
+            echo "artifact scrub: no resolver target configured; nothing to redact"
+            exit 0
+          fi
+          total=0
+          for dir in results playwright-report test-results; do
+            [ -d "$dir" ] || continue
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              n=$(grep -oaF -- "$target" "$f" | wc -l | tr -d ' ')
+              total=$((total + n))
+              perl -pi -e 'BEGIN{$t=$ENV{"RESOLVER_TARGET"}} s/\Q$t\E/<redacted-host>/g' "$f"
+            done < <(grep -rIlF -- "$target" "$dir" 2>/dev/null || true)
+          done
+          # Second pass WITHOUT -I: any file still matching after text redaction is binary (a
+          # trace.zip or screenshot the sanitizer can't rewrite) — delete it outright so the
+          # resolver target never ships inside an opaque artifact.
+          deleted=0
+          for dir in results playwright-report test-results; do
+            [ -d "$dir" ] || continue
+            while IFS= read -r f; do
+              [ -n "$f" ] || continue
+              echo "artifact scrub: deleting binary artifact containing the resolver target: $f"
+              rm -f "$f"
+              deleted=$((deleted + 1))
+            done < <(grep -rlF -- "$target" "$dir" 2>/dev/null || true)
+          done
+          # Compressed pass: a trace.zip stores the resolver target COMPRESSED, so the raw-byte
+          # grep above cannot see it. Inspect each zip's decompressed stream and delete on match.
+          # If unzip is unavailable, fail closed — delete every zip in the artifact dirs (a public
+          # repo must never ship a trace that might carry the internal host).
+          zipped=0
+          if command -v unzip >/dev/null 2>&1; then
+            for dir in results playwright-report test-results; do
+              [ -d "$dir" ] || continue
+              while IFS= read -r z; do
+                [ -n "$z" ] || continue
+                if unzip -p "$z" 2>/dev/null | grep -qaF -- "$target"; then
+                  echo "artifact scrub: deleting zip containing the resolver target: $z"
+                  rm -f "$z"
+                  zipped=$((zipped + 1))
+                fi
+              done < <(find "$dir" -type f -name '*.zip' 2>/dev/null || true)
+            done
+          else
+            echo "artifact scrub: unzip unavailable — failing closed, deleting every zip in the artifact dirs"
+            for dir in results playwright-report test-results; do
+              [ -d "$dir" ] || continue
+              while IFS= read -r z; do
+                [ -n "$z" ] || continue
+                echo "artifact scrub: deleting zip (no unzip to inspect): $z"
+                rm -f "$z"
+                zipped=$((zipped + 1))
+              done < <(find "$dir" -type f -name '*.zip' 2>/dev/null || true)
+            done
+          fi
+          echo "artifact scrub: redacted ${total} text occurrence(s); deleted ${deleted} binary file(s) and ${zipped} zip(s) across results/ playwright-report/ test-results/"
+
+      - name: Build report and post alert
+        id: report
+        continue-on-error: true
+        working-directory: e2e
+        run: |
+          set +e
+          npm run report
+          code=$?
+          echo "exit_code=${code}" >> "$GITHUB_OUTPUT"
+          echo "report cli exit code: ${code}"
+          exit 0
+
+      - name: Upload nightly artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-nightly-${{ env.BASE_DOMAIN }}
+          path: |
+            e2e/results/
+            e2e/playwright-report/
+            e2e/test-results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Heartbeat — a crashed nightly must still be heard
+        if: always()
+        working-directory: e2e
+        env:
+          ALERT_WEBHOOK: ${{ secrets.E2E_ALERT_WEBHOOK }}
+        run: |
+          set -uo pipefail
+          # The report cli owns the alert whenever it produced a report.json (green: no post; red:
+          # posted; alert-delivery failure: surfaced by the arbiter step below). Since the job now
+          # starts from a cleared results/, report.json is present iff this run's cli wrote it —
+          # so fire the heartbeat ONLY on a true crash (no report.json at all). Exactly one alert
+          # can ever leave a run: the cli's, or this heartbeat, never both.
+          if [ -f results/report.json ]; then
+            echo "heartbeat: report.json present; the report cli owns this run's alert"
+            exit 0
+          fi
+          echo "::warning::nightly produced no report.json — the run crashed before the report step"
+          if [ -z "${ALERT_WEBHOOK:-}" ]; then
+            echo "::error::heartbeat: no alert webhook configured — a crashed nightly cannot be announced"
+            exit 1
+          fi
+          # Static text only: no host or dynamic value, so no scrub pass is required.
+          curl -fsS --max-time 15 -X POST "$ALERT_WEBHOOK" \
+            -H 'content-type: application/json' \
+            -d '{"suite":"e2e-nightly","urgency":"loud","kind":"heartbeat","summary":"nightly produced no report — the run crashed before the report step; investigate the run logs"}' \
+            || { echo "::error::heartbeat: alert delivery failed"; exit 1; }
+          echo "heartbeat: posted no-report alert"
+
+      - name: Conclude the run from the report exit code
+        if: always()
+        env:
+          REPORT_EXIT: ${{ steps.report.outputs.exit_code }}
+        run: |
+          set -uo pipefail
+          # Single arbiter of the job conclusion: the tiers and the report step are all
+          # continue-on-error, so the run's colour comes solely from the exit code the report cli
+          # recorded. A missing code means the report step never ran or crashed — fail closed.
+          code="${REPORT_EXIT:-}"
+          if [ -z "$code" ]; then
+            echo "::error::report step recorded no exit code — it never ran or crashed; failing the nightly"
+            exit 1
+          fi
+          case "$code" in
+            0) echo "nightly green — no classified failures" ; exit 0 ;;
+            1) echo "::error::nightly red — classified failures present (see report.md)" ; exit 1 ;;
+            2) echo "::error::nightly alert delivery/config failure" ; exit 2 ;;
+            *) echo "::error::unexpected report exit code: ${code}" ; exit 1 ;;
+          esac

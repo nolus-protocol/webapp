@@ -17,6 +17,11 @@ export default defineConfig({
         "src/t3/journalStore.ts",
         "src/t3/runtime.ts",
         "src/t3/repair.ts",
+        // Reporting-tier fs/network glue: reads the tier result files, writes report.json +
+        // report.md, and posts the alert. The pure aggregate/render/alert/scrub modules it
+        // composes are unit-tested; the CLI shell itself is exercised by the nightly workflow.
+        "src/report/cli.ts",
+        "src/report/preflight.ts",
         // T3 flow browser/network glue — the run singleton, live API reads, and form driver are
         // exercised by the live t3-flows suite, not vitest. The pure helpers they compose
         // (sideSelection, seq, tolerance, preconditions) stay included and unit-tested.
