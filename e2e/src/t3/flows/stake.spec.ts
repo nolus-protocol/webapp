@@ -13,7 +13,7 @@ import { typeAmount, requireOrSkip, probeNativeMicroBalance } from "../../t2/mat
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { formatTokenBalance } from "../../oracle/format.js";
-import { submitForm } from "./formDriver.js";
+import { submitForm, waitForAmountAccepted, clickActionAndSettle } from "./formDriver.js";
 import { unbondingEntriesFor } from "./apiReads.js";
 import { pickUnbondingValidator, unbondingEntryGate } from "./preconditions.js";
 import { parseDelegations, parseAccruedRewardMicro, parseMaturingRedelegationCount } from "./staking.js";
@@ -63,6 +63,7 @@ test("stake delegate of dust NLS renders the delegated amount matching the oracl
 
   await connectFlow(page, run, "/stake/delegate");
   await typeAmount(page, "receive-send", DUST_NLS);
+  await waitForAmountAccepted(page);
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-stake",
     action: "delegate",
@@ -111,6 +112,7 @@ test("stake undelegate is precondition-gated on the per-validator unbonding-entr
 
   await connectFlow(page, run, "/stake/undelegate");
   await typeAmount(page, "receive-send", DUST_NLS);
+  await waitForAmountAccepted(page);
   const requiredMicro = BigInt(toMicroAmount(DUST_NLS, NATIVE_DECIMALS));
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-stake",
@@ -161,14 +163,9 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
     items: [{ denom: "nls", micro: 0n }],
     denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
     memo: `redelegate from ${source}`,
-    execute: async () => {
-      await page
-        .getByRole("button", { name: /redelegate/i })
-        .first()
-        .click({ timeout: TERMINAL_MS });
-      await typeAmount(page, "receive-send", DUST_NLS);
-      await submitForm(page, { submitLabel: messageValue(run.locale, "redelegate"), terminalMs: TERMINAL_MS });
-    }
+    // RedelegateButton is a one-shot control: its click runs walletOperation directly (auto-picks
+    // the destination validators, no amount input, no submit dialog) and settles on a toast/error.
+    execute: () => clickActionAndSettle(page, /redelegate/i, TERMINAL_MS)
   });
 
   reportLeftover(run, testInfo, { terminal: "success" });

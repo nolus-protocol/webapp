@@ -96,25 +96,49 @@ export async function leaseProtocols(ctx: OriginContext): Promise<string[]> {
   return record === undefined ? [] : Object.keys(record);
 }
 
+/** Load a protocol's config with a single, pacing-aware retry to ride out a transient 5xx. */
+async function leaseConfigWithRetry(
+  ctx: OriginContext,
+  protocol: string,
+  pace?: () => Promise<void>
+): Promise<unknown> {
+  try {
+    return await leaseConfig(ctx, protocol);
+  } catch {
+    if (pace !== undefined) {
+      await pace();
+    }
+    return leaseConfig(ctx, protocol);
+  }
+}
+
 /**
  * Load every eligible lease protocol with its parsed downpayment ranges. The protocol list comes
  * from `/api/config` (the bare `/api/leases/config` 400s — the protocol param is required); each
- * protocol's `/api/leases/config/<protocol>` is fetched and parsed, and a protocol whose config
- * fails to load or carries no ranges is dropped (ineligible), never assumed present.
+ * `/api/leases/config/<protocol>` is fetched (with one paced retry) and parsed. A protocol whose
+ * config carries no ranges is dropped as ineligible. But if EVERY protocol's config load FAILED
+ * (not merely empty), that is a transient outage after a deploy burst, not a permanent
+ * ineligibility — this throws `lease-config-unavailable` (an environment signal, retry next run)
+ * rather than returning empty and letting the plan report a permanent-looking skip.
  */
-export async function leaseProtocolConfigs(ctx: OriginContext): Promise<ProtocolConfig[]> {
+export async function leaseProtocolConfigs(ctx: OriginContext, pace?: () => Promise<void>): Promise<ProtocolConfig[]> {
   const protocols = await leaseProtocols(ctx);
   const configs: ProtocolConfig[] = [];
+  let fetchFailures = 0;
   for (const protocol of protocols) {
     let ranges: ProtocolConfig["ranges"];
     try {
-      ranges = parseDownpaymentRanges(await leaseConfig(ctx, protocol));
+      ranges = parseDownpaymentRanges(await leaseConfigWithRetry(ctx, protocol, pace));
     } catch {
+      fetchFailures += 1;
       continue;
     }
     if (ranges.length > 0) {
       configs.push({ protocol, ranges });
     }
+  }
+  if (configs.length === 0 && protocols.length > 0 && fetchFailures === protocols.length) {
+    throw new Error(`lease-config-unavailable: all ${protocols.length} lease config loads failed after retry`);
   }
   return configs;
 }

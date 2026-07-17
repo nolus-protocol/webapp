@@ -7,7 +7,8 @@ import {
   reportLeftover,
   skipIfHalted,
   spendCommittedOrSkip,
-  annotateSkipAndStop
+  annotateSkipAndStop,
+  classifyAndRoute
 } from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, readString } from "../../t2/matrixHelpers.js";
@@ -24,7 +25,7 @@ import {
   heldAssetUsd,
   currencies
 } from "./apiReads.js";
-import { submitForm, openDetailDialog } from "./formDriver.js";
+import { submitForm, openDetailDialog, waitForAmountAccepted } from "./formDriver.js";
 import { remainsAboveMin } from "./preconditions.js";
 import { planLeaseDownpayment } from "./leasePlan.js";
 import type { LeaseDownpaymentPlan } from "./leasePlan.js";
@@ -86,6 +87,7 @@ async function setTakeProfitStopLoss(page: Page, triggerPercent: string): Promis
     .first()
     .click({ timeout: TERMINAL_MS });
   await typeAmount(page, "receive-send", triggerPercent);
+  await waitForAmountAccepted(page);
   await submitForm(page, { submitLabel: messageValue(run.locale, "submit-btn"), terminalMs: TERMINAL_MS });
 }
 
@@ -99,6 +101,7 @@ async function driveClose(page: Page, mode: "market" | "partial", amount?: strin
   await page.getByRole("button", { name: /close/i }).first().click({ timeout: TERMINAL_MS });
   if (mode === "partial" && amount !== undefined) {
     await typeAmount(page, "receive-send", amount);
+    await waitForAmountAccepted(page);
   } else {
     await page
       .getByText(/full/i)
@@ -198,8 +201,16 @@ async function resolveDownpayment(
   address: string,
   side: LeaseSide
 ): Promise<ResolvedDownpayment> {
+  let protocols: Awaited<ReturnType<typeof leaseProtocolConfigs>>;
+  try {
+    protocols = await leaseProtocolConfigs(run.ctx, () => run.queue.pace("standard"));
+  } catch (error) {
+    // An all-configs-failed outage (lease-config-unavailable) is a transient environment skip that
+    // retries next run, not a permanent precondition.
+    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
+  }
   const plan: LeaseDownpaymentPlan = planLeaseDownpayment({
-    protocols: await leaseProtocolConfigs(run.ctx),
+    protocols,
     heldUsd: await heldAssetUsd(run.ctx, address, run.currencyResolver, run.pricesPayload),
     usdcUsd: await usdcHeldUsd(run.ctx, address),
     acquireTarget: ACQUIRE_TARGET,
@@ -246,6 +257,7 @@ test("a single alternating-side lease runs its full lifecycle through the engine
 
   await connectFlow(page, run, `/positions/open/${side}`);
   await typeAmount(page, "receive-send", downpayment.amount);
+  await waitForAmountAccepted(page);
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-lease",
     action: "lease-open",
@@ -289,6 +301,7 @@ test("a single alternating-side lease runs its full lifecycle through the engine
     execute: async () => {
       await page.getByRole("button", { name: /repay/i }).first().click({ timeout: TERMINAL_MS });
       await typeAmount(page, "receive-send", MIN_TRANSACTION_USDC);
+      await waitForAmountAccepted(page);
       await submitForm(page, { submitLabel: messageValue(run.locale, "repay"), terminalMs: TERMINAL_MS });
     }
   });
