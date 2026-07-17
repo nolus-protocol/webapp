@@ -107,10 +107,9 @@ export function resolveDownpaymentFloorUsd(payload: unknown, currency?: string):
   return ranges.reduce((max, range) => (range.min.gt(max) ? range.min : max), Decimal.zero());
 }
 
-/** Whether the lease config carries a downpayment range for a currency naming `ticker`. */
-export function hasDownpaymentRange(config: unknown, ticker: string): boolean {
-  const wanted = ticker.toUpperCase();
-  return extractRanges(config).some((range) => range.currency.toUpperCase().includes(wanted));
+/** Parse a lease config's downpayment ranges into `{ currency, minUsd }` pairs (empty when none). */
+export function parseDownpaymentRanges(config: unknown): { currency: string; minUsd: Decimal }[] {
+  return extractRanges(config).map((range) => ({ currency: range.currency, minUsd: range.min }));
 }
 
 /** True when a partial repay/close leaves at least the protocol's `min_asset` residual. */
