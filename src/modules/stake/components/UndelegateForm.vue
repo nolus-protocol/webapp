@@ -74,7 +74,7 @@ import { useBalancesStore } from "@/common/stores/balances";
 import { useStakingStore } from "@/common/stores/staking";
 import { useHistoryStore } from "@/common/stores/history";
 import { Dec } from "@keplr-wallet/unit";
-import { formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
+import { classifyError, formatDateTime, Logger, validateAmountV2, walletOperation } from "@/common/utils";
 import { useRouter } from "vue-router";
 import { RouteNames } from "@/router";
 import { formatDecAsUsd, formatTokenBalance } from "@/common/utils/NumberFormatUtils";
@@ -155,6 +155,9 @@ async function onNextClick() {
       await walletOperation(undelegate);
     } catch (e) {
       Logger.error(e);
+      // Don't swallow: an undelegate failure after validation (simulation /
+      // broadcast) must surface a localized message on the field.
+      validationError.value = i18n.t(classifyError(e));
     } finally {
       disabled.value = false;
     }
