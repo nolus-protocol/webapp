@@ -15,6 +15,8 @@ export function e2eRoot(): string {
 }
 
 export function loadMatrix(): CoverageMatrix {
+  // Sanctioned boundary narrow: JSON.parse is `any`; coverage-matrix.json is a committed
+  // artifact whose shape the CoverageMatrix type owns, and checkMatrix validates every cell.
   return JSON.parse(readFileSync(join(e2eRoot(), "coverage-matrix.json"), "utf8")) as CoverageMatrix;
 }
 

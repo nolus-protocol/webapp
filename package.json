@@ -20,7 +20,7 @@
     "format:check": "prettier --check src",
     "prepare": "husky",
     "typecheck": "vue-tsc --noEmit -p tsconfig.app.json",
-    "gen:fixture-schemas": "node scripts/gen-fixture-schemas.ts"
+    "gen:fixture-schemas": "node --experimental-strip-types scripts/gen-fixture-schemas.ts"
   },
   "dependencies": {
     "@cosmjs/amino": "0.38.1",

@@ -10,6 +10,7 @@
  */
 
 import { test, expect } from "../fixtures/support.js";
+import { waitForFiguresSettled } from "./figures.js";
 
 const ROUTES = ["/", "/assets", "/earn", "/positions", "/stake", "/activities", "/vote", "/stats"] as const;
 
@@ -32,9 +33,12 @@ for (const route of ROUTES) {
     await page.route(/intercom/i, (route_) => route_.abort());
     await fixtureMode.boot(page, route);
     await page.addStyleTag({ content: FREEZE_CSS });
-    // Let the AnimateNumber count-up finish so the digit widths (and surrounding layout)
-    // settle before capture.
-    await page.waitForTimeout(2000);
+    // Deterministic settle (no arbitrary sleep): wait for fonts to load and the count-up
+    // figures to stop changing, so the digit widths — and the surrounding layout — are final.
+    // Browser code is a string (the e2e tsconfig has no DOM lib); the FontFaceSet is mapped
+    // to a serializable value.
+    await page.evaluate("document.fonts.ready.then(function () { return true; })");
+    await waitForFiguresSettled(page);
     await expect(page).toHaveScreenshot(`${routeSlug(route)}.png`, {
       fullPage: true,
       animations: "disabled",

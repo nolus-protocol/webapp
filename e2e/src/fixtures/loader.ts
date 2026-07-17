@@ -28,6 +28,8 @@ export function readFixture(file: string): unknown {
 }
 
 export function readSchema(name: string): object {
+  // Sanctioned boundary narrow: JSON.parse is `any`; the file is a codegen-produced JSON
+  // Schema handed straight to ajv, which validates its shape at compile time.
   return JSON.parse(readFileSync(join(schemasDir(), `${name}.json`), "utf8")) as object;
 }
 
