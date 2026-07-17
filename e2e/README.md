@@ -729,7 +729,6 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
 - **Animated figures — assert the aria-label, not innerText.** Rendered money figures count up via
   the app's AnimateNumber, whose `innerText` is the whole digit-roller ladder; the true formatted
   value lives ONLY in the element's `aria-label` (the T1 bridge technique). `renderFigure.ts`
-  (`findAnimatedFigure` / `findAnimatedFigureWithinTolerance` / `findPositiveAnimatedFigure`) reads
   the aria-label, and the pure normalization/compare is `figureText.ts` (unit-tested). The
   stake-delegated total, earn total, and lease detail size + USD all read the aria-label with the
   oracle as the expectation source.

@@ -69,12 +69,3 @@ export async function findAnimatedFigureWithinTolerance(
     (aria) => /^-?\d+(\.\d+)?$/.test(aria) && withinTolerance({ actual: aria, expected, tolerance }).ok
   );
 }
-
-/**
- * Whether some AnimateNumber figure within `scope` settles to a POSITIVE number — matched on its
- * `aria-label`, not the digit-roller `innerText`. Used to confirm a balance figure has loaded and
- * finished counting up (e.g. the swap From-side NLS balance) before typing against it.
- */
-export async function findPositiveAnimatedFigure(scope: Locator, timeoutMs: number = STABLE_TIMEOUT): Promise<boolean> {
-  return pollForFigure(scope, timeoutMs, (aria) => /^\d+(\.\d+)?$/.test(aria) && Number(aria) > 0);
-}
