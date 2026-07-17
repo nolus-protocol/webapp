@@ -30,6 +30,7 @@ export interface RunTest {
  * source-file tier the caller passed.
  */
 const PROJECT_TIER: Record<string, string> = {
+  fixture: "t1",
   "desktop-light": "t1",
   "desktop-dark": "t1",
   mobile: "t1",
