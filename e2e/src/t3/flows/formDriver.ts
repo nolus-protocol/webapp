@@ -51,6 +51,9 @@ async function readSurface(page: Page): Promise<TerminalSurface> {
  */
 export async function submitForm(page: Page, options: SubmitOptions): Promise<void> {
   await page.getByRole("button", { name: options.submitLabel, exact: true }).last().click();
+  // Capture the winning decision INSIDE the poll — once `success` is observed nothing may override
+  // it (no post-poll re-read, which would be a TOCTOU over the auto-dismissing toast).
+  let settled: TerminalDecision | undefined;
   try {
     await expect
       .poll(
@@ -64,17 +67,23 @@ export async function submitForm(page: Page, options: SubmitOptions): Promise<vo
               .catch(() => undefined);
             return "pending";
           }
+          settled = decision;
           return decision.kind;
         },
         { message: `submit "${options.submitLabel}" should reach a terminal surface`, timeout: options.terminalMs }
       )
       .not.toBe("pending");
-  } catch {
-    throw new Error(`terminal-signal-timeout: no toast or error surface after submitting "${options.submitLabel}"`);
+  } catch (error) {
+    // Relabel ONLY the poll's own timeout; rethrow a genuine harness/selector error unchanged.
+    const message = error instanceof Error ? error.message : String(error);
+    if (/timed out/i.test(message)) {
+      throw new Error(`terminal-signal-timeout: no toast or error surface after submitting "${options.submitLabel}"`, {
+        cause: error
+      });
+    }
+    throw error;
   }
-  // The poll left "pending" only on success or error; re-read the surface to route the outcome.
-  const settled: TerminalDecision = decideTerminal(await readSurface(page));
-  if (settled.kind === "error") {
+  if (settled?.kind === "error") {
     throw new Error(`form submission failed: ${settled.text}`);
   }
 }
