@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { heldMicro, microToUsd, parseCurrencyResolver, priceUsdOf, tickersMatching } from "./denomResolver.js";
+import {
+  bankDenomOf,
+  heldMicro,
+  heldUsdcVariant,
+  microToUsd,
+  parseCurrencyResolver,
+  priceUsdOf,
+  tickersMatching
+} from "./denomResolver.js";
 import { Decimal } from "../../oracle/decimal.js";
 
 // Fixtures shaped like the REAL responses: balances `symbol`/`denom` carry the ibc bank hash and
@@ -88,5 +96,29 @@ describe("tickersMatching", () => {
     const resolver = new Map(parseCurrencyResolver(CURRENCIES));
     resolver.set("USDC_AXELAR", { ticker: "USDC_AXELAR", bankSymbols: ["ibc/AX"], decimalDigits: 6 });
     expect(tickersMatching(resolver, "usdc").sort()).toEqual(["USDC_AXELAR", "USDC_NOBLE"]);
+  });
+});
+
+describe("bankDenomOf", () => {
+  it("returns a ticker's first resolved bank denom, or undefined when unknown", () => {
+    const resolver = parseCurrencyResolver(CURRENCIES);
+    expect(bankDenomOf(resolver, "OSMO")).toBe("ibc/OSMOHASH");
+    expect(bankDenomOf(resolver, "NLS")).toBe("unls");
+    expect(bankDenomOf(resolver, "NOPE")).toBeUndefined();
+  });
+});
+
+describe("heldUsdcVariant", () => {
+  const resolver = new Map(parseCurrencyResolver(CURRENCIES));
+  resolver.set("USDC_AXELAR", { ticker: "USDC_AXELAR", bankSymbols: ["ibc/AXHASH"], decimalDigits: 6 });
+
+  it("prefers the USDC variant the wallet actually holds", () => {
+    const holdsAxelar = { balances: [{ denom: "ibc/AXHASH", amount: "1000000" }], total_value_usd: "0" };
+    expect(heldUsdcVariant(resolver, holdsAxelar)).toBe("ibc/AXHASH");
+  });
+
+  it("falls back to the USDC_NOBLE denom when no USDC variant is held", () => {
+    const holdsNone = { balances: [{ denom: "unls", amount: "5000000" }], total_value_usd: "0" };
+    expect(heldUsdcVariant(resolver, holdsNone)).toBe("ibc/USDCHASH");
   });
 });

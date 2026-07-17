@@ -23,7 +23,8 @@ import {
   openedLease,
   leaseProtocolConfigs,
   heldAssetUsd,
-  currencies
+  currencies,
+  fetchBalances
 } from "./apiReads.js";
 import { submitForm, openDetailDialog, waitForAmountAccepted } from "./formDriver.js";
 import { remainsAboveMin } from "./preconditions.js";
@@ -33,6 +34,7 @@ import { resolveShortLeaseStable } from "./sideSelection.js";
 import type { LeaseSide } from "./sideSelection.js";
 import { assertNonZeroBasis, assertWithinTolerance } from "./tolerance.js";
 import { USDC_DENOM } from "./denoms.js";
+import { bankDenomOf, heldUsdcVariant } from "./denomResolver.js";
 
 // The alternating-side single-lease lifecycle (#283 flow 1), run same-run on ONE opened lease so
 // the pre-run sweep never sees a cross-run orphan: open → TP/SL create + edit → dust repay
@@ -159,7 +161,17 @@ async function usdcHeldUsd(ctx: RunContext["ctx"], address: string): Promise<Dec
 /** Acquire the downpayment asset by swapping USDC through the engine — capped in USDC, route-gated. */
 async function acquireDownpaymentAsset(page: Page, testInfo: TestInfo, acquireUsd: Decimal): Promise<void> {
   const acquireMicro = toMicroAmount(acquireUsd.toString(USDC_DECIMALS), USDC_DECIMALS);
-  const route = await probeSwapRoute(run.ctx, USDC_DENOM, ACQUIRE_TARGET, acquireMicro);
+  // The acquisition swap spends the USDC the wallet holds, so probe that variant (USDC_NOBLE
+  // fallback for a fresh wallet); the dest is the acquired OSMO downpayment asset.
+  const sourceDenom = heldUsdcVariant(run.currencyResolver, await fetchBalances(run.ctx, run.primary.address));
+  const destDenom = bankDenomOf(run.currencyResolver, ACQUIRE_TARGET);
+  if (sourceDenom === undefined || destDenom === undefined) {
+    annotateSkipAndStop(testInfo, "environment", `swap-route denom unresolved (USDC or ${ACQUIRE_TARGET})`);
+  }
+  const route = await probeSwapRoute(
+    { ctx: run.ctx, queue: run.queue, chainId: run.chain.chainId },
+    { sourceDenom, destDenom, amountMicro: acquireMicro }
+  );
   if (route.status === "error") {
     annotateSkipAndStop(testInfo, "environment", `acquire route probe failed: ${route.reason}`);
   }

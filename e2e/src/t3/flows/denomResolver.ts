@@ -87,3 +87,32 @@ export function tickersMatching(resolver: Map<string, ResolvedAsset>, needle: st
   const wanted = needle.toUpperCase();
   return [...resolver.keys()].filter((ticker) => ticker.toUpperCase().includes(wanted));
 }
+
+/**
+ * The resolved bank denom for a ticker — the value a Skip/swap route request must carry, never the
+ * ticker itself. Returns the first `bank_symbol` the resolver holds for the ticker, or undefined
+ * when the ticker is unknown.
+ */
+export function bankDenomOf(resolver: Map<string, ResolvedAsset>, ticker: string): string | undefined {
+  return resolver.get(ticker)?.bankSymbols[0];
+}
+
+/**
+ * The bank denom of the USDC variant the wallet actually holds — the denom a swap will spend or
+ * receive, so a route probe matches the real economy. Prefers the first held USDC-family variant;
+ * when none is held (e.g. a fresh wallet) it falls back to the `USDC_NOBLE` denom (the lease LPN).
+ * Returns undefined only when neither a held variant nor the fallback ticker resolves.
+ */
+export function heldUsdcVariant(
+  resolver: Map<string, ResolvedAsset>,
+  balancesPayload: unknown,
+  fallbackTicker = "USDC_NOBLE"
+): string | undefined {
+  for (const ticker of tickersMatching(resolver, "USDC")) {
+    const resolved = resolver.get(ticker);
+    if (resolved !== undefined && heldMicro(balancesPayload, resolved) > 0n) {
+      return resolved.bankSymbols[0];
+    }
+  }
+  return bankDenomOf(resolver, fallbackTicker);
+}

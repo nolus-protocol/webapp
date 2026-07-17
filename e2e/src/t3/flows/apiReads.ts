@@ -1,12 +1,13 @@
 import type { OriginContext } from "../../t2/appDriver.js";
 import { readString } from "../../t2/matrixHelpers.js";
-import { readJson } from "../runtime.js";
+import { readJson, postJson } from "../runtime.js";
+import type { SerialQueue } from "../serialQueue.js";
 import type { Decimal } from "../../oracle/decimal.js";
 import { parseDownpaymentRanges } from "./preconditions.js";
 import type { ProtocolConfig } from "./leasePlan.js";
 import { heldMicro, priceUsdOf, microToUsd, tickersMatching } from "./denomResolver.js";
 import type { ResolvedAsset } from "./denomResolver.js";
-import { hasSwapRoute } from "./preconditions.js";
+import { hasSwapRoute, buildSwapRouteRequest } from "./preconditions.js";
 
 // Node-side, host-resolver-aware reads of the live API used by the flow specs to build the
 // oracle inputs and precondition probes. Coverage-excluded browser/network glue (see
@@ -48,22 +49,31 @@ export async function usdcMicro(
 
 export type RouteProbe = { status: "routable" } | { status: "no-route" } | { status: "error"; reason: string };
 
+export interface SwapProbeDeps {
+  ctx: OriginContext;
+  queue: SerialQueue;
+  chainId: string;
+}
+
+export interface SwapProbeArgs {
+  sourceDenom: string;
+  destDenom: string;
+  amountMicro: string;
+}
+
 /**
  * Probe a swap route, distinguishing a genuine "no route for this amount" (a precondition) from a
  * probe ERROR (the API/network failed) — the latter must not be silently reported as no-route.
+ * `/api/swap/route` is a POST endpoint (a GET 405s), so the resolved bank denoms + Nolus chain id
+ * are sent as the JSON body, drawn through the strict `/api/swap/*` rate bucket like every other
+ * swap read.
  */
-export async function probeSwapRoute(
-  ctx: OriginContext,
-  fromDenom: string,
-  toTicker: string,
-  amountMicro: string
-): Promise<RouteProbe> {
+export async function probeSwapRoute(deps: SwapProbeDeps, args: SwapProbeArgs): Promise<RouteProbe> {
+  const body = buildSwapRouteRequest({ ...args, chainId: deps.chainId });
   let payload: unknown;
   try {
-    payload = await readJson(
-      ctx,
-      `${ctx.origin}/api/swap/route?from=${encodeURIComponent(fromDenom)}&to=${encodeURIComponent(toTicker)}&amount=${encodeURIComponent(amountMicro)}`
-    );
+    await deps.queue.pace("strict");
+    payload = await postJson(deps.ctx, `${deps.ctx.origin}/api/swap/route`, body);
   } catch (error) {
     return { status: "error", reason: error instanceof Error ? error.message : String(error) };
   }

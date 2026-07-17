@@ -1,5 +1,5 @@
 import type { OriginContext } from "../t2/appDriver.js";
-import { getJson } from "../http.js";
+import { getJson, postJson as httpPostJson } from "../http.js";
 import { sanitizeRpc } from "../transfer.js";
 import type { SerialQueue } from "./serialQueue.js";
 import type { SweepDeps } from "./reconcile.js";
@@ -20,6 +20,18 @@ const SWAP_PATH = /\/api\/swap\//;
 export async function readJson(ctx: OriginContext, url: string): Promise<unknown> {
   try {
     return await getJson(url, ctx.dispatcher);
+  } catch (error) {
+    const raw = error instanceof Error ? error.message : String(error);
+    // eslint-disable-next-line preserve-caught-error -- cause intentionally dropped: it carries the raw RPC host; message re-thrown through sanitizeRpc
+    throw new Error(sanitizeRpc(raw, ctx.origin));
+  }
+}
+
+/** POST counterpart of {@link readJson}: a host-resolver-aware JSON write whose failures are
+ * stripped of the RPC/target host before they escape (e.g. a `/api/swap/route` routability probe). */
+export async function postJson(ctx: OriginContext, url: string, payload: unknown): Promise<unknown> {
+  try {
+    return await httpPostJson(url, payload, ctx.dispatcher);
   } catch (error) {
     const raw = error instanceof Error ? error.message : String(error);
     // eslint-disable-next-line preserve-caught-error -- cause intentionally dropped: it carries the raw RPC host; message re-thrown through sanitizeRpc

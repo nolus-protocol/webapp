@@ -45,6 +45,7 @@ const LEFTOVER_ANNOTATION = "t3-flow-leftover";
 export interface ChainSettings {
   rpcUrl: string;
   gasPrice: string;
+  chainId: string;
 }
 
 /**
@@ -97,7 +98,11 @@ async function resolveChain(ctx: OriginContext, matrixRpc: string | undefined): 
   if (gasPrice === "") {
     throw new Error(`Nolus gas_price from /api/config is unparseable: "${gasPriceRaw}"`);
   }
-  return { rpcUrl, gasPrice };
+  const chainId = readString(nolus, "chain_id");
+  if (chainId === undefined) {
+    throw new Error("could not resolve the Nolus chain_id from /api/config");
+  }
+  return { rpcUrl, gasPrice, chainId };
 }
 
 /**
