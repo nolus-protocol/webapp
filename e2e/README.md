@@ -700,7 +700,7 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   of the `E2E_HOST_RESOLVER` target (`vars.DEPLOY_HOST`), then a second pass **without** `grep -I`
   finds any file still matching — a binary the sanitizer cannot rewrite (`trace.zip`, screenshots) —
   and **deletes it outright**, logging each deletion. The step logs both the redaction and deletion
-  counts. The `e2e-t3-engine.yaml` smoke uploads the same trace dirs and should adopt the identical
+  counts. The `e2e-t3-engine.yaml` smoke uploads the same trace dirs and now runs the identical
   step (its journal/report are already sanitized; only the browser traces are the residual leak surface).
 - **IBC is inert until funded.** `ibc.spec.ts` is entirely skip-gated on an Osmosis-side funding
   probe (escalated to a hard failure under `E2E_EXPECT_FUNDED`); its structure is complete but the
@@ -711,6 +711,81 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
 - **Send receiver credit.** `send.spec.ts` renders the sender's debit (the Swap From=NLS technique)
   and confirms the receiver's credit through the balances API, since a second rendered session would
   need a reconnect and break the single-broadcast model.
+
+## Reporting and alerting
+
+The reporting tier (`src/report/`) folds a whole run's artifacts into one machine-readable report,
+renders a human summary, and posts a classified alert. It is the arbiter for the nightly: the tiers
+run `continue-on-error`, and the report — not any single tier's exit code — decides the run's colour.
+
+- **Report shape (versioned).** `aggregate.ts` produces a `RunReport` carrying a `version` (bumped on
+  any shape change) plus: per-tier totals (passed / failed / skipped and the per-class breakdown);
+  every failure as a `ClassifiedFailure`; the genuine skips; a journal summary; the leftover-state
+  section; and the runtime coverage section. `render.ts` writes the markdown summary and `cli.ts`
+  writes `results/report.json` + `results/report.md`. Inputs are the per-tier Playwright JSON files
+  (`results/playwright-report.json` for t1 — the config's default json output — plus `results/t2.json`,
+  `results/t3-engine.json`, `results/t3-flows.json` from each tier's `PLAYWRIGHT_JSON_OUTPUT_NAME`
+  override), the `t0.json` summary,
+  the T3 journal (`t3-journal.jsonl`), the leftover report (`t3-report.json`), and `coverage-matrix.json`.
+- **Failure classes.** Each failure is tagged `app-bug`, `env-flake`, or `spend-cap-abort`, mapped
+  from the engine taxonomy: a red (unexpected) test is an `app-bug`; a t3-flow skip annotated
+  `environment:` is an `env-flake`; a `precondition:` skip whose reason is a spend-cap hit is a
+  `spend-cap-abort`. **Every other `precondition:` skip is a genuine skip, not a failure.** A t0
+  check failure is an `app-bug` (that tier carries no taxonomy).
+- **suite-suspect sub-tag.** An `app-bug` whose failure text reads like a broken locator / timeout /
+  selector is sub-tagged `suite-suspect`. A stale selector is app-red in urgency but is _not_ an app
+  regression — the label lets triage tell a rotted test apart from a real break.
+- **Runtime-coverage honesty.** The coverage section joins the actual per-test pass/skip/fail against
+  the matrix labels. A mapped cell whose test was **skipped tonight is reported as `skipped-tonight`,
+  never as covered** — a skipped assertion proves nothing. Gaps are always listed. This runtime view
+  complements (does not replace) the static `check:matrix` guard, which still gates every cell.
+- **Missing inputs never throw.** A missing or corrupt journal / leftover report / matrix / tier file
+  becomes an explicit `absent` / `corrupt` field in the report, so one torn artifact never loses the
+  rest of the run.
+- **Webhook contract.** `alert.ts` posts a compact classified summary to `E2E_ALERT_WEBHOOK` (a
+  secret; the endpoint is never committed). A **green** run posts nothing. An **env-flake / spend-cap
+  only** red posts a **low-urgency** payload. **Any app-bug** posts a **loud** payload. Failure modes
+  are fail-loud, never fail-silent: a non-2xx response, a network error, or a delivery that exceeds
+  the `DEFAULT_ALERT_TIMEOUT_MS` (15s) abort deadline exits non-zero with `alert delivery failed`, and
+  a **red run with no webhook configured** exits non-zero with `alert channel unconfigured` — an
+  unconfigured nightly must never look green. Every POST carries an `AbortSignal.timeout` so a
+  black-hole webhook fails fast instead of hanging the step until the job timeout. `cli.ts` exit
+  codes: `0` green, `1` red, `2` alert delivery / config failure.
+- **Scrubbing.** Every report / render / alert string is scrubbed twice: `sanitizeRpc` (bare IPv4 and
+  `user:pass@` credential forms) plus explicit removal of the resolver-target value passed as
+  `E2E_SCRUB_VALUE` (set by CI from `vars.DEPLOY_HOST`, never committed) and, when present in env, the
+  run mnemonics. The suite's inputs are already sanitized at source; this is the belt-and-suspenders
+  egress pass over `report.json`, `report.md`, and the webhook payload.
+- **Nightly schedule.** `.github/workflows/e2e-nightly.yaml` runs on cron `17 3 * * *` (off the deploy
+  window) and on `workflow_dispatch`. The target base domain resolves in one place —
+  `inputs.base_domain || vars.E2E_NIGHTLY_BASE_DOMAIN` — and the first step hard-fails if empty (the
+  cron path has no inputs, so it depends on the repo variable). That step also validates the resolved
+  base against `^[A-Za-z0-9.-]+$` before writing `$GITHUB_ENV` (a newline-bearing dispatch input must
+  not inject env entries) and `::add-mask::`es the resolver target so tier stdout/stderr can never
+  print the internal host in the public log. The job clears `results/`, `test-results/`, and
+  `playwright-report/` at the start, so `report.json` is present iff this run's cli wrote it. Tiers run
+  `continue-on-error` so all of them run and the report arbitrates; the artifact scrub runs `always()`;
+  the report step (also `continue-on-error`) records the cli's exit code to `$GITHUB_OUTPUT`; artifacts
+  upload `always()`. **Exactly one alert leaves a run:** the cli owns it whenever a `report.json`
+  exists (green→silent, red→posted, alert-failure→surfaced by the arbiter), and a final `always()`
+  heartbeat fires a loud static "no report" alert **only when `report.json` is absent** (a true crash),
+  failing loudly if no webhook is configured. A final `always()` arbiter step sets the job conclusion
+  from the recorded cli exit code (`1` red / `2` alert-failure; missing code → fail closed with `1`).
+  The nightly shares the `e2e-live-<base_domain>` concurrency group with the deploy workflow's live
+  e2e phase so the two never contend for the one per-host rate-limit bucket.
+- **Budget pre-flight.** Before the tiers, `report:preflight` derives the primary address, reads its
+  USDC holding through the host-resolver-aware read path, and posts a low-urgency warning (then
+  continues) when the balance is below `E2E_USDC_LOW_WATER` (default `45`) — a degrading budget is
+  announced _before_ the value-moving specs start skipping forever, not inferred from a silent skip list.
+- **Pre-release runs.** A pre-release full run is a manual `workflow_dispatch` with `prerelease: true`
+  before a release cutover; it runs the same full tier set as the nightly (no grep filter).
+- **Trace capture (CI-verified).** The browser projects run with `trace: retain-on-failure` and
+  `screenshot: only-on-failure`; a forced-failure trace/screenshot capture is verified in CI, not by a
+  unit test (the same posture as the flows' selector assertions).
+- **Cron freshness caveat.** GitHub disables scheduled workflows after a stretch of repository
+  inactivity, so the _absence_ of a nightly is itself a signal that in-repo tooling cannot catch. Pair
+  this with an external freshness check (alert if no nightly report has arrived in >48h); that check
+  is out of scope for this repo.
 
 ## Conventions
 

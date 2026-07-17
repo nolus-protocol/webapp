@@ -30,6 +30,14 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Mask the resolver target in logs
+        env:
+          RESOLVER_TARGET: ${{ vars.DEPLOY_HOST }}
+        run: |
+          # Artifacts are scrubbed on disk before upload; tier stdout/stderr is not. Mask the
+          # internal host in ALL subsequent step logs so a connect error can never print it.
+          if [ -n "${RESOLVER_TARGET:-}" ]; then echo "::add-mask::${RESOLVER_TARGET}"; fi
+
       - name: Run the T3 value-moving flows
         id: t3flows
         working-directory: e2e
@@ -83,7 +91,36 @@ jobs:
               deleted=$((deleted + 1))
             done < <(grep -rlF -- "$target" "$dir" 2>/dev/null || true)
           done
-          echo "artifact scrub: redacted ${total} text occurrence(s); deleted ${deleted} binary file(s) across results/ playwright-report/ test-results/"
+          # Compressed pass: a trace.zip stores the resolver target COMPRESSED, so the raw-byte
+          # grep above cannot see it. Inspect each zip's decompressed stream and delete on match.
+          # If unzip is unavailable, fail closed — delete every zip in the artifact dirs (a public
+          # repo must never ship a trace that might carry the internal host).
+          zipped=0
+          if command -v unzip >/dev/null 2>&1; then
+            for dir in results playwright-report test-results; do
+              [ -d "$dir" ] || continue
+              while IFS= read -r z; do
+                [ -n "$z" ] || continue
+                if unzip -p "$z" 2>/dev/null | grep -qaF -- "$target"; then
+                  echo "artifact scrub: deleting zip containing the resolver target: $z"
+                  rm -f "$z"
+                  zipped=$((zipped + 1))
+                fi
+              done < <(find "$dir" -type f -name '*.zip' 2>/dev/null || true)
+            done
+          else
+            echo "artifact scrub: unzip unavailable — failing closed, deleting every zip in the artifact dirs"
+            for dir in results playwright-report test-results; do
+              [ -d "$dir" ] || continue
+              while IFS= read -r z; do
+                [ -n "$z" ] || continue
+                echo "artifact scrub: deleting zip (no unzip to inspect): $z"
+                rm -f "$z"
+                zipped=$((zipped + 1))
+              done < <(find "$dir" -type f -name '*.zip' 2>/dev/null || true)
+            done
+          fi
+          echo "artifact scrub: redacted ${total} text occurrence(s); deleted ${deleted} binary file(s) and ${zipped} zip(s) across results/ playwright-report/ test-results/"
 
       - name: Upload T3 flow journal + report artifacts
         if: always()
