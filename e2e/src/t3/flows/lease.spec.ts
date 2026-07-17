@@ -79,34 +79,34 @@ function firstUsdAmount(text: string): string | undefined {
   return raw === undefined ? undefined : raw.replace(/,/g, "");
 }
 
-/** Set the take-profit / stop-loss trigger in the open lease detail dialog (config-only, no spend). */
+/** Open the take-profit / stop-loss trigger dialog, set a trigger, and submit (submit-btn → toast). */
 async function setTakeProfitStopLoss(page: Page, triggerPercent: string): Promise<void> {
   await page
     .getByRole("button", { name: /take.?profit|stop.?loss|tp\s?\/?\s?sl/i })
     .first()
     .click({ timeout: TERMINAL_MS });
   await typeAmount(page, "receive-send", triggerPercent);
-  await page
-    .getByRole("button", { name: /save|set|apply|confirm/i })
-    .first()
-    .click({ timeout: TERMINAL_MS });
+  await submitForm(page, { submitLabel: messageValue(run.locale, "submit-btn"), terminalMs: TERMINAL_MS });
 }
 
-/** Drive the detail-dialog close flow — market (full) or partial with an amount. */
+/**
+ * Drive the close flow. The `close` action opens the CloseDialog (a single amount input + full/debt
+ * selector and a `close-btn-label` submit — there are no separate market/partial buttons): a market
+ * close selects the full position, a partial close types the amount. The submit settles on the
+ * success toast via `submitForm`.
+ */
 async function driveClose(page: Page, mode: "market" | "partial", amount?: string): Promise<void> {
   await page.getByRole("button", { name: /close/i }).first().click({ timeout: TERMINAL_MS });
-  await page
-    .getByRole("button", { name: mode === "market" ? /market/i : /partial/i })
-    .first()
-    .click({ timeout: TERMINAL_MS });
   if (mode === "partial" && amount !== undefined) {
     await typeAmount(page, "receive-send", amount);
+  } else {
+    await page
+      .getByText(/full/i)
+      .first()
+      .click({ timeout: TERMINAL_MS })
+      .catch(() => undefined);
   }
-  await page
-    .getByRole("button", { name: /confirm|submit|send/i })
-    .first()
-    .click({ timeout: TERMINAL_MS });
-  await expect(page.locator("div.toast")).toBeVisible({ timeout: TERMINAL_MS });
+  await submitForm(page, { submitLabel: messageValue(run.locale, "close-btn-label"), terminalMs: TERMINAL_MS });
 }
 
 /** Assert the opened lease's rendered row, detail size, and liquidation ordering against the oracle. */
@@ -178,12 +178,8 @@ async function acquireDownpaymentAsset(page: Page, testInfo: TestInfo, acquireUs
     execute: async () => {
       await run.queue.pace("strict");
       await page.locator("#swap-1").waitFor({ state: "visible", timeout: 15000 });
-      await page.getByRole("button", { name: /swap/i }).last().click({ timeout: TERMINAL_MS });
-      await page
-        .getByRole("button", { name: /confirm|submit/i })
-        .first()
-        .click({ timeout: TERMINAL_MS });
-      await expect(page.locator("div.toast")).toBeVisible({ timeout: TERMINAL_MS });
+      // The swap runs on the click (no confirmation dialog); settle on the success toast / error.
+      await submitForm(page, { submitLabel: messageValue(run.locale, "swap"), terminalMs: TERMINAL_MS });
     }
   });
 }

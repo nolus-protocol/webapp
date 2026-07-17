@@ -13,6 +13,12 @@ describe("classify environment", () => {
     expect(classify({ message: "connect ETIMEDOUT waiting for RPC" }).category).toBe("environment");
     expect(classify({ message: "timed out waiting for chain state" }).signal).toBe("chain-state-timeout");
   });
+
+  it("classifies a terminal-signal timeout as its own environment signal, ahead of chain-state-timeout", () => {
+    const result = classify({ message: 'terminal-signal-timeout: no toast or error after submitting "supply"' });
+    expect(result.category).toBe("environment");
+    expect(result.signal).toBe("terminal-signal-timeout");
+  });
 });
 
 describe("classify app", () => {
