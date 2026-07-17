@@ -38,7 +38,7 @@ export interface AlertConfig {
   makeSignal?: () => AbortSignal;
 }
 
-export type AlertResult = { posted: false } | { posted: true; urgency: Urgency };
+export type AlertResult = { posted: false; reason: "green" | "unconfigured" } | { posted: true; urgency: Urgency };
 
 interface AlertPayloadFailure {
   tier: string;
@@ -55,7 +55,7 @@ interface AlertPayloadTier {
 }
 
 interface AlertPayload {
-  suite: "e2e-nightly";
+  suite: "e2e-regression";
   version: number;
   urgency: Urgency;
   generatedAt: string;
@@ -95,7 +95,7 @@ function payloadFailure(failure: ClassifiedFailure, scrub: Scrubber): AlertPaylo
 
 function buildPayload(report: RunReport, urgency: Urgency, scrub: Scrubber): AlertPayload {
   return {
-    suite: "e2e-nightly",
+    suite: "e2e-regression",
     version: report.version,
     urgency,
     generatedAt: report.generatedAt,
@@ -106,24 +106,23 @@ function buildPayload(report: RunReport, urgency: Urgency, scrub: Scrubber): Ale
 }
 
 /**
- * Post the classified run summary to the alert webhook, or refuse loudly. A green run posts
- * nothing. An env-flake / spend-cap-only red posts a low-urgency payload; any app-bug posts a loud
- * one. A red run with no webhook configured throws `alert channel unconfigured` so an unconfigured
- * nightly can never look green, and a non-2xx response or a network failure throws `alert delivery
- * failed` so a dropped red fails the step rather than vanishing. Every payload string is scrubbed
- * again at this boundary.
+ * Post the classified run summary to the alert webhook. A green run posts nothing. An env-flake /
+ * spend-cap-only red posts a low-urgency payload; any app-bug posts a loud one. The webhook is
+ * optional under the human-watched regression model: a red run with no webhook returns
+ * `{ posted: false, reason: "unconfigured" }` (the caller logs a warning and still exits red — the
+ * job status carries the redness, and the report is in the artifacts), and only a CONFIGURED but
+ * failed delivery — a non-2xx response, a network error, or a timed-out abort — throws
+ * `alert delivery failed` so a dropped red fails loudly rather than vanishing. Every payload string
+ * is scrubbed again at this boundary.
  */
 export async function postAlert(report: RunReport, config: AlertConfig): Promise<AlertResult> {
   const color = runColor(report);
+  if (color === "green") {
+    return { posted: false, reason: "green" };
+  }
   const hasWebhook = config.webhookUrl !== undefined && config.webhookUrl.length > 0;
   if (!hasWebhook) {
-    if (color === "green") {
-      return { posted: false };
-    }
-    throw new AlertDeliveryError("alert channel unconfigured");
-  }
-  if (color === "green") {
-    return { posted: false };
+    return { posted: false, reason: "unconfigured" };
   }
   const urgency: Urgency = color === "app" ? "loud" : "low";
   const payload = buildPayload(report, urgency, config.scrub);

@@ -107,7 +107,7 @@ function journalSection(journal: JournalSummary): string {
 /** Render the run report as a human-readable markdown summary. Every dynamic string is re-scrubbed. */
 export function renderMarkdown(report: RunReport, scrub: Scrubber): string {
   return [
-    `# E2E Nightly Report (v${report.version})`,
+    `# E2E Regression Report (v${report.version})`,
     "",
     `Generated: ${report.generatedAt}`,
     "",

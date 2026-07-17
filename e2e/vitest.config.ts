@@ -19,7 +19,7 @@ export default defineConfig({
         "src/t3/repair.ts",
         // Reporting-tier fs/network glue: reads the tier result files, writes report.json +
         // report.md, and posts the alert. The pure aggregate/render/alert/scrub modules it
-        // composes are unit-tested; the CLI shell itself is exercised by the nightly workflow.
+        // composes are unit-tested; the CLI shell itself is exercised by the regression workflow.
         "src/report/cli.ts",
         "src/report/preflight.ts",
         // T3 flow browser/network glue — the run singleton, live API reads, and form driver are

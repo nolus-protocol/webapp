@@ -618,8 +618,8 @@ a spend-cap dry proof, and the single operator-approved live broadcast: a dust n
 the primary and wallet-2). Base URL and host resolver are composed from the `base_domain` input and
 the `DEPLOY_HOST` var exactly as `deploy.yaml` does — never hardcoded. Per-run caps are tiny
 (`E2E_SPEND_CAP_NLS=1`, `E2E_SPEND_CAP_USDC=0`). Journal and report artifacts are uploaded on every
-run, not only on failure. The nightly schedule for this smoke belongs to issue #285, not this
-workflow.
+run, not only on failure. Automatic scheduling of this smoke (the post-deploy regression run)
+belongs to issue #285, not this workflow.
 
 ## The T3 value-moving flows
 
@@ -747,7 +747,7 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
 ## Reporting and alerting
 
 The reporting tier (`src/report/`) folds a whole run's artifacts into one machine-readable report,
-renders a human summary, and posts a classified alert. It is the arbiter for the nightly: the tiers
+renders a human summary, and posts a classified alert. It is the arbiter for the run: the tiers
 run `continue-on-error`, and the report — not any single tier's exit code — decides the run's colour.
 
 - **Report shape (versioned).** `aggregate.ts` produces a `RunReport` carrying a `version` (bumped on
@@ -775,49 +775,51 @@ run `continue-on-error`, and the report — not any single tier's exit code — 
   becomes an explicit `absent` / `corrupt` field in the report, so one torn artifact never loses the
   rest of the run.
 - **Webhook contract.** `alert.ts` posts a compact classified summary to `E2E_ALERT_WEBHOOK` (a
-  secret; the endpoint is never committed). A **green** run posts nothing. An **env-flake / spend-cap
-  only** red posts a **low-urgency** payload. **Any app-bug** posts a **loud** payload. Failure modes
-  are fail-loud, never fail-silent: a non-2xx response, a network error, or a delivery that exceeds
-  the `DEFAULT_ALERT_TIMEOUT_MS` (15s) abort deadline exits non-zero with `alert delivery failed`, and
-  a **red run with no webhook configured** exits non-zero with `alert channel unconfigured` — an
-  unconfigured nightly must never look green. Every POST carries an `AbortSignal.timeout` so a
-  black-hole webhook fails fast instead of hanging the step until the job timeout. `cli.ts` exit
-  codes: `0` green, `1` red, `2` alert delivery / config failure.
+  secret; the endpoint is never committed). The webhook is **optional** under the human-watched
+  regression model. A **green** run posts nothing. An **env-flake / spend-cap only** red posts a
+  **low-urgency** payload; **any app-bug** posts a **loud** payload. A **red run with no webhook
+  configured** logs `no alert webhook configured — report in artifacts` and still **exits `1`** — the
+  job status carries the redness and the report is in the artifacts (it is not an error to leave the
+  webhook unset). Only a **configured but failed** delivery — a non-2xx response, a network error, or
+  a delivery past the `DEFAULT_ALERT_TIMEOUT_MS` (15s) abort deadline — throws `alert delivery failed`
+  and exits `2`, so a dropped red fails loudly rather than vanishing. Every POST carries an
+  `AbortSignal.timeout` so a black-hole webhook fails fast instead of hanging the step until the job
+  timeout. `cli.ts` exit codes: `0` green, `1` red, `2` alert delivery failure.
 - **Scrubbing.** Every report / render / alert string is scrubbed twice: `sanitizeRpc` (bare IPv4 and
   `user:pass@` credential forms) plus explicit removal of the resolver-target value passed as
   `E2E_SCRUB_VALUE` (set by CI from `vars.DEPLOY_HOST`, never committed) and, when present in env, the
   run mnemonics. The suite's inputs are already sanitized at source; this is the belt-and-suspenders
   egress pass over `report.json`, `report.md`, and the webhook payload.
-- **Nightly schedule.** `.github/workflows/e2e-nightly.yaml` runs on cron `17 3 * * *` (off the deploy
-  window) and on `workflow_dispatch`. The target base domain resolves in one place —
-  `inputs.base_domain || vars.E2E_NIGHTLY_BASE_DOMAIN` — and the first step hard-fails if empty (the
-  cron path has no inputs, so it depends on the repo variable). That step also validates the resolved
-  base against `^[A-Za-z0-9.-]+$` before writing `$GITHUB_ENV` (a newline-bearing dispatch input must
-  not inject env entries) and `::add-mask::`es the resolver target so tier stdout/stderr can never
-  print the internal host in the public log. The job clears `results/`, `test-results/`, and
+- **Scheduling (ad-hoc + post-deploy regression).** `.github/workflows/e2e-regression.yaml` runs two
+  ways and **never on a cron**: a manual `workflow_dispatch` (optional `base_domain` input), and
+  automatically on `workflow_run` after the **Deploy dev** workflow completes — the job's `if` gates
+  that path on the deploy having **succeeded**, so a green staging deploy is immediately
+  regression-validated. The target base domain resolves in one place —
+  `inputs.base_domain || vars.E2E_REGRESSION_BASE_DOMAIN` — and the first step hard-fails if empty (the
+  post-deploy path has no inputs, so it depends on the repo variable). That step also validates the
+  resolved base against `^[A-Za-z0-9.-]+$` before writing `$GITHUB_ENV` (a newline-bearing dispatch
+  input must not inject env entries) and `::add-mask::`es the resolver target so tier stdout/stderr can
+  never print the internal host in the public log. The job clears `results/`, `test-results/`, and
   `playwright-report/` at the start, so `report.json` is present iff this run's cli wrote it. Tiers run
   `continue-on-error` so all of them run and the report arbitrates; the artifact scrub runs `always()`;
   the report step (also `continue-on-error`) records the cli's exit code to `$GITHUB_OUTPUT`; artifacts
   upload `always()`. **Exactly one alert leaves a run:** the cli owns it whenever a `report.json`
   exists (green→silent, red→posted, alert-failure→surfaced by the arbiter), and a final `always()`
-  heartbeat fires a loud static "no report" alert **only when `report.json` is absent** (a true crash),
-  failing loudly if no webhook is configured. A final `always()` arbiter step sets the job conclusion
-  from the recorded cli exit code (`1` red / `2` alert-failure; missing code → fail closed with `1`).
-  The nightly shares the `e2e-live-<base_domain>` concurrency group with the deploy workflow's live
-  e2e phase so the two never contend for the one per-host rate-limit bucket.
+  heartbeat fires a loud static "no report" alert **only when `report.json` is absent** (a true crash).
+  A final `always()` arbiter step sets the job conclusion from the recorded cli exit code (`1` red /
+  `2` alert-failure; missing code → fail closed with `1`). The run shares the `e2e-live-<base_domain>`
+  concurrency group with the deploy workflow's live e2e phase so a regression run and a second deploy's
+  post-run never contend for the one per-host rate-limit bucket. Both the `workflow_run` trigger and
+  this workflow file must live on the default branch for the post-deploy path to fire.
 - **Budget pre-flight.** Before the tiers, `report:preflight` derives the primary address, reads its
   USDC holding through the host-resolver-aware read path, and posts a low-urgency warning (then
   continues) when the balance is below `E2E_USDC_LOW_WATER` (default `45`) — a degrading budget is
   announced _before_ the value-moving specs start skipping forever, not inferred from a silent skip list.
 - **Pre-release runs.** A pre-release full run is a manual `workflow_dispatch` with `prerelease: true`
-  before a release cutover; it runs the same full tier set as the nightly (no grep filter).
+  before a release cutover; it runs the same full tier set as a regression run (no grep filter).
 - **Trace capture (CI-verified).** The browser projects run with `trace: retain-on-failure` and
   `screenshot: only-on-failure`; a forced-failure trace/screenshot capture is verified in CI, not by a
   unit test (the same posture as the flows' selector assertions).
-- **Cron freshness caveat.** GitHub disables scheduled workflows after a stretch of repository
-  inactivity, so the _absence_ of a nightly is itself a signal that in-repo tooling cannot catch. Pair
-  this with an external freshness check (alert if no nightly report has arrived in >48h); that check
-  is out of scope for this repo.
 
 ## Conventions
 
