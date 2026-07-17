@@ -57,15 +57,18 @@ never binary floats.
 
 ### Scripts
 
-| Script                            | Purpose                                |
-| --------------------------------- | -------------------------------------- |
-| `npm run t0`                      | Run the T0 suite.                      |
-| `npm run t1`                      | Run the T1 browser smoke (Playwright). |
-| `npm run t2`                      | Run the T2 scripted-wallet flows.      |
-| `npm run typecheck`               | `tsc --noEmit`.                        |
-| `npm run lint`                    | ESLint (type-checked), zero warnings.  |
-| `npm run format` / `format:check` | Prettier.                              |
-| `npm test`                        | Vitest unit tests.                     |
+| Script                            | Purpose                                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| `npm run t0`                      | Run the T0 suite.                                                                 |
+| `npm run t1`                      | Run the T1 browser smoke (Playwright).                                            |
+| `npm run t2`                      | Run the full T2 suite (t2 → ratelimit → receive, serial).                         |
+| `npm run t2:matrix`               | Run only the parallel-safe T2 project (connect, validation, classify, reconnect). |
+| `npm run t2:ratelimit`            | Run the rate-limit spec (with its `t2` dependency).                               |
+| `npm run t2:receive`              | Run the receive spec (with its `t2`/`ratelimit` dependencies).                    |
+| `npm run typecheck`               | `tsc --noEmit`.                                                                   |
+| `npm run lint`                    | ESLint (type-checked), zero warnings.                                             |
+| `npm run format` / `format:check` | Prettier.                                                                         |
+| `npm test` / `test:coverage`      | Vitest unit tests (+ coverage gate).                                              |
 
 ## The T0 checks
 
@@ -253,25 +256,127 @@ the future T3 transactional tier.
 
 ### T2 environment variables
 
-| Variable                | Required | Meaning                                                                                                                                                                     |
-| ----------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `E2E_BASE_URL`          | yes      | HTTPS origin of the SPA/API. Fails config load loudly before any browser launches.                                                                                          |
-| `E2E_HOST_RESOLVER`     | no       | Optional `host=target` connect overrides, reused from T0/T1. Its value is never echoed.                                                                                     |
-| `E2E_WALLET_MNEMONIC`   | yes      | BIP-39 mnemonic (12/15/18/21/24 lowercase words) for the primary scripted account. Validated for shape only; **never echoed anywhere**, including error output and results. |
-| `E2E_WALLET_MNEMONIC_2` | no       | Optional second mnemonic for the two-identity spec. When unset it falls back to a fixed, publicly-known, unfunded CosmJS test vector used connect-only.                     |
+| Variable                 | Required | Meaning                                                                                                                                                                                                                                                                                       |
+| ------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `E2E_BASE_URL`           | yes      | HTTPS origin of the SPA/API. Fails config load loudly before any browser launches.                                                                                                                                                                                                            |
+| `E2E_HOST_RESOLVER`      | no       | Optional `host=target` connect overrides, reused from T0/T1. Its value is never echoed.                                                                                                                                                                                                       |
+| `E2E_WALLET_MNEMONIC`    | yes      | BIP-39 mnemonic (12/15/18/21/24 lowercase words) for the primary scripted account. Validated for shape only; **never echoed anywhere**, including error output and results.                                                                                                                   |
+| `E2E_WALLET_MNEMONIC_2`  | no       | Second mnemonic. Used connect-only by the two-identity spec **and** as the funded account that drives the classify/rate-limit swap quotes and sends in the receive spec. When unset it falls back to a fixed, publicly-known, unfunded CosmJS test vector (funded-dependent cells then skip). |
+| `E2E_EXPECT_FUNDED`      | no       | When truthy (`1`/`true`/`yes`/`on`), an unmet funded precondition becomes a hard **failure** instead of a skip — the CI mode that runs with funded accounts. Default (unset) skips with a machine-readable reason.                                                                            |
+| `E2E_CHAIN_RPC`          | no       | Overrides the Nolus chain RPC the receive spec broadcasts against. Defaults to the `NOLUS` network `rpc_url` from the live `GET /api/config`.                                                                                                                                                 |
+| `E2E_RECEIVE_TIMEOUT_MS` | no       | How long the receive spec waits for the rendered balance to rise after the on-chain send. Default `60000` (block time + backend detection + the ~10s balance-update debounce can exceed 30s).                                                                                                 |
 
 The stub exposes a signing binding that any JavaScript running in the page can call,
 so `E2E_WALLET_MNEMONIC` must only ever hold a dedicated, disposable e2e test wallet —
 never a personal or production key.
 
+### The T2 matrix (validation, classify, reconnect, rate-limit, receive)
+
+Beyond connect/sign/disconnect, T2 exercises the form error surfaces, the WebSocket
+reconnect path, live rate limiting, and a live on-chain receive. These run as three
+Playwright projects, executed **serially** (`--workers=1` in the `t2*` npm scripts):
+
+| Project     | Specs                                    | Wallet              | Runs after        |
+| ----------- | ---------------------------------------- | ------------------- | ----------------- |
+| `t2`        | connect, validation, classify, reconnect | primary + secondary | —                 |
+| `ratelimit` | ratelimit                                | secondary (funded)  | `t2`              |
+| `receive`   | receive                                  | primary + secondary | `t2`, `ratelimit` |
+
+`npm run t2` runs all three in order. `npm run t2:matrix` runs only the parallel-safe
+project; `npm run t2:ratelimit` / `npm run t2:receive` run those (with their dependencies).
+
+**Why serial (workers=1).** The backend rate-limits per client IP: a strict bucket
+(2 rps / burst 5) for `POST /api/swap/route`, and a shared bucket (~20 rps) for the rest.
+Two parallel workers each doing a full funded-wallet page load reliably trip the shared
+bucket (`429` storms on `/api/balances`, `/api/staking/positions`, …), so the funded specs
+run one at a time. T1 (read-only, unfunded) stays at the config's 2 workers.
+
+#### Validation / error matrix
+
+Every leaf form funnels its amount-field errors through the web-components
+`AdvancedFormControl` → `div.text-typography-error > span` (animated, keyed on the message),
+so assertions are auto-retrying `toContainText`. Expected strings come from the live
+`GET /api/locales/en` (the deploy host can drift from the repo), never hard-coded.
+
+| Cell                           | Form route               | Trigger                       | Asserted outcome                               |
+| ------------------------------ | ------------------------ | ----------------------------- | ---------------------------------------------- |
+| lease long / short             | `/positions/open/{type}` | amount over an empty balance  | `invalid-balance-big` ("Insufficient balance") |
+| earn supply / withdraw         | `/earn/{type}`           | amount over an empty balance  | `invalid-balance-big`                          |
+| stake delegate / undelegate    | `/stake/{type}`          | amount over an empty balance  | `invalid-balance-big` + click-has-no-effect    |
+| lease long below-minimum       | `/positions/open/long`   | funded, priced, below the min | min/max error (funded-gated → skip)            |
+| earn withdraw over-position    | `/earn/withdraw`         | more than the LP deposit      | over-position error (funded-gated → skip)      |
+| stake undelegate over-position | `/stake/undelegate`      | more than the delegation      | over-position error (funded-gated → skip)      |
+
+`validateAmountAgainstBalance` gates before `validateMinMaxValues` (issue #192), so a
+zero-balance wallet can only reach insufficient-balance; below-min/above-max and the
+over-position cells require real funding and skip locally (or fail under
+`E2E_EXPECT_FUNDED`). `invalid-balance-low` and `invalid-amount` render byte-identical
+text ("Invalid amount") — an **accepted blind spot**: the cells are distinguished by
+trigger condition, so a key-swap between those two would pass.
+
+**Documented app gaps** (not filed as issues — this suite is the record):
+
+- **No form disables its submit on validation state.** The Stake buttons never set the
+  native `disabled` at all (`loading` does not disable). The stake cells therefore assert
+  the button-click has no effect (URL unchanged, error still shown), not a disabled state.
+- **Stake Undelegate's submit failure renders nothing.** Its submit `catch` logs only and
+  never calls `classifyError` (`UndelegateForm.vue`), so the over-position cell asserts
+  only the reactive validation, never a submit-failure message.
+
+#### classify seams
+
+`classifyError` maps a downstream failure to a message key: `SWAP_ROUTE_FAILED` code →
+`swap-route-failed`; HTTP `429` → `rate-limit-exceeded`; `/liquidity/i` → `no-liquidity`;
+else `unexpected-error`. These are driven on the **Swap** form (not Send — see deviations):
+the funded secondary wallet enters a balance-passing amount so the real
+`POST /api/swap/route` fires, and the response is **mocked** (`{error:{code,message}}`, the
+shape `BackendApi` reads) to the case under test. Each cell asserts the mapped message
+renders inline and that the route intercept actually fired (a silent path mismatch is a red,
+never a vacuous green). Every `429` additionally surfaces the global toast
+(`BackendApi.onRateLimited`) — asserted on both surfaces.
+
+#### WS reconnect
+
+`reconnect.spec` wraps `window.WebSocket` in a pre-boot init script to capture the app's
+`/ws` socket, then closes it from the page (offline emulation does **not** close an
+established socket in headless chromium — verified). The app's real `onclose` runs, so it
+reconnects and: re-subscribes exactly one frame per topic (`prices`, `balances`, `leases`,
+`earn` — staking has no WS topic, removed in #276), refetches `balances`/`leases`/`earn`/
+`staking` over REST once each (via `useWalletWatcher.onReconnect`; analytics/history are
+NOT refetched), and does not crash.
+
+#### Rate limit
+
+`ratelimit.spec` saturates the shared strict bucket from Node (undici, same client IP via
+the resolver) while the app makes its own real swap quote, so the app receives a **genuine**
+`429` — surfaced inline (classifyError) and as the toast. Nothing is mocked. Its own project,
+serial, running after `t2`.
+
+#### Receive
+
+`receive.spec` performs a Node-side bank micro-send (default `0.001` NLS) from the funded
+secondary wallet to the connected primary, then asserts the rendered balance rises. NLS is
+priced at ~0 USD on staging (the USD total is inert) and the assets table hides sub-1
+balances, so it watches the **Swap From=NLS token balance**, which renders the real amount
+unfiltered and updates reactively on the balance push. The assertion is a monotonic increase
+(never a push count or exact delta — the backend debounces ~10s and coalesces same-window
+sends). Its own project with `retries: 0` so a retry can never double-send, running last.
+
+#### Skip honesty
+
+Funded-dependent cells (lease min/max, earn-withdraw and stake-undelegate over-position,
+receive) probe account state at runtime and skip with a machine-readable reason locally;
+`E2E_EXPECT_FUNDED=1` turns every unmet precondition into a failure. Each skip is annotated
+(`matrix-skip`) so a run can count skipped cells. The over-position cells additionally
+require an existing LP deposit / delegation.
+
 ## Known coverage gaps
 
-- The funded-wallet Dashboard and Assets wallet totals are **not** bridged. T2 now scripts
-  a real Keplr connect (so the balances store does fetch for the connected address), but
-  the T2 accounts are deliberately unfunded — connect needs no funds. Bridging the rendered
-  Dashboard/Assets totals against `/api/balances` for a funded account is tracked in **#282**.
-  Today the T1 bridge binds the wallet-independent `/stats` figures and the `/assets`
-  zero-state total.
+- The funded-wallet Dashboard/Assets **USD totals** are still not bridged against
+  `/api/balances`: NLS is priced at ~0 USD on staging, so the total is degenerate and the
+  assets table hides sub-1 balances. The T2 receive spec (issue #282) instead asserts a live
+  balance change through the Swap From=NLS **token** amount; the T1 bridge continues to bind
+  the wallet-independent `/stats` figures and the `/assets` zero-state total.
 - Every new route must gain a T1 route-smoke entry in `routes.spec.ts`. A route added
   without one is a silent gap, not a passing test.
 - `ws-rest-parity` may report `skip` on a quiet address: the backend only pushes a
