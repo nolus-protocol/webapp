@@ -223,25 +223,24 @@ interface TierResult {
   tests: RunTest[];
 }
 
-function aggregatePlaywrightTier(tier: string, report: unknown, scrub: Scrubber): TierResult {
-  const tests = extractRunTests(report, tier);
-  let totals = emptyTotals(tier, "present");
-  const failures: ClassifiedFailure[] = [];
-  const skips: SkippedTest[] = [];
-  for (const test of tests) {
-    const { failure: fail, skip: skipped } = classifyTest(test, scrub);
-    if (fail !== null) {
-      failures.push(fail);
-      totals = countFailure(totals, fail.failureClass);
-    } else if (skipped !== null) {
-      skips.push(skipped);
-      totals.skipped += 1;
-    } else {
-      totals.passed += 1;
-    }
+interface TierAccumulator {
+  totals: TierTotals;
+  failures: ClassifiedFailure[];
+  skips: SkippedTest[];
+}
+
+/** Classify one test and fold it into its (project-derived) tier accumulator. */
+function classifyInto(acc: TierAccumulator, test: RunTest, scrub: Scrubber): void {
+  const { failure: fail, skip: skipped } = classifyTest(test, scrub);
+  if (fail !== null) {
+    acc.failures.push(fail);
+    acc.totals = countFailure(acc.totals, fail.failureClass);
+  } else if (skipped !== null) {
+    acc.skips.push(skipped);
+    acc.totals.skipped += 1;
+  } else {
+    acc.totals.passed += 1;
   }
-  totals.total = totals.passed + totals.failed + totals.skipped;
-  return { totals, failures, skips, tests };
 }
 
 function aggregateSummaryTier(
@@ -264,16 +263,6 @@ function aggregateSummaryTier(
   totals.failed = failures.length;
   totals.total = totals.passed + totals.failed + totals.skipped;
   return { totals, failures, skips: [], tests: [] };
-}
-
-function aggregateTier(input: TierInput, scrub: Scrubber): TierResult {
-  if (input.source.kind === "playwright") {
-    return aggregatePlaywrightTier(input.tier, input.source.report, scrub);
-  }
-  if (input.source.kind === "summary") {
-    return aggregateSummaryTier(input.tier, input.source, scrub);
-  }
-  return { totals: emptyTotals(input.tier, input.source.kind), failures: [], skips: [], tests: [] };
 }
 
 function basename(path: string): string {
@@ -375,17 +364,103 @@ function leftoverSection(input: LeftoverInput): LeftoverSection {
  * human-facing string is run through the caller's scrubber here, so the emitted `report.json` is
  * already free of the resolver host and any secret before it is ever written or rendered.
  */
+interface CollectedTiers {
+  order: string[];
+  playwrightAcc: Map<string, TierAccumulator>;
+  summaryResults: Map<string, TierResult>;
+  sourceStatus: Map<string, InputStatus>;
+  allTests: RunTest[];
+}
+
+/**
+ * Fold every source into per-tier accumulators keyed by each test's PROJECT-derived tier (not the
+ * file it was read from). `order` keeps the caller's source order, then any extra tier a project
+ * mapped onto that no source declared, in discovery order.
+ */
+function collectTiers(inputs: readonly TierInput[], scrub: Scrubber): CollectedTiers {
+  const order: string[] = [];
+  for (const tierInput of inputs) {
+    if (!order.includes(tierInput.tier)) {
+      order.push(tierInput.tier);
+    }
+  }
+  const collected: CollectedTiers = {
+    order,
+    playwrightAcc: new Map(),
+    summaryResults: new Map(),
+    sourceStatus: new Map(),
+    allTests: []
+  };
+  const ensureAcc = (tier: string): TierAccumulator => {
+    let acc = collected.playwrightAcc.get(tier);
+    if (acc === undefined) {
+      acc = { totals: emptyTotals(tier, "present"), failures: [], skips: [] };
+      collected.playwrightAcc.set(tier, acc);
+      if (!order.includes(tier)) {
+        order.push(tier);
+      }
+    }
+    return acc;
+  };
+  for (const tierInput of inputs) {
+    if (tierInput.source.kind === "playwright") {
+      // Materialize the source tier even when every one of its tests maps elsewhere, so a file
+      // that ran but held only foreign-project tests still reports present with zero of its own.
+      ensureAcc(tierInput.tier);
+      for (const test of extractRunTests(tierInput.source.report, tierInput.tier)) {
+        collected.allTests.push(test);
+        classifyInto(ensureAcc(test.tier), test, scrub);
+      }
+    } else if (tierInput.source.kind === "summary") {
+      collected.summaryResults.set(tierInput.tier, aggregateSummaryTier(tierInput.tier, tierInput.source, scrub));
+    } else {
+      collected.sourceStatus.set(tierInput.tier, tierInput.source.kind);
+    }
+  }
+  return collected;
+}
+
+interface AssembledTiers {
+  tiers: TierTotals[];
+  failures: ClassifiedFailure[];
+  skips: SkippedTest[];
+}
+
+/** Emit the ordered tier totals + flattened failures/skips from the collected accumulators. */
+function assembleTiers(collected: CollectedTiers): AssembledTiers {
+  const assembled: AssembledTiers = { tiers: [], failures: [], skips: [] };
+  for (const tier of collected.order) {
+    const acc = collected.playwrightAcc.get(tier);
+    if (acc !== undefined) {
+      acc.totals.total = acc.totals.passed + acc.totals.failed + acc.totals.skipped;
+      assembled.tiers.push(acc.totals);
+      assembled.failures.push(...acc.failures);
+      assembled.skips.push(...acc.skips);
+      continue;
+    }
+    const summary = collected.summaryResults.get(tier);
+    if (summary !== undefined) {
+      assembled.tiers.push(summary.totals);
+      assembled.failures.push(...summary.failures);
+      assembled.skips.push(...summary.skips);
+      continue;
+    }
+    assembled.tiers.push(emptyTotals(tier, collected.sourceStatus.get(tier) ?? "absent"));
+  }
+  return assembled;
+}
+
 export function aggregate(input: AggregateInput, scrub: Scrubber): RunReport {
-  const tierResults = input.tiers.map((tier) => aggregateTier(tier, scrub));
-  const tests = tierResults.flatMap((result) => result.tests);
+  const collected = collectTiers(input.tiers, scrub);
+  const assembled = assembleTiers(collected);
   return {
     version: RUN_REPORT_VERSION,
     generatedAt: input.generatedAt,
-    tiers: tierResults.map((result) => result.totals),
-    failures: tierResults.flatMap((result) => result.failures),
-    skips: tierResults.flatMap((result) => result.skips),
+    tiers: assembled.tiers,
+    failures: assembled.failures,
+    skips: assembled.skips,
     journal: journalSummary(input.journal),
     leftover: leftoverSection(input.leftover),
-    coverage: coverageSection(input.matrix, tests)
+    coverage: coverageSection(input.matrix, collected.allTests)
   };
 }

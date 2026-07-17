@@ -281,3 +281,43 @@ describe("aggregate inputs and passthrough", () => {
     expect(out.failures[0]?.test).not.toContain("10.1.2.3");
   });
 });
+
+describe("aggregate tier attribution by project", () => {
+  it("attributes a mis-filed t3-flows test to t3-flows, never to the t1 source file it landed in", () => {
+    // A t3-flows-project test appears in the t1 source file (the run's JSON output path was not
+    // overridden, so its json defaulted onto playwright-report.json). Its tier must come from its
+    // project, so it counts under t3-flows and never inflates t1.
+    const t1File = pwReport([
+      { projectName: "desktop-light", title: "assets renders", file: "routes.spec.ts", status: "expected" },
+      {
+        projectName: "t3-flows",
+        title: "lease opens",
+        file: "lease.spec.ts",
+        status: "unexpected",
+        error: "expect(x).toBe(y) assertion failed"
+      }
+    ]);
+    const out = aggregate(
+      baseInput([
+        { tier: "t1", source: { kind: "playwright", report: t1File } },
+        { tier: "t3-flows", source: { kind: "absent" } }
+      ]),
+      identity
+    );
+
+    const byTier = new Map(out.tiers.map((tier) => [tier.tier, tier]));
+    expect(byTier.get("t1")).toMatchObject({ status: "present", total: 1, passed: 1, failed: 0 });
+    // t3-flows ran (its tests are present here) even though its own result file was absent.
+    expect(byTier.get("t3-flows")).toMatchObject({ status: "present", total: 1, failed: 1, appBug: 1 });
+    expect(out.failures.map((failure) => [failure.tier, failure.projectName])).toEqual([["t3-flows", "t3-flows"]]);
+  });
+
+  it("keeps an unmapped project on the source-file tier via the fallback", () => {
+    const report = pwReport([
+      { projectName: "some-adhoc-project", title: "custom", file: "x.spec.ts", status: "expected" }
+    ]);
+    const out = aggregate(baseInput([{ tier: "t2", source: { kind: "playwright", report } }]), identity);
+    const byTier = new Map(out.tiers.map((tier) => [tier.tier, tier]));
+    expect(byTier.get("t2")).toMatchObject({ status: "present", total: 1, passed: 1 });
+  });
+});
