@@ -118,6 +118,19 @@ export default defineConfig<T2Options>({
       retries: 0,
       dependencies: ["t2", "ratelimit", "receive"],
       use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
+    },
+    {
+      // The T3 value-moving flows (lease, earn, stake, send, ibc, swap). Appended after the
+      // engine so the whole run shares one serialized chain and the per-run spend cap is
+      // meaningful; the singleton engine constructor throws under workers > 1, so this project
+      // must be run with --workers=1 (the t3:flows script). Never retries — a retry could
+      // double-spend a governed broadcast.
+      name: "t3-flows",
+      testDir: "src/t3/flows",
+      testMatch: ["**/*.spec.ts"],
+      retries: 0,
+      dependencies: ["t3-engine"],
+      use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
     }
   ]
 });

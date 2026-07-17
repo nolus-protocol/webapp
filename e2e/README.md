@@ -613,6 +613,76 @@ the `DEPLOY_HOST` var exactly as `deploy.yaml` does — never hardcoded. Per-run
 run, not only on failure. The nightly schedule for this smoke belongs to issue #285, not this
 workflow.
 
+## The T3 value-moving flows
+
+The T3 flow specs (`src/t3/flows/`, the `t3-flows` Playwright project) are the `#283` mutation
+journeys built on the tx engine. They run `workflow_dispatch`-only via `npm run t3:flows` (which
+pins `--workers=1`; the singleton engine constructor throws under worker parallelism > 1), appended
+to the dependency chain after `t3-engine` so the whole run shares one serialized queue, one spend
+cap, one journal, and one monotonic seq allocator. The workflow is `e2e-t3-flows.yaml`, with the
+real per-run caps `E2E_SPEND_CAP_NLS=100` / `E2E_SPEND_CAP_USDC=50` and a 45-minute job timeout.
+
+### The flows
+
+| Spec            | Flow                                                                |
+| --------------- | ------------------------------------------------------------------- |
+| `lease.spec.ts` | One alternating-side lease: open, oracle-checked figures, leftover  |
+| `earn.spec.ts`  | Supply then withdraw dust USDC; rendered earn total vs the oracle   |
+| `stake.spec.ts` | Delegate / undelegate / redelegate / claim dust NLS, gated          |
+| `send.spec.ts`  | Native NLS send primary -> wallet-2 through the engine              |
+| `ibc.spec.ts`   | Deposit + withdraw Nolus <-> Osmosis, skip-gated on Osmosis funding |
+| `swap.spec.ts`  | Quote -> execute a dust swap, tracked by the app's polled status    |
+
+Pure helpers (side selection, the seq allocator, the tolerance comparator, precondition probes)
+are unit-tested (`*.test.ts`); the run singleton, live API reads, and the form driver are
+coverage-excluded browser/network glue, the same split the rest of the suite uses.
+
+### Lease side alternation and budget math
+
+The lease side alternates by **UTC day-of-year parity** — even opens a long, odd a short — unless
+`E2E_LEASE_SIDE` (`long` / `short` / `both`) pins it. `both` is reserved for a future raised-cap
+run: when the second open would exceed the USDC cap it precondition-skips rather than aborting.
+USDC is the only viable downpayment denom (NLS is priced ~$0 on staging, so its USD figures are
+vacuous and its ranges unreachable). The lease minimum downpayment is **$40 USD-equivalent**,
+resolved **live** from `GET /api/leases/config/<protocol>` at test time, never hardcoded. One
+lease cycle per run is roughly $42 gross, which fits the $50 USDC cap. A short lease asserts against
+the lease-group stable ticker (`resolveShortLeaseStable`), never the downpayment/LPN, and PnL /
+liquidation tolerances are taken on the non-zero-priced collateral leg — `assertNonZeroBasis`
+turns a would-be vacuous NLS-USD assertion into a red.
+
+### Spend-cap-abort skip semantics
+
+A legitimate spend-cap abort halts the engine. Every value-moving spec calls `skipIfHalted` at the
+top and treats an abort as a clean **precondition skip** (annotated), so a cap abort skips the
+remaining flows rather than producing a red cascade of `EngineHaltedError` failures. Each terminal
+writes the leftover-state report and annotates where it landed.
+
+### Precondition gates and the failure taxonomy
+
+Environment / precondition failures are skipped, not failed (`classifyAndRoute`); only `app`
+failures are reds. The taxonomy is extended with two precondition signals for these flows:
+`lease-amount-range` (a downpayment below/above the lease range) and `swap-amount-too-small` (a
+dust amount with no Skip route, distinct from a genuine `liquidity` outage). Stake gates: undelegate
+is gated on the **7-entry unbonding cap** per validator (rotating the target when near it via
+`pickUnbondingValidator`), redelegate on **no maturing redelegation** (and runs through the engine's
+redelegate mutex), and claim on accrued rewards being **above a dust threshold**.
+
+### Deviations
+
+- **Swap tracking (`skip_tx` is dead code).** The `skip_tx` WS topic is not driven by the app —
+  swaps are tracked by client polling (`SkipRouter.fetchStatus` in `useSwapForm.ts`). `swap.spec.ts`
+  therefore asserts via the UI's polled terminal state and post-swap balances, not a WS event. This
+  is a deliberate deviation from `#283`'s WS-tracked acceptance wording.
+- **Engine journal actions.** `journal.ts`'s `IntentAction` gains `earn-supply`, `earn-withdraw`,
+  `stake-claim`, and `ibc-transfer` — the value-moving actions these flows introduce that the `#284`
+  engine did not yet represent. Additive only; no existing behaviour changes.
+- **IBC is inert until funded.** `ibc.spec.ts` is entirely skip-gated on an Osmosis-side funding
+  probe (escalated to a hard failure under `E2E_EXPECT_FUNDED`); its structure is complete but the
+  live path stays inert until the counterparty side is funded.
+- **Send receiver credit.** `send.spec.ts` renders the sender's debit (the Swap From=NLS technique)
+  and confirms the receiver's credit through the balances API, since a second rendered session would
+  need a reconnect and break the single-broadcast model.
+
 ## Conventions
 
 Every PR that adds or changes a user-facing surface (route, form, flow, rendered value,
