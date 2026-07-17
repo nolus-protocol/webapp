@@ -680,10 +680,25 @@ top and treats an abort as a clean **precondition skip** (annotated), so a cap a
 remaining flows rather than producing a red cascade of `EngineHaltedError` failures. Each terminal
 writes the leftover-state report and annotates where it landed.
 
+### Asset identity and valuation (denom resolution)
+
+Every value probe identifies assets by **resolved bank denom**, never by the `/api/balances`
+`symbol` (which carries the raw `ibc/...` hash for IBC assets) and never by `amount_usd` (unreliable,
+≈0 for USDC). `denomResolver.ts` loads `/api/currencies` once per run (cached on the run singleton)
+to map each ticker → its `bank_symbol` denom(s) + `decimal_digits`; a balance micro is summed by
+matching `balances[].denom` against those bank symbols, and USD value comes from `/api/prices`
+(`price_usd`) as `micro / 10^decimals × price` in scaled-integer decimals. Staking probes read the
+nested object fields (`StakingPosition.balance.amount`, each `ValidatorReward.rewards[].amount`),
+never the object as a string. The pure resolution/parse logic (`denomResolver.ts`, `staking.ts`) is
+unit-tested against fixtures shaped like the real responses (hash `symbol`, object `balance`).
+
 ### Precondition gates and the failure taxonomy
 
 Environment / precondition failures are skipped, not failed (`classifyAndRoute`); only `app`
-failures are reds. The taxonomy is extended with two precondition signals for these flows:
+failures are reds. A swap-route probe distinguishes a genuine no-route (a precondition) from a
+probe **error** (API/network failure → an `environment` skip with its own reason), never silently
+reporting an error as no-route; and every lease-downpayment skip annotates `matrix-skip` with the
+plan reason. The taxonomy is extended with two precondition signals for these flows:
 `lease-amount-range` (a downpayment below/above the lease range) and `swap-amount-too-small` (a
 dust amount with no Skip route, distinct from a genuine `liquidity` outage). Stake gates: undelegate
 is gated on the **7-entry unbonding cap** per validator (rotating the target when near it via

@@ -1,9 +1,12 @@
 import type { OriginContext } from "../../t2/appDriver.js";
 import { readString } from "../../t2/matrixHelpers.js";
 import { readJson } from "../runtime.js";
-import { Decimal } from "../../oracle/decimal.js";
+import type { Decimal } from "../../oracle/decimal.js";
 import { parseDownpaymentRanges } from "./preconditions.js";
 import type { ProtocolConfig } from "./leasePlan.js";
+import { heldMicro, priceUsdOf, microToUsd, tickersMatching } from "./denomResolver.js";
+import type { ResolvedAsset } from "./denomResolver.js";
+import { hasSwapRoute } from "./preconditions.js";
 
 // Node-side, host-resolver-aware reads of the live API used by the flow specs to build the
 // oracle inputs and precondition probes. Coverage-excluded browser/network glue (see
@@ -18,18 +21,53 @@ function listAt(payload: unknown, key: string): unknown[] {
   return Array.isArray(list) ? list : [];
 }
 
-/** Sum of an address's micro balances whose denom contains `denomSubstr` (case-insensitive). */
-export async function microBalanceByDenom(ctx: OriginContext, address: string, denomSubstr: string): Promise<bigint> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/balances?address=${encodeURIComponent(address)}`);
-  let total = 0n;
-  for (const entry of listAt(payload, "balances")) {
-    const denom = readString(entry, "denom") ?? "";
-    const amount = readString(entry, "amount");
-    if (denom.toLowerCase().includes(denomSubstr.toLowerCase()) && amount !== undefined && /^\d+$/.test(amount)) {
-      total += BigInt(amount);
-    }
+/** Raw `/api/balances` payload for an address. */
+export async function fetchBalances(ctx: OriginContext, address: string): Promise<unknown> {
+  return readJson(ctx, `${ctx.origin}/api/balances?address=${encodeURIComponent(address)}`);
+}
+
+/** Micro balance of a ticker, identified by its RESOLVED bank denom (never the balances `symbol`). */
+export async function assetMicro(
+  ctx: OriginContext,
+  address: string,
+  resolver: Map<string, ResolvedAsset>,
+  ticker: string
+): Promise<bigint> {
+  return heldMicro(await fetchBalances(ctx, address), resolver.get(ticker));
+}
+
+/** Total micro across every USDC-variant ticker the resolver knows (the downpayment funding source). */
+export async function usdcMicro(
+  ctx: OriginContext,
+  address: string,
+  resolver: Map<string, ResolvedAsset>
+): Promise<bigint> {
+  const balances = await fetchBalances(ctx, address);
+  return tickersMatching(resolver, "USDC").reduce((sum, ticker) => sum + heldMicro(balances, resolver.get(ticker)), 0n);
+}
+
+export type RouteProbe = { status: "routable" } | { status: "no-route" } | { status: "error"; reason: string };
+
+/**
+ * Probe a swap route, distinguishing a genuine "no route for this amount" (a precondition) from a
+ * probe ERROR (the API/network failed) — the latter must not be silently reported as no-route.
+ */
+export async function probeSwapRoute(
+  ctx: OriginContext,
+  fromDenom: string,
+  toTicker: string,
+  amountMicro: string
+): Promise<RouteProbe> {
+  let payload: unknown;
+  try {
+    payload = await readJson(
+      ctx,
+      `${ctx.origin}/api/swap/route?from=${encodeURIComponent(fromDenom)}&to=${encodeURIComponent(toTicker)}&amount=${encodeURIComponent(amountMicro)}`
+    );
+  } catch (error) {
+    return { status: "error", reason: error instanceof Error ? error.message : String(error) };
   }
-  return total;
+  return { status: hasSwapRoute(payload) ? "routable" : "no-route" };
 }
 
 /** The first lease enumerated for `address` with `status === "opened"`, or undefined. */
@@ -82,19 +120,24 @@ export async function leaseProtocolConfigs(ctx: OriginContext): Promise<Protocol
 }
 
 /**
- * The wallet's USD holdings keyed by asset ticker — the intersection basis for downpayment
- * selection. Read from `/api/balances`; each entry's ticker/symbol and USD value are taken when the
- * payload exposes them (the live field names are confirmed in CI). An asset with no parseable USD
- * value contributes nothing, so the plan falls through to acquisition rather than over-claiming.
+ * The wallet's USD holdings per asset ticker — the intersection basis for downpayment selection.
+ * Each ticker's micro is summed by its RESOLVED bank denom (never the balances `symbol`, never the
+ * unreliable `amount_usd`) and valued as `micro/10^decimals × price_usd` from `/api/prices`. A
+ * ticker with no price or no holding contributes nothing.
  */
-export async function heldAssetUsd(ctx: OriginContext, address: string): Promise<Map<string, Decimal>> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/balances?address=${encodeURIComponent(address)}`);
+export async function heldAssetUsd(
+  ctx: OriginContext,
+  address: string,
+  resolver: Map<string, ResolvedAsset>,
+  pricesPayload: unknown
+): Promise<Map<string, Decimal>> {
+  const balances = await fetchBalances(ctx, address);
   const held = new Map<string, Decimal>();
-  for (const entry of listAt(payload, "balances")) {
-    const ticker = readString(entry, "ticker") ?? readString(entry, "symbol");
-    const usd = readString(entry, "value_usd") ?? readString(entry, "usd_value") ?? readString(entry, "balance_usd");
-    if (ticker !== undefined && usd !== undefined && /^\d+(\.\d+)?$/.test(usd)) {
-      held.set(ticker.toUpperCase(), (held.get(ticker.toUpperCase()) ?? Decimal.zero()).add(Decimal.fromString(usd)));
+  for (const [ticker, resolved] of resolver) {
+    const micro = heldMicro(balances, resolved);
+    const price = priceUsdOf(pricesPayload, ticker);
+    if (micro > 0n && price !== undefined) {
+      held.set(ticker, microToUsd(micro, resolved.decimalDigits, price));
     }
   }
   return held;

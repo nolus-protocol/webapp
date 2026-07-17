@@ -1,12 +1,17 @@
 import { test, expect } from "./support.js";
 import type { Page } from "@playwright/test";
 import type { RunContext } from "./support.js";
-import { getRunContext, connectFlow, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
+import {
+  getRunContext,
+  connectFlow,
+  reportLeftover,
+  skipIfHalted,
+  spendCommittedOrSkip,
+  annotateSkipAndStop
+} from "./support.js";
 import { typeAmount, requireOrSkip, waitForFundedFromNls } from "../../t2/matrixHelpers.js";
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
-import { hasSwapRoute } from "./preconditions.js";
-import { microBalanceByDenom } from "./apiReads.js";
-import { readJson } from "../runtime.js";
+import { usdcMicro, probeSwapRoute } from "./apiReads.js";
 import { USDC_DENOM } from "./denoms.js";
 
 // Quote -> execute a dust swap (#283 flow 6). The Skip WS topic is DEAD CODE — the app tracks
@@ -19,14 +24,6 @@ const SWAP_NLS = "0.01";
 const TERMINAL_MS = 120000;
 
 let run: RunContext;
-
-async function probeRoute(ctx: RunContext["ctx"], amountMicro: string): Promise<boolean> {
-  const payload = await readJson(
-    ctx,
-    `${ctx.origin}/api/swap/route?from=${encodeURIComponent(NATIVE_DENOM)}&to=${encodeURIComponent(USDC_DENOM)}&amount=${encodeURIComponent(amountMicro)}`
-  ).catch(() => null);
-  return hasSwapRoute(payload);
-}
 
 type SwapTerminal = "success" | "failure" | "pending";
 
@@ -64,15 +61,23 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   budget.route = "/assets/swap";
 
   const amountMicro = toMicroAmount(SWAP_NLS, NATIVE_DECIMALS);
-  const routable = await probeRoute(run.ctx, amountMicro);
-  requireOrSkip(testInfo, run.matrix.expectFunded, routable, "no Skip route for the dust swap amount");
+  const route = await probeSwapRoute(run.ctx, NATIVE_DENOM, USDC_DENOM, amountMicro);
+  if (route.status === "error") {
+    annotateSkipAndStop(testInfo, "environment", `swap route probe failed: ${route.reason}`);
+  }
+  requireOrSkip(
+    testInfo,
+    run.matrix.expectFunded,
+    route.status === "routable",
+    "no Skip route for the dust swap amount"
+  );
 
   await connectFlow(page, run, "/assets/swap");
   await page.locator("#swap-1").waitFor({ state: "visible", timeout: 15000 });
   await waitForFundedFromNls(page);
   await typeAmount(page, "swap-1", SWAP_NLS);
 
-  const usdcBefore = await microBalanceByDenom(run.ctx, wallet.address, "usdc");
+  const usdcBefore = await usdcMicro(run.ctx, wallet.address, run.currencyResolver);
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-swap",
     action: "swap",
@@ -100,7 +105,7 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   });
 
   await expect
-    .poll(() => microBalanceByDenom(run.ctx, wallet.address, "usdc"), {
+    .poll(() => usdcMicro(run.ctx, wallet.address, run.currencyResolver), {
       message: "the swapped-to USDC balance should strictly increase after a committed swap",
       timeout: TERMINAL_MS,
       intervals: [3000, 5000, 5000, 5000]
