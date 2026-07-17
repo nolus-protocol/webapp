@@ -99,7 +99,9 @@ vi.mock("@/common/utils", () => ({
   Logger: { error: vi.fn() },
   formatDateTime: (d: string) => d,
   validateAmountV2: hoisted.validateAmountV2Mock,
-  walletOperation: hoisted.walletOperationMock
+  walletOperation: hoisted.walletOperationMock,
+  classifyError: (e: unknown) =>
+    e instanceof Error && /liquidity/i.test(e.message) ? "message.no-liquidity" : "message.unexpected-error"
 }));
 
 vi.mock("@/common/utils/NumberFormatUtils", () => ({
@@ -242,6 +244,19 @@ describe("UndelegateForm.vue", () => {
     expect(txs.length).toBe(2);
     const total = txs.reduce((acc, t) => acc + BigInt(t.amount.amount), 0n);
     expect(total).toBe(800_000_000n);
+    wrapper.unmount();
+  });
+
+  it("surfaces a localized message (not a silent stop) when undelegate rejects", async () => {
+    hoisted.walletOperationMock.mockRejectedValueOnce(new Error("broadcast failed"));
+    const wrapper = factory();
+    await wrapper.find('[data-test="amount"]').setValue("100");
+    await wrapper.find('[data-test="submit"]').trigger("click");
+    await flushPromises();
+    await nextTick();
+    // The failure used to be swallowed (Logger.error only) - the field now shows
+    // a classified message instead of staying blank.
+    expect(wrapper.find('[data-test="error"]').text()).toBe("message.unexpected-error");
     wrapper.unmount();
   });
 
