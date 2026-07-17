@@ -9,13 +9,15 @@ import {
   spendCommittedOrSkip
 } from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
-import { typeAmount, requireOrSkip, probeNativeMicroBalance, readString } from "../../t2/matrixHelpers.js";
+import { typeAmount, requireOrSkip, probeNativeMicroBalance } from "../../t2/matrixHelpers.js";
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { formatTokenBalance } from "../../oracle/format.js";
 import { submitForm } from "./formDriver.js";
 import { unbondingEntriesFor } from "./apiReads.js";
 import { pickUnbondingValidator, unbondingEntryGate } from "./preconditions.js";
+import { parseDelegations, parseAccruedRewardMicro, parseMaturingRedelegationCount } from "./staking.js";
+import type { Delegation } from "./staking.js";
 import { readJson } from "../runtime.js";
 
 // Stake delegate / undelegate / redelegate / claim of dust NLS (#283 flow 3). Undelegate is
@@ -29,25 +31,12 @@ const TERMINAL_MS = 120000;
 
 let run: RunContext;
 
-interface Delegation {
-  validatorAddress: string;
-  amountMicro: bigint;
+async function stakingPositions(ctx: RunContext["ctx"], address: string): Promise<unknown> {
+  return readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
 }
 
 async function delegations(ctx: RunContext["ctx"], address: string): Promise<Delegation[]> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
-  const list = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).delegations : [];
-  const out: Delegation[] = [];
-  if (Array.isArray(list)) {
-    for (const entry of list) {
-      const validatorAddress = readString(entry, "validator_address");
-      const amount = readString(entry, "balance") ?? readString(entry, "amount");
-      if (validatorAddress !== undefined && amount !== undefined && /^\d+$/.test(amount)) {
-        out.push({ validatorAddress, amountMicro: BigInt(amount) });
-      }
-    }
-  }
-  return out;
+  return parseDelegations(await stakingPositions(ctx, address));
 }
 
 test.beforeAll(async () => {
@@ -141,9 +130,7 @@ test("stake undelegate is precondition-gated on the per-validator unbonding-entr
 });
 
 async function maturingRedelegationCount(ctx: RunContext["ctx"], address: string): Promise<number> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
-  const list = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).redelegation : [];
-  return Array.isArray(list) ? list.length : 0;
+  return parseMaturingRedelegationCount(await stakingPositions(ctx, address));
 }
 
 test("stake redelegate runs through the engine redelegate mutex, gated on no maturing redelegation", async ({
@@ -188,16 +175,7 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
 });
 
 async function accruedRewardMicro(ctx: RunContext["ctx"], address: string): Promise<bigint> {
-  const payload = await readJson(ctx, `${ctx.origin}/api/staking/positions?address=${encodeURIComponent(address)}`);
-  const rewards = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).rewards : [];
-  let total = 0n;
-  if (Array.isArray(rewards)) {
-    for (const entry of rewards) {
-      const amount = readString(entry, "amount") ?? readString(entry, "balance");
-      if (amount !== undefined && /^\d+$/.test(amount)) total += BigInt(amount);
-    }
-  }
-  return total;
+  return parseAccruedRewardMicro(await stakingPositions(ctx, address));
 }
 
 test("stake claim is tolerance-gated and skips cleanly when accrued rewards are below dust", async ({

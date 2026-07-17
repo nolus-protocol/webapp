@@ -7,7 +7,7 @@ import { USDC_DECIMALS } from "../../config.js";
 import { toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { formatDecAsUsd } from "../../oracle/format.js";
-import { microBalanceByDenom } from "./apiReads.js";
+import { usdcMicro } from "./apiReads.js";
 import { submitForm } from "./formDriver.js";
 import { readJson } from "../runtime.js";
 import { assertNonZeroBasis } from "./tolerance.js";
@@ -52,7 +52,7 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   budget.route = "/earn/supply";
 
   const requiredMicro = BigInt(toMicroAmount(DUST_USDC, USDC_DECIMALS));
-  const balance = await microBalanceByDenom(run.ctx, wallet.address, "usdc");
+  const balance = await usdcMicro(run.ctx, wallet.address, run.currencyResolver);
   requireOrSkip(
     testInfo,
     run.matrix.expectFunded,

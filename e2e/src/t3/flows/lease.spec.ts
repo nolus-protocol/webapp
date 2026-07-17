@@ -15,16 +15,23 @@ import { USDC_DECIMALS } from "../../config.js";
 import { toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { computeLiquidation, leaseSizeCell } from "../../oracle/lease.js";
-import { microBalanceByDenom, openedLease, leaseProtocolConfigs, heldAssetUsd, currencies } from "./apiReads.js";
+import {
+  usdcMicro,
+  assetMicro,
+  probeSwapRoute,
+  openedLease,
+  leaseProtocolConfigs,
+  heldAssetUsd,
+  currencies
+} from "./apiReads.js";
 import { submitForm, openDetailDialog } from "./formDriver.js";
-import { remainsAboveMin, hasSwapRoute } from "./preconditions.js";
+import { remainsAboveMin } from "./preconditions.js";
 import { planLeaseDownpayment } from "./leasePlan.js";
 import type { LeaseDownpaymentPlan } from "./leasePlan.js";
 import { resolveShortLeaseStable } from "./sideSelection.js";
 import type { LeaseSide } from "./sideSelection.js";
 import { assertNonZeroBasis, assertWithinTolerance } from "./tolerance.js";
 import { USDC_DENOM } from "./denoms.js";
-import { readJson } from "../runtime.js";
 
 // The alternating-side single-lease lifecycle (#283 flow 1), run same-run on ONE opened lease so
 // the pre-run sweep never sees a cross-run orphan: open → TP/SL create + edit → dust repay
@@ -141,27 +148,22 @@ async function assertOpenedLeaseOracle(
   }
 }
 
-/** The wallet's USDC balance expressed in USD (USDC ~ $1 at 6 decimals). */
+/** The wallet's USDC balance expressed in USD (USDC ~ $1 at 6 decimals), summed by resolved denom. */
 async function usdcHeldUsd(ctx: RunContext["ctx"], address: string): Promise<Decimal> {
-  return Decimal.fromAtomics((await microBalanceByDenom(ctx, address, "usdc")).toString(), USDC_DECIMALS);
-}
-
-/** Whether a USDC → target swap route exists for the acquisition amount (dust routinely has none). */
-async function acquireRoutable(ctx: RunContext["ctx"], acquireUsdcMicro: string): Promise<boolean> {
-  const payload = await readJson(
-    ctx,
-    `${ctx.origin}/api/swap/route?from=${encodeURIComponent(USDC_DENOM)}&to=${encodeURIComponent(ACQUIRE_TARGET)}&amount=${encodeURIComponent(acquireUsdcMicro)}`
-  ).catch(() => null);
-  return hasSwapRoute(payload);
+  return Decimal.fromAtomics((await usdcMicro(ctx, address, run.currencyResolver)).toString(), USDC_DECIMALS);
 }
 
 /** Acquire the downpayment asset by swapping USDC through the engine — capped in USDC, route-gated. */
 async function acquireDownpaymentAsset(page: Page, testInfo: TestInfo, acquireUsd: Decimal): Promise<void> {
   const acquireMicro = toMicroAmount(acquireUsd.toString(USDC_DECIMALS), USDC_DECIMALS);
+  const route = await probeSwapRoute(run.ctx, USDC_DENOM, ACQUIRE_TARGET, acquireMicro);
+  if (route.status === "error") {
+    annotateSkipAndStop(testInfo, "environment", `acquire route probe failed: ${route.reason}`);
+  }
   requireOrSkip(
     testInfo,
     run.matrix.expectFunded,
-    await acquireRoutable(run.ctx, acquireMicro),
+    route.status === "routable",
     `no swap route to acquire the ${ACQUIRE_TARGET} downpayment`
   );
   await connectFlow(page, run, "/assets/swap");
@@ -202,18 +204,19 @@ async function resolveDownpayment(
 ): Promise<ResolvedDownpayment> {
   const plan: LeaseDownpaymentPlan = planLeaseDownpayment({
     protocols: await leaseProtocolConfigs(run.ctx),
-    heldUsd: await heldAssetUsd(run.ctx, address),
+    heldUsd: await heldAssetUsd(run.ctx, address, run.currencyResolver, run.pricesPayload),
     usdcUsd: await usdcHeldUsd(run.ctx, address),
     acquireTarget: ACQUIRE_TARGET,
     acquireBufferUsd: Decimal.fromString(ACQUIRE_BUFFER_USD)
   });
   if (plan.kind === "skip") {
+    testInfo.annotations.push({ type: "matrix-skip", description: `lease downpayment: ${plan.reason}` });
     annotateSkipAndStop(testInfo, "precondition", `lease downpayment unavailable: ${plan.reason}`);
   }
   if (plan.kind === "acquire") {
     await acquireDownpaymentAsset(page, testInfo, plan.acquireUsd);
   }
-  const micro = await microBalanceByDenom(run.ctx, address, ACQUIRE_TARGET.toLowerCase());
+  const micro = await assetMicro(run.ctx, address, run.currencyResolver, ACQUIRE_TARGET);
   requireOrSkip(
     testInfo,
     run.matrix.expectFunded,

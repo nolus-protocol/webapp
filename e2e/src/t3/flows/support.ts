@@ -29,6 +29,8 @@ import type { OpenLease, PendingUnbonding, TerminalPath } from "../report.js";
 import { seqAllocatorFromJournal } from "./seq.js";
 import type { SeqAllocator } from "./seq.js";
 import { seedCapFromJournal } from "./capSeed.js";
+import { parseCurrencyResolver } from "./denomResolver.js";
+import type { ResolvedAsset } from "./denomResolver.js";
 import { dayOfYearUtc, resolveLeaseSideSetting, resolveLeaseSides } from "./sideSelection.js";
 import type { LeaseSide } from "./sideSelection.js";
 
@@ -69,6 +71,10 @@ export interface RunContext {
   labels: ConnectLabels;
   usdTolerance: string;
   leaseSides: LeaseSide[];
+  /** ticker → resolved bank denom(s) + decimals, loaded once from /api/currencies. */
+  currencyResolver: Map<string, ResolvedAsset>;
+  /** Raw /api/prices payload, loaded once (ticker → price_usd). */
+  pricesPayload: unknown;
 }
 
 let runContext: RunContext | undefined;
@@ -156,6 +162,8 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
   const roles = await deriveRoles(config.t2);
   const chain = await resolveChain(ctx, config.matrix.chainRpc);
   const locale = await fetchLocale(ctx);
+  const currencyResolver = parseCurrencyResolver(await readJson(ctx, `${ctx.origin}/api/currencies`));
+  const pricesPayload = await readJson(ctx, `${ctx.origin}/api/prices`);
   const queue = new SerialQueue();
   const cap = spendCapFromMicros({ nlsMicro: config.t3.spendCapNlsMicro, usdcMicro: config.t3.spendCapUsdcMicro });
   const store = new JournalStore(config.t3.resultsDir);
@@ -181,7 +189,9 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
     locale,
     labels: readConnectLabels(locale),
     usdTolerance: process.env.E2E_USD_TOLERANCE?.trim() || DEFAULT_USD_TOLERANCE,
-    leaseSides: resolveLeaseSides(config.leaseSetting, dayOfYearUtc(new Date()))
+    leaseSides: resolveLeaseSides(config.leaseSetting, dayOfYearUtc(new Date())),
+    currencyResolver,
+    pricesPayload
   };
   return runContext;
 }
