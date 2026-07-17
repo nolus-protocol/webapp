@@ -92,7 +92,7 @@ async function emptyBalancePremiseHolds(cell: FormCell, ctx: OriginContext, addr
     case "earn-position":
       return !(await probeHasEntries(ctx, `/api/earn/positions?address=${address}`, "positions"));
     case "stake-position":
-      return !(await probeHasEntries(ctx, `/api/staking/positions?address=${address}`, "positions"));
+      return !(await probeHasEntries(ctx, `/api/staking/positions?address=${address}`, "delegations"));
     default: {
       const unreachable: never = cell.premise;
       throw new Error(`unhandled balance premise: ${String(unreachable)}`);
