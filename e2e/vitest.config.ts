@@ -9,12 +9,18 @@ export default defineConfig({
       include: ["src/**/*.ts"],
       exclude: [
         "src/**/*.test.ts",
+        "src/**/*.spec.ts",
         "src/t0.ts",
         "src/http.ts",
         "src/ws.ts",
         "src/broadcast.ts",
         "src/t1/**",
-        "src/t2/**"
+        "src/t2/**",
+        // Browser glue (Playwright fixtures / specs) is exercised by the live and
+        // fixture-mode suites, not vitest. The pure logic it drives — the oracle, the
+        // fixture loader, and the schema validator — stays included and unit-tested.
+        "src/ui/**",
+        "src/fixtures/support.ts"
       ],
       reporter: ["text", "json-summary"],
       // Ratchet floors pinned just under measured actuals. The pure modules
@@ -23,10 +29,10 @@ export default defineConfig({
       // unit tests. Floors track actuals while this branch evolves; once merged, the
       // shipped baseline is one-way: raise as coverage improves, never lower.
       thresholds: {
-        statements: 84,
-        branches: 82,
-        functions: 79,
-        lines: 84
+        statements: 88,
+        branches: 83,
+        functions: 86,
+        lines: 88
       }
     }
   }

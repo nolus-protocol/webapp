@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "protocol": {
+            "type": "string"
+          },
+          "lpp_address": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "deposited_nlpn": {
+            "type": "string",
+            "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+            "minLength": 1
+          },
+          "deposited_lpn": {
+            "type": "string",
+            "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+            "minLength": 1
+          },
+          "deposited_usd": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lpp_price": {
+            "type": "string",
+            "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+            "minLength": 1
+          },
+          "current_apy": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "protocol",
+          "lpp_address",
+          "currency",
+          "deposited_nlpn",
+          "deposited_lpn",
+          "lpp_price",
+          "current_apy"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "total_deposited_usd": {
+      "type": "string",
+      "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "positions",
+    "total_deposited_usd"
+  ],
+  "additionalProperties": {}
+}

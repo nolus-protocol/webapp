@@ -5,6 +5,7 @@ import type { Dispatcher } from "undici";
 import { getJson } from "../http.js";
 import { parseT1Config } from "../config.js";
 import { createUndiciConnector } from "../resolver.js";
+import { animatedCompact } from "../oracle/index.js";
 
 const APP_SHELL_TIMEOUT = 20000;
 const STABLE_TIMEOUT = 15000;
@@ -12,16 +13,10 @@ const BRIDGE_TIMEOUT = 30000;
 const TOLERANCE = 0.01;
 const OVERVIEW_PATH = "/api/etl/batch/stats-overview";
 
-// Mirrors src/common/utils/NumberFormatUtils.compactFormatOptions. The rendered
-// AnimateNumber exposes the formatted number (no currency symbol) via aria-label;
-// the "$" is a separate static prefix asserted independently.
-const compactUsd = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  compactDisplay: "short",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
-
+// The rendered AnimateNumber exposes the formatted number (no currency symbol) via
+// aria-label; the "$" is a separate static prefix asserted independently. The expected
+// compact string comes from the independent oracle (`animatedCompact`), not a second
+// hand-mirrored copy of the app's format options — one source of formatting truth.
 const MULTIPLIERS: Record<string, number> = { "": 1, K: 1e3, M: 1e6, B: 1e9, T: 1e12 };
 
 let dispatcher: Dispatcher | undefined;
@@ -44,7 +39,7 @@ function mustString(root: unknown, ...path: string[]): string {
 }
 
 function expectedCompact(raw: string): string {
-  return compactUsd.format(Math.abs(Number(raw)));
+  return animatedCompact(raw);
 }
 
 function parseCompact(rendered: string): number | null {

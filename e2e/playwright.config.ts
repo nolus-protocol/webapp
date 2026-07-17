@@ -50,6 +50,40 @@ export default defineConfig<T2Options>({
       use: { viewport: { width: 390, height: 844 }, themeData: "light" }
     },
     {
+      // Fixture-mode functional specs (boot smoke, oracle bridge, fault injection,
+      // integrity). Deterministic: all /api + /ws are intercepted from the committed
+      // fixture set, so no live backend or wallet is touched. The SPA bundle itself still
+      // loads from baseURL, so the host-resolver launch args are still required.
+      name: "fixture",
+      testDir: "src/ui",
+      testMatch: ["**/boot.spec.ts", "**/bridge.spec.ts", "**/faults.spec.ts", "**/integrity.spec.ts"],
+      use: { viewport: { width: 1440, height: 900 }, themeData: "light" }
+    },
+    {
+      name: "visual-desktop-light",
+      testDir: "src/ui",
+      testMatch: ["**/visual.spec.ts"],
+      use: { viewport: { width: 1440, height: 900 }, themeData: "light", deviceScaleFactor: 1 }
+    },
+    {
+      name: "visual-desktop-dark",
+      testDir: "src/ui",
+      testMatch: ["**/visual.spec.ts"],
+      use: { viewport: { width: 1440, height: 900 }, themeData: "dark", deviceScaleFactor: 1 }
+    },
+    {
+      name: "visual-mobile-light",
+      testDir: "src/ui",
+      testMatch: ["**/visual.spec.ts"],
+      use: { viewport: { width: 390, height: 844 }, themeData: "light", deviceScaleFactor: 1 }
+    },
+    {
+      name: "visual-mobile-dark",
+      testDir: "src/ui",
+      testMatch: ["**/visual.spec.ts"],
+      use: { viewport: { width: 390, height: 844 }, themeData: "dark", deviceScaleFactor: 1 }
+    },
+    {
       name: "t2",
       testDir: "src/t2",
       // The parallel-safe matrix: connect, validation, classify, reconnect. Rate-limit and

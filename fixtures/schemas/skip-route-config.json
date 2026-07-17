@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "blacklist": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "swap_to_currency": {
+      "type": "string"
+    },
+    "fee": {
+      "type": "number"
+    },
+    "transfers": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "currencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "native": {
+                  "type": "boolean"
+                },
+                "visible": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "from",
+                "to",
+                "native"
+              ],
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": [
+          "currencies"
+        ],
+        "additionalProperties": {}
+      }
+    }
+  },
+  "required": [
+    "blacklist",
+    "swap_to_currency",
+    "fee",
+    "transfers"
+  ],
+  "additionalProperties": {}
+}

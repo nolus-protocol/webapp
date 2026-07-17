@@ -210,3 +210,57 @@ jobs:
           name: backend-coverage
           path: backend/target/tarpaulin/
           retention-days: 7
+
+  e2e-static:
+    name: E2E — fixture schemas, gate, coverage matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Static-only: no browsers, no network. Validates the fixture-schema seam, the e2e
+    # package gate, and the coverage-matrix guard. The browser tiers (live + fixture-mode
+    # visual) run out of band on demand, not here.
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Typecheck the fixture-schema codegen
+        run: npx tsc -p scripts/tsconfig.json --noEmit
+
+      - name: Regenerate fixture schemas and fail on drift
+        # The committed schemas must equal a fresh generation from the Zod contracts;
+        # a drift here means the app's response contract changed without the fixtures.
+        run: |
+          npm run gen:fixture-schemas
+          git diff --exit-code fixtures/schemas
+
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: E2E typecheck
+        working-directory: e2e
+        run: npm run typecheck
+
+      - name: E2E format check
+        working-directory: e2e
+        run: npm run format:check
+
+      - name: E2E lint
+        working-directory: e2e
+        run: npm run lint
+
+      - name: E2E unit tests with coverage
+        working-directory: e2e
+        run: npm run test:coverage
+
+      - name: Coverage matrix guard
+        working-directory: e2e
+        run: npm run check:matrix
