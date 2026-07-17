@@ -135,25 +135,23 @@ export async function clickLocatorAndSettle(
 
 /**
  * Select a funded currency variant in an AdvancedFormControl currency picker before typing, so the
- * amount validates against a held balance instead of the zero-balance default option. The control is
- * `:searchable`, listing AssetItem rows (asset + balance): open the picker, filter to the variant,
- * and click its row. The picker's internal DOM is a web-component surface confirmed live in CI;
- * a no-op click is swallowed so a form that defaults to the right variant still proceeds.
+ * amount validates against a held balance instead of the zero-balance default option. Per the
+ * web-components source the picker is a `Dropdown` atom: its trigger is a button carrying
+ * `aria-expanded`, which opens a (Teleport-portaled) searchable list of AssetItem rows. So: click
+ * the collapsed trigger, filter the search to the target variant, then click the matching row. Every
+ * step's failure is swallowed so a form that already defaults to the right variant still proceeds.
  */
-export async function selectCurrencyVariant(
-  page: Page,
-  inputId: string,
-  label: string,
-  timeoutMs: number
-): Promise<void> {
-  const control = page.locator(`#${inputId}`).locator("xpath=ancestor::*[1]");
-  await control
-    .getByRole("button")
+export async function selectCurrencyVariant(page: Page, label: string, timeoutMs: number): Promise<void> {
+  await page
+    .getByRole("button", { expanded: false })
     .first()
     .click({ timeout: timeoutMs })
     .catch(() => undefined);
-  const search = page.getByRole("textbox").last();
-  await search.fill(label).catch(() => undefined);
+  await page
+    .getByRole("textbox")
+    .last()
+    .fill(label)
+    .catch(() => undefined);
   await page
     .getByText(label, { exact: false })
     .last()

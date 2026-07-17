@@ -183,13 +183,7 @@ test("stake redelegate recovers a jailed-validator delegation through the engine
     memo: `redelegate from ${source ?? ""}`,
     // The control is an unnamed refresh SvgIcon on the jailed row (its /redelegate/ text is only in
     // a tooltip): its click runs walletOperation directly (auto-picks destinations, no dialog).
-    execute: () =>
-      clickLocatorAndSettle(
-        page,
-        page.locator('[name="refresh"], .cursor-pointer[name="refresh"]'),
-        "redelegate",
-        TERMINAL_MS
-      )
+    execute: () => clickLocatorAndSettle(page, page.locator("svg.cursor-pointer"), "redelegate", TERMINAL_MS)
   });
 
   reportLeftover(run, testInfo, { terminal: "success" });
