@@ -15,6 +15,7 @@
     "t2:ratelimit": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t2.json playwright test --config playwright.config.ts --workers=1 --project=ratelimit",
     "t2:receive": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t2.json playwright test --config playwright.config.ts --workers=1 --project=receive",
     "t3:engine": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t3-engine.json playwright test --config playwright.config.ts --workers=1 --project=t3-engine",
+    "t3:flows": "PLAYWRIGHT_JSON_OUTPUT_NAME=results/t3-flows.json playwright test --config playwright.config.ts --workers=1 --project=t3-flows",
     "typecheck": "tsc --noEmit",
     "check:matrix": "tsx scripts/check-matrix.ts",
     "lint": "eslint . --max-warnings=0",

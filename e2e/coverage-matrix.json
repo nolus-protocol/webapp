@@ -598,9 +598,9 @@
       "component": "secondary-figure",
       "state": "populated",
       "mapping": {
-        "type": "gap",
-        "category": "funded-gated",
-        "reason": "earn user totals need a funded wallet; covered by live + oracle"
+        "type": "assertion",
+        "spec": "src/t3/flows/earn.spec.ts",
+        "label": "flow-earn-total"
       }
     },
     {
@@ -628,9 +628,9 @@
       "component": "primary-figure",
       "state": "populated",
       "mapping": {
-        "type": "gap",
-        "category": "funded-gated",
-        "reason": "positions list rows need an open lease; live-gated"
+        "type": "assertion",
+        "spec": "src/t3/flows/lease.spec.ts",
+        "label": "flow-lease-row"
       }
     },
     {
@@ -638,9 +638,9 @@
       "component": "secondary-figure",
       "state": "populated",
       "mapping": {
-        "type": "gap",
-        "category": "funded-gated",
-        "reason": "single-lease size/PnL/liquidation need an open lease; oracle lease vectors cover the math"
+        "type": "assertion",
+        "spec": "src/t3/flows/lease.spec.ts",
+        "label": "flow-lease-detail"
       }
     },
     {
@@ -648,9 +648,9 @@
       "component": "primary-figure",
       "state": "populated",
       "mapping": {
-        "type": "gap",
-        "category": "funded-gated",
-        "reason": "delegated amount needs a delegation; live-gated"
+        "type": "assertion",
+        "spec": "src/t3/flows/stake.spec.ts",
+        "label": "flow-stake-delegated"
       }
     },
     {
@@ -688,9 +688,9 @@
       "component": "cross-field",
       "state": "populated",
       "mapping": {
-        "type": "gap",
-        "category": "funded-gated",
-        "reason": "lease PnL sign == indicator and long liq < spot < short liq need an open lease; oracle lease vectors cover the math"
+        "type": "assertion",
+        "spec": "src/t3/flows/lease.spec.ts",
+        "label": "flow-lease-crossfield"
       }
     },
     {

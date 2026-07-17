@@ -39,6 +39,11 @@ function pattern(rule: PatternRule): Rule {
 const RULES: Rule[] = [
   pattern({
     category: "precondition",
+    signal: "spend-cap-abort",
+    regex: /spend[-\s]?cap[-\s]?abort|spend cap (reached|exceeded|hit)/i
+  }),
+  pattern({
+    category: "precondition",
     signal: "unfunded",
     regex: /unfunded|insufficient funds|not funded|no balance/i
   }),
@@ -56,6 +61,17 @@ const RULES: Rule[] = [
     category: "precondition",
     signal: "osmosis-side-funds",
     regex: /osmosis.*(funds|balance|liquidity is missing)|missing osmosis/i
+  }),
+  pattern({
+    category: "precondition",
+    signal: "lease-amount-range",
+    regex:
+      /down\s?payment.*(too (small|low|large|high)|below|above|out of range)|lease.*(min|max).*(rejected|exceeded)/i
+  }),
+  pattern({
+    category: "precondition",
+    signal: "swap-amount-too-small",
+    regex: /amount too small|below.*minimum.*swap|dust.*(no route|not routable)|too small to route/i
   }),
   {
     category: "environment",

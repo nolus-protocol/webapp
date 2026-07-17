@@ -17,6 +17,12 @@ export default defineConfig({
         "src/t3/journalStore.ts",
         "src/t3/runtime.ts",
         "src/t3/repair.ts",
+        // T3 flow browser/network glue — the run singleton, live API reads, and form driver are
+        // exercised by the live t3-flows suite, not vitest. The pure helpers they compose
+        // (sideSelection, seq, tolerance, preconditions) stay included and unit-tested.
+        "src/t3/flows/support.ts",
+        "src/t3/flows/apiReads.ts",
+        "src/t3/flows/formDriver.ts",
         "src/t1/**",
         "src/t2/**",
         // Browser glue (Playwright fixtures / specs) is exercised by the live and
