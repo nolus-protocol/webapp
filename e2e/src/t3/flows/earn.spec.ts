@@ -1,14 +1,6 @@
 import { test, expect } from "./support.js";
 import type { RunContext } from "./support.js";
-import {
-  getRunContext,
-  connectFlow,
-  journaledSpend,
-  reportLeftover,
-  skipIfHalted,
-  classifyAndRoute,
-  annotateSkipAndStop
-} from "./support.js";
+import { getRunContext, connectFlow, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, readString } from "../../t2/matrixHelpers.js";
 import { USDC_DECIMALS } from "../../config.js";
@@ -19,12 +11,12 @@ import { microBalanceByDenom } from "./apiReads.js";
 import { submitForm } from "./formDriver.js";
 import { readJson } from "../runtime.js";
 import { assertNonZeroBasis } from "./tolerance.js";
+import { USDC_DENOM } from "./denoms.js";
 
 // Earn supply + withdraw of dust USDC (#283 flow 2). The rendered user earn total is asserted
 // against the GET /api/earn/positions total through the render oracle, and a WS earn tick must
 // not clobber the REST-sourced fields (the T2 reconnect technique). Matrix label: flow-earn-total.
 
-const USDC_DENOM = "ibc/usdc";
 const DUST_USDC = "0.05";
 const TERMINAL_MS = 120000;
 
@@ -74,24 +66,15 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
 
   await connectFlow(page, run, "/earn/supply");
   await typeAmount(page, "receive-send", DUST_USDC);
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-earn",
-      action: "earn-supply",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "usdc", micro: requiredMicro }],
-      denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
-      execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "supply"), terminalMs: TERMINAL_MS })
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
-    }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-earn",
+    action: "earn-supply",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "usdc", micro: requiredMicro }],
+    denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
+    execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "supply"), terminalMs: TERMINAL_MS })
+  });
 
   testInfo.annotations.push({ type: "matrix", description: "flow-earn-total" });
   await page.goto("/earn", { waitUntil: "domcontentloaded" });
@@ -102,24 +85,15 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
 
   await connectFlow(page, run, "/earn/withdraw");
   await typeAmount(page, "receive-send", DUST_USDC);
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-earn",
-      action: "earn-withdraw",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "nls", micro: 0n }],
-      denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
-      execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "withdraw"), terminalMs: TERMINAL_MS })
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
-    }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-earn",
+    action: "earn-withdraw",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "nls", micro: 0n }],
+    denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
+    execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "withdraw"), terminalMs: TERMINAL_MS })
+  });
 
   reportLeftover(run, testInfo, { terminal: "success" });
 });

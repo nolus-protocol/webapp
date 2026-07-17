@@ -645,10 +645,13 @@ run: when the second open would exceed the USDC cap it precondition-skips rather
 USDC is the only viable downpayment denom (NLS is priced ~$0 on staging, so its USD figures are
 vacuous and its ranges unreachable). The lease minimum downpayment is **$40 USD-equivalent**,
 resolved **live** from `GET /api/leases/config/<protocol>` at test time, never hardcoded. One
-lease cycle per run is roughly $42 gross, which fits the $50 USDC cap. A short lease asserts against
-the lease-group stable ticker (`resolveShortLeaseStable`), never the downpayment/LPN, and PnL /
-liquidation tolerances are taken on the non-zero-priced collateral leg — `assertNonZeroBasis`
-turns a would-be vacuous NLS-USD assertion into a red.
+lease cycle per run is roughly $42 gross, which fits the $50 USDC cap. A short lease asserts its
+opened position ticker equals `resolveShortLeaseStable(currencies)` (the lease-group stable, never
+the downpayment/LPN) — the `#283` short-side acceptance criterion. The rendered lease USD value is
+checked against the oracle within `E2E_USD_TOLERANCE` via `assertWithinTolerance`, and every such
+comparison is basis-guarded by `assertNonZeroBasis` so a would-be vacuous NLS-USD assertion (whose
+oracle basis is $0) becomes a red rather than a silent pass. The liquidation cross-field check
+asserts the ordering invariant (`long liq < spot < short liq`) on the same non-zero collateral leg.
 
 ### Spend-cap-abort skip semantics
 
@@ -677,16 +680,21 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   `stake-claim`, `ibc-transfer`, and `lease-repay` — the value-moving actions these flows introduce
   that the `#284` engine did not yet represent. Additive only; no existing behaviour changes.
 - **Crash-restart cap seeding.** `getRunContext` seeds the SpendCap's spent-state from the journal's
-  committed outcomes (`seedCapFromJournal`) at singleton construction, from the same journal that
+  committed intents (`seedCapFromJournal`) at singleton construction, from the same journal that
   seeds the seq allocator, so a worker restart cannot rebuild a full-budget cap and double-spend the
-  operator budget. A spend-cap abort is journaled with a first-class `precondition/spend-cap-abort`
-  classification, never `app/unclassified`.
+  operator budget. The charge is reconstructed **exclusively from each intent's `charged` field** —
+  the cap-charged `SpendItems` actually reserved (`journaledSpend` writes them), never the display
+  `denoms` — so an inflow action that journals a positive denom while charging `[{nls, 0n}]`
+  (undelegate / redelegate / claim / withdraw) contributes zero on restart. A spend-cap abort is
+  journaled with a first-class `precondition/spend-cap-abort` classification, never `app/unclassified`.
 - **Artifact scrubbing.** `e2e-t3-flows.yaml` uploads `playwright-report/` and `test-results/`, whose
   browser traces bypass the in-suite `sanitizeRpc` and can embed the host-resolver target. A
-  pre-upload scrub step redacts every occurrence of the `E2E_HOST_RESOLVER` target (`vars.DEPLOY_HOST`)
-  across the uploaded dirs and logs the redaction count. The `e2e-t3-engine.yaml` smoke uploads the
-  same trace dirs and should adopt the identical scrub step (its journal/report are already sanitized;
-  only the browser traces are the residual leak surface).
+  pre-upload scrub step runs two passes over the uploaded dirs: a text pass redacts every occurrence
+  of the `E2E_HOST_RESOLVER` target (`vars.DEPLOY_HOST`), then a second pass **without** `grep -I`
+  finds any file still matching — a binary the sanitizer cannot rewrite (`trace.zip`, screenshots) —
+  and **deletes it outright**, logging each deletion. The step logs both the redaction and deletion
+  counts. The `e2e-t3-engine.yaml` smoke uploads the same trace dirs and should adopt the identical
+  step (its journal/report are already sanitized; only the browser traces are the residual leak surface).
 - **IBC is inert until funded.** `ibc.spec.ts` is entirely skip-gated on an Osmosis-side funding
   probe (escalated to a hard failure under `E2E_EXPECT_FUNDED`); its structure is complete but the
   live path stays inert until the counterparty side is funded.

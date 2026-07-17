@@ -1,14 +1,7 @@
 import { test, expect } from "./support.js";
 import type { Page } from "@playwright/test";
 import type { RunContext } from "./support.js";
-import {
-  getRunContext,
-  journaledSpend,
-  reportLeftover,
-  skipIfHalted,
-  classifyAndRoute,
-  annotateSkipAndStop
-} from "./support.js";
+import { getRunContext, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
 import { connectKeplr, waitForAppShell, assertConnected } from "../../t2/appDriver.js";
 import {
   requireOrSkip,
@@ -77,38 +70,27 @@ test("a native send debits the sender and credits wallet-2 through the engine", 
   const renderedBefore = await readSwapFromNls(page);
   const receiverBefore = await probeNativeMicroBalance(run.ctx, run.secondary.address);
 
-  let result: BroadcastResult | undefined;
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-send",
-      action: "native-send",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "nls", micro: grossMicro }],
-      denoms: [{ denom: NATIVE_DENOM, micro: grossMicro.toString() }],
-      memo: "nolus-e2e-t3-flow",
-      outcomeFrom: (value: BroadcastResult) => ({ txHash: value.txHash, height: value.height }),
-      execute: () =>
-        broadcastSend({
-          rpcUrl: run.chain.rpcUrl,
-          senderMnemonic: run.primaryMnemonic,
-          prefix: "nolus",
-          recipient: run.secondary.address,
-          amount: coin,
-          fee,
-          memo: "nolus-e2e-t3-flow"
-        })
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
-    }
-    result = outcome.status === "committed" ? outcome.value : undefined;
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
-  testInfo.annotations.push({ type: "t3-send", description: `broadcast at height ${result?.height ?? 0}` });
+  const result = await spendCommittedOrSkip<BroadcastResult>(testInfo, run, {
+    spec: "t3-flow-send",
+    action: "native-send",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "nls", micro: grossMicro }],
+    denoms: [{ denom: NATIVE_DENOM, micro: grossMicro.toString() }],
+    memo: "nolus-e2e-t3-flow",
+    outcomeFrom: (value: BroadcastResult) => ({ txHash: value.txHash, height: value.height }),
+    execute: () =>
+      broadcastSend({
+        rpcUrl: run.chain.rpcUrl,
+        senderMnemonic: run.primaryMnemonic,
+        prefix: "nolus",
+        recipient: run.secondary.address,
+        amount: coin,
+        fee,
+        memo: "nolus-e2e-t3-flow"
+      })
+  });
+  testInfo.annotations.push({ type: "t3-send", description: `broadcast at height ${result.height}` });
 
   await expect
     .poll(() => readSwapFromNls(page), {

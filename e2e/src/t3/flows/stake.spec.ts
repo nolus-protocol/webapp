@@ -3,11 +3,10 @@ import type { RunContext } from "./support.js";
 import {
   getRunContext,
   connectFlow,
-  journaledSpend,
   reportLeftover,
   skipIfHalted,
-  classifyAndRoute,
-  annotateSkipAndStop
+  annotateSkipAndStop,
+  spendCommittedOrSkip
 } from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, probeNativeMicroBalance, readString } from "../../t2/matrixHelpers.js";
@@ -79,24 +78,15 @@ test("stake delegate of dust NLS renders the delegated amount matching the oracl
 
   await connectFlow(page, run, "/stake/delegate");
   await typeAmount(page, "receive-send", DUST_NLS);
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-stake",
-      action: "delegate",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "nls", micro: requiredMicro }],
-      denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
-      execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "delegate"), terminalMs: TERMINAL_MS })
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
-    }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-stake",
+    action: "delegate",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "nls", micro: requiredMicro }],
+    denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
+    execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "delegate"), terminalMs: TERMINAL_MS })
+  });
 
   testInfo.annotations.push({ type: "matrix", description: "flow-stake-delegated" });
   await page.goto("/stake", { waitUntil: "domcontentloaded" });
@@ -137,25 +127,16 @@ test("stake undelegate is precondition-gated on the per-validator unbonding-entr
   await connectFlow(page, run, "/stake/undelegate");
   await typeAmount(page, "receive-send", DUST_NLS);
   const requiredMicro = BigInt(toMicroAmount(DUST_NLS, NATIVE_DECIMALS));
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-stake",
-      action: "undelegate",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "nls", micro: 0n }],
-      denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
-      memo: `undelegate target ${target ?? ""}`,
-      execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "undelegate"), terminalMs: TERMINAL_MS })
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
-    }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-stake",
+    action: "undelegate",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "nls", micro: 0n }],
+    denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
+    memo: `undelegate target ${target}`,
+    execute: () => submitForm(page, { submitLabel: messageValue(run.locale, "undelegate"), terminalMs: TERMINAL_MS })
+  });
 
   reportLeftover(run, testInfo, {
     terminal: "success",
@@ -189,32 +170,23 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
 
   await connectFlow(page, run, "/stake");
   const requiredMicro = BigInt(toMicroAmount(DUST_NLS, NATIVE_DECIMALS));
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-stake",
-      action: "redelegate",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "nls", micro: 0n }],
-      denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
-      memo: `redelegate from ${source}`,
-      execute: async () => {
-        await page
-          .getByRole("button", { name: /redelegate/i })
-          .first()
-          .click({ timeout: TERMINAL_MS });
-        await typeAmount(page, "receive-send", DUST_NLS);
-        await submitForm(page, { submitLabel: messageValue(run.locale, "redelegate"), terminalMs: TERMINAL_MS });
-      }
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-stake",
+    action: "redelegate",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "nls", micro: 0n }],
+    denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
+    memo: `redelegate from ${source}`,
+    execute: async () => {
+      await page
+        .getByRole("button", { name: /redelegate/i })
+        .first()
+        .click({ timeout: TERMINAL_MS });
+      await typeAmount(page, "receive-send", DUST_NLS);
+      await submitForm(page, { submitLabel: messageValue(run.locale, "redelegate"), terminalMs: TERMINAL_MS });
     }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  });
 
   reportLeftover(run, testInfo, { terminal: "success" });
 });
@@ -252,27 +224,18 @@ test("stake claim is tolerance-gated and skips cleanly when accrued rewards are 
   expect(accrued >= dustMicro).toBe(true);
 
   await connectFlow(page, run, "/stake");
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-stake",
-      action: "stake-claim",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "nls", micro: 0n }],
-      denoms: [{ denom: NATIVE_DENOM, micro: accrued.toString() }],
-      execute: async () => {
-        await page.getByRole("button", { name: /claim/i }).first().click({ timeout: TERMINAL_MS });
-        await submitForm(page, { submitLabel: messageValue(run.locale, "claim"), terminalMs: TERMINAL_MS });
-      }
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-stake",
+    action: "stake-claim",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "nls", micro: 0n }],
+    denoms: [{ denom: NATIVE_DENOM, micro: accrued.toString() }],
+    execute: async () => {
+      await page.getByRole("button", { name: /claim/i }).first().click({ timeout: TERMINAL_MS });
+      await submitForm(page, { submitLabel: messageValue(run.locale, "claim"), terminalMs: TERMINAL_MS });
     }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  });
 
   reportLeftover(run, testInfo, { terminal: "success" });
 });

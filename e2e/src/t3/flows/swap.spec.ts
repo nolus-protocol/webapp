@@ -1,20 +1,13 @@
 import { test, expect } from "./support.js";
 import type { Page } from "@playwright/test";
 import type { RunContext } from "./support.js";
-import {
-  getRunContext,
-  connectFlow,
-  journaledSpend,
-  reportLeftover,
-  skipIfHalted,
-  classifyAndRoute,
-  annotateSkipAndStop
-} from "./support.js";
+import { getRunContext, connectFlow, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
 import { typeAmount, requireOrSkip, waitForFundedFromNls } from "../../t2/matrixHelpers.js";
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
 import { hasSwapRoute } from "./preconditions.js";
 import { microBalanceByDenom } from "./apiReads.js";
 import { readJson } from "../runtime.js";
+import { USDC_DENOM } from "./denoms.js";
 
 // Quote -> execute a dust swap (#283 flow 6). The Skip WS topic is DEAD CODE — the app tracks
 // swaps by client polling (SkipRouter.fetchStatus in useSwapForm.ts), so this asserts through the
@@ -30,7 +23,7 @@ let run: RunContext;
 async function probeRoute(ctx: RunContext["ctx"], amountMicro: string): Promise<boolean> {
   const payload = await readJson(
     ctx,
-    `${ctx.origin}/api/swap/route?from=${encodeURIComponent(NATIVE_DENOM)}&to=${encodeURIComponent("ibc/usdc")}&amount=${encodeURIComponent(amountMicro)}`
+    `${ctx.origin}/api/swap/route?from=${encodeURIComponent(NATIVE_DENOM)}&to=${encodeURIComponent(USDC_DENOM)}&amount=${encodeURIComponent(amountMicro)}`
   ).catch(() => null);
   return hasSwapRoute(payload);
 }
@@ -84,40 +77,31 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   await typeAmount(page, "swap-1", SWAP_NLS);
 
   const usdcBefore = await microBalanceByDenom(run.ctx, wallet.address, "usdc");
-  try {
-    const outcome = await journaledSpend(run, {
-      spec: "t3-flow-swap",
-      action: "swap",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "nls", micro: BigInt(amountMicro) }],
-      denoms: [{ denom: NATIVE_DENOM, micro: amountMicro }],
-      execute: async () => {
-        await run.queue.pace("strict");
-        await page.getByRole("button", { name: /swap/i }).last().click({ timeout: TERMINAL_MS });
-        await page
-          .getByRole("button", { name: /confirm|submit/i })
-          .first()
-          .click({ timeout: TERMINAL_MS });
-        await expect
-          .poll(() => swapTerminal(page), {
-            message: "swap should reach a polled terminal state",
-            timeout: TERMINAL_MS
-          })
-          .not.toBe("pending");
-        if ((await swapTerminal(page)) === "failure") {
-          throw new Error(`swap reached a failed terminal state: ${(await swapDialogText(page)).slice(0, 200)}`);
-        }
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-swap",
+    action: "swap",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "nls", micro: BigInt(amountMicro) }],
+    denoms: [{ denom: NATIVE_DENOM, micro: amountMicro }],
+    execute: async () => {
+      await run.queue.pace("strict");
+      await page.getByRole("button", { name: /swap/i }).last().click({ timeout: TERMINAL_MS });
+      await page
+        .getByRole("button", { name: /confirm|submit/i })
+        .first()
+        .click({ timeout: TERMINAL_MS });
+      await expect
+        .poll(() => swapTerminal(page), {
+          message: "swap should reach a polled terminal state",
+          timeout: TERMINAL_MS
+        })
+        .not.toBe("pending");
+      if ((await swapTerminal(page)) === "failure") {
+        throw new Error(`swap reached a failed terminal state: ${(await swapDialogText(page)).slice(0, 200)}`);
       }
-    });
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
     }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  });
 
   await expect
     .poll(() => microBalanceByDenom(run.ctx, wallet.address, "usdc"), {

@@ -1,27 +1,20 @@
 import { test, expect } from "./support.js";
 import type { Page, TestInfo } from "@playwright/test";
 import type { RunContext } from "./support.js";
-import {
-  getRunContext,
-  connectFlow,
-  journaledSpend,
-  reportLeftover,
-  skipIfHalted,
-  classifyAndRoute,
-  annotateSkipAndStop
-} from "./support.js";
-import type { JournaledSpendParams } from "./support.js";
+import { getRunContext, connectFlow, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, readString } from "../../t2/matrixHelpers.js";
 import { USDC_DECIMALS } from "../../config.js";
 import { toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { computeLiquidation, leaseSizeCell } from "../../oracle/lease.js";
-import { microBalanceByDenom, openedLease, leaseConfig, firstProtocol } from "./apiReads.js";
+import { microBalanceByDenom, openedLease, leaseConfig, firstProtocol, currencies } from "./apiReads.js";
 import { submitForm, openDetailDialog } from "./formDriver.js";
 import { resolveDownpaymentFloorUsd, remainsAboveMin } from "./preconditions.js";
+import { resolveShortLeaseStable } from "./sideSelection.js";
 import type { LeaseSide } from "./sideSelection.js";
-import { assertNonZeroBasis } from "./tolerance.js";
+import { assertNonZeroBasis, assertWithinTolerance } from "./tolerance.js";
+import { USDC_DENOM } from "./denoms.js";
 
 // The alternating-side single-lease lifecycle (#283 flow 1), run same-run on ONE opened lease so
 // the pre-run sweep never sees a cross-run orphan: open → TP/SL create + edit → dust repay
@@ -32,7 +25,6 @@ import { assertNonZeroBasis } from "./tolerance.js";
 // against chain-enumerated state. Matrix labels: flow-lease-row, flow-lease-detail,
 // flow-lease-crossfield.
 
-const USDC_DENOM = "ibc/usdc";
 const TERMINAL_MS = 150000;
 const MIN_ASSET_USDC = "15";
 const MIN_TRANSACTION_USDC = "0.01";
@@ -56,18 +48,11 @@ function oracleSize(lease: Record<string, unknown>, side: LeaseSide): string {
   }).value;
 }
 
-/** Run a governed lease spend through the engine; skip on cap-abort, classify-and-route on error. */
-async function spendOrRoute(testInfo: TestInfo, params: JournaledSpendParams<void>): Promise<void> {
-  try {
-    const outcome = await journaledSpend(run, params);
-    if (outcome.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${outcome.check.overDenom}`);
-    }
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+/** The first `$`-prefixed amount rendered in a dialog, digits only, or undefined. */
+function firstUsdAmount(text: string): string | undefined {
+  const match = text.match(/\$\s?([0-9][0-9,]*(?:\.[0-9]+)?)/);
+  const raw = match?.[1];
+  return raw === undefined ? undefined : raw.replace(/,/g, "");
 }
 
 /** Set the take-profit / stop-loss trigger in the open lease detail dialog (config-only, no spend). */
@@ -113,11 +98,16 @@ async function assertOpenedLeaseOracle(
 
   testInfo.annotations.push({ type: "matrix", description: "flow-lease-detail" });
   const dialogText = await openDetailDialog(page, address, TERMINAL_MS);
-  assertNonZeroBasis({
-    value: dec(readString(opened, "asset_value_usd")).toString(2),
-    description: `${side} lease value`
-  });
+  const expectedUsd = dec(readString(opened, "asset_value_usd")).toString(2);
+  assertNonZeroBasis({ value: expectedUsd, description: `${side} lease value` });
   expect(dialogText).toContain(oracleSize(opened, side));
+  const renderedUsd = firstUsdAmount(dialogText);
+  if (renderedUsd !== undefined) {
+    assertWithinTolerance(
+      { actual: renderedUsd, expected: expectedUsd, tolerance: run.usdTolerance },
+      `${side} lease rendered value vs oracle`
+    );
+  }
 
   testInfo.annotations.push({ type: "matrix", description: "flow-lease-crossfield" });
   const spot = dec(readString(opened, "price"));
@@ -164,10 +154,9 @@ test("a single alternating-side lease runs its full lifecycle through the engine
     `primary holds ${balance.toString()} micro-USDC, below the ${requiredMicro.toString()} a ${side} lease needs`
   );
 
-  // Open.
   await connectFlow(page, run, `/positions/open/${side}`);
   await typeAmount(page, "receive-send", downpayment);
-  await spendOrRoute(testInfo, {
+  await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-lease",
     action: "lease-open",
     walletRole: "primary",
@@ -182,6 +171,13 @@ test("a single alternating-side lease runs its full lifecycle through the engine
   requireOrSkip(testInfo, run.matrix.expectFunded, lease !== undefined, "no opened lease enumerated after open");
   const opened = lease ?? {};
   const address = readString(opened, "address") ?? "";
+
+  // #283 acceptance: a short position is denominated in the lease-group stable, never the LPN.
+  if (side === "short") {
+    const stableTicker = resolveShortLeaseStable(await currencies(run.ctx));
+    expect(readString(opened, "ticker")).toBe(stableTicker);
+  }
+
   await assertOpenedLeaseOracle(page, testInfo, opened, side);
 
   // TP/SL create + edit (config-only; the app does not attach funds, so it bypasses the engine).
@@ -192,7 +188,7 @@ test("a single alternating-side lease runs its full lifecycle through the engine
   // Dust repay (min_transaction): debt must fall.
   const debtBefore = dec(readString(opened, "total_debt_usd") ?? readString(opened, "debt"));
   const repayMicro = BigInt(toMicroAmount(MIN_TRANSACTION_USDC, USDC_DECIMALS));
-  await spendOrRoute(testInfo, {
+  await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-lease",
     action: "lease-repay",
     walletRole: "primary",
@@ -222,19 +218,19 @@ test("a single alternating-side lease runs its full lifecycle through the engine
     remainsAboveMin(positionMicro - repayMicro, minAssetMicro),
     `position ${positionMicro.toString()} micro-USDC cannot leave ${MIN_ASSET_USDC} USDC after a dust partial close`
   );
-  await spendOrRoute(testInfo, {
+  await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-lease",
     action: "lease-close",
     walletRole: "primary",
     walletKey: run.primary.key,
     items: [{ denom: "nls", micro: 0n }],
-    denoms: [{ denom: USDC_DENOM, micro: MIN_TRANSACTION_USDC }],
+    denoms: [{ denom: USDC_DENOM, micro: repayMicro.toString() }],
     memo: "partial close",
     execute: () => driveClose(page, "partial", MIN_TRANSACTION_USDC)
   });
 
   // Market close (full): the lease must no longer enumerate as opened.
-  await spendOrRoute(testInfo, {
+  await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-lease",
     action: "lease-close",
     walletRole: "primary",

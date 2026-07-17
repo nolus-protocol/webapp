@@ -1,27 +1,19 @@
 import { test, expect } from "./support.js";
 import type { RunContext } from "./support.js";
-import {
-  getRunContext,
-  connectFlow,
-  journaledSpend,
-  reportLeftover,
-  skipIfHalted,
-  classifyAndRoute,
-  annotateSkipAndStop
-} from "./support.js";
+import { getRunContext, connectFlow, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, readString } from "../../t2/matrixHelpers.js";
 import { USDC_DECIMALS } from "../../config.js";
 import { toMicroAmount } from "../../transfer.js";
 import { submitForm } from "./formDriver.js";
 import { readJson } from "../runtime.js";
+import { USDC_DENOM } from "./denoms.js";
 
 // IBC deposit + withdraw Nolus <-> Osmosis (#283 flow 5). ENTIRELY skip-gated on a funded
 // Osmosis-side probe: the whole flow is inert until that funding is confirmed, at which point
 // E2E_EXPECT_FUNDED escalates the unmet precondition into a hard failure. The structure is
 // complete so a funded run exercises deposit and withdraw end to end. No matrix cell.
 
-const USDC_DENOM = "ibc/usdc";
 const DUST_USDC = "0.05";
 const TERMINAL_MS = 150000;
 
@@ -69,51 +61,42 @@ test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis sid
 
   const requiredMicro = BigInt(toMicroAmount(DUST_USDC, USDC_DECIMALS));
   await connectFlow(page, run, "/assets");
-  try {
-    const deposit = await journaledSpend(run, {
-      spec: "t3-flow-ibc",
-      action: "ibc-transfer",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "usdc", micro: requiredMicro }],
-      denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
-      memo: "ibc deposit nolus<-osmosis",
-      execute: async () => {
-        await page
-          .getByRole("button", { name: /deposit/i })
-          .first()
-          .click({ timeout: TERMINAL_MS });
-        await typeAmount(page, "receive-send", DUST_USDC);
-        await submitForm(page, { submitLabel: messageValue(run.locale, "transfer"), terminalMs: TERMINAL_MS });
-      }
-    });
-    // A cap abort on the deposit halts the engine; skip the withdraw leg cleanly rather than let
-    // the second submission throw EngineHaltedError and cascade a red.
-    if (deposit.status === "spend-cap-abort") {
-      reportLeftover(run, testInfo, { terminal: "spend-cap-abort" });
-      annotateSkipAndStop(testInfo, "precondition", `spend cap reached on ${deposit.check.overDenom}`);
+  // The deposit leg's own cap abort skips the whole test (spendCommittedOrSkip), so the withdraw
+  // leg never runs on a halted engine — no EngineHaltedError cascade.
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-ibc",
+    action: "ibc-transfer",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "usdc", micro: requiredMicro }],
+    denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
+    memo: "ibc deposit nolus<-osmosis",
+    execute: async () => {
+      await page
+        .getByRole("button", { name: /deposit/i })
+        .first()
+        .click({ timeout: TERMINAL_MS });
+      await typeAmount(page, "receive-send", DUST_USDC);
+      await submitForm(page, { submitLabel: messageValue(run.locale, "transfer"), terminalMs: TERMINAL_MS });
     }
-    await journaledSpend(run, {
-      spec: "t3-flow-ibc",
-      action: "ibc-transfer",
-      walletRole: "primary",
-      walletKey: run.primary.key,
-      items: [{ denom: "usdc", micro: requiredMicro }],
-      denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
-      memo: "ibc withdraw nolus->osmosis",
-      execute: async () => {
-        await page
-          .getByRole("button", { name: /withdraw/i })
-          .first()
-          .click({ timeout: TERMINAL_MS });
-        await typeAmount(page, "receive-send", DUST_USDC);
-        await submitForm(page, { submitLabel: messageValue(run.locale, "transfer"), terminalMs: TERMINAL_MS });
-      }
-    });
-  } catch (error) {
-    reportLeftover(run, testInfo, { terminal: "app-failure" });
-    classifyAndRoute(testInfo, error, run.chain.rpcUrl);
-  }
+  });
+  await spendCommittedOrSkip(testInfo, run, {
+    spec: "t3-flow-ibc",
+    action: "ibc-transfer",
+    walletRole: "primary",
+    walletKey: run.primary.key,
+    items: [{ denom: "usdc", micro: requiredMicro }],
+    denoms: [{ denom: USDC_DENOM, micro: requiredMicro.toString() }],
+    memo: "ibc withdraw nolus->osmosis",
+    execute: async () => {
+      await page
+        .getByRole("button", { name: /withdraw/i })
+        .first()
+        .click({ timeout: TERMINAL_MS });
+      await typeAmount(page, "receive-send", DUST_USDC);
+      await submitForm(page, { submitLabel: messageValue(run.locale, "transfer"), terminalMs: TERMINAL_MS });
+    }
+  });
 
   const ibcIntents = run.store
     .readAll()
