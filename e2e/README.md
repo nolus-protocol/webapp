@@ -391,6 +391,92 @@ require an existing LP deposit / delegation.
 Pick a configured address that is funded and, ideally, holds an open lease to make all
 three checks non-degenerate.
 
+## The UI-correctness layer
+
+A manual-QA-parity layer that deepens T1/T2: it independently recomputes on-screen
+numbers, injects faults at the network boundary, checks element/visual integrity, adds a
+deterministic fixture mode, and pins a coverage matrix. It runs in two modes — **live**
+(against staging, reusing the T1/T2 harness) and **fixture** (deterministic, no backend).
+
+### The schema seam (`fixtures/` + codegen)
+
+Response fixtures live in the repo-root `fixtures/` directory (`common/`, `routes/<route>/`,
+`wallet/`), and `fixtures/schemas/` holds JSON Schema **generated** from the app's own Zod
+schemas by `scripts/gen-fixture-schemas.ts` (root). Generation uses Zod 4's native
+`z.toJSONSchema()` — the third-party `zod-to-json-schema` emits an empty schema against Zod
+4 and must not be used. `z.toJSONSchema()` drops the `numericString` `.refine()` (the money
+field contract), so the codegen re-annotates every numericString field — detected
+programmatically by a behavioural probe, never a hand list — with
+`{"type":"string","pattern":"^-?(\\d+\\.?\\d*|\\.\\d+)$","minLength":1}`. Residual gap: the
+pattern approximates the runtime `isFinite(Number(s))` predicate (it rejects scientific
+notation and accepts over-long digit strings); it is strictly tighter for the shapes
+fixtures carry. The e2e side validates every schema-backed fixture with ajv (draft 2020-12);
+a unit test proves the validator **rejects** a broken fixture (wrong type / empty
+numericString / missing field), so the seam can never be inert.
+
+### The independent render oracle (`src/oracle/`)
+
+`src/oracle/` reimplements the app's number/currency formatting — an 18-dp truncating
+decimal plus the `NumberFormatUtils` / `leaseSize` / `usePositionSummary` rules — importing
+**nothing** from `src/` of the app. Importing the app's formatter would only prove it equals
+itself. The unit vectors pin the subtle splits: `formatDecAsUsd` truncates vs `formatUsd`
+rounds, `formatTokenBalance` truncates vs `formatPrice` rounds, the `AnimateNumber` /
+`TokenAmount` double-round, the compact rounding boundaries (`999.996`, `9999.995`), and the
+list-row vs detail-widget SHORT divergence, PnL, and liquidation formulas.
+
+### Fixture mode (`src/fixtures/support.ts`, `src/ui/`)
+
+`fixtureMode` serves the fixture set over intercepted HTTP and stubs `/ws` via
+`routeWebSocket` — mandatory, because the app awaits `WebSocketClient.connect()` before
+config and rejects on a connect-time error, white-screening a WS-less page. The stub accepts
+the socket and acks each subscribe. Every fixture-mode spec first clears a boot smoke-gate
+(the shell reached interactive, not the white-screen). The fixture-mode specs:
+
+- **`bridge.spec.ts`** — the /stats figures recomputed by the oracle; a ×2 payload mutation
+  moves the render (the assertion bites).
+- **`integrity.spec.ts`** — per route: interactive shell, no leaked `message.*` i18n keys, no
+  broken images.
+- **`faults.spec.ts`** — a 503 on a boot-critical endpoint white-screens; gated-networks 503
+  fails pre-mount (Vue never mounts); governance returns 200+empty on a cold cache (never
+  503); a post-boot analytics fault degrades one page; a WS hang or garbage frame is handled
+  gracefully.
+- **`visual.spec.ts`** — screenshots per route × theme (light/dark) × viewport
+  (1440×900 + 390×844), `deviceScaleFactor` pinned to 1, reduced-motion, frozen CSS, masked
+  count-up figures. **LOCAL-ONLY / NON-GATING** (CI runs no browsers). Double-run stable
+  within a small `maxDiffPixels` tolerance that absorbs sub-pixel font anti-aliasing on the
+  live SPA bundle; a real UI change diffs far more.
+
+Run: `E2E_BASE_URL=… E2E_HOST_RESOLVER=… npx playwright test --project=fixture` (functional)
+and `--project=visual-desktop-light` (+ `-dark`, `-mobile-light`, `-mobile-dark`) for the
+baselines (`--update-snapshots` to regenerate).
+
+**Containerized visual upgrade path.** To make the visual baselines gating, run the
+`visual-*` projects inside a pinned Playwright container (`mcr.microsoft.com/playwright:v1.61.1`)
+so font rendering is byte-stable, and add a browser job that reuses those baselines.
+
+### Coverage matrix (`coverage-matrix.json`, `src/matrix/`)
+
+`coverage-matrix.json` pins routes × components × states; every cell maps to a named
+assertion label or a categorized gap (`funded-gated`, `schemaless-unvalidated`,
+`visual-local-only`, `transient-state`). The guard (`npm run check:matrix`, and a vitest
+integration test) **parses** the referenced spec for the label AND a real assertion in its
+test block — a goto-only test cannot satisfy a cell, and a removed/renamed label reds CI.
+
+### Documented app gaps (this suite is the record, no issue filed)
+
+- **`/activities` ordering is unenforced client-side** — `transformTransactions` is a bare
+  map; date order depends entirely on the ETL response. Recorded as a schemaless-unvalidated
+  cell, not asserted as a client guarantee.
+- **Schemaless endpoints** (all `/api/etl/*`, `/api/governance/*`, `/api/staking/positions`)
+  have no Zod schema; their fixtures are shape-mirrored and marked unvalidated in the matrix.
+
+### CI (the `e2e-static` job)
+
+`pr-validate.yaml` gains one static-only job (no browsers, no network): typecheck the
+codegen, regenerate the schemas and fail on drift, then the e2e package gate
+(typecheck → format:check → lint → test:coverage) and the coverage-matrix guard. This is the
+static gate scope of issue #305. The live and fixture-mode browser tiers run out of band.
+
 ## Conventions
 
 Every PR that adds or changes a user-facing surface (route, form, flow, rendered value,
