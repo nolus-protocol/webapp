@@ -128,10 +128,6 @@ test.beforeAll(async () => {
   run = await getRunContext(test.info());
 });
 
-test.afterAll(async () => {
-  if (run.ctx.dispatcher !== undefined) await run.ctx.dispatcher.close();
-});
-
 test("a single alternating-side lease runs its full lifecycle through the engine", async ({
   page,
   budget,

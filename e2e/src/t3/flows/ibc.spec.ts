@@ -38,10 +38,6 @@ test.beforeAll(async () => {
   run = await getRunContext(test.info());
 });
 
-test.afterAll(async () => {
-  if (run.ctx.dispatcher !== undefined) await run.ctx.dispatcher.close();
-});
-
 test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis side", async ({
   page,
   budget,

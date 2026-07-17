@@ -41,10 +41,6 @@ test.beforeAll(async () => {
   run = await getRunContext(test.info());
 });
 
-test.afterAll(async () => {
-  if (run.ctx.dispatcher !== undefined) await run.ctx.dispatcher.close();
-});
-
 test("a native send debits the sender and credits wallet-2 through the engine", async ({
   page,
   budget,

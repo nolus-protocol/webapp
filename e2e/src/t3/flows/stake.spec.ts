@@ -54,10 +54,6 @@ test.beforeAll(async () => {
   run = await getRunContext(test.info());
 });
 
-test.afterAll(async () => {
-  if (run.ctx.dispatcher !== undefined) await run.ctx.dispatcher.close();
-});
-
 test("stake delegate of dust NLS renders the delegated amount matching the oracle", async ({
   page,
   budget,

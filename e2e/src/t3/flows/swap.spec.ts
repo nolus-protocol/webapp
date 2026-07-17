@@ -54,10 +54,6 @@ test.beforeAll(async () => {
   run = await getRunContext(test.info());
 });
 
-test.afterAll(async () => {
-  if (run.ctx.dispatcher !== undefined) await run.ctx.dispatcher.close();
-});
-
 test("a dust swap executes and reaches a polled terminal state with settled balances", async ({
   page,
   budget,

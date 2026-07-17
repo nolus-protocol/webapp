@@ -149,6 +149,8 @@ export async function getRunContext(testInfo: TestInfo): Promise<RunContext> {
   if (runContext !== undefined) {
     return runContext;
   }
+  // Run-scoped: the origin dispatcher must outlive every spec file (a per-file
+  // afterAll close destroys it for the files that follow); it is reaped with the worker.
   const ctx = resolveOrigin();
   const config = parseFlowConfig();
   const roles = await deriveRoles(config.t2);
