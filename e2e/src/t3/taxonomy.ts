@@ -21,8 +21,14 @@ interface Rule {
   matches: (text: string, status: number | undefined) => boolean;
 }
 
-function pattern(category: FailureCategory, signal: string, regex: RegExp): Rule {
-  return { category, signal, matches: (text) => regex.test(text) };
+interface PatternRule {
+  category: FailureCategory;
+  signal: string;
+  regex: RegExp;
+}
+
+function pattern(rule: PatternRule): Rule {
+  return { category: rule.category, signal: rule.signal, matches: (text) => rule.regex.test(text) };
 }
 
 // Ordered most-specific-first. A precondition (a state the operator must fix) outranks an
@@ -31,14 +37,26 @@ function pattern(category: FailureCategory, signal: string, regex: RegExp): Rule
 // an app bug. Rules test the raw (pre-redaction) text so a host/IP-bearing transport error
 // still matches; only the stored `reason` is sanitized.
 const RULES: Rule[] = [
-  pattern("precondition", "unfunded", /unfunded|insufficient funds|not funded|no balance/i),
-  pattern("precondition", "unbonding-entry-cap", /too many unbonding|unbonding.*entries|max(imum)? entries/i),
-  pattern(
-    "precondition",
-    "redelegation-lock",
-    /redelegation.*(in progress|not complete|locked)|receiving redelegation/i
-  ),
-  pattern("precondition", "osmosis-side-funds", /osmosis.*(funds|balance|liquidity is missing)|missing osmosis/i),
+  pattern({
+    category: "precondition",
+    signal: "unfunded",
+    regex: /unfunded|insufficient funds|not funded|no balance/i
+  }),
+  pattern({
+    category: "precondition",
+    signal: "unbonding-entry-cap",
+    regex: /too many unbonding|unbonding.*entries|max(imum)? entries/i
+  }),
+  pattern({
+    category: "precondition",
+    signal: "redelegation-lock",
+    regex: /redelegation.*(in progress|not complete|locked)|receiving redelegation/i
+  }),
+  pattern({
+    category: "precondition",
+    signal: "osmosis-side-funds",
+    regex: /osmosis.*(funds|balance|liquidity is missing)|missing osmosis/i
+  }),
   {
     category: "environment",
     signal: "rate-limited",
@@ -53,23 +71,31 @@ const RULES: Rule[] = [
         text
       )
   },
-  pattern(
-    "environment",
-    "relayer-delay",
-    /relayer|ibc.*(delay|timeout|pending|not relayed)|packet.*(timeout|pending|not relayed)/i
-  ),
-  pattern(
-    "environment",
-    "price-move",
-    /price.*(move|moved|change|changed|slippage)|slippage|quote.*expired|expired quote|out of tolerance/i
-  ),
-  pattern("environment", "liquidity", /insufficient liquidity|not enough liquidity|no route|route not found/i),
-  pattern(
-    "environment",
-    "chain-state-timeout",
-    /timed?\s?out|timeout waiting|deadline exceeded|wait.*(chain|block|commit)/i
-  ),
-  pattern("app", "assertion", /\bexpect\(|assertion|to(Be|Equal|Contain|Match|HaveScreenshot)\b/i)
+  pattern({
+    category: "environment",
+    signal: "relayer-delay",
+    regex: /relayer|ibc.*(delay|timeout|pending|not relayed)|packet.*(timeout|pending|not relayed)/i
+  }),
+  pattern({
+    category: "environment",
+    signal: "price-move",
+    regex: /price.*(move|moved|change|changed|slippage)|slippage|quote.*expired|expired quote|out of tolerance/i
+  }),
+  pattern({
+    category: "environment",
+    signal: "liquidity",
+    regex: /insufficient liquidity|not enough liquidity|no route|route not found/i
+  }),
+  pattern({
+    category: "environment",
+    signal: "chain-state-timeout",
+    regex: /timed?\s?out|timeout waiting|deadline exceeded|wait.*(chain|block|commit)/i
+  }),
+  pattern({
+    category: "app",
+    signal: "assertion",
+    regex: /\bexpect\(|assertion|to(Be|Equal|Contain|Match|HaveScreenshot)\b/i
+  })
 ];
 
 function isUpstream5xx(status: number | undefined): boolean {

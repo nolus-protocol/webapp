@@ -53,6 +53,13 @@ interface RawLease {
   openedAt: string | undefined;
 }
 
+/** The resolved knobs for one sweep, threaded as an object so the numbers can't be transposed. */
+interface SweepSettings {
+  now: number;
+  minAgeMs: number;
+  maxAttempts: number;
+}
+
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : undefined;
 }
@@ -118,12 +125,12 @@ function ageMs(openedAt: string | undefined, now: number): number | undefined {
   return Number.isNaN(parsed) ? undefined : now - parsed;
 }
 
-function isOrphan(lease: RawLease, now: number, minAgeMs: number): boolean {
+function isOrphan(lease: RawLease, settings: SweepSettings): boolean {
   if (lease.status !== OPENED) {
     return false;
   }
-  const age = ageMs(lease.openedAt, now);
-  return age !== undefined && age >= minAgeMs;
+  const age = ageMs(lease.openedAt, settings.now);
+  return age !== undefined && age >= settings.minAgeMs;
 }
 
 /**
@@ -135,23 +142,23 @@ function isOrphan(lease: RawLease, now: number, minAgeMs: number): boolean {
  * the three staking sub-calls can come back empty on an upstream failure) are handled as empty.
  */
 export async function sweep(deps: SweepDeps, options: SweepOptions): Promise<SweepResult> {
-  const now = deps.now?.() ?? Date.now();
-  const minAgeMs = options.orphanMinAgeMs ?? DEFAULT_ORPHAN_MIN_AGE_MS;
-  const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
+  const settings: SweepSettings = {
+    now: deps.now?.() ?? Date.now(),
+    minAgeMs: options.orphanMinAgeMs ?? DEFAULT_ORPHAN_MIN_AGE_MS,
+    maxAttempts: options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS
+  };
 
   const leasesPayload = await deps.fetchJson(`${options.origin}/api/leases?address=${options.address}`);
   const stakingPayload = await deps.fetchJson(`${options.origin}/api/staking/positions?address=${options.address}`);
 
-  return classify(extractLeases(leasesPayload), extractUnbondings(stakingPayload), options, now, minAgeMs, maxAttempts);
+  return classify(extractLeases(leasesPayload), extractUnbondings(stakingPayload), options, settings);
 }
 
 function classify(
   leases: RawLease[],
   pendingUnbondings: PendingUnbonding[],
   options: SweepOptions,
-  now: number,
-  minAgeMs: number,
-  maxAttempts: number
+  settings: SweepSettings
 ): SweepResult {
   const result: SweepResult = {
     queuedForRepair: [],
@@ -162,23 +169,16 @@ function classify(
     nextAttempts: new Map(options.attempts)
   };
   for (const lease of leases) {
-    partition(lease, options, now, minAgeMs, maxAttempts, result);
+    partition(lease, options, settings, result);
   }
   return result;
 }
 
-function partition(
-  lease: RawLease,
-  options: SweepOptions,
-  now: number,
-  minAgeMs: number,
-  maxAttempts: number,
-  result: SweepResult
-): void {
+function partition(lease: RawLease, options: SweepOptions, settings: SweepSettings, result: SweepResult): void {
   if (lease.status === OPENED) {
     result.openLeases.push({ address: lease.address, protocol: lease.protocol, status: lease.status });
   }
-  if (!isOrphan(lease, now, minAgeMs)) {
+  if (!isOrphan(lease, settings)) {
     result.tolerated.push({ address: lease.address, protocol: lease.protocol, status: lease.status });
     return;
   }
@@ -189,7 +189,7 @@ function partition(
     openedAt: lease.openedAt,
     attempt
   };
-  if (attempt >= maxAttempts) {
+  if (attempt >= settings.maxAttempts) {
     result.reportOnly.push(candidate);
     return;
   }

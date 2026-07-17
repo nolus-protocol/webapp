@@ -31,7 +31,6 @@ export interface EngineOptions {
 export interface EngineDeps {
   queue: SerialQueue;
   cap: SpendCap;
-  now?: () => number;
 }
 
 export type SpendCheckFail = Extract<SpendCheck, { ok: false }>;
