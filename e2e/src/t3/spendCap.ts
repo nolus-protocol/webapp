@@ -109,6 +109,6 @@ function aggregate(items: SpendItem[]): Map<CapDenom, bigint> {
   return totals;
 }
 
-export function spendCapFromMicros(nlsMicro: string, usdcMicro: string): SpendCap {
-  return new SpendCap({ nls: BigInt(nlsMicro), usdc: BigInt(usdcMicro) });
+export function spendCapFromMicros(micros: { nlsMicro: string; usdcMicro: string }): SpendCap {
+  return new SpendCap({ nls: BigInt(micros.nlsMicro), usdc: BigInt(micros.usdcMicro) });
 }

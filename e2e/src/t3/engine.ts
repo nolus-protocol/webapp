@@ -134,18 +134,22 @@ export class TxEngine {
       return { status: "spend-cap-abort", check };
     }
     this.cap.reserve(request.items);
-    const value = await this.queue
-      .submit({ walletKey: request.walletKey, kind, bucket: "standard", execute: request.execute })
-      .then(
-        (settled) => {
-          this.cap.settle(request.items);
-          return settled;
-        },
-        (error: unknown) => {
-          this.cap.release(request.items);
-          throw error instanceof Error ? error : new Error(String(error));
-        }
-      );
+    let value: T;
+    try {
+      value = await this.queue.submit({
+        walletKey: request.walletKey,
+        kind,
+        bucket: "standard",
+        execute: request.execute
+      });
+    } catch (error: unknown) {
+      // A failed broadcast retires the reservation without counting spend, then re-throws the
+      // (already sanitized) error. settle() is deliberately outside this try so a settle-path
+      // throw can never be mis-routed into release().
+      this.cap.release(request.items);
+      throw error instanceof Error ? error : new Error(String(error));
+    }
+    this.cap.settle(request.items);
     return { status: "committed", value };
   }
 

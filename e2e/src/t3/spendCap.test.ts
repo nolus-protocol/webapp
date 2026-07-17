@@ -72,7 +72,7 @@ describe("SpendCap pending accounting", () => {
 
 describe("spendCapFromMicros / snapshot", () => {
   it("builds from micro strings and snapshots caps and spend", () => {
-    const cap = spendCapFromMicros("1000000", "0");
+    const cap = spendCapFromMicros({ nlsMicro: "1000000", usdcMicro: "0" });
     cap.record([nls(250_000n)]);
     expect(cap.snapshot()).toEqual([
       { denom: "nls", capMicro: 1_000_000n, spentMicro: 250_000n },

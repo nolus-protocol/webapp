@@ -62,7 +62,7 @@ async function resolveChain(matrixRpc: string | undefined): Promise<ChainSetting
 
 function newEngine(testInfo: TestInfo): TxEngine {
   const queue = new SerialQueue();
-  const cap = spendCapFromMicros(t3.spendCapNlsMicro, t3.spendCapUsdcMicro);
+  const cap = spendCapFromMicros({ nlsMicro: t3.spendCapNlsMicro, usdcMicro: t3.spendCapUsdcMicro });
   return new TxEngine(
     { queue, cap },
     {
