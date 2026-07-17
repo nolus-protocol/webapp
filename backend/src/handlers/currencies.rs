@@ -311,20 +311,29 @@ pub async fn compute_balances(
     })
 }
 
+/// Delimiter between the ticker and protocol halves of a `TICKER@PROTOCOL` price key.
+const PRICE_KEY_DELIMITER: char = '@';
+
 /// Resolve a held currency's USD price from the oracle price feed.
 ///
 /// Prices are keyed `TICKER@PROTOCOL` and are sparse: each protocol's oracle
 /// only publishes the tickers it quotes plus its own LPN, so a currency's exact
 /// `key` frequently has no price entry even though the same ticker is priced
-/// under another protocol. Returns `0.0` when the ticker has no price at all.
+/// under another protocol. Prefer the exact key; otherwise fall back to the
+/// lexicographically smallest matching `TICKER@` key. The canonical
+/// `gated_assets::get_price_for_asset` returns whatever the `HashMap` yields
+/// first (arbitrary order); pinning the smallest key keeps the rendered USD
+/// value reproducible run-to-run for the same feed. Returns `0.0` when the
+/// ticker has no price at all.
 fn resolve_price_usd(prices: &HashMap<String, PriceInfo>, key: &str, ticker: &str) -> f64 {
     prices
         .get(key)
         .or_else(|| {
-            let prefix = format!("{ticker}@");
+            let prefix = format!("{ticker}{PRICE_KEY_DELIMITER}");
             prices
                 .iter()
-                .find(|(k, _)| k.starts_with(&prefix))
+                .filter(|(k, _)| k.starts_with(&prefix))
+                .min_by(|(a, _), (b, _)| a.cmp(b))
                 .map(|(_, price)| price)
         })
         .and_then(|p| p.price_usd.parse::<f64>().ok())
@@ -366,7 +375,8 @@ pub fn calculate_price_with_decimals(
 
 #[cfg(test)]
 mod tests {
-    use super::calculate_price_with_decimals;
+    use super::{calculate_price_with_decimals, PriceInfo};
+    use std::collections::HashMap;
 
     #[test]
     fn test_calculate_price_with_decimals() {
@@ -409,20 +419,6 @@ mod tests {
         }
     }
 
-    use super::{resolve_price_usd, PriceInfo};
-    use std::collections::HashMap;
-
-    fn price(key: &str, price_usd: &str) -> (String, PriceInfo) {
-        (
-            key.to_string(),
-            PriceInfo {
-                key: key.to_string(),
-                symbol: key.split('@').next().unwrap_or(key).to_string(),
-                price_usd: price_usd.to_string(),
-            },
-        )
-    }
-
     /// Regression for the balances USD-join miss: a held denom (USDC_NOBLE) maps
     /// to a currency whose `key` is a protocol the price feed does not publish
     /// under (`...-ATOM`), while the same ticker IS priced under another protocol
@@ -438,7 +434,8 @@ mod tests {
         .into_iter()
         .collect();
 
-        let resolved = resolve_price_usd(&prices, "USDC_NOBLE@OSMOSIS-OSMOSIS-ATOM", "USDC_NOBLE");
+        let resolved =
+            super::resolve_price_usd(&prices, "USDC_NOBLE@OSMOSIS-OSMOSIS-ATOM", "USDC_NOBLE");
         assert!(
             (resolved - 1.0).abs() < 1e-9,
             "expected ~1.0 via ticker fallback, got {resolved}"
@@ -455,10 +452,31 @@ mod tests {
         .into_iter()
         .collect();
 
-        let resolved = resolve_price_usd(&prices, "ATOM@OSMOSIS-OSMOSIS-ATOM", "ATOM");
+        let resolved = super::resolve_price_usd(&prices, "ATOM@OSMOSIS-OSMOSIS-ATOM", "ATOM");
         assert!(
             (resolved - 4.20).abs() < 1e-9,
             "expected exact key 4.20, got {resolved}"
+        );
+    }
+
+    /// The fallback is deterministic: with two priced protocols for the ticker
+    /// and no exact-key hit, the lexicographically smallest key wins regardless
+    /// of `HashMap` iteration order (both prices differ so a wrong pick shows).
+    #[test]
+    fn resolve_price_fallback_is_deterministic_lowest_key() {
+        let prices: HashMap<String, PriceInfo> = [
+            price("ATOM@OSMOSIS-OSMOSIS-USDC_NOBLE", "5.10"),
+            price("ATOM@OSMOSIS-OSMOSIS-ALL_BTC", "5.00"),
+        ]
+        .into_iter()
+        .collect();
+
+        // `...-ALL_BTC` sorts before `...-USDC_NOBLE`, so its price must win even
+        // though it is not the higher value.
+        let resolved = super::resolve_price_usd(&prices, "ATOM@OSMOSIS-OSMOSIS-ATOM", "ATOM");
+        assert!(
+            (resolved - 5.00).abs() < 1e-9,
+            "expected smallest-key 5.00, got {resolved}"
         );
     }
 
@@ -468,6 +486,17 @@ mod tests {
         let prices: HashMap<String, PriceInfo> = [price("NLS@OSMOSIS-OSMOSIS-USDC_NOBLE", "0.001")]
             .into_iter()
             .collect();
-        assert_eq!(resolve_price_usd(&prices, "FOO@BAR", "FOO"), 0.0);
+        assert_eq!(super::resolve_price_usd(&prices, "FOO@BAR", "FOO"), 0.0);
+    }
+
+    fn price(key: &str, price_usd: &str) -> (String, PriceInfo) {
+        (
+            key.to_string(),
+            PriceInfo {
+                key: key.to_string(),
+                symbol: key.split('@').next().unwrap_or(key).to_string(),
+                price_usd: price_usd.to_string(),
+            },
+        )
     }
 }
