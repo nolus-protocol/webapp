@@ -375,8 +375,9 @@ pub fn calculate_price_with_decimals(
 
 #[cfg(test)]
 mod tests {
-    use super::{calculate_price_with_decimals, PriceInfo};
     use std::collections::HashMap;
+
+    use super::{calculate_price_with_decimals, PriceInfo};
 
     #[test]
     fn test_calculate_price_with_decimals() {
