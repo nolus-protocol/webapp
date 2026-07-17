@@ -711,6 +711,18 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
 
 ### Deviations
 
+- **No confirmation dialog — the toast is the terminal signal.** The routed forms run
+  `walletOperation` DIRECTLY on the footer click; there is no confirm dialog. `formDriver.submitForm`
+  therefore clicks the submit once and settles on the app's terminal surface — a success **toast**
+  (`div.toast`) resolves, an inline error (`div.text-typography-error`) throws — never an
+  unconditional second confirm click (the earlier phantom `/confirm|submit|send/` click waited for
+  UI that never appears and timed out while the tx committed underneath, journaling committed txs as
+  failed). A success toast wins over a lingering error surface, and the decision over the surfaces is
+  the pure, unit-tested `decideTerminal`. When neither surface appears within the timeout, the driver
+  throws `terminal-signal-timeout` (classified `environment`): a broadcast may have committed after
+  the click, so the journal marks that submission failed while the outcome is genuinely ambiguous —
+  the **reconciliation sweep + balances read catch the untracked commit** on the next run, which is
+  exactly what that pre-run sweep exists for.
 - **Swap tracking (`skip_tx` is dead code).** The `skip_tx` WS topic is not driven by the app —
   swaps are tracked by client polling (`SkipRouter.fetchStatus` in `useSwapForm.ts`). `swap.spec.ts`
   therefore asserts via the UI's polled terminal state and post-swap balances, not a WS event. This

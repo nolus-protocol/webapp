@@ -87,11 +87,8 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
     denoms: [{ denom: NATIVE_DENOM, micro: amountMicro }],
     execute: async () => {
       await run.queue.pace("strict");
+      // The swap runs on the click (no confirmation dialog); track the app's polled terminal state.
       await page.getByRole("button", { name: /swap/i }).last().click({ timeout: TERMINAL_MS });
-      await page
-        .getByRole("button", { name: /confirm|submit/i })
-        .first()
-        .click({ timeout: TERMINAL_MS });
       await expect
         .poll(() => swapTerminal(page), {
           message: "swap should reach a polled terminal state",

@@ -104,6 +104,11 @@ const RULES: Rule[] = [
   }),
   pattern({
     category: "environment",
+    signal: "terminal-signal-timeout",
+    regex: /terminal[-\s]?signal[-\s]?timeout/i
+  }),
+  pattern({
+    category: "environment",
     signal: "chain-state-timeout",
     regex: /timed?\s?out|timeout waiting|deadline exceeded|wait.*(chain|block|commit)/i
   }),
