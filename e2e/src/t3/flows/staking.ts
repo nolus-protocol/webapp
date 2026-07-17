@@ -48,3 +48,21 @@ export function parseAccruedRewardMicro(payload: unknown): bigint {
 export function parseMaturingRedelegationCount(payload: unknown): number {
   return listAt(payload, "redelegation").length;
 }
+
+/**
+ * Operator addresses of jailed validators from `/api/staking/validators`. The app renders the
+ * RedelegateButton ONLY on a jailed-validator row (redelegation is the jailed-recovery action), so a
+ * redelegate flow is gated on the wallet holding a delegation to one of these.
+ */
+export function parseJailedValidators(payload: unknown): Set<string> {
+  const jailed = new Set<string>();
+  const list = Array.isArray(payload) ? payload : listAt(payload, "validators");
+  for (const entry of list) {
+    const record = typeof entry === "object" && entry !== null ? (entry as Record<string, unknown>) : undefined;
+    const operator = readString(record, "operator_address");
+    if (operator !== undefined && record?.jailed === true) {
+      jailed.add(operator);
+    }
+  }
+  return jailed;
+}

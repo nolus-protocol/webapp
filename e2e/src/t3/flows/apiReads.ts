@@ -47,6 +47,21 @@ export async function usdcMicro(
   return tickersMatching(resolver, "USDC").reduce((sum, ticker) => sum + heldMicro(balances, resolver.get(ticker)), 0n);
 }
 
+/**
+ * The USDC-variant TICKER the wallet actually holds a balance in — the option a currency picker must
+ * select before typing, since the form lists every protocol variant and defaults to one that may
+ * hold zero. Composed from the tested `tickersMatching` + `heldMicro`; matched by resolved bank
+ * denom, never the balances `symbol`.
+ */
+export async function heldUsdcTicker(
+  ctx: OriginContext,
+  address: string,
+  resolver: Map<string, ResolvedAsset>
+): Promise<string | undefined> {
+  const balances = await fetchBalances(ctx, address);
+  return tickersMatching(resolver, "USDC").find((ticker) => heldMicro(balances, resolver.get(ticker)) > 0n);
+}
+
 export type RouteProbe = { status: "routable" } | { status: "no-route" } | { status: "error"; reason: string };
 
 export interface SwapProbeDeps {
@@ -151,6 +166,23 @@ export async function leaseProtocolConfigs(ctx: OriginContext, pace?: () => Prom
     throw new Error(`lease-config-unavailable: all ${protocols.length} lease config loads failed after retry`);
   }
   return configs;
+}
+
+/**
+ * Best-effort pre-warm of the per-protocol lease-config cache at run start. The backend's
+ * `get_lease_config` handler warms its cache LAZILY on first request and returns `503 Cache not yet
+ * populated` until then (backend/src/handlers/leases.rs); after a deploy burst the flow suite's own
+ * requests are the first to hit it, and both of `leaseProtocolConfigs`' paced retries land inside
+ * the same cold window. Firing one paced GET per protocol here — at the start of the flows phase,
+ * minutes before lease.spec asks for real — gives the cache time to warm. Bounded (one read per
+ * protocol through the standard bucket), fire-and-forget, every failure swallowed.
+ */
+export async function prewarmLeaseConfigs(ctx: OriginContext, pace: () => Promise<void>): Promise<void> {
+  const protocols = await leaseProtocols(ctx).catch(() => []);
+  for (const protocol of protocols) {
+    await pace();
+    await leaseConfig(ctx, protocol).catch(() => undefined);
+  }
 }
 
 /**

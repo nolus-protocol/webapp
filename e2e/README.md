@@ -723,6 +723,28 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
 
 ### Deviations
 
+- **Animated figures — assert the aria-label, not innerText.** Rendered money figures count up via
+  the app's AnimateNumber, whose `innerText` is the whole digit-roller ladder; the true formatted
+  value lives ONLY in the element's `aria-label` (the T1 bridge technique). `renderFigure.ts`
+  (`findAnimatedFigure` / `findAnimatedFigureWithinTolerance` / `findPositiveAnimatedFigure`) reads
+  the aria-label, and the pure normalization/compare is `figureText.ts` (unit-tested). The
+  stake-delegated total, earn total, lease detail size + USD, and the swap From-side NLS balance all
+  read the aria-label with the oracle as the expectation source.
+- **Earn currency-variant selection.** SupplyForm/WithdrawForm list EVERY protocol LPN variant as a
+  currency option and default to one that may hold zero balance, so the amount would validate against
+  an empty variant. Before typing, the spec resolves the funded USDC variant (`heldUsdcTicker`) and
+  `selectCurrencyVariant` drives the AdvancedFormControl picker — a `Dropdown` atom (per web-components
+  source) whose `aria-expanded` trigger opens a teleported searchable AssetItem list — to select it.
+- **Lease-config lazy-cache pre-warm.** The backend `get_lease_config` handler warms its per-protocol
+  cache lazily and returns `503 Cache not yet populated` until the first request; after a deploy burst
+  the flow suite's own reads are the first, and both of `leaseProtocolConfigs`' paced retries land in
+  the same cold window. `getRunContext` fires a best-effort `prewarmLeaseConfigs` (one paced GET per
+  protocol, failures swallowed) at the start of the flows phase so the cache warms minutes before
+  lease.spec asks; the retry + `lease-config-unavailable` (environment, retry-next-run) is the fallback.
+- **Redelegate is a jailed-recovery action.** The app renders the RedelegateButton ONLY on a
+  jailed-validator row (an unnamed refresh `SvgIcon`, not a labelled button), so `stake.spec`
+  precondition-gates redelegate on the wallet holding a delegation to a jailed validator
+  (`parseJailedValidators`) and drives the refresh icon by class; on a normal wallet it skips cleanly.
 - **No confirmation dialog — the toast is the terminal signal.** The routed forms run
   `walletOperation` DIRECTLY on the footer click; there is no confirm dialog. `formDriver.submitForm`
   therefore clicks the submit once and settles on the app's terminal surface — a success **toast**

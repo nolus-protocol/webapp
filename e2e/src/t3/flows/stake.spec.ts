@@ -13,10 +13,16 @@ import { typeAmount, requireOrSkip, probeNativeMicroBalance } from "../../t2/mat
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { formatTokenBalance } from "../../oracle/format.js";
-import { submitForm, waitForAmountAccepted, clickActionAndSettle } from "./formDriver.js";
+import { submitForm, waitForAmountAccepted, clickLocatorAndSettle } from "./formDriver.js";
+import { findAnimatedFigure } from "./renderFigure.js";
 import { unbondingEntriesFor } from "./apiReads.js";
 import { pickUnbondingValidator, unbondingEntryGate } from "./preconditions.js";
-import { parseDelegations, parseAccruedRewardMicro, parseMaturingRedelegationCount } from "./staking.js";
+import {
+  parseDelegations,
+  parseAccruedRewardMicro,
+  parseMaturingRedelegationCount,
+  parseJailedValidators
+} from "./staking.js";
 import type { Delegation } from "./staking.js";
 import { readJson } from "../runtime.js";
 
@@ -79,9 +85,9 @@ test("stake delegate of dust NLS renders the delegated amount matching the oracl
   const delegated = await delegations(run.ctx, wallet.address);
   const total = delegated.reduce((sum, d) => sum + d.amountMicro, 0n);
   requireOrSkip(testInfo, run.matrix.expectFunded, total > 0n, "no delegation enumerated after delegate");
+  // The staked total renders via AnimateNumber — the true value is in the aria-label, not innerText.
   const renderedAmount = formatTokenBalance(Decimal.fromAtomics(total.toString(), NATIVE_DECIMALS));
-  const stakeText = await page.locator("#app").innerText();
-  expect(stakeText).toContain(renderedAmount);
+  expect(await findAnimatedFigure(page.locator("#app"), renderedAmount, TERMINAL_MS)).toBe(true);
 
   reportLeftover(run, testInfo, { terminal: "success" });
 });
@@ -135,7 +141,11 @@ async function maturingRedelegationCount(ctx: RunContext["ctx"], address: string
   return parseMaturingRedelegationCount(await stakingPositions(ctx, address));
 }
 
-test("stake redelegate runs through the engine redelegate mutex, gated on no maturing redelegation", async ({
+async function jailedValidators(ctx: RunContext["ctx"]): Promise<Set<string>> {
+  return parseJailedValidators(await readJson(ctx, `${ctx.origin}/api/staking/validators`));
+}
+
+test("stake redelegate recovers a jailed-validator delegation through the engine redelegate mutex", async ({
   page,
   budget,
   wallet
@@ -144,14 +154,22 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
   test.setTimeout(TERMINAL_MS * 2);
   budget.route = "/stake";
 
+  // The RedelegateButton renders ONLY on a jailed-validator row (redelegate is the jailed-recovery
+  // action), so this is gated on the wallet holding a delegation to a jailed validator.
   const delegated = await delegations(run.ctx, wallet.address);
   requireOrSkip(testInfo, run.matrix.expectFunded, delegated.length > 0, "no delegation to redelegate");
+  const jailed = await jailedValidators(run.ctx);
+  const source = delegated.find((d) => jailed.has(d.validatorAddress))?.validatorAddress;
+  requireOrSkip(
+    testInfo,
+    run.matrix.expectFunded,
+    source !== undefined,
+    "no delegation to a jailed validator to redelegate"
+  );
   const maturing = await maturingRedelegationCount(run.ctx, wallet.address);
   if (maturing > 0) {
     annotateSkipAndStop(testInfo, "precondition", "a redelegation is still maturing; a second is locked");
   }
-  const source = delegated[0]?.validatorAddress ?? "";
-  expect(source).not.toBe("");
 
   await connectFlow(page, run, "/stake");
   const requiredMicro = BigInt(toMicroAmount(DUST_NLS, NATIVE_DECIMALS));
@@ -162,10 +180,10 @@ test("stake redelegate runs through the engine redelegate mutex, gated on no mat
     walletKey: run.primary.key,
     items: [{ denom: "nls", micro: 0n }],
     denoms: [{ denom: NATIVE_DENOM, micro: requiredMicro.toString() }],
-    memo: `redelegate from ${source}`,
-    // RedelegateButton is a one-shot control: its click runs walletOperation directly (auto-picks
-    // the destination validators, no amount input, no submit dialog) and settles on a toast/error.
-    execute: () => clickActionAndSettle(page, /redelegate/i, TERMINAL_MS)
+    memo: `redelegate from ${source ?? ""}`,
+    // The control is an unnamed refresh SvgIcon on the jailed row (its /redelegate/ text is only in
+    // a tooltip): its click runs walletOperation directly (auto-picks destinations, no dialog).
+    execute: () => clickLocatorAndSettle(page, page.locator("svg.cursor-pointer"), "redelegate", TERMINAL_MS)
   });
 
   reportLeftover(run, testInfo, { terminal: "success" });

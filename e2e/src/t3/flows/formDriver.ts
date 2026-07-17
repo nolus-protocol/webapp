@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Page, Locator } from "@playwright/test";
 import { expect } from "../../t2/support.js";
 import { decideTerminal } from "./terminalSignal.js";
 import type { TerminalDecision, TerminalSurface } from "./terminalSignal.js";
@@ -117,6 +117,46 @@ export async function submitForm(page: Page, options: SubmitOptions): Promise<vo
 export async function clickActionAndSettle(page: Page, name: RegExp, terminalMs: number): Promise<void> {
   await page.getByRole("button", { name }).first().click({ timeout: terminalMs });
   await awaitTerminal(page, name.source, terminalMs);
+}
+
+/**
+ * Click a one-shot control located by an arbitrary Locator (for an unnamed icon like the jailed-row
+ * refresh SvgIcon, which has no accessible name) and settle on the terminal surface.
+ */
+export async function clickLocatorAndSettle(
+  page: Page,
+  control: Locator,
+  label: string,
+  terminalMs: number
+): Promise<void> {
+  await control.first().click({ timeout: terminalMs });
+  await awaitTerminal(page, label, terminalMs);
+}
+
+/**
+ * Select a funded currency variant in an AdvancedFormControl currency picker before typing, so the
+ * amount validates against a held balance instead of the zero-balance default option. Per the
+ * web-components source the picker is a `Dropdown` atom: its trigger is a button carrying
+ * `aria-expanded`, which opens a (Teleport-portaled) searchable list of AssetItem rows. So: click
+ * the collapsed trigger, filter the search to the target variant, then click the matching row. Every
+ * step's failure is swallowed so a form that already defaults to the right variant still proceeds.
+ */
+export async function selectCurrencyVariant(page: Page, label: string, timeoutMs: number): Promise<void> {
+  await page
+    .getByRole("button", { expanded: false })
+    .first()
+    .click({ timeout: timeoutMs })
+    .catch(() => undefined);
+  await page
+    .getByRole("textbox")
+    .last()
+    .fill(label)
+    .catch(() => undefined);
+  await page
+    .getByText(label, { exact: false })
+    .last()
+    .click({ timeout: timeoutMs })
+    .catch(() => undefined);
 }
 
 /** Open a position/lease detail dialog by its on-chain address and wait for the dialog to render. */

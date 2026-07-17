@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parseAccruedRewardMicro, parseDelegations, parseMaturingRedelegationCount } from "./staking.js";
+import {
+  parseAccruedRewardMicro,
+  parseDelegations,
+  parseJailedValidators,
+  parseMaturingRedelegationCount
+} from "./staking.js";
 
 // Real /api/staking/positions shape: StakingPosition.balance and ValidatorReward.rewards[] are
 // BalanceInfoSimple OBJECTS { denom, amount }, not strings.
@@ -50,5 +55,24 @@ describe("parseMaturingRedelegationCount", () => {
   it("counts in-progress redelegations", () => {
     expect(parseMaturingRedelegationCount(POSITIONS)).toBe(1);
     expect(parseMaturingRedelegationCount({})).toBe(0);
+  });
+});
+
+describe("parseJailedValidators", () => {
+  it("collects the operator addresses of jailed validators only", () => {
+    const validators = {
+      validators: [
+        { operator_address: "nolusvaloper1jailed", jailed: true, status: "unbonding" },
+        { operator_address: "nolusvaloper1active", jailed: false, status: "bonded" }
+      ]
+    };
+    const jailed = parseJailedValidators(validators);
+    expect(jailed.has("nolusvaloper1jailed")).toBe(true);
+    expect(jailed.has("nolusvaloper1active")).toBe(false);
+  });
+
+  it("accepts a bare array and returns empty for none", () => {
+    expect(parseJailedValidators([{ operator_address: "x", jailed: false }]).size).toBe(0);
+    expect(parseJailedValidators({}).size).toBe(0);
   });
 });

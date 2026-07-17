@@ -28,6 +28,7 @@ export default defineConfig({
         "src/t3/flows/support.ts",
         "src/t3/flows/apiReads.ts",
         "src/t3/flows/formDriver.ts",
+        "src/t3/flows/renderFigure.ts",
         "src/t1/**",
         "src/t2/**",
         // Browser glue (Playwright fixtures / specs) is exercised by the live and
