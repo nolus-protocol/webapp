@@ -59,7 +59,7 @@ describe("postAlert", () => {
   it("posts nothing for a green run", async () => {
     const { fetchImpl, calls } = okFetch();
     const result = await postAlert(runReport([]), { webhookUrl: "https://hook", fetchImpl, scrub: identity });
-    expect(result).toEqual({ posted: false });
+    expect(result).toEqual({ posted: false, reason: "green" });
     expect(calls).toHaveLength(0);
   });
 
@@ -71,7 +71,7 @@ describe("postAlert", () => {
       scrub: identity
     });
     expect(result).toEqual({ posted: true, urgency: "low" });
-    expect(JSON.parse(calls[0]?.request.body ?? "{}")).toMatchObject({ urgency: "low", suite: "e2e-nightly" });
+    expect(JSON.parse(calls[0]?.request.body ?? "{}")).toMatchObject({ urgency: "low", suite: "e2e-regression" });
   });
 
   it("posts a loud payload when any app-bug is present", async () => {
@@ -122,17 +122,21 @@ describe("postAlert", () => {
     ).rejects.toThrow("alert delivery failed");
   });
 
-  it("throws alert channel unconfigured on a red run with no webhook", async () => {
-    const { fetchImpl } = okFetch();
-    await expect(
-      postAlert(runReport([failure("env-flake")]), { webhookUrl: undefined, fetchImpl, scrub: identity })
-    ).rejects.toThrow("alert channel unconfigured");
+  it("reports a red run with no webhook as unconfigured rather than throwing", async () => {
+    const { fetchImpl, calls } = okFetch();
+    const result = await postAlert(runReport([failure("env-flake")]), {
+      webhookUrl: undefined,
+      fetchImpl,
+      scrub: identity
+    });
+    expect(result).toEqual({ posted: false, reason: "unconfigured" });
+    expect(calls).toHaveLength(0);
   });
 
   it("stays silent on a green run with no webhook", async () => {
     const { fetchImpl, calls } = okFetch();
     const result = await postAlert(runReport([]), { webhookUrl: "", fetchImpl, scrub: identity });
-    expect(result).toEqual({ posted: false });
+    expect(result).toEqual({ posted: false, reason: "green" });
     expect(calls).toHaveLength(0);
   });
 

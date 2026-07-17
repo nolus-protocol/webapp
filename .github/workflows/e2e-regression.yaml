@@ -1,35 +1,41 @@
-name: E2E nightly (scheduled full run)
+name: E2E regression (post-deploy + manual)
 
 on:
-  schedule:
-    # 03:17 UTC — deliberately off the deploy window so a nightly never races a cutover.
-    - cron: "17 3 * * *"
+  # Ad-hoc: a manual full-suite run against any host.
   workflow_dispatch:
     inputs:
       base_domain:
-        description: "Target host to run against; falls back to the E2E_NIGHTLY_BASE_DOMAIN repo variable."
+        description: "Target host to run against; falls back to the E2E_REGRESSION_BASE_DOMAIN repo variable."
         required: false
         type: string
       prerelease:
-        description: "Pre-release full run before a release cutover (same tiers as the nightly)."
+        description: "Pre-release full run before a release cutover (same tiers as a regression run)."
         required: false
         default: false
         type: boolean
+  # Automatic: regression-validate the staging host after a dev deploy completes. The job-level
+  # `if` below gates this path on the deploy having SUCCEEDED (a failed deploy has nothing to
+  # validate). workflow_run has no inputs, so that path resolves the base domain from the repo var.
+  workflow_run:
+    workflows: ["Deploy dev"]
+    types: [completed]
 
-# Serialize with the deploy workflow's live e2e phase on the one per-host rate-limit bucket:
-# nightly and post-deploy runs must never hit the strict bucket at the same time. The group
-# expression is duplicated here (a top-level concurrency key cannot read a step output); the
-# tiers below take their base domain from the single resolve step instead.
+# Serialize with the deploy workflow's live e2e phase on the one per-host rate-limit bucket: a
+# regression run and a second deploy's post-run must never hit the strict bucket at the same time.
+# The group expression is duplicated here (a top-level concurrency key cannot read a step output);
+# the tiers below take their base domain from the single resolve step instead.
 concurrency:
-  group: e2e-live-${{ inputs.base_domain || vars.E2E_NIGHTLY_BASE_DOMAIN }}
+  group: e2e-live-${{ inputs.base_domain || vars.E2E_REGRESSION_BASE_DOMAIN }}
   cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  nightly:
-    name: Nightly full suite
+  regression:
+    name: Regression full suite
+    # Manual dispatch always runs; the post-deploy path runs only when the deploy succeeded.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: [self-hosted, frontend-deploy]
     timeout-minutes: 75
 
@@ -47,7 +53,7 @@ jobs:
       - name: Resolve target base domain
         env:
           INPUT_BASE_DOMAIN: ${{ inputs.base_domain }}
-          VAR_BASE_DOMAIN: ${{ vars.E2E_NIGHTLY_BASE_DOMAIN }}
+          VAR_BASE_DOMAIN: ${{ vars.E2E_REGRESSION_BASE_DOMAIN }}
           RESOLVER_TARGET: ${{ vars.DEPLOY_HOST }}
           PRERELEASE: ${{ inputs.prerelease }}
         run: |
@@ -62,7 +68,7 @@ jobs:
           base="${INPUT_BASE_DOMAIN:-}"
           if [ -z "$base" ]; then base="${VAR_BASE_DOMAIN:-}"; fi
           if [ -z "$base" ]; then
-            echo "::error::no base domain resolved — pass base_domain on dispatch or set the E2E_NIGHTLY_BASE_DOMAIN repo variable (the cron path has no inputs and depends on the variable)"
+            echo "::error::no base domain resolved — pass base_domain on dispatch or set the E2E_REGRESSION_BASE_DOMAIN repo variable (the post-deploy path has no inputs and depends on the variable)"
             exit 1
           fi
           # Reject anything that is not a bare hostname BEFORE writing $GITHUB_ENV — a dispatch
@@ -220,11 +226,11 @@ jobs:
           echo "report cli exit code: ${code}"
           exit 0
 
-      - name: Upload nightly artifacts
+      - name: Upload regression artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: e2e-nightly-${{ env.BASE_DOMAIN }}
+          name: e2e-regression-${{ env.BASE_DOMAIN }}
           path: |
             e2e/results/
             e2e/playwright-report/
@@ -232,7 +238,7 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      - name: Heartbeat — a crashed nightly must still be heard
+      - name: Heartbeat — a crashed regression run must still be heard
         if: always()
         working-directory: e2e
         env:
@@ -248,15 +254,15 @@ jobs:
             echo "heartbeat: report.json present; the report cli owns this run's alert"
             exit 0
           fi
-          echo "::warning::nightly produced no report.json — the run crashed before the report step"
+          echo "::warning::regression run produced no report.json — it crashed before the report step"
           if [ -z "${ALERT_WEBHOOK:-}" ]; then
-            echo "::error::heartbeat: no alert webhook configured — a crashed nightly cannot be announced"
-            exit 1
+            echo "::warning::heartbeat: no alert webhook configured — crash is loud in the job status; report absent from artifacts"
+            exit 0
           fi
           # Static text only: no host or dynamic value, so no scrub pass is required.
           curl -fsS --max-time 15 -X POST "$ALERT_WEBHOOK" \
             -H 'content-type: application/json' \
-            -d '{"suite":"e2e-nightly","urgency":"loud","kind":"heartbeat","summary":"nightly produced no report — the run crashed before the report step; investigate the run logs"}' \
+            -d '{"suite":"e2e-regression","urgency":"loud","kind":"heartbeat","summary":"regression run produced no report — it crashed before the report step; investigate the run logs"}' \
             || { echo "::error::heartbeat: alert delivery failed"; exit 1; }
           echo "heartbeat: posted no-report alert"
 
@@ -271,12 +277,12 @@ jobs:
           # recorded. A missing code means the report step never ran or crashed — fail closed.
           code="${REPORT_EXIT:-}"
           if [ -z "$code" ]; then
-            echo "::error::report step recorded no exit code — it never ran or crashed; failing the nightly"
+            echo "::error::report step recorded no exit code — it never ran or crashed; failing the regression run"
             exit 1
           fi
           case "$code" in
-            0) echo "nightly green — no classified failures" ; exit 0 ;;
-            1) echo "::error::nightly red — classified failures present (see report.md)" ; exit 1 ;;
-            2) echo "::error::nightly alert delivery/config failure" ; exit 2 ;;
+            0) echo "regression green — no classified failures" ; exit 0 ;;
+            1) echo "::error::regression red — classified failures present (see report.md)" ; exit 1 ;;
+            2) echo "::error::regression alert delivery failure" ; exit 2 ;;
             *) echo "::error::unexpected report exit code: ${code}" ; exit 1 ;;
           esac

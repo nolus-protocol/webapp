@@ -49,7 +49,7 @@ async function postWarning(webhook: string, summary: string): Promise<void> {
     await fetch(webhook, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ suite: "e2e-nightly", urgency: "low", kind: "budget-preflight", summary }),
+      body: JSON.stringify({ suite: "e2e-regression", urgency: "low", kind: "budget-preflight", summary }),
       // Same abort deadline as alert.ts so a black-hole webhook can't hang the pre-flight step.
       signal: AbortSignal.timeout(DEFAULT_ALERT_TIMEOUT_MS)
     });
@@ -86,7 +86,7 @@ async function run(): Promise<void> {
     process.stdout.write(`preflight: primary USDC ${balance} at or above the ${floor} floor\n`);
     return;
   }
-  const summary = `primary USDC balance below the ${floor} low-water floor — value-moving specs may start skipping; top up before the next nightly`;
+  const summary = `primary USDC balance below the ${floor} low-water floor — value-moving specs may start skipping; top up before the next regression run`;
   process.stdout.write(`${summary}\n`);
   const webhook = process.env.E2E_ALERT_WEBHOOK ?? "";
   if (webhook.length > 0) {

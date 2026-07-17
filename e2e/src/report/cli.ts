@@ -184,7 +184,15 @@ async function run(): Promise<number> {
   writeFileSync(join(resultsDir, "report.md"), renderMarkdown(report, scrub), "utf8");
   try {
     const result = await postAlert(report, { webhookUrl: process.env.E2E_ALERT_WEBHOOK, fetchImpl: httpFetch, scrub });
-    process.stdout.write(result.posted ? `alert posted (${result.urgency})\n` : "alert: green run, no post\n");
+    if (result.posted) {
+      process.stdout.write(`alert posted (${result.urgency})\n`);
+    } else if (result.reason === "unconfigured") {
+      // A red run with no webhook is still loudly red via the exit code below; the report is in
+      // the artifacts. Only a configured-but-failed delivery escalates to exit 2.
+      process.stderr.write("no alert webhook configured — report in artifacts\n");
+    } else {
+      process.stdout.write("alert: green run, no post\n");
+    }
   } catch (error) {
     process.stderr.write(`${error instanceof AlertDeliveryError ? error.message : "alert delivery failed"}\n`);
     return 2;
