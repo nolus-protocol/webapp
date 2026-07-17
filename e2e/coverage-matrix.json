@@ -1,6 +1,6 @@
 {
   "routes": ["/", "/assets", "/earn", "/positions", "/stake", "/activities", "/vote", "/stats"],
-  "components": ["shell", "primary-figure", "secondary-figure", "visual", "ws"],
+  "components": ["shell", "primary-figure", "secondary-figure", "visual", "ws", "cross-field"],
   "states": ["loading", "empty", "error", "populated"],
   "cells": [
     {
@@ -661,6 +661,46 @@
         "type": "gap",
         "category": "schemaless-unvalidated",
         "reason": "activities are schemaless ETL; ordering is an unenforced client-side gap (documented)"
+      }
+    },
+    {
+      "route": "/stats",
+      "component": "cross-field",
+      "state": "populated",
+      "mapping": {
+        "type": "assertion",
+        "spec": "src/t1/invariants.spec.ts",
+        "label": "invariant-tvl-cross-endpoint"
+      }
+    },
+    {
+      "route": "/",
+      "component": "cross-field",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "dashboard total == assets-table total needs a funded wallet; live-gated"
+      }
+    },
+    {
+      "route": "/positions",
+      "component": "cross-field",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "lease PnL sign == indicator and long liq < spot < short liq need an open lease; oracle lease vectors cover the math"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "cross-field",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "schemaless-unvalidated",
+        "reason": "history date ordering is unenforced client-side (documented app gap); observation only on funded data"
       }
     }
   ]
