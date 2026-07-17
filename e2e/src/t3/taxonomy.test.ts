@@ -19,6 +19,12 @@ describe("classify environment", () => {
     expect(result.category).toBe("environment");
     expect(result.signal).toBe("terminal-signal-timeout");
   });
+
+  it("classifies an all-configs-failed lease outage as a transient environment signal", () => {
+    const result = classify({ message: "lease-config-unavailable: all 3 lease config loads failed after retry" });
+    expect(result.category).toBe("environment");
+    expect(result.signal).toBe("lease-config-unavailable");
+  });
 });
 
 describe("classify app", () => {

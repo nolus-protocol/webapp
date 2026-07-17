@@ -13,6 +13,7 @@ import { typeAmount, requireOrSkip, waitForFundedFromNls } from "../../t2/matrix
 import { NATIVE_DENOM, NATIVE_DECIMALS, toMicroAmount } from "../../transfer.js";
 import { usdcMicro, probeSwapRoute } from "./apiReads.js";
 import { USDC_DENOM } from "./denoms.js";
+import { waitForAmountAccepted } from "./formDriver.js";
 
 // Quote -> execute a dust swap (#283 flow 6). The Skip WS topic is DEAD CODE — the app tracks
 // swaps by client polling (SkipRouter.fetchStatus in useSwapForm.ts), so this asserts through the
@@ -76,6 +77,7 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   await page.locator("#swap-1").waitFor({ state: "visible", timeout: 15000 });
   await waitForFundedFromNls(page);
   await typeAmount(page, "swap-1", SWAP_NLS);
+  await waitForAmountAccepted(page);
 
   const usdcBefore = await usdcMicro(run.ctx, wallet.address, run.currencyResolver);
   await spendCommittedOrSkip(testInfo, run, {

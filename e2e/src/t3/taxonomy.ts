@@ -109,6 +109,11 @@ const RULES: Rule[] = [
   }),
   pattern({
     category: "environment",
+    signal: "lease-config-unavailable",
+    regex: /lease[-\s]?config[-\s]?unavailable/i
+  }),
+  pattern({
+    category: "environment",
     signal: "chain-state-timeout",
     regex: /timed?\s?out|timeout waiting|deadline exceeded|wait.*(chain|block|commit)/i
   }),

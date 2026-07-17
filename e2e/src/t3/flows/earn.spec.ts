@@ -8,7 +8,7 @@ import { toMicroAmount } from "../../transfer.js";
 import { Decimal } from "../../oracle/decimal.js";
 import { formatDecAsUsd } from "../../oracle/format.js";
 import { usdcMicro } from "./apiReads.js";
-import { submitForm } from "./formDriver.js";
+import { submitForm, waitForAmountAccepted } from "./formDriver.js";
 import { readJson } from "../runtime.js";
 import { assertNonZeroBasis } from "./tolerance.js";
 import { USDC_DENOM } from "./denoms.js";
@@ -62,6 +62,7 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
 
   await connectFlow(page, run, "/earn/supply");
   await typeAmount(page, "receive-send", DUST_USDC);
+  await waitForAmountAccepted(page);
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-earn",
     action: "earn-supply",
@@ -81,6 +82,7 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
 
   await connectFlow(page, run, "/earn/withdraw");
   await typeAmount(page, "receive-send", DUST_USDC);
+  await waitForAmountAccepted(page);
   await spendCommittedOrSkip(testInfo, run, {
     spec: "t3-flow-earn",
     action: "earn-withdraw",

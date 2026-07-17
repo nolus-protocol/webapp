@@ -734,7 +734,18 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   throws `terminal-signal-timeout` (classified `environment`): a broadcast may have committed after
   the click, so the journal marks that submission failed while the outcome is genuinely ambiguous —
   the **reconciliation sweep + balances read catch the untracked commit** on the next run, which is
-  exactly what that pre-run sweep exists for.
+  exactly what that pre-run sweep exists for. A just-typed amount is settled with `waitForAmountAccepted`
+  (poll the inline error clear) BEFORE the submit, so the driver never reads a transient
+  intermediate-typing validation error (`"0."` → "Invalid amount") as the terminal outcome.
+- **RedelegateButton is a one-shot control.** Unlike the routed forms, the per-row RedelegateButton
+  runs `walletOperation` directly on its click (it auto-selects destination validators — no amount
+  input, no submit dialog). `stake.spec` drives it with `clickActionAndSettle` (click + settle on the
+  same toast/error contract), not `typeAmount`/`submitForm`.
+- **Lease-config transient outage.** `leaseProtocolConfigs` retries each `/api/leases/config/<protocol>`
+  once through the shared pacer; if EVERY protocol's config load fails (a post-deploy 5xx burst, not a
+  genuine no-ranges state) it throws `lease-config-unavailable` — a first-class `environment` signal
+  that skips-and-retries next run, rather than returning empty and reporting a permanent-looking
+  "no eligible protocol".
 - **Swap tracking (`skip_tx` is dead code).** The `skip_tx` WS topic is not driven by the app —
   swaps are tracked by client polling (`SkipRouter.fetchStatus` in `useSwapForm.ts`). `swap.spec.ts`
   therefore asserts via the UI's polled terminal state and post-swap balances, not a WS event. This
