@@ -65,6 +65,10 @@ never binary floats.
 | `npm run t2:matrix`               | Run only the parallel-safe T2 project (connect, validation, classify, reconnect). |
 | `npm run t2:ratelimit`            | Run the rate-limit spec (with its `t2` dependency).                               |
 | `npm run t2:receive`              | Run the receive spec (with its `t2`/`ratelimit` dependencies).                    |
+| `npm run t3:engine`               | Run the T3 tx-engine smoke (value-moving; CI dispatch with tiny caps).            |
+| `npm run t3:flows`                | Run the T3 value-moving flow specs (CI dispatch within the spend caps).           |
+| `npm run report`                  | Aggregate a run's artifacts into `results/report.json` + `report.md`.             |
+| `npm run report:preflight`        | Budget pre-flight: warn via the alert webhook when USDC nears the lease floor.    |
 | `npm run typecheck`               | `tsc --noEmit`.                                                                   |
 | `npm run lint`                    | ESLint (type-checked), zero warnings.                                             |
 | `npm run format` / `format:check` | Prettier.                                                                         |
