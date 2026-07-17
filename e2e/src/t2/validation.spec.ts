@@ -14,28 +14,91 @@ import {
   fieldError,
   requireOrSkip,
   probeNativeMicroBalance,
+  probeHasNonNativeBalance,
   probeHasEntries,
   allowStagingNoise
 } from "./matrixHelpers.js";
 import { parseMatrixConfig } from "../config.js";
+
+/**
+ * The empty-balance premise each insufficient-balance cell rests on: a spend form is `native`
+ * (delegate spends NLS) or `spend-token` (a lease downpayment / earn supply spends a fungible
+ * token), an over-position form is `earn-position` / `stake-position` (withdraw / undelegate over
+ * a held position). Under a funded wallet the premise can no longer hold, so the cell skips.
+ */
+type BalancePremise = "native" | "spend-token" | "earn-position" | "stake-position";
 
 interface FormCell {
   name: string;
   path: string;
   inputId: string;
   submitKey: string;
+  premise: BalancePremise;
 }
 
 const INSUFFICIENT_CELLS: FormCell[] = [
-  { name: "lease long", path: "/positions/open/long", inputId: "receive-send", submitKey: "open-position" },
-  { name: "lease short", path: "/positions/open/short", inputId: "receive-send", submitKey: "open-position" },
-  { name: "earn supply", path: "/earn/supply", inputId: "receive-send", submitKey: "supply" },
-  { name: "earn withdraw", path: "/earn/withdraw", inputId: "receive-send", submitKey: "withdraw" },
-  { name: "stake delegate", path: "/stake/delegate", inputId: "receive-send", submitKey: "delegate" },
-  { name: "stake undelegate", path: "/stake/undelegate", inputId: "receive-send", submitKey: "undelegate" }
+  {
+    name: "lease long",
+    path: "/positions/open/long",
+    inputId: "receive-send",
+    submitKey: "open-position",
+    premise: "spend-token"
+  },
+  {
+    name: "lease short",
+    path: "/positions/open/short",
+    inputId: "receive-send",
+    submitKey: "open-position",
+    premise: "spend-token"
+  },
+  { name: "earn supply", path: "/earn/supply", inputId: "receive-send", submitKey: "supply", premise: "spend-token" },
+  {
+    name: "earn withdraw",
+    path: "/earn/withdraw",
+    inputId: "receive-send",
+    submitKey: "withdraw",
+    premise: "earn-position"
+  },
+  {
+    name: "stake delegate",
+    path: "/stake/delegate",
+    inputId: "receive-send",
+    submitKey: "delegate",
+    premise: "native"
+  },
+  {
+    name: "stake undelegate",
+    path: "/stake/undelegate",
+    inputId: "receive-send",
+    submitKey: "undelegate",
+    premise: "stake-position"
+  }
 ];
 
 const STAKE_CELLS = new Set(["stake delegate", "stake undelegate"]);
+
+/**
+ * Whether the cell's empty-balance premise still holds for the connected wallet — i.e. the
+ * relevant balance/position is empty and the "Insufficient balance" path is genuinely reachable.
+ * A funded wallet returns false, and the cell skips (an unfunded-premise cell, distinct from a
+ * funded-gated one — E2E_EXPECT_FUNDED never turns this skip into a failure).
+ */
+async function emptyBalancePremiseHolds(cell: FormCell, ctx: OriginContext, address: string): Promise<boolean> {
+  switch (cell.premise) {
+    case "native":
+      return (await probeNativeMicroBalance(ctx, address)) === 0n;
+    case "spend-token":
+      return !(await probeHasNonNativeBalance(ctx, address));
+    case "earn-position":
+      return !(await probeHasEntries(ctx, `/api/earn/positions?address=${address}`, "positions"));
+    case "stake-position":
+      return !(await probeHasEntries(ctx, `/api/staking/positions?address=${address}`, "positions"));
+    default: {
+      const unreachable: never = cell.premise;
+      throw new Error(`unhandled balance premise: ${String(unreachable)}`);
+    }
+  }
+}
 
 let ctx: OriginContext;
 let locale: unknown;
@@ -59,9 +122,21 @@ test.afterAll(async () => {
 
 test.describe("insufficient-balance validation", () => {
   for (const cell of INSUFFICIENT_CELLS) {
-    test(`${cell.name} rejects an amount over an empty balance`, async ({ page, budget, wallet }) => {
+    test(`${cell.name} rejects an amount over an empty balance`, async ({ page, budget, wallet }, testInfo) => {
       budget.route = cell.path;
       allowStagingNoise(budget);
+      // The cell asserts the empty-balance error path; a funded wallet renders a different
+      // (min/max or over-position) error instead, so the premise is unmet and the cell skips.
+      // This is an unfunded-premise skip, NOT a funded-gated one: E2E_EXPECT_FUNDED must never
+      // turn it into a failure, so it uses testInfo.skip directly rather than requireOrSkip.
+      if (!(await emptyBalancePremiseHolds(cell, ctx, wallet.address))) {
+        testInfo.annotations.push({
+          type: "matrix-skip",
+          description: `${cell.name}: empty-balance premise unmet under a funded wallet`
+        });
+        testInfo.skip(true, `${cell.name}: funded wallet, empty-balance premise unmet`);
+        return;
+      }
       await connectThenGoto(page, labels, wallet.address, cell.path);
       await typeAmount(page, cell.inputId, "1");
       // A zero-balance wallet can only reach the balance check (it gates min/max), so every

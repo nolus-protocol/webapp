@@ -140,6 +140,33 @@ export async function probeNativeMicroBalance(ctx: OriginContext, address: strin
   return total;
 }
 
+/**
+ * True if the address holds any non-zero balance in a non-native denom. The downpayment/supply
+ * currency for a lease or earn form is a fungible token (USDC, an `ibc/...` denom), never the
+ * native `unls`, so this is the denom-agnostic signal that a funded wallet can cover such a form —
+ * used to skip the empty-balance validation premise when it can no longer hold.
+ */
+export async function probeHasNonNativeBalance(ctx: OriginContext, address: string): Promise<boolean> {
+  const payload = await getJson(`${ctx.origin}/api/balances?address=${address}`, ctx.dispatcher);
+  if (typeof payload !== "object" || payload === null) return false;
+  const balances = (payload as Record<string, unknown>).balances;
+  if (!Array.isArray(balances)) return false;
+  for (const entry of balances) {
+    const denom = readString(entry, "denom");
+    const amount = readString(entry, "amount");
+    if (
+      denom !== undefined &&
+      denom !== "unls" &&
+      amount !== undefined &&
+      /^\d+$/.test(amount) &&
+      BigInt(amount) > 0n
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** True if the address holds at least one non-empty entry at the given list path. */
 export async function probeHasEntries(ctx: OriginContext, path: string, listKey: string): Promise<boolean> {
   const payload = await getJson(`${ctx.origin}${path}`, ctx.dispatcher);

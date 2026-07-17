@@ -310,7 +310,11 @@ so assertions are auto-retrying `toContainText`. Expected strings come from the 
 `validateAmountAgainstBalance` gates before `validateMinMaxValues` (issue #192), so a
 zero-balance wallet can only reach insufficient-balance; below-min/above-max and the
 over-position cells require real funding and skip locally (or fail under
-`E2E_EXPECT_FUNDED`). `invalid-balance-low` and `invalid-amount` render byte-identical
+`E2E_EXPECT_FUNDED`). The empty-balance cells themselves rest on the opposite, **unfunded
+premise**: under a funded wallet the app correctly renders a min/max or over-position error
+instead, so each cell first probes the connected wallet's relevant balance/position and
+records a `matrix-skip` when funded — an unfunded-premise skip that `E2E_EXPECT_FUNDED`
+never escalates to a failure (distinct from the funded-gated cells above). `invalid-balance-low` and `invalid-amount` render byte-identical
 text ("Invalid amount") — an **accepted blind spot**: the cells are distinguished by
 trigger condition, so a key-swap between those two would pass.
 
