@@ -51,7 +51,9 @@ export async function leaseConfig(ctx: OriginContext, protocol: string): Promise
 export async function leaseProtocols(ctx: OriginContext): Promise<string[]> {
   const payload = await readJson(ctx, `${ctx.origin}/api/config`);
   const protocols = asRecord(payload)?.protocols;
-  return Array.isArray(protocols) ? protocols.filter((p): p is string => typeof p === "string") : [];
+  if (Array.isArray(protocols)) return protocols.filter((p): p is string => typeof p === "string");
+  const record = asRecord(protocols);
+  return record === undefined ? [] : Object.keys(record);
 }
 
 /**
