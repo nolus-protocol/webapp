@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           npm ci
-          npx playwright install chromium
+          npx playwright install --with-deps chromium
           npm run t3:engine
 
       - name: Upload T3 journal + report artifacts
