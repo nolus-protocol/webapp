@@ -789,10 +789,25 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
   null and Skip finds no route for it. The routability probe runs in the SAME direction as the
   executed swap, the spend is charged against the **USDC cap** (journal action `swap`, `charged` in
   USDC micro), and the post-swap assertion is that the NLS balance strictly increases.
-- **Swap tracking (`skip_tx` is dead code).** The `skip_tx` WS topic is not driven by the app —
-  swaps are tracked by client polling (`SkipRouter.fetchStatus` in `useSwapForm.ts`). `swap.spec.ts`
-  therefore asserts via the UI's polled terminal state and post-swap balances, not a WS event. This
-  is a deliberate deviation from `#283`'s WS-tracked acceptance wording.
+- **Swap tracking (`skip_tx` is dead code) and its real terminal states.** The `skip_tx` WS topic is
+  not driven by the app — swaps are tracked by client polling (`SkipRouter.fetchStatus` in
+  `useSwapForm.ts`). `swap.spec.ts` therefore asserts via the UI's terminal state and post-swap
+  balances, not a WS event (a deliberate deviation from `#283`'s WS-tracked wording). The terminal
+  states are read from `onSwap`, not guessed: SUCCESS calls `onClose()` and the swap dialog UNMOUNTS
+  (there is NO "done/success" text — the earlier text poll could never match, so a swap that actually
+  broadcast timed out), so success = the dialog's `#swap-1` is gone; FAILURE sets `error.value`, so
+  the inline error surface renders while the dialog stays open. Still pending at the (widened, ~3-min)
+  execution window with no commit throws `terminal-signal-timeout` (environment) carrying the observed
+  last state — the reconciliation sweep + balances read catch an untracked commit next run. `onSwap`
+  also early-returns unless the route quote (`route`) is set, so before the submit click the spec
+  waits for the To amount (`#swap-2`, the quote's `amount_out`) to populate; a quote that never
+  settles despite a routable pre-probe is an `environment` skip, not a red.
+- **Disabled currency rows are a precondition skip.** A currency the target protocol won't accept
+  renders its picker row disabled (the AssetItem `<li>` gets a `disabled` class, its clickable parent
+  `pointer-events-none` — confirmed live). `selectCurrencyVariant` returns `"row-disabled"` when the
+  filtered family row exists but is disabled, and the earn/swap specs precondition-skip ("held USDC
+  variant is not suppliable/swappable on the target protocol") — an honest app/staging gap, never a
+  red. An ENABLED row proceeds through the live-proven pick+verify.
 - **Engine journal actions.** `journal.ts`'s `IntentAction` gains `earn-supply`, `earn-withdraw`,
   `stake-claim`, `ibc-transfer`, and `lease-repay` — the value-moving actions these flows introduce
   that the `#284` engine did not yet represent. Additive only; no existing behaviour changes.
