@@ -157,7 +157,7 @@ function buildInput(resultsDir: string, redact: readonly string[]): AggregateInp
     generatedAt: new Date().toISOString(),
     tiers: [
       { tier: "t0", source: summarySource(join(resultsDir, "t0.json")) },
-      { tier: "t1", source: playwrightSource(join(resultsDir, "playwright-report.json")) },
+      { tier: "t1", source: playwrightSource(join(resultsDir, "t1.json")) },
       { tier: "t2", source: playwrightSource(join(resultsDir, "t2.json")) },
       { tier: "t3-engine", source: playwrightSource(join(resultsDir, "t3-engine.json")) },
       { tier: "t3-flows", source: playwrightSource(join(resultsDir, "t3-flows.json")) }

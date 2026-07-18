@@ -285,7 +285,7 @@ describe("aggregate inputs and passthrough", () => {
 describe("aggregate tier attribution by project", () => {
   it("attributes a mis-filed t3-flows test to t3-flows, never to the t1 source file it landed in", () => {
     // A t3-flows-project test appears in the t1 source file (the run's JSON output path was not
-    // overridden, so its json defaulted onto playwright-report.json). Its tier must come from its
+    // overridden, so its json landed on another tier's output file). Its tier must come from its
     // project, so it counts under t3-flows and never inflates t1.
     const t1File = pwReport([
       { projectName: "desktop-light", title: "assets renders", file: "routes.spec.ts", status: "expected" },
