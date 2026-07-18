@@ -134,9 +134,10 @@ export async function clickLocatorAndSettle(
 }
 
 export interface CurrencyVariantSelection {
-  /** The AdvancedFormControl `id` (e.g. "receive-send", "swap-1"), carried on both the amount
-   * `<input>` and the picker's `role=combobox` trigger. NOT unique page-wide — "receive-send" is
-   * shared by SupplyForm and WithdrawForm — so every locator here is scoped to the open dialog. */
+  /** The AdvancedFormControl `id` (e.g. "receive-send", "swap-1"). The amount `<input>` carries it
+   * verbatim; the picker's `role=combobox` trigger carries it prefixed as `dropdown-btn-<fieldId>`.
+   * NOT unique page-wide — "receive-send" is shared by SupplyForm and WithdrawForm — so the trigger
+   * is scoped to the open dialog. */
   fieldId: string;
   /** Search term filtering the option list — matched against the option `value` (the LPN key,
    * e.g. "USDC_NOBLE@osmosis-noble") or `ibcData`, so a resolver ticker or bank denom both work. */
@@ -172,37 +173,46 @@ async function pickerBalance(balance: Locator): Promise<number> {
 
 /**
  * Select a funded currency variant in an AdvancedFormControl currency picker before typing, so the
- * amount validates against a real balance, not the zero-balance default option. Per the
- * web-components source the picker's trigger is a `role=combobox` button carrying the field id; it
- * opens a Teleport-portaled searchable `role=listbox` of AssetItem rows filtered on `option.value`
- * / `ibcData` / label. So: open the combobox, filter the search to the variant, click the first
- * filtered row, then VERIFY the pick landed — the trigger must show the expected asset family, and a
- * `source` picker's balance must additionally read positive (see {@link CurrencyVariantSelection.side}).
- * Every locator is scoped to the open dialog (the field id is not page-unique) and every action is
- * time-bounded. Retries the whole open→pick once, then FAILS LOUDLY: a pick that didn't take must
+ * amount validates against a real balance, not the zero-balance default option. Selectors were
+ * verified LIVE against staging (app-dev), not just read from source:
+ *  - The picker's trigger is `<button role="combobox" id="dropdown-btn-<fieldId>">` — the Dropdown
+ *    atom prefixes the field id with `dropdown-btn-`; a bare `#<fieldId>` matches NOTHING (that was
+ *    the silent/loud non-selection bug). Both `/earn/supply` and `/assets/swap` render a
+ *    `#dialog-scroll`, so the trigger and its balance are scoped to that dialog (falling back to the
+ *    page if none exists); the search box (`#input-search-input`) and `role=listbox` are Teleported
+ *    to <body>, so those stay page-level — only the open dropdown renders them.
+ *  - The search DOES filter, but the long swap list is not narrowed to a single asset by a ticker
+ *    term, so the row is chosen by the expected asset family (`expectContains`) among the filtered
+ *    rows, never a blind first row.
+ * After the pick it VERIFIES: the trigger must show the expected family, and a `source` picker's
+ * balance must additionally read positive (see {@link CurrencyVariantSelection.side}). Every action
+ * is time-bounded. Retries the whole open→pick once, then FAILS LOUDLY: a pick that didn't take must
  * never let a spec type into the wrong (or zero) asset.
  */
 export async function selectCurrencyVariant(page: Page, selection: CurrencyVariantSelection): Promise<void> {
   const { fieldId, search, expectContains, side } = selection;
-  // The trigger and its balance live inside the open dialog; the search box and option list are
-  // Teleported to <body>, so those stay page-level (only the open dropdown renders them).
-  const dialog = page.locator("#dialog-scroll").last();
-  const combobox = dialog.locator(`button[role="combobox"]#${fieldId}`);
+  const scope = (await page.locator("#dialog-scroll").count()) > 0 ? page.locator("#dialog-scroll").last() : page;
+  const combobox = scope.locator(`button[role="combobox"]#dropdown-btn-${fieldId}`);
   const balance = combobox
     .locator('xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " flex-col ")][1]')
     .locator("span.text-typography-link")
     .first();
   const searchInput = page.locator(CURRENCY_SEARCH_INPUT);
-  const listbox = page.getByRole("listbox");
+  // Click the filtered row whose text carries the expected family — the swap list is not narrowed to
+  // a single asset by the search term, so a blind first row would pick the wrong (alphabetically
+  // first) asset.
+  const row = page
+    .getByRole("listbox")
+    .locator("li")
+    .filter({ hasText: new RegExp(expectContains, "i") })
+    .first();
 
   for (let attempt = 0; attempt < 2; attempt++) {
     await combobox.click({ timeout: PICKER_ACTION_MS }).catch(() => undefined);
+    // Clear then fill so a retry never types onto a stale term.
+    await searchInput.fill("", { timeout: PICKER_ACTION_MS }).catch(() => undefined);
     await searchInput.fill(search, { timeout: PICKER_ACTION_MS }).catch(() => undefined);
-    await listbox
-      .locator("li")
-      .first()
-      .click({ timeout: PICKER_ACTION_MS })
-      .catch(() => undefined);
+    await row.click({ timeout: PICKER_ACTION_MS }).catch(() => undefined);
     try {
       await expect(combobox).toContainText(new RegExp(expectContains, "i"), { timeout: PICKER_ACTION_MS });
       if (side === "source") {
