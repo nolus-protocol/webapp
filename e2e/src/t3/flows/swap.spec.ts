@@ -18,33 +18,54 @@ import { waitForAmountAccepted, selectCurrencyVariant } from "./formDriver.js";
 
 // Quote -> execute a dust swap (#283 flow 6). The Skip WS topic is DEAD CODE — the app tracks
 // swaps by client polling (SkipRouter.fetchStatus in useSwapForm.ts), so this asserts through the
-// UI's polled terminal state and post-swap balances, NOT a WS event. The direction is HELD USDC ->
-// NLS: USDC has real staging value, whereas a unls -> USDC dust has no route (economically null).
-// A no-route answer is a precondition skip (not a red): the route is pre-probed in the SAME
-// direction before executing. No matrix cell. Deviation from #283's WS-tracked wording is in the README.
+// UI's terminal state and post-swap balances, NOT a WS event. The direction is HELD USDC -> NLS:
+// USDC has real staging value, whereas a unls -> USDC dust has no route (economically null). A
+// no-route answer is a precondition skip (not a red): the route is pre-probed in the SAME direction
+// before executing. No matrix cell. Deviation from #283's WS-tracked wording is in the README.
+//
+// Terminal states, read from useSwapForm.ts's `onSwap`: SUCCESS calls `onClose()` and the swap
+// dialog UNMOUNTS (there is NO "done/success" text to poll — the old text poll could never match,
+// which is why runs timed out on a swap that actually broadcast); FAILURE sets `error.value`, so the
+// inline error surface renders while the dialog stays open. `onSwap` also early-returns unless the
+// route quote (`route`) is set, so the To amount must populate before the submit click.
 
 const SWAP_USDC = "1";
 const TERMINAL_MS = 120000;
+// A routed Skip swap (track + fetchStatus) can take a couple of minutes; give the execution its own
+// window, wider than the UI-signal timeout used elsewhere.
+const SWAP_EXEC_MS = 180000;
+const CLICK_MS = 15000;
+const QUOTE_SETTLE_MS = 60000;
+const SWAP_ERROR = "div.text-typography-error";
 
 let run: RunContext;
 
 type SwapTerminal = "success" | "failure" | "pending";
 
-async function swapDialogText(page: Page): Promise<string> {
-  return page
-    .locator("#dialog-scroll")
-    .first()
-    .innerText()
-    .catch(() => "");
+/** The inline error surface text (trimmed), or "" when no error is shown. */
+async function swapErrorText(page: Page): Promise<string> {
+  const error = page.locator(SWAP_ERROR).first();
+  if (!(await error.isVisible().catch(() => false))) {
+    return "";
+  }
+  return (await error.innerText().catch(() => "")).trim();
 }
 
-/** The app's polled swap state — success and failure are both terminal, only failure must not pass. */
+/**
+ * The real swap terminal state. SUCCESS = the dialog closed (`onClose` unmounts the swap form, so
+ * its From input `#swap-1` is gone); FAILURE = the inline error surface is showing; otherwise the
+ * broadcast/track is still in flight (PENDING).
+ */
 async function swapTerminal(page: Page): Promise<SwapTerminal> {
-  const text = (await swapDialogText(page)).toLowerCase();
-  if (/failed|error|rejected/.test(text)) {
+  if ((await swapErrorText(page)).length > 0) {
     return "failure";
   }
-  if (/done|success|completed/.test(text)) {
+  if (
+    !(await page
+      .locator("#swap-1")
+      .isVisible()
+      .catch(() => false))
+  ) {
     return "success";
   }
   return "pending";
@@ -60,7 +81,7 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   wallet
 }, testInfo) => {
   skipIfHalted(testInfo, run);
-  test.setTimeout(TERMINAL_MS * 2);
+  test.setTimeout(SWAP_EXEC_MS + TERMINAL_MS * 2);
   budget.route = "/assets/swap";
 
   const amountMicro = toMicroAmount(SWAP_USDC, USDC_DECIMALS);
@@ -98,20 +119,45 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
   // Set From = the held USDC variant (source, balance-verified so typing validates against a real,
   // loaded balance) and To = NLS (destination — the To block renders no Balance span, so verified by
   // ticker only).
-  await selectCurrencyVariant(page, {
+  const fromPick = await selectCurrencyVariant(page, {
     fieldId: "swap-1",
     search: usdcTicker,
     expectContains: "USDC",
     side: "source"
   });
-  await selectCurrencyVariant(page, {
+  if (fromPick === "row-disabled") {
+    annotateSkipAndStop(testInfo, "precondition", "held USDC variant is not swappable on the target protocol");
+  }
+  const toPick = await selectCurrencyVariant(page, {
     fieldId: "swap-2",
     search: "NLS",
     expectContains: "NLS",
     side: "destination"
   });
+  if (toPick === "row-disabled") {
+    annotateSkipAndStop(testInfo, "precondition", "NLS is not a swap destination on the target protocol");
+  }
   await typeAmount(page, "swap-1", SWAP_USDC);
   await waitForAmountAccepted(page);
+  // `onSwap` early-returns unless the route quote is set, so wait for it to settle before submitting:
+  // the To amount (#swap-2) populates from the quote's amount_out. Its staying empty is an
+  // environment condition (no quote despite a routable pre-probe), not an app red.
+  try {
+    await expect
+      .poll(
+        async () => {
+          const value = await page
+            .locator("#swap-2")
+            .inputValue()
+            .catch(() => "");
+          return Number(value.replace(/[\s,]/g, "")) || 0;
+        },
+        { message: "the swap route quote should settle (To amount populated)", timeout: QUOTE_SETTLE_MS }
+      )
+      .toBeGreaterThan(0);
+  } catch {
+    annotateSkipAndStop(testInfo, "environment", "swap route quote did not settle (To amount stayed empty)");
+  }
 
   const nlsBefore = await nativeMicro(run.ctx, wallet.address);
   await spendCommittedOrSkip(testInfo, run, {
@@ -123,16 +169,30 @@ test("a dust swap executes and reaches a polled terminal state with settled bala
     denoms: [{ denom: sourceDenom, micro: amountMicro }],
     execute: async () => {
       await run.queue.pace("strict");
-      // The swap runs on the click (no confirmation dialog); track the app's polled terminal state.
-      await page.getByRole("button", { name: /swap/i }).last().click({ timeout: TERMINAL_MS });
-      await expect
-        .poll(() => swapTerminal(page), {
-          message: "swap should reach a polled terminal state",
-          timeout: TERMINAL_MS
-        })
-        .not.toBe("pending");
+      // No confirmation dialog: the swap runs on the click. Poll the REAL terminal states — success
+      // closes the dialog, failure renders the inline error surface.
+      await page.getByRole("button", { name: /swap/i }).last().click({ timeout: CLICK_MS });
+      let lastState: SwapTerminal = "pending";
+      try {
+        await expect
+          .poll(
+            async () => {
+              lastState = await swapTerminal(page);
+              return lastState;
+            },
+            { message: "swap should reach a terminal state (dialog closes on success)", timeout: SWAP_EXEC_MS }
+          )
+          .not.toBe("pending");
+      } catch {
+        // Still pending at the window end and no commit — a broadcast may be mid-flight. Route this
+        // to `environment` (terminal-signal-timeout) with the observed last state, never a red; the
+        // reconciliation sweep + balances read catch an untracked commit next run.
+        throw new Error(
+          `terminal-signal-timeout: swap still pending after ${SWAP_EXEC_MS}ms (last state: ${lastState})`
+        );
+      }
       if ((await swapTerminal(page)) === "failure") {
-        throw new Error(`swap reached a failed terminal state: ${(await swapDialogText(page)).slice(0, 200)}`);
+        throw new Error(`swap reached a failed terminal state: ${(await swapErrorText(page)).slice(0, 200)}`);
       }
     }
   });

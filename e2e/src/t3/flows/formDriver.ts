@@ -172,6 +172,30 @@ async function pickerBalance(balance: Locator): Promise<number> {
 }
 
 /**
+ * Whether the filtered target row EXISTS but is disabled. Per the AssetItem source (and confirmed
+ * live) a disabled option renders the inner `<li>` with a `disabled` class and its clickable parent
+ * with `pointer-events-none`; the app disables a currency the target protocol won't accept (e.g. a
+ * USDC variant not suppliable on that protocol), so the row is present but can never be picked.
+ * Absent (search matched nothing) is NOT disabled — that path falls through to the loud not-selected error.
+ */
+async function rowExistsButDisabled(row: Locator): Promise<boolean> {
+  await row.waitFor({ state: "attached", timeout: PICKER_ACTION_MS }).catch(() => undefined);
+  if ((await row.count()) === 0) {
+    return false;
+  }
+  const liClass = (await row.getAttribute("class").catch(() => "")) ?? "";
+  const parentClass =
+    (await row
+      .locator("xpath=..")
+      .getAttribute("class")
+      .catch(() => "")) ?? "";
+  return /\bdisabled\b/.test(liClass) || /pointer-events-none/.test(parentClass);
+}
+
+/** Outcome of a variant pick: it landed, or the target row exists but the protocol disabled it. */
+export type VariantSelectResult = "selected" | "row-disabled";
+
+/**
  * Select a funded currency variant in an AdvancedFormControl currency picker before typing, so the
  * amount validates against a real balance, not the zero-balance default option. Selectors were
  * verified LIVE against staging (app-dev), not just read from source:
@@ -186,10 +210,15 @@ async function pickerBalance(balance: Locator): Promise<number> {
  *    rows, never a blind first row.
  * After the pick it VERIFIES: the trigger must show the expected family, and a `source` picker's
  * balance must additionally read positive (see {@link CurrencyVariantSelection.side}). Every action
- * is time-bounded. Retries the whole open→pick once, then FAILS LOUDLY: a pick that didn't take must
- * never let a spec type into the wrong (or zero) asset.
+ * is time-bounded. Returns `"row-disabled"` when the target row exists but the protocol disabled it
+ * (the caller precondition-skips — an honest app/staging gap, never a red). Otherwise retries the
+ * whole open→pick once, then FAILS LOUDLY: a pick that didn't take must never let a spec type into
+ * the wrong (or zero) asset.
  */
-export async function selectCurrencyVariant(page: Page, selection: CurrencyVariantSelection): Promise<void> {
+export async function selectCurrencyVariant(
+  page: Page,
+  selection: CurrencyVariantSelection
+): Promise<VariantSelectResult> {
   const { fieldId, search, expectContains, side } = selection;
   const scope = (await page.locator("#dialog-scroll").count()) > 0 ? page.locator("#dialog-scroll").last() : page;
   const combobox = scope.locator(`button[role="combobox"]#dropdown-btn-${fieldId}`);
@@ -212,13 +241,16 @@ export async function selectCurrencyVariant(page: Page, selection: CurrencyVaria
     // Clear then fill so a retry never types onto a stale term.
     await searchInput.fill("", { timeout: PICKER_ACTION_MS }).catch(() => undefined);
     await searchInput.fill(search, { timeout: PICKER_ACTION_MS }).catch(() => undefined);
+    if (attempt === 0 && (await rowExistsButDisabled(row))) {
+      return "row-disabled";
+    }
     await row.click({ timeout: PICKER_ACTION_MS }).catch(() => undefined);
     try {
       await expect(combobox).toContainText(new RegExp(expectContains, "i"), { timeout: PICKER_ACTION_MS });
       if (side === "source") {
         await expect.poll(() => pickerBalance(balance), { timeout: BALANCE_POLL_MS }).toBeGreaterThan(0);
       }
-      return;
+      return "selected";
     } catch {
       // Selection did not land (default still showing, or balance not yet positive) — re-pick once.
     }

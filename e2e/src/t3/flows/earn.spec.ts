@@ -1,6 +1,13 @@
 import { test, expect } from "./support.js";
 import type { RunContext } from "./support.js";
-import { getRunContext, connectFlow, reportLeftover, skipIfHalted, spendCommittedOrSkip } from "./support.js";
+import {
+  getRunContext,
+  connectFlow,
+  reportLeftover,
+  skipIfHalted,
+  spendCommittedOrSkip,
+  annotateSkipAndStop
+} from "./support.js";
 import { messageValue } from "../../t2/appDriver.js";
 import { typeAmount, requireOrSkip, readString } from "../../t2/matrixHelpers.js";
 import { USDC_DECIMALS } from "../../config.js";
@@ -66,12 +73,15 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   // select the funded USDC variant so the amount validates against a real balance, not a zero one.
   const heldUsdc = await heldUsdcTicker(run.ctx, wallet.address, run.currencyResolver);
   if (heldUsdc !== undefined) {
-    await selectCurrencyVariant(page, {
+    const picked = await selectCurrencyVariant(page, {
       fieldId: "receive-send",
       search: heldUsdc,
       expectContains: "USDC",
       side: "source"
     });
+    if (picked === "row-disabled") {
+      annotateSkipAndStop(testInfo, "precondition", "held USDC variant is not suppliable on the target protocol");
+    }
   }
   await typeAmount(page, "receive-send", DUST_USDC);
   await waitForAmountAccepted(page);
@@ -95,12 +105,15 @@ test("earn supply then withdraw of dust USDC, rendered total matches the oracle"
   await connectFlow(page, run, "/earn/withdraw");
   // The withdraw options come from the LP positions; select the variant just supplied.
   if (heldUsdc !== undefined) {
-    await selectCurrencyVariant(page, {
+    const picked = await selectCurrencyVariant(page, {
       fieldId: "receive-send",
       search: heldUsdc,
       expectContains: "USDC",
       side: "source"
     });
+    if (picked === "row-disabled") {
+      annotateSkipAndStop(testInfo, "precondition", "supplied USDC variant is not withdrawable on the target protocol");
+    }
   }
   await typeAmount(page, "receive-send", DUST_USDC);
   await waitForAmountAccepted(page);
