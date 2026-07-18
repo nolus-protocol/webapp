@@ -848,8 +848,12 @@ run `continue-on-error`, and the report — not any single tier's exit code — 
   every failure as a `ClassifiedFailure`; the genuine skips; a journal summary; the leftover-state
   section; and the runtime coverage section. `render.ts` writes the markdown summary and `cli.ts`
   writes `results/report.json` + `results/report.md`. Inputs are the per-tier Playwright JSON files
-  (`results/playwright-report.json` for t1 — the config's default json output — plus `results/t2.json`,
-  `results/t3-engine.json`, `results/t3-flows.json` from each tier's `PLAYWRIGHT_JSON_OUTPUT_NAME`
+  (`results/t1.json`, `results/t2.json`, `results/t3-engine.json`, `results/t3-flows.json` from each
+  tier's `PLAYWRIGHT_JSON_OUTPUT_FILE` — the env Playwright 1.61 actually honors over the config's
+  `outputFile`; the previously-used `PLAYWRIGHT_JSON_OUTPUT_NAME` was a silent no-op, so every tier
+  overwrote `results/playwright-report.json` and t1 always aggregated to zero. The `t3:*` and the
+  standalone `t2:ratelimit`/`t2:receive` scripts also pass `--no-deps`: `--project` otherwise runs
+  the whole dependency chain, which re-ran t2 + the live receive send inside every t3 step
   override), the `t0.json` summary,
   the T3 journal (`t3-journal.jsonl`), the leftover report (`t3-report.json`), and `coverage-matrix.json`.
 - **Failure classes.** Each failure is tagged `app-bug`, `env-flake`, or `spend-cap-abort`, mapped

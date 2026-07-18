@@ -54,6 +54,10 @@ jobs:
           set -euo pipefail
           npm ci
           npx playwright install --with-deps chromium
+          # t3 scripts pass --no-deps: this dispatch runs ONLY the t3 project, no t2 chain
+          # and no live receive send. The primary wallet is kept funded out-of-band (the old
+          # dependency-chain dust receive was incidental, never a real top-up); an
+          # underfunded primary skips via the engine's funding guard rather than failing.
           npm run t3:flows
 
       - name: Scrub the resolver target from artifacts before upload
