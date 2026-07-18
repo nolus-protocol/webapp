@@ -148,12 +148,6 @@ jobs:
         working-directory: e2e
         run: npm run t3:flows
 
-      - name: Scrub the resolver target from artifacts
-        if: always()
-        uses: ./.github/actions/scrub-e2e-artifacts
-        with:
-          resolver-target: ${{ vars.DEPLOY_HOST }}
-
       - name: Build report and post alert
         id: report
         continue-on-error: true
@@ -166,8 +160,15 @@ jobs:
           echo "report cli exit code: ${code}"
           exit 0
 
-      - name: Upload regression artifacts
+      - name: Scrub the resolver target from artifacts
+        id: scrub
         if: always()
+        uses: ./.github/actions/scrub-e2e-artifacts
+        with:
+          resolver-target: ${{ vars.DEPLOY_HOST }}
+
+      - name: Upload regression artifacts
+        if: always() && steps.scrub.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: e2e-regression-${{ env.BASE_DOMAIN }}

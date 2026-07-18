@@ -60,6 +60,7 @@ runs:
         # If python3 is unavailable, fail closed — delete every zip in the artifact dirs.
         if command -v python3 >/dev/null 2>&1; then
           python3 - <<'PYSCRUB'
+        import io
         import os
         import sys
         import zipfile
@@ -68,6 +69,24 @@ runs:
         placeholder = b"<redacted-host>"
         if not target:
             sys.exit(0)
+
+
+        def tainted(data, depth=0):
+            """Target present in `data`, looking inside nested zips (compression hides the
+            raw bytes). An unreadable or over-deep nested zip counts as tainted: fail closed."""
+            if target in data:
+                return True
+            if not data.startswith(b"PK\x03\x04"):
+                return False
+            if depth >= 2:
+                return True
+            try:
+                with zipfile.ZipFile(io.BytesIO(data)) as nested:
+                    return any(tainted(nested.read(i), depth + 1) for i in nested.infolist() if not i.is_dir())
+            except Exception:
+                return True
+
+
         rewritten = 0
         zipped = 0
         for base in ("results", "playwright-report", "test-results"):
@@ -84,15 +103,19 @@ runs:
                         os.remove(path)
                         zipped += 1
                         continue
-                    if not any(target in data for _, data in members):
+                    if not any(tainted(data) for _, data in members):
                         continue
                     rebuilt = path + ".rebuilt"
                     try:
                         with zipfile.ZipFile(rebuilt, "w", zipfile.ZIP_DEFLATED) as out:
                             for info, data in members:
-                                out.writestr(info.filename, data.replace(target, placeholder))
+                                data = data.replace(target, placeholder)
+                                if tainted(data):
+                                    print(f"artifact scrub: dropping unrewritable member {info.filename} of {path}")
+                                    continue
+                                out.writestr(info.filename, data)
                         with zipfile.ZipFile(rebuilt) as check:
-                            if any(target in check.read(n) for n in check.namelist()):
+                            if any(tainted(check.read(i)) for i in check.infolist() if not i.is_dir()):
                                 raise RuntimeError("rebuild still carries the target")
                         os.replace(rebuilt, path)
                         rewritten += 1
