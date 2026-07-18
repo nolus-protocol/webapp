@@ -18,6 +18,17 @@ describe("buildKeplrInitScript", () => {
     }
   });
 
+  it("pins the getter's chain id onto the signer (the app's signer.chainId read)", () => {
+    expect(script).toContain("const makeAminoSigner = (chainId) => ({");
+    expect(script).toContain("chainId,");
+    expect(script).toContain("getOfflineSignerOnlyAmino: (chainId) => makeAminoSigner(chainId)");
+    expect(script).toContain("getOfflineSignerAuto: (chainId) => Promise.resolve(makeAminoSigner(chainId))");
+  });
+
+  it("threads the signer's chain id into the account binding for per-chain addresses", () => {
+    expect(script).toMatch(/window\.__e2eWalletGetAccounts\(chainId\)/);
+  });
+
   it("exposes no isKeplr identity marker (the #155 pin)", () => {
     expect(script).not.toContain("isKeplr");
   });
