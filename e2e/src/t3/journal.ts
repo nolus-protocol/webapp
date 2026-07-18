@@ -54,7 +54,7 @@ export interface JournalOutcome {
 
 export type JournalRecord = JournalIntent | JournalOutcome;
 
-const redact = (value: string): string => sanitizeRpc(value, "");
+const redact = (value: string, rpcUrl: string): string => sanitizeRpc(value, rpcUrl);
 
 export function isIntent(record: JournalRecord): record is JournalIntent {
   return record.type === "intent";
@@ -73,6 +73,11 @@ export interface IntentInput {
   denoms: DenomAmount[];
   charged?: DenomAmount[];
   memo?: string;
+  /**
+   * The configured chain RPC URL, threaded into redaction so the exact URL and host are
+   * stripped from every journaled string — not only the IP-shaped fallback patterns.
+   */
+  rpcUrl: string;
 }
 
 export function buildIntent(input: IntentInput): JournalIntent {
@@ -80,16 +85,16 @@ export function buildIntent(input: IntentInput): JournalIntent {
     type: "intent",
     seq: input.seq,
     ts: input.ts,
-    spec: redact(input.spec),
+    spec: redact(input.spec, input.rpcUrl),
     walletRole: input.walletRole,
     action: input.action,
-    denoms: input.denoms.map((d) => ({ denom: redact(d.denom), micro: d.micro }))
+    denoms: input.denoms.map((d) => ({ denom: redact(d.denom, input.rpcUrl), micro: d.micro }))
   };
   if (input.charged !== undefined) {
-    record.charged = input.charged.map((c) => ({ denom: redact(c.denom), micro: c.micro }));
+    record.charged = input.charged.map((c) => ({ denom: redact(c.denom, input.rpcUrl), micro: c.micro }));
   }
   if (input.memo !== undefined) {
-    record.memo = redact(input.memo);
+    record.memo = redact(input.memo, input.rpcUrl);
   }
   return record;
 }
@@ -101,18 +106,20 @@ export interface OutcomeInput {
   txHash?: string;
   height?: number;
   failure?: Classification;
+  /** See `IntentInput.rpcUrl` — the same exact-host redaction applies to outcome strings. */
+  rpcUrl: string;
 }
 
 export function buildOutcome(input: OutcomeInput): JournalOutcome {
   const record: JournalOutcome = { type: "outcome", seq: input.seq, ts: input.ts, status: input.status };
   if (input.txHash !== undefined) {
-    record.txHash = redact(input.txHash);
+    record.txHash = redact(input.txHash, input.rpcUrl);
   }
   if (input.height !== undefined) {
     record.height = input.height;
   }
   if (input.failure !== undefined) {
-    record.failure = { ...input.failure, reason: redact(input.failure.reason) };
+    record.failure = { ...input.failure, reason: redact(input.failure.reason, input.rpcUrl) };
   }
   return record;
 }

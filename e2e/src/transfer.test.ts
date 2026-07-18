@@ -67,6 +67,11 @@ describe("makeFee", () => {
 });
 
 describe("sanitizeRpc", () => {
+  it("redacts the bare hostname when prose omits the port", () => {
+    const out = sanitizeRpc("refused by rpc.nolus.network today", "https://rpc.nolus.network:26657");
+    expect(out).not.toContain("rpc.nolus.network");
+  });
+
   it("strips the full url and the bare host", () => {
     const rpc = "https://rpc.nolus.network";
     expect(sanitizeRpc(`POST ${rpc} failed`, rpc)).toBe("POST <rpc> failed");

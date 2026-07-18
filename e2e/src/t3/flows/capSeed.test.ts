@@ -12,7 +12,8 @@ function chargedIntent(seq: number, action: IntentAction, charged: DenomAmount[]
     walletRole: "primary",
     action,
     denoms: [],
-    charged
+    charged,
+    rpcUrl: ""
   });
 }
 
@@ -21,13 +22,13 @@ describe("seedCapFromJournal", () => {
     const cap = new SpendCap({ nls: 1000n, usdc: 1000n });
     const records: JournalRecord[] = [
       chargedIntent(1, "native-send", [{ denom: "nls", micro: "100" }]),
-      buildOutcome({ seq: 1, ts: "t", status: "committed" }),
+      buildOutcome({ seq: 1, ts: "t", status: "committed", rpcUrl: "" }),
       chargedIntent(2, "lease-open", [{ denom: "usdc", micro: "400" }]),
-      buildOutcome({ seq: 2, ts: "t", status: "committed" }),
+      buildOutcome({ seq: 2, ts: "t", status: "committed", rpcUrl: "" }),
       chargedIntent(3, "swap", [{ denom: "nls", micro: "50" }]),
-      buildOutcome({ seq: 3, ts: "t", status: "failed" }),
+      buildOutcome({ seq: 3, ts: "t", status: "failed", rpcUrl: "" }),
       chargedIntent(4, "lease-open", [{ denom: "usdc", micro: "999" }]),
-      buildOutcome({ seq: 4, ts: "t", status: "aborted" })
+      buildOutcome({ seq: 4, ts: "t", status: "aborted", rpcUrl: "" })
     ];
     seedCapFromJournal(cap, records);
     expect(cap.spent("nls")).toBe(100n);
@@ -44,9 +45,10 @@ describe("seedCapFromJournal", () => {
         walletRole: "primary",
         action: "undelegate",
         denoms: [{ denom: "unls", micro: "5000000" }],
-        charged: [{ denom: "nls", micro: "0" }]
+        charged: [{ denom: "nls", micro: "0" }],
+        rpcUrl: ""
       }),
-      buildOutcome({ seq: 1, ts: "t", status: "committed" })
+      buildOutcome({ seq: 1, ts: "t", status: "committed", rpcUrl: "" })
     ];
     seedCapFromJournal(cap, records);
     expect(cap.spent("nls")).toBe(0n);
@@ -63,7 +65,7 @@ describe("seedCapFromJournal", () => {
     const cap = new SpendCap({ nls: 1000n, usdc: 1000n });
     seedCapFromJournal(cap, [
       chargedIntent(1, "delegate", [{ denom: "uatom", micro: "100" }]),
-      buildOutcome({ seq: 1, ts: "t", status: "committed" })
+      buildOutcome({ seq: 1, ts: "t", status: "committed", rpcUrl: "" })
     ]);
     expect(cap.spent("nls")).toBe(0n);
     expect(cap.spent("usdc")).toBe(0n);

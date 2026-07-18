@@ -67,14 +67,19 @@ export function makeFee(gasLimit: number, gasPrice: string, denom: string = NATI
  */
 export function sanitizeRpc(text: string, rpcUrl: string): string {
   let host: string;
+  let hostname: string;
   try {
-    host = new URL(rpcUrl).host;
+    const parsed = new URL(rpcUrl);
+    host = parsed.host;
+    hostname = parsed.hostname;
   } catch {
     host = "";
+    hostname = "";
   }
   let out = text;
   if (rpcUrl.length > 0) out = out.split(rpcUrl).join(RPC_PLACEHOLDER);
   if (host.length > 0) out = out.split(host).join(RPC_PLACEHOLDER);
+  if (hostname.length > 0 && hostname !== host) out = out.split(hostname).join(RPC_PLACEHOLDER);
   // Also redact credential userinfo (`user:pass@`) and a bare resolved address — a
   // connection error reports the resolved IP, not the hostname the two replacements above
   // cover: "connect ECONNREFUSED 1.2.3.4:26657" (IPv4) or "connect ECONNREFUSED

@@ -245,7 +245,7 @@ describe("aggregate inputs and passthrough", () => {
 
   it("summarizes a present journal and folds a summary tier's failures into app-bugs", () => {
     const journal: JournalRecord[] = [
-      buildIntent({ seq: 1, ts: "t", spec: "s", walletRole: "primary", action: "swap", denoms: [] })
+      buildIntent({ seq: 1, ts: "t", spec: "s", walletRole: "primary", action: "swap", denoms: [], rpcUrl: "" })
     ];
     const out = aggregate(
       {

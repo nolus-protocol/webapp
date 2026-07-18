@@ -263,7 +263,9 @@ function appendSettled<T>(
 ): void {
   if (outcome.status === "committed") {
     const extra = params.outcomeFrom?.(outcome.value) ?? {};
-    run.store.append(buildOutcome({ seq, ts: new Date().toISOString(), status: "committed", ...extra }));
+    run.store.append(
+      buildOutcome({ seq, ts: new Date().toISOString(), status: "committed", rpcUrl: run.chain.rpcUrl, ...extra })
+    );
     return;
   }
   run.store.append(
@@ -271,7 +273,8 @@ function appendSettled<T>(
       seq,
       ts: new Date().toISOString(),
       status: "aborted",
-      failure: classify({ message: `spend-cap-abort on ${outcome.check.overDenom}`, rpcUrl: run.chain.rpcUrl })
+      failure: classify({ message: `spend-cap-abort on ${outcome.check.overDenom}`, rpcUrl: run.chain.rpcUrl }),
+      rpcUrl: run.chain.rpcUrl
     })
   );
 }
@@ -286,6 +289,7 @@ export async function journaledSpend<T>(run: RunContext, params: JournaledSpendP
       walletRole: params.walletRole,
       action: params.action,
       denoms: params.denoms,
+      rpcUrl: run.chain.rpcUrl,
       // The cap-charged SpendItems actually reserved — the ONLY source restart cap-seeding reads.
       // Display `denoms` can carry a positive amount an inflow action never charged; `charged`
       // mirrors what the SpendCap counted, so a restart never re-charges a zero-charge inflow.
@@ -304,7 +308,8 @@ export async function journaledSpend<T>(run: RunContext, params: JournaledSpendP
         seq,
         ts: new Date().toISOString(),
         status: "failed",
-        failure: classify({ error, rpcUrl: run.chain.rpcUrl })
+        failure: classify({ error, rpcUrl: run.chain.rpcUrl }),
+        rpcUrl: run.chain.rpcUrl
       })
     );
     throw error;
