@@ -40,6 +40,19 @@ const encodingLib = loadModule("@cosmjs/encoding") as EncodingLib;
 const NOLUS_PREFIX = "nolus";
 
 /**
+ * Bech32 prefixes for the chain ids the scripted wallet can present an account on. The
+ * app's cross-chain swap path (`useSwapForm.ts` `getWallets`) builds one wallet per chain
+ * id in the Skip route and asks the provider for that chain's account — for the dust
+ * USDC->NLS swap the route hops through Osmosis, so `osmosis-1` needs an `osmo1…` address
+ * derived from the same key. An unlisted chain id rejects loudly so route drift stays a
+ * visible failure instead of a mis-prefixed address reaching Skip.
+ */
+const CHAIN_ID_PREFIXES: Record<string, string> = {
+  "pirin-1": NOLUS_PREFIX,
+  "osmosis-1": "osmo"
+};
+
+/**
  * JSON-safe account shape handed to the in-page stub. A `Uint8Array` cannot survive a
  * Playwright `exposeFunction` boundary, so the public key crosses as base64; the stub
  * decodes it back to bytes in the browser before returning it to the app.
@@ -59,8 +72,41 @@ export interface AccountPayload {
 export interface WalletIdentity {
   readonly address: string;
   readonly pubkeyBase64: string;
-  getAccounts(): Promise<AccountPayload>;
+  getAccounts(chainId?: string): Promise<AccountPayload>;
   signAmino(signerAddress: string, signDoc: StdSignDoc): Promise<AminoSignResponse>;
+}
+
+async function derivePrefixedAccount(mnemonic: string, prefix: string): Promise<AccountPayload> {
+  const prefixedWallet = await aminoLib.Secp256k1HdWallet.fromMnemonic(mnemonic, { prefix });
+  const accounts = await prefixedWallet.getAccounts();
+  const account = accounts[0];
+  if (account === undefined) {
+    throw new Error(`derived ${prefix} wallet exposed no account`);
+  }
+  return { address: account.address, pubkey: encodingLib.toBase64(account.pubkey), algo: account.algo };
+}
+
+function makeAccountResolver(mnemonic: string, primary: AccountPayload): (chainId?: string) => Promise<AccountPayload> {
+  const payloadsByPrefix = new Map<string, Promise<AccountPayload>>([[NOLUS_PREFIX, Promise.resolve(primary)]]);
+  return (chainId?: string): Promise<AccountPayload> => {
+    const prefix =
+      chainId === undefined
+        ? NOLUS_PREFIX
+        : Object.hasOwn(CHAIN_ID_PREFIXES, chainId)
+          ? CHAIN_ID_PREFIXES[chainId]
+          : undefined;
+    if (prefix === undefined) {
+      return Promise.reject(new Error(`no bech32 prefix mapped for chain id "${chainId}"`));
+    }
+    const cached = payloadsByPrefix.get(prefix);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const derived = derivePrefixedAccount(mnemonic, prefix);
+    payloadsByPrefix.set(prefix, derived);
+    derived.catch(() => payloadsByPrefix.delete(prefix));
+    return derived;
+  };
 }
 
 export async function createWalletIdentity(mnemonic: string): Promise<WalletIdentity> {
@@ -77,9 +123,11 @@ export async function createWalletIdentity(mnemonic: string): Promise<WalletIden
   return {
     address,
     pubkeyBase64,
-    getAccounts(): Promise<AccountPayload> {
-      return Promise.resolve({ address, pubkey: pubkeyBase64, algo });
-    },
+    getAccounts: makeAccountResolver(mnemonic, { address, pubkey: pubkeyBase64, algo }),
+    // Signing stays bound to the nolus account on purpose: the T3 spend journal and
+    // per-denom caps only account for Nolus-side transactions, so a foreign-chain sign
+    // attempt must fail loudly (cosmjs rejects an unknown signer address) rather than
+    // silently spend outside the caps.
     signAmino(signerAddress: string, signDoc: StdSignDoc): Promise<AminoSignResponse> {
       return wallet.signAmino(signerAddress, signDoc);
     }

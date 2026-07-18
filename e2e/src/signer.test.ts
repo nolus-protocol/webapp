@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { StdSignDoc } from "@cosmjs/amino";
-import { fromBase64, toBase64 } from "@cosmjs/encoding";
+import { fromBase64, fromBech32, toBase64, toBech32 } from "@cosmjs/encoding";
 import { createWalletIdentity, verifyAminoSignature } from "./signer.js";
 
 // A deliberately public, unfunded CosmJS test vector. The nolus1 address below was
@@ -41,6 +41,34 @@ describe("createWalletIdentity", () => {
     expect(fromBase64(account.pubkey)).toHaveLength(33);
   });
 
+  it("resolves pirin-1 to the primary nolus account", async () => {
+    const identity = await createWalletIdentity(TEST_MNEMONIC);
+    const account = await identity.getAccounts("pirin-1");
+    expect(account.address).toBe(EXPECTED_ADDRESS);
+    expect(account.pubkey).toBe(identity.pubkeyBase64);
+  });
+
+  it("serves an osmo-prefixed account for osmosis-1 derived from the same key", async () => {
+    const identity = await createWalletIdentity(TEST_MNEMONIC);
+    const account = await identity.getAccounts("osmosis-1");
+    const { data } = fromBech32(identity.address);
+    expect(account.address).toBe(toBech32("osmo", data));
+    expect(account.pubkey).toBe(identity.pubkeyBase64);
+    expect(account.algo).toBe("secp256k1");
+  });
+
+  it("rejects a chain id with no mapped bech32 prefix", async () => {
+    const identity = await createWalletIdentity(TEST_MNEMONIC);
+    await expect(identity.getAccounts("cosmoshub-4")).rejects.toThrow(/no bech32 prefix mapped/);
+  });
+
+  it("rejects prototype-chain key names instead of resolving inherited members", async () => {
+    const identity = await createWalletIdentity(TEST_MNEMONIC);
+    for (const hostile of ["__proto__", "constructor", "toString"]) {
+      await expect(identity.getAccounts(hostile)).rejects.toThrow(/no bech32 prefix mapped/);
+    }
+  });
+
   it("signs a byte-exact amino doc that verifies cryptographically", async () => {
     const identity = await createWalletIdentity(TEST_MNEMONIC);
     const response = await identity.signAmino(identity.address, SIGN_DOC);
@@ -59,6 +87,12 @@ describe("createWalletIdentity", () => {
       signature: { ...response.signature, signature: toBase64(bytes) }
     };
     expect(verifyAminoSignature(tampered)).toBe(false);
+  });
+
+  it("refuses to sign for an address outside the nolus account", async () => {
+    const identity = await createWalletIdentity(TEST_MNEMONIC);
+    const foreign = await identity.getAccounts("osmosis-1");
+    await expect(identity.signAmino(foreign.address, SIGN_DOC)).rejects.toThrow();
   });
 
   it("never serializes the mnemonic", async () => {

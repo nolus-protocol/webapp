@@ -9,7 +9,7 @@ import type { AccountPayload, WalletIdentity } from "../signer.js";
  * app calls and nothing else — `getKey`, `signArbitrary`, `defaultOptions` and friends
  * have zero call sites in `src/` and are deliberately omitted so drift stays visible.
  *
- * App call sites (verified against main @ 9394cceb):
+ * App call sites (verified against main @ afa8bfb3):
  *   - `enable(chainId)`
  *       src/common/stores/wallet/actions/connectKeplrLike.ts:46
  *       src/networks/cosm/WalletFactory.ts:89
@@ -20,6 +20,16 @@ import type { AccountPayload, WalletIdentity } from "../signer.js";
  *       src/common/stores/wallet/actions/connectKeplrLike.ts:22 (presence), :48-49 (call)
  *   - `getOfflineSignerAuto(chainId)`  (Path B — cross-chain external wallet)
  *       src/networks/cosm/WalletFactory.ts:69 (presence), :92 (call)
+ *
+ * Beyond the four methods, the app also reads two things OFF the returned signer:
+ *   - `signer.chainId` — `useSwapForm.ts` `getWallets` resolves the native chain from the
+ *     connected wallet's signer and throws "Native chain id not available" when absent
+ *     (real Keplr's `CosmJSOfflineSigner` carries a public `chainId` field). Every signer
+ *     this stub returns therefore pins the `chainId` it was created for.
+ *   - `getAccounts()` per chain — the cross-chain swap path builds one wallet per Skip
+ *     route hop and needs a chain-appropriate bech32 address (e.g. `osmo1…` on
+ *     `osmosis-1`), so the account binding threads the signer's chain id to Node where
+ *     the identity derives the right prefix.
  *
  * The signer object returned by the two getters intentionally omits `signDirect`:
  * CosmJS's `isOfflineDirectSigner` is literally `signer.signDirect !== undefined`
@@ -46,9 +56,10 @@ export function buildKeplrInitScript(): string {
     for (let i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
     return bytes;
   };
-  const makeAminoSigner = () => ({
+  const makeAminoSigner = (chainId) => ({
+    chainId,
     getAccounts: async () => {
-      const account = await window.${GET_ACCOUNTS_BINDING}();
+      const account = await window.${GET_ACCOUNTS_BINDING}(chainId);
       return [{ address: account.address, pubkey: decodePubkey(account.pubkey), algo: account.algo }];
     },
     signAmino: (signerAddress, signDoc) => window.${SIGN_AMINO_BINDING}(signerAddress, signDoc)
@@ -56,8 +67,8 @@ export function buildKeplrInitScript(): string {
   window.keplr = {
     enable: (chainId) => { window.${LAST_CHAIN_ID_VAR} = chainId; return Promise.resolve(); },
     experimentalSuggestChain: () => Promise.resolve(),
-    getOfflineSignerOnlyAmino: () => makeAminoSigner(),
-    getOfflineSignerAuto: () => Promise.resolve(makeAminoSigner())
+    getOfflineSignerOnlyAmino: (chainId) => makeAminoSigner(chainId),
+    getOfflineSignerAuto: (chainId) => Promise.resolve(makeAminoSigner(chainId))
   };
 })();`;
 }
@@ -69,7 +80,9 @@ export function buildKeplrInitScript(): string {
  * pair, both of which survive the `exposeFunction` boundary untouched.
  */
 export async function installKeplrStub(page: Page, identity: WalletIdentity): Promise<void> {
-  await page.exposeFunction(GET_ACCOUNTS_BINDING, (): Promise<AccountPayload> => identity.getAccounts());
+  await page.exposeFunction(GET_ACCOUNTS_BINDING, (chainId?: string): Promise<AccountPayload> =>
+    identity.getAccounts(chainId)
+  );
   await page.exposeFunction(
     SIGN_AMINO_BINDING,
     (signerAddress: string, signDoc: StdSignDoc): Promise<AminoSignResponse> =>
