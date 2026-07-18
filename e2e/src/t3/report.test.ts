@@ -10,14 +10,15 @@ const swapIntent = (seq: number): JournalRecord =>
     spec: "t3-engine",
     walletRole: "primary",
     action: "swap",
-    denoms: [{ denom: "unls", micro: "5" }]
+    denoms: [{ denom: "unls", micro: "5" }],
+    rpcUrl: ""
   });
 
 describe("assembleLeftoverReport", () => {
   it("emits open leases, pending unbondings, unfinished swaps and spend on a terminal path", () => {
     const journal: JournalRecord[] = [
       swapIntent(1),
-      buildOutcome({ seq: 1, ts: "t", status: "committed" }),
+      buildOutcome({ seq: 1, ts: "t", status: "committed", rpcUrl: "" }),
       swapIntent(2)
     ];
     const report = assembleLeftoverReport({
@@ -44,7 +45,10 @@ describe("assembleLeftoverReport", () => {
   });
 
   it("reports no unfinished swaps when every swap intent settled", () => {
-    const journal: JournalRecord[] = [swapIntent(1), buildOutcome({ seq: 1, ts: "t", status: "committed" })];
+    const journal: JournalRecord[] = [
+      swapIntent(1),
+      buildOutcome({ seq: 1, ts: "t", status: "committed", rpcUrl: "" })
+    ];
     const report = assembleLeftoverReport({
       generatedAt: "t",
       terminal: "success",

@@ -9,7 +9,8 @@ function intent(seq: number) {
     spec: "flow",
     walletRole: "primary",
     action: "native-send",
-    denoms: []
+    denoms: [],
+    rpcUrl: ""
   });
 }
 
@@ -22,7 +23,7 @@ describe("highestIntentSeq", () => {
     const records = [
       intent(1),
       intent(4),
-      buildOutcome({ seq: 9, ts: "2026-07-17T12:00:01.000Z", status: "committed" })
+      buildOutcome({ seq: 9, ts: "2026-07-17T12:00:01.000Z", status: "committed", rpcUrl: "" })
     ];
     expect(highestIntentSeq(records)).toBe(4);
   });

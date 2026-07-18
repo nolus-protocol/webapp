@@ -210,7 +210,8 @@ test("a dust native send from the primary commits through the engine and is jour
       walletRole: "primary",
       action: "native-send",
       denoms: [{ denom: NATIVE_DENOM, micro: required.toString() }],
-      memo: "nolus-e2e-t3"
+      memo: "nolus-e2e-t3",
+      rpcUrl: chain.rpcUrl
     })
   );
 
@@ -238,7 +239,8 @@ test("a dust native send from the primary commits through the engine and is jour
         ts: new Date().toISOString(),
         status: "committed",
         txHash: outcome.value.txHash,
-        height: outcome.value.height
+        height: outcome.value.height,
+        rpcUrl: chain.rpcUrl
       })
     );
     testInfo.annotations.push({
