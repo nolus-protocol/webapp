@@ -42,7 +42,7 @@ async function openMarketClose(page: Page, leaseAddress: string): Promise<void> 
 /**
  * Drive the app's market-close flow for a single orphaned lease, signing through the scripted
  * Keplr stub already installed on `page`. Returns an outcome record for the leftover report; a
- * failure to reach the close control is surfaced as `attempted: false` so the caller can leave
+ * failure to reach the close or confirm control is surfaced as `attempted: false` so the caller can leave
  * the lease report-only rather than treating a UI miss as a repair.
  */
 export async function repairOrphanLease(
@@ -57,9 +57,13 @@ export async function repairOrphanLease(
   } catch {
     return { address: candidate.address, attempted: false, note: "market-close control not reachable" };
   }
-  await page
-    .getByRole("button", { name: /confirm|submit|send/i })
-    .first()
-    .click({ timeout: DIALOG_TIMEOUT });
+  try {
+    await page
+      .getByRole("button", { name: /confirm|submit|send/i })
+      .first()
+      .click({ timeout: DIALOG_TIMEOUT });
+  } catch {
+    return { address: candidate.address, attempted: false, note: "confirm control not reachable" };
+  }
   return { address: candidate.address, attempted: true, note: "market-close submitted via app UI" };
 }
