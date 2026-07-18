@@ -1,0 +1,121 @@
+name: Scrub e2e artifacts
+description: >-
+  Redact the internal resolver target from e2e artifacts before upload. Text files are
+  rewritten in place; binary files that carry the target are deleted; zips (Playwright
+  traces) are extracted, redacted, rebuilt, and re-verified — deleted outright only when
+  a clean rebuild cannot be proven. Fail closed: a public repo must never ship the host.
+inputs:
+  resolver-target:
+    description: The internal host to redact; an empty value skips the scrub.
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Scrub artifacts
+      shell: bash
+      working-directory: e2e
+      env:
+        RESOLVER_TARGET: ${{ inputs.resolver-target }}
+      run: |
+        set -euo pipefail
+        target="${RESOLVER_TARGET:-}"
+        if [ -z "$target" ]; then
+          echo "artifact scrub: no resolver target configured; nothing to redact"
+          exit 0
+        fi
+        total=0
+        for dir in results playwright-report test-results; do
+          [ -d "$dir" ] || continue
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            n=$(grep -oaF -- "$target" "$f" | wc -l | tr -d ' ')
+            total=$((total + n))
+            perl -pi -e 'BEGIN{$t=$ENV{"RESOLVER_TARGET"}} s/\Q$t\E/<redacted-host>/g' "$f"
+          done < <(grep -rIlF -- "$target" "$dir" 2>/dev/null || true)
+        done
+        # Second pass WITHOUT -I: any non-zip file still matching after text redaction is
+        # binary (a screenshot or video the sanitizer can't rewrite) — delete it outright
+        # so the resolver target never ships inside an opaque artifact. Zips get their own
+        # redact-and-rezip pass below instead.
+        deleted=0
+        for dir in results playwright-report test-results; do
+          [ -d "$dir" ] || continue
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              *.zip) continue ;;
+            esac
+            echo "artifact scrub: deleting binary artifact containing the resolver target: $f"
+            rm -f "$f"
+            deleted=$((deleted + 1))
+          done < <(grep -rlF -- "$target" "$dir" 2>/dev/null || true)
+        done
+        # Compressed pass: a trace.zip stores the resolver target COMPRESSED, so the
+        # raw-byte grep above cannot see it. The self-hosted runner ships python3 but not
+        # zip/unzip (the old unzip-based pass therefore always took its fail-closed branch
+        # and deleted EVERY zip — which is why failed-spec traces never survived). Inspect
+        # each zip with stdlib zipfile; on a match, rewrite the member bytes and rebuild,
+        # re-verifying the result. Any failure or a still-matching rebuild deletes the zip.
+        # If python3 is unavailable, fail closed — delete every zip in the artifact dirs.
+        if command -v python3 >/dev/null 2>&1; then
+          python3 - <<'PYSCRUB'
+        import os
+        import sys
+        import zipfile
+
+        target = os.environ.get("RESOLVER_TARGET", "").encode()
+        placeholder = b"<redacted-host>"
+        if not target:
+            sys.exit(0)
+        rewritten = 0
+        zipped = 0
+        for base in ("results", "playwright-report", "test-results"):
+            for root, _, files in os.walk(base):
+                for name in files:
+                    if not name.endswith(".zip"):
+                        continue
+                    path = os.path.join(root, name)
+                    try:
+                        with zipfile.ZipFile(path) as zf:
+                            members = [(i, zf.read(i)) for i in zf.infolist() if not i.is_dir()]
+                    except Exception:
+                        print(f"artifact scrub: deleting unreadable zip: {path}")
+                        os.remove(path)
+                        zipped += 1
+                        continue
+                    if not any(target in data for _, data in members):
+                        continue
+                    rebuilt = path + ".rebuilt"
+                    try:
+                        with zipfile.ZipFile(rebuilt, "w", zipfile.ZIP_DEFLATED) as out:
+                            for info, data in members:
+                                out.writestr(info.filename, data.replace(target, placeholder))
+                        with zipfile.ZipFile(rebuilt) as check:
+                            if any(target in check.read(n) for n in check.namelist()):
+                                raise RuntimeError("rebuild still carries the target")
+                        os.replace(rebuilt, path)
+                        rewritten += 1
+                        print(f"artifact scrub: redacted the resolver target inside zip: {path}")
+                    except Exception:
+                        for stale in (rebuilt, path):
+                            try:
+                                os.remove(stale)
+                            except FileNotFoundError:
+                                pass
+                        zipped += 1
+                        print(f"artifact scrub: deleting zip containing the resolver target: {path}")
+        print(f"artifact scrub: rewrote {rewritten} zip(s); deleted {zipped} zip(s)")
+        PYSCRUB
+        else
+          echo "artifact scrub: python3 unavailable — failing closed, deleting every zip in the artifact dirs"
+          for dir in results playwright-report test-results; do
+            [ -d "$dir" ] || continue
+            while IFS= read -r z; do
+              [ -n "$z" ] || continue
+              echo "artifact scrub: deleting zip (no python3 to inspect): $z"
+              rm -f "$z"
+            done < <(find "$dir" -type f -name '*.zip' 2>/dev/null || true)
+          done
+        fi
+        echo "artifact scrub: redacted ${total} text occurrence(s) and deleted ${deleted} binary file(s) across results/ playwright-report/ test-results/"

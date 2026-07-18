@@ -160,6 +160,12 @@ jobs:
             exit 1
           fi
 
+      - name: Scrub the resolver target from e2e artifacts
+        if: always() && steps.e2e.outcome == 'failure'
+        uses: ./.github/actions/scrub-e2e-artifacts
+        with:
+          resolver-target: ${{ vars.DEPLOY_HOST }}
+
       - name: Upload e2e artifacts
         if: always() && steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
