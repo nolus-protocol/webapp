@@ -735,19 +735,22 @@ redelegate mutex), and claim on accrued rewards being **above a dust threshold**
 - **Currency-variant selection is picked AND verified.** SupplyForm/WithdrawForm/SwapForm list EVERY
   protocol variant as a currency option and default to one that may hold zero balance, so an amount
   would validate against an empty variant. `selectCurrencyVariant` drives the AdvancedFormControl
-  picker — per web-components source a `role=combobox` trigger (carrying the field id) that opens a
-  teleported searchable `role=listbox` of AssetItem rows filtered on `option.value`/`ibcData`. It
-  opens the combobox, filters the search to the funded variant, clicks the first filtered row, then
-  **verifies the pick landed**. Verification is side-aware: a `source` picker (earn supply/withdraw,
-  swap From) checks both the trigger's asset family AND that the balance beside it polls positive —
-  that balance wait also rides out the balances-load timing gap (the app recomputes amount validation
-  only on input events, so typing before the balance loads sticks a stale error); a `destination`
-  picker (swap To) renders NO Balance span, so it verifies the trigger ticker ONLY (a balance poll
-  there would hang forever). Every locator is scoped to the open dialog — the field id ("receive-send")
-  is shared across forms, not page-unique — and every action is time-bounded (≈5s), so a mis-target
-  surfaces as the loud selection error in seconds instead of eating the test budget. The pick+verify
-  retries once, then FAILS LOUDLY: a selection that didn't take must never let a spec type into the
-  wrong (or zero) asset.
+  picker — selectors verified LIVE against staging, not just read from source. The trigger is
+  `<button role="combobox" id="dropdown-btn-<fieldId>">` (the Dropdown atom prefixes the field id
+  with `dropdown-btn-`; a bare `#<fieldId>` matches nothing — that was the non-selection bug). Both
+  `/earn/supply` and `/assets/swap` render a `#dialog-scroll`, so the trigger + its balance scope to
+  that dialog (page fallback if none); the search box (`#input-search-input`) and `role=listbox` are
+  teleported to `<body>` and stay page-level. The search filters, but the long swap list is not
+  narrowed to a single asset by a ticker term, so the clicked row is the filtered `li` whose text
+  carries the expected asset family (`expectContains`), never a blind first row. It then **verifies
+  the pick landed**, side-aware: a `source` picker (earn supply/withdraw, swap From) checks both the
+  trigger's asset family AND that the balance beside it polls positive — that balance wait also rides
+  out the balances-load timing gap (the app recomputes amount validation only on input events, so
+  typing before the balance loads sticks a stale error); a `destination` picker (swap To) renders NO
+  Balance span, so it verifies the trigger ticker ONLY (a balance poll there would hang forever).
+  Every action is time-bounded (≈5s), so a mis-target surfaces as the loud selection error in seconds
+  instead of eating the test budget. The pick+verify retries once, then FAILS LOUDLY: a selection
+  that didn't take must never let a spec type into the wrong (or zero) asset.
 - **Lease-config lazy-cache pre-warm.** The backend `get_lease_config` handler warms its per-protocol
   cache lazily and returns `503 Cache not yet populated` until the first request; after a deploy burst
   the flow suite's own reads are the first, and both of `leaseProtocolConfigs`' paced retries land in
