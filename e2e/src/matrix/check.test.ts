@@ -33,6 +33,46 @@ describe("hasAssertionForLabel", () => {
     const twoTests = `test("first", async () => { await page.goto("/x"); });\ntest("second", async () => { expect(y).toBe(2); });`;
     expect(hasAssertionForLabel(twoTests, "first")).toBe(false);
   });
+
+  it("does not attribute a label between two tests to the preceding asserting block", () => {
+    const between = [
+      `test("first", async () => { expect(a).toBe(1); });`,
+      "// helper for stray-label",
+      `test("second", async () => { await page.goto("/x"); });`
+    ].join("\n");
+    expect(hasAssertionForLabel(between, "stray-label")).toBe(false);
+  });
+
+  it("does not attribute a label in a trailing comment after the last test", () => {
+    const trailing = `test("only", async () => { expect(a).toBe(1); });\n// tail-label lives here`;
+    expect(hasAssertionForLabel(trailing, "tail-label")).toBe(false);
+  });
+
+  it("ignores a 'test(' occurrence inside a string when delimiting the block", () => {
+    const embedded = `test("s-cell", async () => { const note = "calls test( internally"; await expect(x).toBe(1); });`;
+    expect(hasAssertionForLabel(embedded, "s-cell")).toBe(true);
+  });
+
+  it("does not anchor a block at a regex '.test(' method call", () => {
+    const spec = [
+      "const ok = /^x$/.test(value);",
+      "// mid-label sits here, outside any test block",
+      'test("real", async () => { expect(a).toBe(1); });'
+    ].join("\n");
+    expect(hasAssertionForLabel(spec, "mid-label")).toBe(false);
+  });
+
+  it("keeps the boundary despite unbalanced parens in strings, templates, and regexes", () => {
+    const tricky = [
+      'test("tricky (case", async () => {',
+      '  const s = "oops )(";',
+      "  const t = `v ${JSON.stringify({ a: 1 })} )`;",
+      "  const r = /confirm|submit|\\)/i;",
+      "  await expect(x).toBe(1);",
+      "});"
+    ].join("\n");
+    expect(hasAssertionForLabel(tricky, "tricky (case")).toBe(true);
+  });
 });
 
 describe("checkMatrix", () => {

@@ -283,6 +283,9 @@ test("a single alternating-side lease runs its full lifecycle through the engine
     expect(readString(opened, "ticker")).toBe(stableTicker);
   }
 
+  // Matrix labels flow-lease-row / flow-lease-detail / flow-lease-crossfield: asserted in
+  // THIS test block via the shared oracle helper below (the guard requires label and
+  // assertion inside the same test block; the helper alone sits outside every block).
   await assertOpenedLeaseOracle(page, testInfo, opened, side);
 
   // TP/SL create + edit (config-only; the app does not attach funds, so it bypasses the engine).

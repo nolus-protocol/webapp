@@ -43,23 +43,179 @@ const GAP_CATEGORIES: GapCategory[] = [
 // has none of these, so it still cannot satisfy a cell.
 const ASSERTION = /\bexpect[A-Za-z]*\(|toHaveScreenshot\(/;
 
+// A `/` in code position starts a regex literal (not division) when the last significant
+// character is an operator/opener/separator or there is none. Keyword-preceded regexes
+// (`return /x/`) end in a letter and are misread as division — acceptable: misreading a
+// regex as division only risks treating `/.../` content as code, and test-relevant slash
+// content (paren/brace imbalance inside a regex) is rarer still than keyword-led regexes.
+// prettier-ignore
+const REGEX_PRECEDERS = new Set([
+  "(", ",", "=", ":", "[", "!", "&", "|", "?", "{", "}", ";", "+", "-", "*", "%", "~", "^", "<", ">"
+]);
+
+type CodeMode = { kind: "code"; braces: number; fromInterp: boolean };
+type LexMode =
+  | CodeMode
+  | { kind: "single" }
+  | { kind: "double" }
+  | { kind: "template" }
+  | { kind: "line" }
+  | { kind: "block" }
+  | { kind: "regex"; inClass: boolean };
+
+interface LexState {
+  modes: LexMode[];
+  depth: number;
+  last: string;
+  skip: number;
+}
+
+/** Push a string/comment/regex-literal mode when `ch` opens one in code position. */
+function lexOpenLiteral(state: LexState, ch: string, next: string | undefined): void {
+  if (ch === "'") {
+    state.modes.push({ kind: "single" });
+  } else if (ch === '"') {
+    state.modes.push({ kind: "double" });
+  } else if (ch === "`") {
+    state.modes.push({ kind: "template" });
+  } else if (ch === "/" && (next === "/" || next === "*")) {
+    state.modes.push({ kind: next === "/" ? "line" : "block" });
+    state.skip = 1;
+  } else if (ch === "/" && (state.last === "" || REGEX_PRECEDERS.has(state.last))) {
+    state.modes.push({ kind: "regex", inClass: false });
+  }
+}
+
+/** Advance one code-position character; true when the tracked call just closed. */
+function lexCode(state: LexState, mode: CodeMode, ch: string, next: string | undefined): boolean {
+  if (ch === "(") {
+    state.depth += 1;
+  } else if (ch === ")") {
+    state.depth -= 1;
+    if (state.depth === 0) {
+      return true;
+    }
+  } else if (ch === "{") {
+    mode.braces += 1;
+  } else if (ch === "}" && mode.braces > 0) {
+    mode.braces -= 1;
+  } else if (ch === "}" && mode.fromInterp) {
+    state.modes.pop();
+  } else {
+    lexOpenLiteral(state, ch, next);
+  }
+  if (!/\s/.test(ch)) {
+    state.last = ch;
+  }
+  return false;
+}
+
+const QUOTE_CLOSERS = { single: "'", double: '"', template: "`" } as const;
+
+/** Advance one character inside a quoted string, template literal, comment, or regex. */
+function lexLiteral(state: LexState, mode: Exclude<LexMode, CodeMode>, ch: string, next: string | undefined): void {
+  if (mode.kind === "line" || mode.kind === "block") {
+    lexComment(state, mode.kind, ch, next);
+    return;
+  }
+  if (ch === "\\") {
+    state.skip = 1;
+    return;
+  }
+  if (mode.kind === "regex") {
+    lexRegex(state, mode, ch);
+  } else if (ch === QUOTE_CLOSERS[mode.kind]) {
+    state.modes.pop();
+  } else if (mode.kind === "template" && ch === "$" && next === "{") {
+    state.modes.push({ kind: "code", braces: 0, fromInterp: true });
+    state.skip = 1;
+  }
+}
+
+function lexComment(state: LexState, kind: "line" | "block", ch: string, next: string | undefined): void {
+  if (kind === "line" && ch === "\n") {
+    state.modes.pop();
+  } else if (kind === "block" && ch === "*" && next === "/") {
+    state.modes.pop();
+    state.skip = 1;
+  }
+}
+
+function lexRegex(state: LexState, mode: { inClass: boolean }, ch: string): void {
+  if (ch === "[") {
+    mode.inClass = true;
+  } else if (ch === "]") {
+    mode.inClass = false;
+  } else if (ch === "/" && !mode.inClass) {
+    state.modes.pop();
+  }
+}
+
+/**
+ * The index just past the closing parenthesis of the call starting at `callStart` (the
+ * index of a `"test("` occurrence), lexing over strings, template literals (with nested
+ * interpolations), comments, and regex literals so a parenthesis inside any of those never
+ * shifts the boundary. Returns `source.length` when the call never closes (malformed
+ * source — the generous fallback keeps a truncated file from hiding its own labels).
+ */
+export function testCallEnd(source: string, callStart: number): number {
+  const open = source.indexOf("(", callStart);
+  if (open < 0) {
+    return source.length;
+  }
+  const state: LexState = { modes: [{ kind: "code", braces: 0, fromInterp: false }], depth: 0, last: "", skip: 0 };
+  for (let i = open; i < source.length; i++) {
+    if (state.skip > 0) {
+      state.skip -= 1;
+      continue;
+    }
+    const mode = state.modes[state.modes.length - 1];
+    if (mode === undefined) {
+      break;
+    }
+    const ch = source[i] as string;
+    const next = source[i + 1];
+    if (mode.kind === "code") {
+      if (lexCode(state, mode, ch, next)) {
+        return i + 1;
+      }
+    } else {
+      lexLiteral(state, mode, ch, next);
+    }
+  }
+  return source.length;
+}
+
 /**
  * Does a test block enclosing an occurrence of `label` contain a real assertion? Scans
- * every occurrence (labels are also listed in docblocks, which are not tests), so a match
- * only counts when the label sits in a `test(...)` block that actually asserts. Returns null
- * when the label appears nowhere, false when it appears but no enclosing block asserts.
+ * every occurrence (labels are also listed in docblocks, which are not tests) and requires
+ * the occurrence to sit INSIDE a `test(...)` call's real span (lexed via `testCallEnd`, so
+ * a label in a comment or helper BETWEEN two tests is attributed to neither). Returns null
+ * when the label appears nowhere, false when no occurrence sits in an asserting block.
  */
+/**
+ * The nearest `test(` CALL opener at or before `from` — skipping occurrences that are
+ * member or suffixed calls (`/x/.test(v)`, `subtest(`), which anchored phantom "blocks"
+ * under the old text-position scan. Returns -1 when none precedes `from`.
+ */
+function precedingTestCall(source: string, from: number): number {
+  let at = source.lastIndexOf("test(", from);
+  while (at > 0 && /[\w$.]/.test(source[at - 1] as string)) {
+    at = source.lastIndexOf("test(", at - 1);
+  }
+  return at;
+}
+
 export function hasAssertionForLabel(source: string, label: string): boolean | null {
   let idx = source.indexOf(label);
   if (idx < 0) {
     return null;
   }
   while (idx >= 0) {
-    const before = source.lastIndexOf("test(", idx);
+    const before = precedingTestCall(source, idx);
     if (before >= 0) {
-      const after = source.indexOf("test(", idx + label.length);
-      const end = after < 0 ? source.length : after;
-      if (ASSERTION.test(source.slice(before, end))) {
+      const end = testCallEnd(source, before);
+      if (end > idx && ASSERTION.test(source.slice(before, end))) {
         return true;
       }
     }
