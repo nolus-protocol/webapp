@@ -11,7 +11,7 @@ import { USDC_DENOM } from "./denoms.js";
 import { toOsmosisAddress } from "./address.js";
 
 // IBC deposit + withdraw Nolus <-> Osmosis (#283 flow 5). ENTIRELY skip-gated on a funded
-// Osmosis-side probe: the whole flow is inert until that funding is confirmed, at which point
+// Osmosis-side probe against the Osmosis LCD (E2E_OSMOSIS_LCD); once funding is confirmed,
 // E2E_EXPECT_FUNDED escalates the unmet precondition into a hard failure. The structure is
 // complete so a funded run exercises deposit and withdraw end to end. No matrix cell.
 
@@ -21,16 +21,15 @@ const TERMINAL_MS = 150000;
 let run: RunContext;
 
 /**
- * Probe whether the Osmosis counterparty side holds funds to relay back. There is no committed
- * Osmosis balance endpoint in this suite, so the probe reports funded only when the operator
- * asserts it via E2E_EXPECT_FUNDED — otherwise the flow skips, never broadcasting an IBC transfer
- * that would strand value with no return leg.
+ * Probe whether the Osmosis counterparty side holds funds to relay back, via the Osmosis LCD's
+ * bank balances (the app backend only answers for nolus1 addresses). Any nonzero balance counts
+ * as funded; an unreachable LCD reads as unfunded so the flow skips rather than broadcasting an
+ * IBC transfer that would strand value with no return leg.
  */
-async function osmosisFunded(ctx: RunContext["ctx"], address: string): Promise<boolean> {
-  const payload = await readJson(
-    ctx,
-    `${ctx.origin}/api/balances?address=${encodeURIComponent(address)}&network=osmosis`
-  ).catch(() => null);
+async function osmosisFunded(ctx: RunContext["ctx"], lcd: string, address: string): Promise<boolean> {
+  const payload = await readJson(ctx, `${lcd}/cosmos/bank/v1beta1/balances/${encodeURIComponent(address)}`).catch(
+    () => null
+  );
   const balances = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>).balances : [];
   return Array.isArray(balances) && balances.some((entry) => (readString(entry, "amount") ?? "0") !== "0");
 }
@@ -50,7 +49,7 @@ test("IBC deposit then withdraw Nolus <-> Osmosis, gated on a funded Osmosis sid
   // nolus HRP is rejected by the Osmosis chain) and decide the skip BEFORE opening the page or the
   // console-budget window, so an unfunded run never navigates and never trips console errors.
   const osmosisAddress = toOsmosisAddress(wallet.address);
-  const funded = await osmosisFunded(run.ctx, osmosisAddress);
+  const funded = await osmosisFunded(run.ctx, run.matrix.osmosisLcd, osmosisAddress);
   requireOrSkip(
     testInfo,
     run.matrix.expectFunded,

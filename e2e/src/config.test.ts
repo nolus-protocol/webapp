@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_OSMOSIS_LCD,
   DEFAULT_RATE_MAX_PERCENT,
   DEFAULT_USD_TOLERANCE,
   DEFAULT_WS_PUSH_TIMEOUT_MS,
@@ -288,6 +289,22 @@ describe("parseMatrixConfig", () => {
     }
     const off = parseMatrixConfig({ E2E_EXPECT_FUNDED: "0" });
     expect(off.ok && off.config.expectFunded).toBe(false);
+  });
+
+  it("defaults the osmosis lcd and strips a trailing slash from an override", () => {
+    const defaulted = parseMatrixConfig({});
+    expect(defaulted.ok && defaulted.config.osmosisLcd).toBe(DEFAULT_OSMOSIS_LCD);
+    const overridden = parseMatrixConfig({ E2E_OSMOSIS_LCD: "https://lcd.example.test/" });
+    expect(overridden.ok && overridden.config.osmosisLcd).toBe("https://lcd.example.test");
+  });
+
+  it("rejects a non-http osmosis lcd override", () => {
+    const result = parseMatrixConfig({ E2E_OSMOSIS_LCD: "ftp://lcd" });
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      throw new Error("expected failure");
+    }
+    expect(result.errors[0]).toContain("E2E_OSMOSIS_LCD");
   });
 
   it("rejects a non-http rpc override and a non-positive timeout", () => {
