@@ -332,9 +332,24 @@ export interface MatrixConfig {
   chainRpc: string | undefined;
   receiveTimeoutMs: number;
   expectFunded: boolean;
+  osmosisLcd: string;
 }
 
 export type MatrixConfigResult = { ok: true; config: MatrixConfig } | { ok: false; errors: string[] };
+
+export const DEFAULT_OSMOSIS_LCD = "https://lcd.osmosis.zone";
+
+function parseOsmosisLcdField(env: Record<string, string | undefined>, errors: string[]): string {
+  const raw = env.E2E_OSMOSIS_LCD?.trim();
+  if (!raw) {
+    return DEFAULT_OSMOSIS_LCD;
+  }
+  if (!parseUrl(raw, HTTP_SCHEMES)) {
+    errors.push(`E2E_OSMOSIS_LCD must be a valid http(s) URL (got "${raw}")`);
+    return DEFAULT_OSMOSIS_LCD;
+  }
+  return raw.replace(/\/+$/, "");
+}
 
 function parseChainRpcField(env: Record<string, string | undefined>, errors: string[]): string | undefined {
   const raw = env.E2E_CHAIN_RPC?.trim();
@@ -379,12 +394,13 @@ export function parseMatrixConfig(env: Record<string, string | undefined>): Matr
   const chainRpc = parseChainRpcField(env, errors);
   const receiveTimeoutMs = parseReceiveTimeoutField(env, errors);
   const expectFunded = TRUTHY.has((env.E2E_EXPECT_FUNDED ?? "").trim().toLowerCase());
+  const osmosisLcd = parseOsmosisLcdField(env, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
   }
 
-  return { ok: true, config: { chainRpc, receiveTimeoutMs, expectFunded } };
+  return { ok: true, config: { chainRpc, receiveTimeoutMs, expectFunded, osmosisLcd } };
 }
 
 export const USDC_DECIMALS = 6;
