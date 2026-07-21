@@ -52,7 +52,6 @@
     <hr class="border-border-color" />
   </div>
   <div class="flex flex-1 flex-col justify-end">
-    <hr class="border-border-color" />
     <div class="flex flex-col gap-2 p-6">
       <Button
         size="large"
