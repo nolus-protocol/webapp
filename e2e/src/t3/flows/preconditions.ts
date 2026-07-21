@@ -103,6 +103,15 @@ interface DownpaymentRange {
   min: Decimal;
 }
 
+/** The wire serves `min` as a JSON number (backend `DownpaymentRange.min: f64`); accept a
+ * string encoding too so the parser survives a backend move to decimal strings. */
+function readDecimalString(root: unknown, key: string): string | undefined {
+  if (typeof root !== "object" || root === null) return undefined;
+  const value = (root as Record<string, unknown>)[key];
+  if (typeof value === "string") return value;
+  return typeof value === "number" && Number.isFinite(value) ? String(value) : undefined;
+}
+
 function extractRanges(payload: unknown): DownpaymentRange[] {
   const root =
     typeof payload === "object" && payload !== null
@@ -112,14 +121,14 @@ function extractRanges(payload: unknown): DownpaymentRange[] {
   if (Array.isArray(root)) {
     for (const entry of root) {
       const currency = readString(entry, "ticker") ?? readString(entry, "currency");
-      const min = readString(entry, "min");
+      const min = readDecimalString(entry, "min");
       if (currency !== undefined && min !== undefined) {
         ranges.push({ currency, min: Decimal.fromString(min) });
       }
     }
   } else if (typeof root === "object" && root !== null) {
     for (const [currency, value] of Object.entries(root as Record<string, unknown>)) {
-      const min = readString(value, "min");
+      const min = readDecimalString(value, "min");
       if (min !== undefined) {
         ranges.push({ currency, min: Decimal.fromString(min) });
       }

@@ -86,19 +86,24 @@ describe("isNoRouteFailure", () => {
 });
 
 describe("resolveDownpaymentFloorUsd", () => {
-  it("returns the floor for a named currency from an object map", () => {
-    const payload = { downpayment_ranges: { USDC: { min: "40.0" }, ATOM: { min: "45.0" } } };
+  it("returns the floor for a named currency from the wire's numeric object map", () => {
+    const payload = { downpayment_ranges: { USDC: { min: 40.0, max: 800.0 }, ATOM: { min: 45.0, max: 4000.0 } } };
     expect(resolveDownpaymentFloorUsd(payload, "USDC").toString(2)).toBe("40.00");
   });
 
   it("returns the highest floor across currencies when none is named", () => {
     const payload = {
       downpayment_ranges: [
-        { ticker: "USDC", min: "40.0" },
-        { ticker: "ATOM", min: "45.0" }
+        { ticker: "USDC", min: 40.0 },
+        { ticker: "ATOM", min: 45.0 }
       ]
     };
     expect(resolveDownpaymentFloorUsd(payload).toString(2)).toBe("45.00");
+  });
+
+  it("still accepts string-encoded minimums", () => {
+    const payload = { downpayment_ranges: { USDC: { min: "40.0" } } };
+    expect(resolveDownpaymentFloorUsd(payload, "USDC").toString(2)).toBe("40.00");
   });
 
   it("throws when no ranges parse so a drifted shape is a red", () => {
