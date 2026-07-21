@@ -120,7 +120,7 @@ function baseReceivePayload() {
     type: HISTORY_ACTIONS.RECEIVE,
     currency: "ibc/USDC",
     fromAddress: "nolus1fromaddressverylong",
-    skipRoute: { ...baseSkipRoute(), amountOut: "1000000" },
+    skipRoute: { ...baseSkipRoute(), amount_out: "1000000" },
     chains: {}
   };
 }
@@ -131,7 +131,7 @@ function baseSendPayload() {
     type: HISTORY_ACTIONS.SEND,
     currency: "ibc/USDC",
     receiverAddress: "nolus1toaddressverylong",
-    skipRoute: { ...baseSkipRoute(), amountIn: "1000000" },
+    skipRoute: { ...baseSkipRoute(), amount_in: "1000000" },
     chains: {}
   };
 }
@@ -263,11 +263,11 @@ describe("HistoryStore", () => {
     );
   });
 
-  it("addPendingTransfer_receive_throws_without_amountOut", () => {
+  it("addPendingTransfer_receive_throws_without_amount_out", () => {
     const store = useHistoryStore();
     expect(() =>
       store.addPendingTransfer({ ...baseReceivePayload(), skipRoute: baseSkipRoute() }, i18nInstance)
-    ).toThrow("amountOut");
+    ).toThrow("amount_out");
   });
 
   it("addPendingTransfer_receive_throws_without_fromAddress", () => {
@@ -277,10 +277,10 @@ describe("HistoryStore", () => {
     );
   });
 
-  it("addPendingTransfer_send_throws_without_amountIn", () => {
+  it("addPendingTransfer_send_throws_without_amount_in", () => {
     const store = useHistoryStore();
     expect(() => store.addPendingTransfer({ ...baseSendPayload(), skipRoute: baseSkipRoute() }, i18nInstance)).toThrow(
-      "amountIn"
+      "amount_in"
     );
   });
 
@@ -314,7 +314,7 @@ describe("HistoryStore", () => {
       {
         ...baseReceivePayload(),
         skipRoute: {
-          amountOut: "1000000",
+          amount_out: "1000000",
           operations: [
             { amount_in: "100", amount_out: "99", transfer: { from_chain_id: "osmosis", to_chain_id: "axelar" } },
             { amount_in: "99", amount_out: "98", cctp_transfer: { from_chain_id: "axelar", to_chain_id: "noble" } }
@@ -352,7 +352,7 @@ describe("HistoryStore", () => {
         {
           ...baseReceivePayload(),
           skipRoute: {
-            amountOut: "1000000",
+            amount_out: "1000000",
             operations: [
               { amount_in: "100", amount_out: "99", transfer: { from_chain_id: "missing", to_chain_id: "gone" } }
             ]
@@ -374,7 +374,7 @@ describe("HistoryStore", () => {
     try {
       const store = useHistoryStore();
       store.addPendingTransfer(
-        { ...baseReceivePayload(), skipRoute: { amountOut: "1000000", operations: ["bogus"] } },
+        { ...baseReceivePayload(), skipRoute: { amount_out: "1000000", operations: ["bogus"] } },
         i18nInstance
       );
       const entry = store.pendingTransfers["1"];
@@ -391,7 +391,7 @@ describe("HistoryStore", () => {
     try {
       const store = useHistoryStore();
       store.addPendingTransfer(
-        { ...baseReceivePayload(), skipRoute: { amountOut: "1000000", operations: [{ swap: {} }] } },
+        { ...baseReceivePayload(), skipRoute: { amount_out: "1000000", operations: [{ swap: {} }] } },
         i18nInstance
       );
       const entry = store.pendingTransfers["1"];
@@ -411,7 +411,7 @@ describe("HistoryStore", () => {
         {
           ...baseReceivePayload(),
           skipRoute: {
-            amountOut: "1000000",
+            amount_out: "1000000",
             operations: [{ amount_out: "99", transfer: { from_chain_id: "osmosis", to_chain_id: "noble" } }]
           },
           chains: {
@@ -438,7 +438,7 @@ describe("HistoryStore", () => {
         {
           ...baseReceivePayload(),
           skipRoute: {
-            amountOut: "1000000",
+            amount_out: "1000000",
             operations: [{ amount_in: "100", transfer: { from_chain_id: "osmosis", to_chain_id: "noble" } }]
           },
           chains: {

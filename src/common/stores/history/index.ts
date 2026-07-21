@@ -156,9 +156,9 @@ export const useHistoryStore = defineStore("history", () => {
 
     switch (historyData.type) {
       case HISTORY_ACTIONS.RECEIVE: {
-        const amountOut = skipRoute.amountOut;
+        const amountOut = skipRoute.amount_out;
         if (typeof amountOut !== "string") {
-          throw new Error("receive transfer is missing its amountOut");
+          throw new Error("receive transfer is missing its amount_out");
         }
         const fromAddress = historyData.fromAddress;
         if (typeof fromAddress !== "string") {
@@ -178,9 +178,9 @@ export const useHistoryStore = defineStore("history", () => {
         break;
       }
       case HISTORY_ACTIONS.SEND: {
-        const amountIn = skipRoute.amountIn;
+        const amountIn = skipRoute.amount_in;
         if (typeof amountIn !== "string") {
-          throw new Error("send transfer is missing its amountIn");
+          throw new Error("send transfer is missing its amount_in");
         }
         const receiverAddress = historyData.receiverAddress;
         if (typeof receiverAddress !== "string") {
