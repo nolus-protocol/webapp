@@ -1,7 +1,8 @@
-name: E2E regression (post-deploy + manual)
+name: E2E regression (manual)
 
 on:
-  # Ad-hoc: a manual full-suite run against any host.
+  # Manual-only while the suite is reworked (skip-escalation taxonomy #345, fail-open verdict
+  # #348): the automatic post-deploy trigger returns when those land.
   workflow_dispatch:
     inputs:
       base_domain:
@@ -13,12 +14,6 @@ on:
         required: false
         default: false
         type: boolean
-  # Automatic: regression-validate the staging host after a dev deploy completes. The job-level
-  # `if` below gates this path on the deploy having SUCCEEDED (a failed deploy has nothing to
-  # validate). workflow_run has no inputs, so that path resolves the base domain from the repo var.
-  workflow_run:
-    workflows: ["Deploy dev"]
-    types: [completed]
 
 # Serialize with the deploy workflow's live e2e phase on the one per-host rate-limit bucket: a
 # regression run and a second deploy's post-run must never hit the strict bucket at the same time.
@@ -34,8 +29,6 @@ permissions:
 jobs:
   regression:
     name: Regression full suite
-    # Manual dispatch always runs; the post-deploy path runs only when the deploy succeeded.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: [self-hosted, frontend-deploy]
     timeout-minutes: 75
 
