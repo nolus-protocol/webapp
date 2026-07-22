@@ -390,4 +390,39 @@ describe("PositionSummaryWidget — Size rounding", () => {
       wrapper.unmount();
     });
   });
+
+  // F7: smoke — a terminal open_failed lease (zeroed amount, empty ticker, as the
+  // backend builds it) must render without throwing and without hanging on the
+  // opening skeleton (usePositionSummary's status switch must handle it).
+  describe("v10 open_failed (issue #288)", () => {
+    function makeOpenFailedLease() {
+      return {
+        address: "nolus1leasefailed",
+        status: "open_failed",
+        protocol: "OSMOSIS-OSMOSIS-USDC_NOBLE",
+        reason: "timeout",
+        amount: { ticker: "", amount: "0" },
+        debt: {
+          ticker: "",
+          principal: "0",
+          amount: "0",
+          total: "0",
+          overdue_margin: "0",
+          overdue_interest: "0",
+          due_margin: "0",
+          due_interest: "0"
+        },
+        interest: { annual_rate_percent: 0 }
+      } as unknown as LeaseInfo;
+    }
+
+    it("mounts a terminal open_failed lease without throwing", () => {
+      let wrapper: ReturnType<typeof factory> | undefined;
+      expect(() => {
+        wrapper = factory(makeOpenFailedLease(), "long");
+      }).not.toThrow();
+      expect(wrapper?.exists()).toBe(true);
+      wrapper?.unmount();
+    });
+  });
 });

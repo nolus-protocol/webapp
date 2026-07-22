@@ -6,7 +6,8 @@ export enum TEMPLATES {
   "paid",
   "closing",
   "closed",
-  "liquidated"
+  "liquidated",
+  "open_failed"
 }
 
 /**
@@ -28,7 +29,24 @@ export function getLeaseStatus(lease: LeaseInfo | null | undefined): TEMPLATES {
       return TEMPLATES.closed;
     case "liquidated":
       return TEMPLATES.liquidated;
+    case "open_failed":
+      return TEMPLATES.open_failed;
     default:
       return TEMPLATES.opening;
   }
+}
+
+/**
+ * Whether a lease is mid-operation (opening/closing, or an in-progress action on
+ * an opened lease). Terminal states — including `open_failed` — are never in
+ * progress. Pure helper so the contract is unit-testable independent of the UI.
+ */
+export function isLeaseInProgress(lease: LeaseInfo): boolean {
+  if (lease.status === "opening" || lease.status === "closing") {
+    return true;
+  }
+  if (lease.in_progress) {
+    return true;
+  }
+  return false;
 }

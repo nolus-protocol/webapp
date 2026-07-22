@@ -694,6 +694,16 @@
       }
     },
     {
+      "route": "/positions",
+      "component": "secondary-figure",
+      "state": "error",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "open_failed (v10 #288) lease-detail terminal/refund panel needs a funded wallet whose open actually failed on-chain, which the walletless fixture suite cannot deterministically produce; the panel render, store vanish-probe, and status mapping are unit-covered (SingleLease/PositionSummaryWidget/leases-store/common suites); e2e is live/funded-gated"
+      }
+    },
+    {
       "route": "/activities",
       "component": "cross-field",
       "state": "populated",

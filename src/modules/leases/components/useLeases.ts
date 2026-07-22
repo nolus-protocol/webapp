@@ -3,6 +3,7 @@ import { type ButtonProps, Button, type TableColumnProps, type TableRowItemProps
 import { RouteNames } from "@/router";
 
 import { buildLeaseSizeCell } from "./leaseSize";
+import { isLeaseInProgress } from "./common";
 
 import { useI18n } from "vue-i18n";
 import { computed, defineComponent, h, markRaw, onMounted, onUnmounted, provide, ref, watch } from "vue";
@@ -377,16 +378,6 @@ export function useLeases() {
       Logger.error("[Leases] Error getting asset for lease:", lease.address, e);
       return null;
     }
-  }
-
-  function isLeaseInProgress(lease: LeaseInfo): boolean {
-    if (lease.status === "opening" || lease.status === "closing") {
-      return true;
-    }
-    if (lease.in_progress) {
-      return true;
-    }
-    return false;
   }
 
   watch(

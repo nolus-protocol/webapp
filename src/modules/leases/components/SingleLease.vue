@@ -13,55 +13,75 @@
     />
     <div class="flex flex-col gap-8">
       <Alert
-        v-if="status == TEMPLATES.opening"
-        :title="$t('message.opening-title')"
-        :type="AlertType.info"
+        v-if="status == TEMPLATES.open_failed"
+        :title="$t('message.open-failed-title')"
+        :type="AlertType.error"
       >
         <template v-slot:content>
           <p class="my-1 text-14 font-normal text-typography-secondary">
-            {{ $t("message.opening-description") }}
+            {{ $t("message.open-failed-refund-description") }}
           </p>
-          <ProgressDots
-            :steps="3"
-            :activeStep="openingSubState"
-          />
-        </template>
-      </Alert>
-
-      <Alert
-        v-if="inProgressBanner"
-        :title="$t(inProgressBanner.titleKey)"
-        :type="AlertType.info"
-      >
-        <template v-slot:content>
-          <p class="my-1 text-14 font-normal text-typography-secondary">
-            {{ $t(inProgressBanner.descriptionKey) }}
-            <a
-              v-if="inProgressBanner.onLinkClick"
-              @click="inProgressBanner.onLinkClick()"
-              class="cursor-pointer font-normal text-typography-link"
-            >
-              {{ $t(inProgressBanner.linkKey!) }}
-            </a>
+          <p
+            v-if="lease?.reason"
+            class="my-1 text-14 font-normal text-typography-secondary"
+          >
+            {{ lease?.reason }}
           </p>
         </template>
       </Alert>
 
-      <PriceWidget :lease="lease" />
-      <PositionSummaryWidget
-        :lease="lease"
-        :display-data="displayData"
-        :loading="isInProgress"
-      />
-      <div class="flex flex-col gap-8 md:flex-row">
-        <PositionHealthWidget
+      <template v-else>
+        <Alert
+          v-if="status == TEMPLATES.opening"
+          :title="$t('message.opening-title')"
+          :type="AlertType.info"
+        >
+          <template v-slot:content>
+            <p class="my-1 text-14 font-normal text-typography-secondary">
+              {{ $t("message.opening-description") }}
+            </p>
+            <ProgressDots
+              :steps="3"
+              :activeStep="openingSubState"
+            />
+          </template>
+        </Alert>
+
+        <Alert
+          v-if="inProgressBanner"
+          :title="$t(inProgressBanner.titleKey)"
+          :type="AlertType.info"
+        >
+          <template v-slot:content>
+            <p class="my-1 text-14 font-normal text-typography-secondary">
+              {{ $t(inProgressBanner.descriptionKey) }}
+              <a
+                v-if="inProgressBanner.onLinkClick"
+                @click="inProgressBanner.onLinkClick()"
+                class="cursor-pointer font-normal text-typography-link"
+              >
+                {{ $t(inProgressBanner.linkKey!) }}
+              </a>
+            </p>
+          </template>
+        </Alert>
+
+        <PriceWidget :lease="lease" />
+        <PositionSummaryWidget
           :lease="lease"
           :display-data="displayData"
-          :loading="status == TEMPLATES.opening || isInProgress"
+          :loading="isInProgress"
         />
-      </div>
-      <template v-if="lease?.etl_data">
-        <LeaseLogWidget :lease="lease" />
+        <div class="flex flex-col gap-8 md:flex-row">
+          <PositionHealthWidget
+            :lease="lease"
+            :display-data="displayData"
+            :loading="status == TEMPLATES.opening || isInProgress"
+          />
+        </div>
+        <template v-if="lease?.etl_data">
+          <LeaseLogWidget :lease="lease" />
+        </template>
       </template>
     </div>
     <router-view></router-view>
@@ -159,6 +179,8 @@ const status = computed(() => {
       return TEMPLATES.closed;
     case "liquidated":
       return TEMPLATES.liquidated;
+    case "open_failed":
+      return TEMPLATES.open_failed;
     default:
       return TEMPLATES.opening;
   }
@@ -174,7 +196,8 @@ const openingSubState = computed(() => {
 
   if ("opening" in inProgress) {
     const stage = inProgress.opening.stage;
-    if (stage === "open_ica_account") return 1;
+    // `open_ica_account` was renamed to `open_lease` upstream; both are step 1.
+    if (stage === "open_ica_account" || stage === "open_lease") return 1;
     if (stage === "transfer_out" || stage === "buy_asset") return 2;
   }
 
