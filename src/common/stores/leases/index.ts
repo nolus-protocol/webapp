@@ -39,7 +39,8 @@ const STATUS_ORDER: Record<string, number> = {
   paid_off: 2,
   closing: 3,
   closed: 4,
-  liquidated: 4
+  liquidated: 4,
+  open_failed: 4
 };
 
 /**
@@ -60,7 +61,8 @@ const WS_LEASE_MONITOR_KEYS = [
   "liquidation_price",
   "pnl",
   "close_policy",
-  "in_progress"
+  "in_progress",
+  "reason"
 ] as const satisfies readonly (keyof LeaseInfo)[];
 
 function applyWsMonitorField<K extends keyof LeaseInfo>(target: LeaseInfo, source: Partial<LeaseInfo>, key: K): void {
@@ -82,6 +84,22 @@ export const useLeasesStore = defineStore("leases", () => {
   const leaseDetails = ref<Map<string, LeaseInfo>>(new Map());
   const leaseHistories = ref<Map<string, LeaseHistoryEntry[]>>(new Map());
 
+  // Leases that failed to open (v10 `open_failed`). Kept separate from `leases`
+  // so a REST reconciliation that empties the enumeration cannot erase a recorded
+  // failure — the leaser removes an open_failed lease atomically, so it never
+  // reappears in `/api/leases` and the WS monitor never delivers its terminal tick.
+  const failedOpens = ref<Array<{ address: string; reason: string }>>([]);
+
+  function recordFailedOpen(address: string, reason: string): void {
+    if (!failedOpens.value.some((f) => f.address === address)) {
+      failedOpens.value.push({ address, reason });
+    }
+  }
+
+  function dismissFailedOpen(address: string): void {
+    failedOpens.value = failedOpens.value.filter((f) => f.address !== address);
+  }
+
   // ============================================================================
   // Computed Properties
   // ============================================================================
@@ -93,7 +111,12 @@ export const useLeasesStore = defineStore("leases", () => {
 
   const closedLeases = computed(() =>
     leases.value.filter(
-      (l) => l.status === "closed" || l.status === "closing" || l.status === "liquidated" || l.status === "paid_off"
+      (l) =>
+        l.status === "closed" ||
+        l.status === "closing" ||
+        l.status === "liquidated" ||
+        l.status === "paid_off" ||
+        l.status === "open_failed"
     )
   );
 
@@ -203,6 +226,10 @@ export const useLeasesStore = defineStore("leases", () => {
     error.value = null;
 
     try {
+      // Snapshot the opening leases before reconciliation so we can detect any that
+      // vanished from the enumeration this cycle (candidate open_failed transitions).
+      const openingBefore = leases.value.filter((l) => l.status === "opening").map((l) => l.address);
+
       const freshLeases = await BackendApi.getLeases(owner.value);
       const freshAddresses = new Set(freshLeases.map((l) => l.address));
 
@@ -239,6 +266,24 @@ export const useLeasesStore = defineStore("leases", () => {
       leases.value.forEach((lease) => {
         leaseDetails.value.set(lease.address, lease);
       });
+
+      // Vanish-detection: an opening lease that dropped out of the enumeration may
+      // have entered open_failed (removed atomically from the leaser, so it never
+      // returns in /api/leases and the WS monitor never delivers the tick). Probe
+      // each such address once via the direct lease query; only a confirmed
+      // open_failed is recorded. A probe error surfaces through fetchLeaseDetails'
+      // existing error path and records nothing — never fabricate a failure.
+      const toProbe = openingBefore.filter(
+        (address) => !freshAddresses.has(address) && !failedOpens.value.some((f) => f.address === address)
+      );
+      const probes = await Promise.allSettled(
+        toProbe.map(async (address) => ({ address, lease: await fetchLeaseDetails(address) }))
+      );
+      for (const result of probes) {
+        if (result.status === "fulfilled" && result.value.lease?.status === "open_failed") {
+          recordFailedOpen(result.value.address, result.value.lease.reason ?? "");
+        }
+      }
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to fetch leases";
       console.error("[LeasesStore] Failed to fetch leases:", e);
@@ -377,6 +422,7 @@ export const useLeasesStore = defineStore("leases", () => {
       leases.value = [];
       leaseDetails.value.clear();
       leaseHistories.value.clear();
+      failedOpens.value = [];
       lastUpdated.value = null;
       error.value = null;
     }
@@ -399,6 +445,7 @@ export const useLeasesStore = defineStore("leases", () => {
     loading,
     error,
     lastUpdated,
+    failedOpens,
 
     // Computed
     hasLeases,
@@ -420,6 +467,7 @@ export const useLeasesStore = defineStore("leases", () => {
     fetchLeaseHistory,
     getQuote,
     markLeaseInProgress,
+    dismissFailedOpen,
     setOwner,
     cleanup,
     refresh

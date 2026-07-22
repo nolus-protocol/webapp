@@ -14,6 +14,8 @@ export interface LeaseInfo {
   interest: LeaseInterestInfo;
   liquidation_price?: string;
   pnl?: LeasePnlInfo;
+  /** Failure reason for an `open_failed` lease (chain-reported) */
+  reason?: string;
   /** Close policy (stop loss / take profit) */
   close_policy?: LeaseClosePolicy;
   /** Time until overdue interest collection (nanoseconds as string) */
@@ -26,7 +28,7 @@ export interface LeaseInfo {
   etl_data?: LeaseEtlData;
 }
 
-export type LeaseStatusType = "opening" | "opened" | "paid_off" | "closing" | "closed" | "liquidated";
+export type LeaseStatusType = "opening" | "opened" | "paid_off" | "closing" | "closed" | "liquidated" | "open_failed";
 
 export interface LeaseAssetInfo {
   ticker: string;

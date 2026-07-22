@@ -755,4 +755,56 @@ describe("LeaseCalculator", () => {
       });
     });
   });
+
+  describe("open_failed and opening-stage rename", () => {
+    it("filterClosedLeases includes an open_failed lease", () => {
+      const leases: LeaseInfo[] = [
+        makeLease({ address: "o", status: "opened" }),
+        makeLease({ address: "f", status: "open_failed" as LeaseStatusType })
+      ];
+      expect(LeaseCalculator.filterClosedLeases(leases).map((l) => l.address)).toContain("f");
+    });
+
+    it("filterOpenLeases excludes an open_failed lease", () => {
+      const leases: LeaseInfo[] = [
+        makeLease({ address: "o", status: "opened" }),
+        makeLease({ address: "f", status: "open_failed" as LeaseStatusType })
+      ];
+      expect(LeaseCalculator.filterOpenLeases(leases).map((l) => l.address)).not.toContain("f");
+    });
+
+    // parseInProgressType keys off the top-level in_progress variant, so the
+    // opening-stage rename (open_ica_account → open_lease) must not change its
+    // result — both map to the "opening" in-progress type.
+    it("parseInProgressType returns opening for the renamed open_lease stage", () => {
+      const lease = makeLease({ in_progress: { opening: { stage: "open_lease" } } });
+      expect(calc.parseInProgressType(lease)).toBe("opening");
+    });
+
+    it("parseInProgressType returns opening for the legacy open_ica_account stage", () => {
+      const lease = makeLease({ in_progress: { opening: { stage: "open_ica_account" } } });
+      expect(calc.parseInProgressType(lease)).toBe("opening");
+    });
+
+    it("parseInProgressType returns null for an open_failed lease", () => {
+      const lease = makeLease({ status: "open_failed" as LeaseStatusType });
+      expect(calc.parseInProgressType(lease)).toBeNull();
+    });
+
+    it("calculateTotalPnl ignores an open_failed lease with no pnl", () => {
+      const leases: LeaseInfo[] = [
+        makeLease({ pnl: { amount: "10", percent: "1", downpayment: "0", pnl_positive: true } }),
+        makeLease({ address: "f", status: "open_failed" as LeaseStatusType })
+      ];
+      decEq(LeaseCalculator.calculateTotalPnl(leases), "10");
+    });
+
+    it("calculateDisplayData does not throw for an open_failed lease", () => {
+      const lease = makeLease({
+        status: "open_failed" as LeaseStatusType,
+        amount: { ticker: "", amount: "0" }
+      });
+      expect(() => calc.calculateDisplayData(lease)).not.toThrow();
+    });
+  });
 });

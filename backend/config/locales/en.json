@@ -297,6 +297,8 @@
     "learn-new-leases": "Learn more about margin leverage",
     "opening-title": "Position Now Opening",
     "opening-description": "This usually takes less than a minute. Please wait a moment or check back later",
+    "open-failed-title": "Position Opening Failed",
+    "open-failed-refund-description": "This position could not be opened. The protocol has refunded your funds to your wallet.",
     "currently-opening": "Position Now Opening",
     "toast-repaid": "Position Repaid",
     "toast-closed": "Position Now Closing",

@@ -3,6 +3,7 @@ import { type ButtonProps, Button, type TableColumnProps, type TableRowItemProps
 import { RouteNames } from "@/router";
 
 import { buildLeaseSizeCell } from "./leaseSize";
+import { isLeaseInProgress } from "./common";
 
 import { useI18n } from "vue-i18n";
 import { computed, defineComponent, h, markRaw, onMounted, onUnmounted, provide, ref, watch } from "vue";
@@ -30,6 +31,11 @@ export function useLeases() {
   const pricesStore = usePricesStore();
   const leaseLoaded = computed(() => !leasesStore.loading || leasesStore.leases.length > 0);
   const leases = computed(() => leasesStore.leases);
+  const failedOpens = computed(() => leasesStore.failedOpens);
+
+  function dismissFailedOpen(address: string) {
+    leasesStore.dismissFailedOpen(address);
+  }
 
   const networkFilteredLeases = computed(() => {
     const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
@@ -379,16 +385,6 @@ export function useLeases() {
     }
   }
 
-  function isLeaseInProgress(lease: LeaseInfo): boolean {
-    if (lease.status === "opening" || lease.status === "closing") {
-      return true;
-    }
-    if (lease.in_progress) {
-      return true;
-    }
-    return false;
-  }
-
   watch(
     [networkFilteredLeases, () => pricesStore.prices],
     () => {
@@ -464,6 +460,8 @@ export function useLeases() {
     hide,
     onHide,
     onSearch,
-    sharePnlDialog
+    sharePnlDialog,
+    failedOpens,
+    dismissFailedOpen
   };
 }

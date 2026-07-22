@@ -4,6 +4,8 @@ import { Dec } from "@keplr-wallet/unit";
 const hoisted = vi.hoisted(() => ({
   loading: false,
   leasesArr: [] as unknown[],
+  failedOpensArr: [] as { address: string; reason: string }[],
+  dismissFailedOpenMock: vi.fn(),
   pricesState: {} as Record<string, { price: string }>,
   walletState: { wallet: null as unknown },
   protocolFilter: "OSMOSIS",
@@ -33,6 +35,10 @@ vi.mock("@/common/stores/leases", () => ({
     get leases() {
       return hoisted.leasesArr;
     },
+    get failedOpens() {
+      return hoisted.failedOpensArr;
+    },
+    dismissFailedOpen: hoisted.dismissFailedOpenMock,
     refresh: hoisted.refreshMock,
     getLeaseDisplayData: hoisted.displayDataFn
   })
@@ -154,6 +160,16 @@ vi.mock("./single-lease/Action.vue", () => ({
 }));
 
 vi.mock("web-components", () => ({
+  AlertType: { info: "info", success: "success", warning: "warning", error: "error" },
+  Alert: {
+    name: "Alert",
+    props: ["title", "type", "showClose", "onClose"],
+    template: `<div data-test="alert" :data-type="type">
+      <span data-test="alert-title">{{ title }}</span>
+      <slot name="content" />
+      <button v-if="showClose" data-test="alert-close" @click="onClose && onClose()"></button>
+    </div>`
+  },
   Button: {
     name: "Button",
     props: ["label", "severity", "size", "disabled", "loading"],
@@ -235,6 +251,7 @@ describe("Leases.vue — characterization (pre-composable extraction)", () => {
     vi.clearAllMocks();
     hoisted.loading = false;
     hoisted.leasesArr = [];
+    hoisted.failedOpensArr = [];
     hoisted.pricesState = {};
     hoisted.walletState = { wallet: null };
     hoisted.protocolFilter = "OSMOSIS";
@@ -399,5 +416,37 @@ describe("Leases.vue — characterization (pre-composable extraction)", () => {
     await vi.advanceTimersByTimeAsync(100000);
     expect(hoisted.refreshMock).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
+  });
+
+  it("renders a failed-open alert with the title and the entry reason", async () => {
+    hoisted.failedOpensArr = [{ address: "nolus1failed", reason: "unexpected operation response" }];
+    const wrapper = factory();
+    await flushPromises();
+
+    const alert = wrapper.find("[data-test='alert']");
+    expect(alert.exists()).toBe(true);
+    expect(wrapper.find("[data-test='alert-title']").text()).toBe("message.open-failed-title");
+    expect(alert.text()).toContain("message.open-failed-refund-description");
+    expect(alert.text()).toContain("unexpected operation response");
+    wrapper.unmount();
+  });
+
+  it("dismissing a failed-open alert calls the store dismiss action with its address", async () => {
+    hoisted.failedOpensArr = [{ address: "nolus1failed", reason: "timeout" }];
+    const wrapper = factory();
+    await flushPromises();
+
+    await wrapper.find("[data-test='alert-close']").trigger("click");
+    expect(hoisted.dismissFailedOpenMock).toHaveBeenCalledWith("nolus1failed");
+    wrapper.unmount();
+  });
+
+  it("renders no failed-open alert when there are no failed opens", async () => {
+    hoisted.failedOpensArr = [];
+    const wrapper = factory();
+    await flushPromises();
+
+    expect(wrapper.find("[data-test='alert']").exists()).toBe(false);
+    wrapper.unmount();
   });
 });

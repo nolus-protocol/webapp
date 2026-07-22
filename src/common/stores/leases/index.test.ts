@@ -128,7 +128,7 @@ function emitLeases(lease: any) {
 type LeaseRec = {
   address: string;
   protocol: string;
-  status: "opening" | "opened" | "paid_off" | "closing" | "closed" | "liquidated";
+  status: "opening" | "opened" | "paid_off" | "closing" | "closed" | "liquidated" | "open_failed";
   amount: { ticker: string; amount: string };
   debt: {
     ticker: string;
@@ -145,6 +145,7 @@ type LeaseRec = {
   pnl?: { amount: string; percent: string; downpayment: string; pnl_positive: boolean };
   liquidation_price?: string;
   opened_at?: string;
+  reason?: string;
 };
 
 const mkLease = (o: Partial<LeaseRec>): LeaseRec => ({
@@ -562,5 +563,119 @@ describe("useLeasesStore", () => {
     expect(captured.unsubscribe).toHaveBeenCalledTimes(1);
     expect(store.owner).toBeNull();
     expect(store.leases).toEqual([]);
+  });
+
+  it("buckets an open_failed lease as closed, never open", () => {
+    const store = useLeasesStore();
+    (store.leases as any).push(mkLease({ address: "f1", status: "open_failed" }));
+
+    expect(store.openLeases.map((l) => l.address)).not.toContain("f1");
+    expect(store.closedLeases.map((l) => l.address)).toContain("f1");
+  });
+
+  it("ranks open_failed as terminal so a stale REST opening cannot regress it", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opened" })]);
+    await store.setOwner("nolus1x");
+
+    // WS delivers the terminal open_failed for l1.
+    emitLeases(mkLease({ address: "l1", status: "open_failed", reason: "timeout" }));
+    expect(store.leases.find((l) => l.address === "l1")?.status).toBe("open_failed");
+
+    // A later stale REST poll still calls it "opening" — it must NOT regress.
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opening" })]);
+    await store.fetchLeases();
+
+    expect(store.leases.find((l) => l.address === "l1")?.status).toBe("open_failed");
+  });
+
+  it("ws monitor merges open_failed status and reason onto the cached record", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opened" })]);
+    await store.setOwner("nolus1x");
+
+    emitLeases({ address: "l1", status: "open_failed", reason: "unexpected operation response", pnl: null });
+
+    const lease = store.leases.find((l) => l.address === "l1") as any;
+    expect(lease?.status).toBe("open_failed");
+    expect(lease?.reason).toBe("unexpected operation response");
+  });
+
+  // Vanish-detection: an opening lease that drops out of the REST enumeration may
+  // have entered open_failed (removed atomically from the leaser enumeration, so
+  // /api/leases never returns it and the WS monitor never delivers the tick). The
+  // store probes /api/leases/{address} once and records (address, reason) in a
+  // `failedOpens` surface kept separate from `leases.value`.
+  it("probes a vanished opening lease and records an open_failed in failedOpens", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opening" })]);
+    await store.setOwner("nolus1x");
+
+    // Next poll: l1 is gone from the enumeration; the direct query reveals open_failed.
+    BackendApi.getLeases.mockResolvedValueOnce([]);
+    BackendApi.getLease.mockResolvedValueOnce(mkLease({ address: "l1", status: "open_failed", reason: "timeout" }));
+    await store.fetchLeases();
+
+    expect(BackendApi.getLease).toHaveBeenCalledWith("l1", expect.anything());
+    expect((store as any).failedOpens).toContainEqual({ address: "l1", reason: "timeout" });
+  });
+
+  it("does NOT probe a vanished non-opening lease", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l2", status: "opened" })]);
+    await store.setOwner("nolus1x");
+
+    BackendApi.getLeases.mockResolvedValueOnce([]);
+    await store.fetchLeases();
+
+    expect(BackendApi.getLease).not.toHaveBeenCalled();
+    expect((store as any).failedOpens).toEqual([]);
+  });
+
+  it("keeps failedOpens separate from leases so REST reconciliation cannot erase it", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opening" })]);
+    await store.setOwner("nolus1x");
+
+    BackendApi.getLeases.mockResolvedValueOnce([]);
+    BackendApi.getLease.mockResolvedValueOnce(mkLease({ address: "l1", status: "open_failed", reason: "timeout" }));
+    await store.fetchLeases();
+
+    // A further empty reconcile clears the leases list but must NOT drop the failure.
+    BackendApi.getLeases.mockResolvedValueOnce([]);
+    await store.fetchLeases();
+
+    expect((store as any).failedOpens).toContainEqual({ address: "l1", reason: "timeout" });
+  });
+
+  it("dismissFailedOpen clears a recorded failure", async () => {
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opening" })]);
+    await store.setOwner("nolus1x");
+
+    BackendApi.getLeases.mockResolvedValueOnce([]);
+    BackendApi.getLease.mockResolvedValueOnce(mkLease({ address: "l1", status: "open_failed", reason: "timeout" }));
+    await store.fetchLeases();
+    expect((store as any).failedOpens).toContainEqual({ address: "l1", reason: "timeout" });
+
+    (store as any).dismissFailedOpen("l1");
+    expect((store as any).failedOpens.map((f: { address: string }) => f.address)).not.toContain("l1");
+  });
+
+  it("surfaces an error when the vanish probe fails, without fabricating a failure notice", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const store = useLeasesStore();
+    BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opening" })]);
+    await store.setOwner("nolus1x");
+
+    BackendApi.getLeases.mockResolvedValueOnce([]);
+    BackendApi.getLease.mockRejectedValueOnce(new Error("detail probe failed"));
+    await store.fetchLeases();
+
+    // The error is surfaced (not swallowed) and NO fake open_failed is recorded.
+    expect(store.error).toBe("detail probe failed");
+    expect((store as any).failedOpens.map((f: { address: string }) => f.address)).not.toContain("l1");
+
+    spy.mockRestore();
   });
 });

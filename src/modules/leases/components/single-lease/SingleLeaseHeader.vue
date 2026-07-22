@@ -258,6 +258,8 @@ const status = computed(() => {
       return TEMPLATES.closed;
     case "liquidated":
       return TEMPLATES.liquidated;
+    case "open_failed":
+      return TEMPLATES.open_failed;
     default:
       return TEMPLATES.opening;
   }

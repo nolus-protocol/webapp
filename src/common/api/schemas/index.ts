@@ -91,12 +91,13 @@ export const LeaseInfoSchema = z
   .object({
     address: z.string(),
     protocol: z.string(),
-    status: z.enum(["opening", "opened", "paid_off", "closing", "closed", "liquidated"]),
+    status: z.enum(["opening", "opened", "paid_off", "closing", "closed", "liquidated", "open_failed"]),
     amount: LeaseAssetInfoSchema,
     debt: LeaseDebtInfoSchema,
     interest: LeaseInterestInfoSchema,
     pnl: LeasePnlInfoSchema.nullish(),
-    liquidation_price: numericString.nullish()
+    liquidation_price: numericString.nullish(),
+    reason: z.string().nullish()
   })
   .passthrough();
 

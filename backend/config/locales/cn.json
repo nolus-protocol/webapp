@@ -283,6 +283,8 @@
     "learn-new-leases": "了解更多关于保证金杠杆的信息",
     "opening-title": "仓位正在开启",
     "opening-description": "通常不到一分钟。请稍等片刻或稍后再查看",
+    "open-failed-title": "仓位开启失败",
+    "open-failed-refund-description": "无法开启该仓位。协议已将您的资金退回到您的钱包。",
     "currently-opening": "仓位正在开启",
     "toast-repaid": "仓位已偿还",
     "toast-closed": "仓位正在关闭",

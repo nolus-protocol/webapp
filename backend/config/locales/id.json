@@ -283,6 +283,8 @@
     "learn-new-leases": "Pelajari lebih lanjut tentang leverage margin",
     "opening-title": "Posisi Sedang Dibuka",
     "opening-description": "Biasanya memerlukan waktu kurang dari satu menit. Mohon tunggu sebentar atau coba lagi nanti",
+    "open-failed-title": "Pembukaan Posisi Gagal",
+    "open-failed-refund-description": "Posisi ini tidak dapat dibuka. Protokol telah mengembalikan dana Anda ke wallet Anda.",
     "currently-opening": "Posisi Sedang Dibuka",
     "toast-repaid": "Posisi Telah Dibayar",
     "toast-closed": "Posisi Sedang Ditutup",

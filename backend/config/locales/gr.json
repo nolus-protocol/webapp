@@ -283,6 +283,8 @@
     "learn-new-leases": "Μάθετε περισσότερα για το margin leverage",
     "opening-title": "Η θέση ανοίγει τώρα",
     "opening-description": "Συνήθως διαρκεί λιγότερο από ένα λεπτό. Περιμένετε λίγο ή ελέγξτε ξανά αργότερα",
+    "open-failed-title": "Αποτυχία ανοίγματος θέσης",
+    "open-failed-refund-description": "Δεν ήταν δυνατό το άνοιγμα αυτής της θέσης. Το πρωτόκολλο επέστρεψε τα κεφάλαιά σας στο wallet σας.",
     "currently-opening": "Η θέση ανοίγει τώρα",
     "toast-repaid": "Η θέση αποπληρώθηκε",
     "toast-closed": "Η θέση κλείνει τώρα",
