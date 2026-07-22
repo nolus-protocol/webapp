@@ -31,6 +31,11 @@ export function useLeases() {
   const pricesStore = usePricesStore();
   const leaseLoaded = computed(() => !leasesStore.loading || leasesStore.leases.length > 0);
   const leases = computed(() => leasesStore.leases);
+  const failedOpens = computed(() => leasesStore.failedOpens);
+
+  function dismissFailedOpen(address: string) {
+    leasesStore.dismissFailedOpen(address);
+  }
 
   const networkFilteredLeases = computed(() => {
     const activeProtocols = configStore.getActiveProtocolsForNetwork(configStore.protocolFilter);
@@ -455,6 +460,8 @@ export function useLeases() {
     hide,
     onHide,
     onSearch,
-    sharePnlDialog
+    sharePnlDialog,
+    failedOpens,
+    dismissFailedOpen
   };
 }

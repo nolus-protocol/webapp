@@ -8,6 +8,27 @@
       @click="router.push({ path: `/${RouteNames.LEASES}/open/long` })"
     />
   </ListHeader>
+  <Alert
+    v-for="failed in failedOpens"
+    :key="failed.address"
+    class="mb-4"
+    :title="$t('message.open-failed-title')"
+    :type="AlertType.error"
+    :show-close="true"
+    :on-close="() => dismissFailedOpen(failed.address)"
+  >
+    <template v-slot:content>
+      <p class="my-1 text-14 font-normal text-typography-secondary">
+        {{ $t("message.open-failed-refund-description") }}
+      </p>
+      <p
+        v-if="failed.reason"
+        class="my-1 text-14 font-normal text-typography-secondary"
+      >
+        {{ failed.reason }}
+      </p>
+    </template>
+  </Alert>
   <Widget
     class="overflow-auto"
     v-if="leaseLoaded"
@@ -91,7 +112,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Button, Table, TableRow, Widget } from "web-components";
+import { Alert, AlertType, Button, Table, TableRow, Widget } from "web-components";
 
 import { RouteNames } from "@/router";
 
@@ -120,6 +141,8 @@ const {
   hide,
   onHide,
   onSearch,
-  sharePnlDialog
+  sharePnlDialog,
+  failedOpens,
+  dismissFailedOpen
 } = useLeases();
 </script>

@@ -273,13 +273,15 @@ export const useLeasesStore = defineStore("leases", () => {
       // each such address once via the direct lease query; only a confirmed
       // open_failed is recorded. A probe error surfaces through fetchLeaseDetails'
       // existing error path and records nothing — never fabricate a failure.
-      for (const address of openingBefore) {
-        if (freshAddresses.has(address) || failedOpens.value.some((f) => f.address === address)) {
-          continue;
-        }
-        const probed = await fetchLeaseDetails(address);
-        if (probed?.status === "open_failed") {
-          recordFailedOpen(address, probed.reason ?? "");
+      const toProbe = openingBefore.filter(
+        (address) => !freshAddresses.has(address) && !failedOpens.value.some((f) => f.address === address)
+      );
+      const probes = await Promise.allSettled(
+        toProbe.map(async (address) => ({ address, lease: await fetchLeaseDetails(address) }))
+      );
+      for (const result of probes) {
+        if (result.status === "fulfilled" && result.value.lease?.status === "open_failed") {
+          recordFailedOpen(result.value.address, result.value.lease.reason ?? "");
         }
       }
     } catch (e) {
