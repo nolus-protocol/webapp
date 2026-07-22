@@ -35,8 +35,8 @@ describe("getLeaseStatus", () => {
     expect(getLeaseStatus(mkLease({ status: "liquidated" }))).toBe(TEMPLATES.liquidated);
   });
 
-  // F7: an open_failed lease must get its own terminal template — falling through
-  // to TEMPLATES.opening renders the position as an eternal opening skeleton.
+  // An open_failed lease must get its own terminal template — falling through to
+  // TEMPLATES.opening renders the position as an eternal opening skeleton.
   it("maps open_failed to its own open_failed template", () => {
     const { getLeaseStatus, TEMPLATES } = LeaseCommon;
     expect(getLeaseStatus(mkLease({ status: "open_failed" as LeaseInfo["status"] }))).toBe(TEMPLATES.open_failed);
@@ -48,8 +48,8 @@ describe("getLeaseStatus", () => {
   });
 });
 
-// F9: isLeaseInProgress must be an exported pure helper (extracted from useLeases)
-// so its terminal-state contract is unit-testable.
+// isLeaseInProgress is an exported pure helper (extracted from useLeases) so its
+// terminal-state contract is unit-testable independent of the UI.
 describe("isLeaseInProgress", () => {
   it("is false for a terminal open_failed lease", () => {
     expect(LeaseCommon.isLeaseInProgress(mkLease({ status: "open_failed" as LeaseInfo["status"] }))).toBe(false);

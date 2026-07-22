@@ -565,12 +565,6 @@ describe("useLeasesStore", () => {
     expect(store.leases).toEqual([]);
   });
 
-  // ==========================================================================
-  // v10 lease states — issue #288 (open_failed)
-  // ==========================================================================
-
-  // F3: an open_failed lease is terminal — it belongs in closedLeases, never in
-  // openLeases.
   it("buckets an open_failed lease as closed, never open", () => {
     const store = useLeasesStore();
     (store.leases as any).push(mkLease({ address: "f1", status: "open_failed" }));
@@ -579,8 +573,6 @@ describe("useLeasesStore", () => {
     expect(store.closedLeases.map((l) => l.address)).toContain("f1");
   });
 
-  // F2: open_failed must rank above every non-terminal state in STATUS_ORDER so a
-  // stale REST "opening" poll cannot regress a lease the WS already failed.
   it("ranks open_failed as terminal so a stale REST opening cannot regress it", async () => {
     const store = useLeasesStore();
     BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opened" })]);
@@ -597,8 +589,6 @@ describe("useLeasesStore", () => {
     expect(store.leases.find((l) => l.address === "l1")?.status).toBe("open_failed");
   });
 
-  // F4: the WS monitor allowlist merge must carry both `status` and `reason` from an
-  // open_failed payload onto the cached record.
   it("ws monitor merges open_failed status and reason onto the cached record", async () => {
     const store = useLeasesStore();
     BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opened" })]);
@@ -611,11 +601,11 @@ describe("useLeasesStore", () => {
     expect(lease?.reason).toBe("unexpected operation response");
   });
 
-  // F5: vanish-detection. An opening lease that drops out of the REST enumeration
-  // may have entered open_failed (removed atomically from the leaser enumeration,
-  // so /api/leases never returns it and the WS monitor never delivers the tick).
-  // The store probes /api/leases/{address} once and records (address, reason) in a
-  // NEW `failedOpens` surface kept separate from `leases.value`.
+  // Vanish-detection: an opening lease that drops out of the REST enumeration may
+  // have entered open_failed (removed atomically from the leaser enumeration, so
+  // /api/leases never returns it and the WS monitor never delivers the tick). The
+  // store probes /api/leases/{address} once and records (address, reason) in a
+  // `failedOpens` surface kept separate from `leases.value`.
   it("probes a vanished opening lease and records an open_failed in failedOpens", async () => {
     const store = useLeasesStore();
     BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opening" })]);

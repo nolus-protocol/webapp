@@ -1,5 +1,5 @@
 /**
- * v10 lease states — issue #288.
+ * SingleLease's open_failed terminal panel and opening-stage ProgressDots.
  *
  * SingleLease.vue owns two status surfaces that must learn `open_failed`:
  *   - `openingSubState` — the ProgressDots step ladder. The upstream stage RENAME
@@ -124,7 +124,7 @@ function factory() {
   });
 }
 
-describe("SingleLease — v10 open_failed and opening stages", () => {
+describe("SingleLease — open_failed and opening stages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     hoisted.state.lease = null;

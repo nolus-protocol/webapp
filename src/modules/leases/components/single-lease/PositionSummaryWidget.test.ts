@@ -391,10 +391,10 @@ describe("PositionSummaryWidget — Size rounding", () => {
     });
   });
 
-  // F7: smoke — a terminal open_failed lease (zeroed amount, empty ticker, as the
+  // Smoke: a terminal open_failed lease (zeroed amount, empty ticker, as the
   // backend builds it) must render without throwing and without hanging on the
   // opening skeleton (usePositionSummary's status switch must handle it).
-  describe("v10 open_failed (issue #288)", () => {
+  describe("open_failed", () => {
     function makeOpenFailedLease() {
       return {
         address: "nolus1leasefailed",

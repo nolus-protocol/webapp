@@ -756,11 +756,7 @@ describe("LeaseCalculator", () => {
     });
   });
 
-  // --------------------------------------------------------------------------
-  // v10 lease states — issue #288 (open_failed) + opening-stage rename
-  // --------------------------------------------------------------------------
-  describe("v10 open_failed and opening-stage rename", () => {
-    // F3: the static filters must treat open_failed as a closed (terminal) lease.
+  describe("open_failed and opening-stage rename", () => {
     it("filterClosedLeases includes an open_failed lease", () => {
       const leases: LeaseInfo[] = [
         makeLease({ address: "o", status: "opened" }),
@@ -777,8 +773,8 @@ describe("LeaseCalculator", () => {
       expect(LeaseCalculator.filterOpenLeases(leases).map((l) => l.address)).not.toContain("f");
     });
 
-    // F8: parseInProgressType keys off the top-level in_progress variant, so the
-    // opening-stage RENAME (open_ica_account → open_lease) must not change its
+    // parseInProgressType keys off the top-level in_progress variant, so the
+    // opening-stage rename (open_ica_account → open_lease) must not change its
     // result — both map to the "opening" in-progress type.
     it("parseInProgressType returns opening for the renamed open_lease stage", () => {
       const lease = makeLease({ in_progress: { opening: { stage: "open_lease" } } });
@@ -790,13 +786,11 @@ describe("LeaseCalculator", () => {
       expect(calc.parseInProgressType(lease)).toBe("opening");
     });
 
-    // F8: a terminal open_failed lease has no in_progress operation.
     it("parseInProgressType returns null for an open_failed lease", () => {
       const lease = makeLease({ status: "open_failed" as LeaseStatusType });
       expect(calc.parseInProgressType(lease)).toBeNull();
     });
 
-    // F8: an open_failed lease has no pnl, so it must not perturb portfolio totals.
     it("calculateTotalPnl ignores an open_failed lease with no pnl", () => {
       const leases: LeaseInfo[] = [
         makeLease({ pnl: { amount: "10", percent: "1", downpayment: "0", pnl_positive: true } }),
@@ -805,7 +799,6 @@ describe("LeaseCalculator", () => {
       decEq(LeaseCalculator.calculateTotalPnl(leases), "10");
     });
 
-    // F8: computing display data for a zeroed open_failed lease must not throw.
     it("calculateDisplayData does not throw for an open_failed lease", () => {
       const lease = makeLease({
         status: "open_failed" as LeaseStatusType,

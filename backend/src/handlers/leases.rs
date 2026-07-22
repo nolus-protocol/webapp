@@ -1168,7 +1168,7 @@ fn build_terminal_lease_info(
     }
 }
 
-/// Build lease info for the OpenFailed terminal state (issue #288).
+/// Build lease info for the OpenFailed terminal state.
 /// Shares the terminal shape (zeroed asset/debt/interest) so a failed opening
 /// never perturbs portfolio totals, and threads the chain-reported reason.
 fn build_open_failed_lease_info(
@@ -1924,9 +1924,7 @@ mod tests {
         assert_eq!(json, serde_json::json!({"slippage_protection": {}}));
     }
 
-    // ── v10 lease states (issue #288) ────────────────────────────────
-
-    // B3: parse_opening_stage is a generic passthrough. These pins lock in that
+    // parse_opening_stage is a generic passthrough. These pins lock in that
     // the upstream RENAME (open_ica_account → open_lease) and inner FIELD RENAME
     // (ica_account → remote_lease) do NOT change the stage string it returns —
     // both new and legacy shapes must keep working during the chain migration.
@@ -1979,7 +1977,7 @@ mod tests {
         );
     }
 
-    // B4: the REST OpenFailed arm builds a terminal-shaped LeaseInfo that threads
+    // The REST OpenFailed arm builds a terminal-shaped LeaseInfo that threads
     // the chain reason and zeroes the asset (mirrors Closed/Liquidated). A non-"0"
     // amount or a live ticker here would perturb portfolio totals downstream.
 
@@ -2015,7 +2013,7 @@ mod tests {
         );
     }
 
-    // B5: the WS monitor OpenFailed arm surfaces status + reason in its payload.
+    // The WS monitor OpenFailed arm surfaces status + reason in its payload.
     #[test]
     fn monitor_open_failed_emits_status_and_reason() {
         let status = LeaseStatusResponse::OpenFailed(crate::external::chain::LeaseOpenFailed {
@@ -2034,7 +2032,7 @@ mod tests {
         );
     }
 
-    // B8: adding an optional `reason` field must not pollute existing payloads —
+    // Adding an optional `reason` field must not pollute existing payloads —
     // a non-failed LeaseInfo serializes with NO `reason` key (skip_serializing_if).
     #[test]
     fn non_failed_lease_info_serializes_without_reason_key() {

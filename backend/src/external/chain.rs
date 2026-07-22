@@ -1504,7 +1504,6 @@ mod tests {
         assert_eq!(balances[0].amount, "1000000");
     }
 
-    // ── v10 lease states (issue #288): OpenFailed wire deserialization ──
     // The chain sends the new terminal state as `{"open_failed":{"reason":<str>}}`
     // (externally-tagged, snake_case). It must round-trip through the untagged
     // LeaseStatusResponse via a wrapper-struct variant carrying `open_failed.reason`
