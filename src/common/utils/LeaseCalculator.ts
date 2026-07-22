@@ -466,7 +466,12 @@ export class LeaseCalculator {
    */
   static filterClosedLeases(leases: LeaseInfo[]): LeaseInfo[] {
     return leases.filter(
-      (l) => l.status === "closed" || l.status === "closing" || l.status === "liquidated" || l.status === "paid_off"
+      (l) =>
+        l.status === "closed" ||
+        l.status === "closing" ||
+        l.status === "liquidated" ||
+        l.status === "paid_off" ||
+        l.status === "open_failed"
     );
   }
 }

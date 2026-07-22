@@ -202,6 +202,25 @@ describe("LeaseInfoSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  // v10 lease states (issue #288): the status enum must admit `open_failed`.
+  it("should accept the open_failed status (v10)", () => {
+    const payload = { ...validLease(), status: "open_failed" as unknown as "opened" };
+    const result = LeaseInfoSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+  });
+
+  it("should accept an open_failed lease carrying a reason string", () => {
+    const payload = { ...validLease(), status: "open_failed" as unknown as "opened", reason: "timeout" };
+    const result = LeaseInfoSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+  });
+
+  it("should still reject an unknown status even after open_failed is added", () => {
+    const payload = { ...validLease(), status: "in_limbo" as unknown as "opened" };
+    const result = LeaseInfoSchema.safeParse(payload);
+    expect(result.success).toBe(false);
+  });
+
   it("should pass through unknown extra fields", () => {
     const payload = { ...validLease(), backend_version: "v2" };
     const result = LeaseInfoSchema.safeParse(payload);

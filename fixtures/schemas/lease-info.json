@@ -16,7 +16,8 @@
         "paid_off",
         "closing",
         "closed",
-        "liquidated"
+        "liquidated",
+        "open_failed"
       ]
     },
     "amount": {
@@ -172,6 +173,16 @@
           "type": "string",
           "pattern": "^-?(\\d+\\.?\\d*|\\.\\d+)$",
           "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "type": "string"
         },
         {
           "type": "null"
