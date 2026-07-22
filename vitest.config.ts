@@ -197,10 +197,10 @@ export default mergeConfig(
             statements: 95
           },
           "src/networks/sol/wallet.ts": {
-            lines: 95,
-            branches: 85,
-            functions: 95,
-            statements: 95
+            lines: 98,
+            branches: 95,
+            functions: 98,
+            statements: 98
           },
           "src/networks/cosm/WalletFactory.ts": {
             lines: 95,
