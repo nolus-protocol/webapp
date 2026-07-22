@@ -1109,6 +1109,7 @@ pub enum LeaseStatusResponse {
     Closing(LeaseClosing),
     Closed(LeaseClosed),
     Liquidated(LeaseLiquidated),
+    OpenFailed(LeaseOpenFailed),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1122,7 +1123,8 @@ pub struct LeaseOpeningInfo {
     pub downpayment: LeaseAmount,
     pub loan: LeaseAmount,
     pub loan_interest_rate: u32,
-    /// Chain returns: {"open_ica_account": {}}, {"transfer_out": {...}}, or {"buy_asset": {...}}
+    /// Chain returns: "open_lease", {"transfer_out": {...}}, or {"buy_asset": {...}};
+    /// pre-migration leases still send the legacy "open_ica_account" form.
     #[serde(default)]
     pub in_progress: Option<serde_json::Value>,
 }
@@ -1200,6 +1202,16 @@ pub struct LeaseLiquidated {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LiquidatedInfo {}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LeaseOpenFailed {
+    pub open_failed: OpenFailedInfo,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OpenFailedInfo {
+    pub reason: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LeaseAmount {
@@ -1490,6 +1502,115 @@ mod tests {
         assert_eq!(balances.len(), 2);
         assert_eq!(balances[0].denom, "unls");
         assert_eq!(balances[0].amount, "1000000");
+    }
+
+    // ── v10 lease states (issue #288): OpenFailed wire deserialization ──
+    // The chain sends the new terminal state as `{"open_failed":{"reason":<str>}}`
+    // (externally-tagged, snake_case). It must round-trip through the untagged
+    // LeaseStatusResponse via a wrapper-struct variant carrying `open_failed.reason`
+    // — NOT a flat top-level `reason`.
+
+    #[test]
+    fn open_failed_status_round_trips_byte_exact() {
+        let wire = serde_json::json!({ "open_failed": { "reason": "timeout" } });
+        let parsed: LeaseStatusResponse =
+            serde_json::from_value(wire.clone()).expect("open_failed lease status deserializes");
+        let reserialized = serde_json::to_value(&parsed).expect("lease status serializes");
+        assert_eq!(
+            reserialized, wire,
+            "OpenFailed must round-trip to the exact {{open_failed:{{reason}}}} wire shape"
+        );
+    }
+
+    #[test]
+    fn open_failed_status_exposes_reason_via_wrapper_struct() {
+        let wire = serde_json::json!({ "open_failed": { "reason": "timeout" } });
+        let parsed: LeaseStatusResponse =
+            serde_json::from_value(wire).expect("open_failed lease status deserializes");
+        match parsed {
+            LeaseStatusResponse::OpenFailed(failed) => {
+                assert_eq!(
+                    failed.open_failed.reason, "timeout",
+                    "reason must live under the open_failed wrapper, not flat"
+                );
+            }
+            other => panic!("expected OpenFailed variant, got {other:?}"),
+        }
+    }
+
+    // Non-regression: adding OpenFailed as a new untagged variant must not change
+    // which variant the six existing states deserialize to (untagged tries variants
+    // in declaration order — a mis-ordered addition could shadow an existing state).
+    #[test]
+    fn existing_lease_states_still_deserialize_to_their_variants() {
+        let debt = || serde_json::json!({ "ticker": "USDC_NOBLE", "amount": "0" });
+
+        let opening = serde_json::json!({
+            "opening": {
+                "currency": "ALL_BTC",
+                "downpayment": { "ticker": "USDC_NOBLE", "amount": "400000000" },
+                "loan": { "ticker": "USDC_NOBLE", "amount": "600000000" },
+                "loan_interest_rate": 186,
+                "in_progress": "open_lease"
+            }
+        });
+        assert!(matches!(
+            serde_json::from_value::<LeaseStatusResponse>(opening).expect("opening deserializes"),
+            LeaseStatusResponse::Opening(_)
+        ));
+
+        let opened = serde_json::json!({
+            "opened": {
+                "amount": { "ticker": "ALL_BTC", "amount": "1000000" },
+                "loan_interest_rate": 170,
+                "margin_interest_rate": 16,
+                "principal_due": { "ticker": "USDC_NOBLE", "amount": "500000000" },
+                "overdue_margin": debt(),
+                "overdue_interest": debt(),
+                "due_margin": debt(),
+                "due_interest": debt(),
+                "validity": "valid"
+            }
+        });
+        assert!(matches!(
+            serde_json::from_value::<LeaseStatusResponse>(opened).expect("opened deserializes"),
+            LeaseStatusResponse::Opened(_)
+        ));
+
+        let paid_off = serde_json::json!({ "paid_off": { "amount": { "ticker": "ALL_BTC", "amount": "1000000" } } });
+        assert!(matches!(
+            serde_json::from_value::<LeaseStatusResponse>(paid_off).expect("paid_off deserializes"),
+            LeaseStatusResponse::PaidOff(_)
+        ));
+
+        let closing = serde_json::json!({
+            "closing": {
+                "amount": { "ticker": "ALL_BTC", "amount": "1000000" },
+                "loan_interest_rate": 170,
+                "margin_interest_rate": 16,
+                "principal_due": { "ticker": "USDC_NOBLE", "amount": "500000000" },
+                "overdue_margin": debt(),
+                "overdue_interest": debt(),
+                "due_margin": debt(),
+                "due_interest": debt()
+            }
+        });
+        assert!(matches!(
+            serde_json::from_value::<LeaseStatusResponse>(closing).expect("closing deserializes"),
+            LeaseStatusResponse::Closing(_)
+        ));
+
+        assert!(matches!(
+            serde_json::from_value::<LeaseStatusResponse>(serde_json::json!({ "closed": {} }))
+                .expect("closed deserializes"),
+            LeaseStatusResponse::Closed(_)
+        ));
+
+        assert!(matches!(
+            serde_json::from_value::<LeaseStatusResponse>(serde_json::json!({ "liquidated": {} }))
+                .expect("liquidated deserializes"),
+            LeaseStatusResponse::Liquidated(_)
+        ));
     }
 
     #[tokio::test]

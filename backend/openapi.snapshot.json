@@ -5450,6 +5450,13 @@
               }
             ]
           },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Failure reason (present only for open_failed leases)"
+          },
           "close_policy": {
             "oneOf": [
               {
@@ -5643,7 +5650,8 @@
           "paid_off",
           "closing",
           "closed",
-          "liquidated"
+          "liquidated",
+          "open_failed"
         ]
       },
       "LeaseTransactionResponse": {

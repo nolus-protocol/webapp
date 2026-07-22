@@ -53,6 +53,9 @@ pub struct LeaseInfo {
     pub opened_at: Option<String>,
     /// PnL information
     pub pnl: Option<LeasePnlInfo>,
+    /// Failure reason (present only for open_failed leases)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
     /// Close policy (stop loss / take profit)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub close_policy: Option<LeaseClosePolicy>,
@@ -79,6 +82,7 @@ pub enum LeaseStatusType {
     Closing,
     Closed,
     Liquidated,
+    OpenFailed,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
@@ -929,6 +933,7 @@ async fn fetch_lease_info(
             liquidation_price: None,
             opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
             pnl: None,
+            reason: None,
             close_policy: None,
             overdue_collect_in: None,
             in_progress: Some(LeaseInProgress::Opening {
@@ -993,6 +998,13 @@ async fn fetch_lease_info(
             etl_data.as_ref(),
             etl_info,
         ),
+        LeaseStatusResponse::OpenFailed(failed) => build_open_failed_lease_info(
+            lease_address,
+            protocol,
+            &failed.open_failed.reason,
+            etl_data.as_ref(),
+            etl_info,
+        ),
     };
 
     Ok(lease_info)
@@ -1052,6 +1064,7 @@ fn build_opened_lease_info(
         liquidation_price: None,
         opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
         pnl,
+        reason: None,
         close_policy,
         overdue_collect_in: opened.overdue_collect_in.map(|v| v.to_string()),
         in_progress,
@@ -1099,6 +1112,7 @@ fn build_closing_lease_info(
         liquidation_price: None,
         opened_at: etl_data.as_ref().and_then(|d| d.lease.timestamp.clone()),
         pnl: None,
+        reason: None,
         close_policy: None,
         overdue_collect_in: None,
         in_progress: Some(LeaseInProgress::Close {}),
@@ -1145,6 +1159,44 @@ fn build_terminal_lease_info(
         liquidation_price: None,
         opened_at: etl_data.and_then(|d| d.lease.timestamp.clone()),
         pnl: None,
+        reason: None,
+        close_policy: None,
+        overdue_collect_in: None,
+        in_progress: None,
+        opening_info: None,
+        etl_data: etl_info,
+    }
+}
+
+/// Build lease info for the OpenFailed terminal state (issue #288).
+/// Shares the terminal shape (zeroed asset/debt/interest) so a failed opening
+/// never perturbs portfolio totals, and threads the chain-reported reason.
+fn build_open_failed_lease_info(
+    lease_address: &str,
+    protocol: &str,
+    reason: &str,
+    etl_data: Option<&crate::external::etl::EtlLeaseOpening>,
+    etl_info: Option<LeaseEtlData>,
+) -> LeaseInfo {
+    LeaseInfo {
+        address: lease_address.to_string(),
+        protocol: protocol.to_string(),
+        status: LeaseStatusType::OpenFailed,
+        amount: LeaseAssetInfo {
+            ticker: String::new(),
+            amount: "0".to_string(),
+            amount_usd: None,
+        },
+        debt: build_empty_debt(""),
+        interest: LeaseInterestInfo {
+            loan_rate: 0,
+            margin_rate: 0,
+            annual_rate_percent: 0.0,
+        },
+        liquidation_price: None,
+        opened_at: etl_data.and_then(|d| d.lease.timestamp.clone()),
+        pnl: None,
+        reason: Some(reason.to_string()),
         close_policy: None,
         overdue_collect_in: None,
         in_progress: None,
@@ -1389,9 +1441,11 @@ fn calculate_pnl(
 /// Parse the opening stage from the chain's `in_progress` field.
 ///
 /// Chain format (externally tagged enum):
-///   "open_ica_account"                    → Some("open_ica_account")
-///   {"transfer_out": {"ica_account": ..}} → Some("transfer_out")
-///   {"buy_asset": {"ica_account": ..}}    → Some("buy_asset")
+///   "open_lease"                           → Some("open_lease")
+///   {"transfer_out": {"remote_lease": ..}} → Some("transfer_out")
+///   {"buy_asset": {"remote_lease": ..}}    → Some("buy_asset")
+/// Pre-migration leases still send the legacy "open_ica_account" / "ica_account"
+/// names; the generic passthrough keeps both working during the chain migration.
 fn parse_opening_stage(in_progress: &Option<serde_json::Value>) -> Option<String> {
     let value = in_progress.as_ref()?;
 
@@ -1426,6 +1480,7 @@ pub struct LeaseMonitorInfo {
     pub pnl: Option<LeasePnlInfo>,
     pub close_policy: Option<LeaseClosePolicy>,
     pub in_progress: Option<LeaseInProgress>,
+    pub reason: Option<String>,
 }
 
 /// Fetch all leases for an owner (for WebSocket monitoring)
@@ -1497,13 +1552,20 @@ pub async fn fetch_leases_for_monitoring(
                         let addr = addr.clone();
                         let protocol = protocol.clone();
                         async move {
-                            fetch_lease_monitor_info_internal(
+                            match fetch_lease_monitor_info_internal(
                                 &chain_client,
                                 &addr,
                                 &protocol,
                                 due_projection_secs,
                             )
                             .await
+                            {
+                                Ok(info) => Some(info),
+                                Err(e) => {
+                                    warn!("Failed to fetch lease {} for monitoring: {}", addr, e);
+                                    None
+                                }
+                            }
                         }
                     })
                     .collect();
@@ -1564,6 +1626,7 @@ fn build_lease_monitor_info(
             in_progress: Some(LeaseInProgress::Opening {
                 stage: parse_opening_stage(&opening.opening.in_progress),
             }),
+            reason: None,
         },
         LeaseStatusResponse::Opened(opened) => {
             let info = &opened.opened;
@@ -1602,6 +1665,7 @@ fn build_lease_monitor_info(
                     take_profit: cp.take_profit,
                 }),
                 in_progress: parse_opened_status(&info.status),
+                reason: None,
             }
         }
         LeaseStatusResponse::Closing(closing) => {
@@ -1638,6 +1702,7 @@ fn build_lease_monitor_info(
                 pnl: None,
                 close_policy: None,
                 in_progress: Some(LeaseInProgress::Close {}),
+                reason: None,
             }
         }
         LeaseStatusResponse::PaidOff(paid_off) => LeaseMonitorInfo {
@@ -1655,6 +1720,7 @@ fn build_lease_monitor_info(
             pnl: None,
             close_policy: None,
             in_progress: None,
+            reason: None,
         },
         LeaseStatusResponse::Closed(_) => LeaseMonitorInfo {
             address: lease_address.to_string(),
@@ -1667,6 +1733,7 @@ fn build_lease_monitor_info(
             pnl: None,
             close_policy: None,
             in_progress: None,
+            reason: None,
         },
         LeaseStatusResponse::Liquidated(_) => LeaseMonitorInfo {
             address: lease_address.to_string(),
@@ -1679,6 +1746,20 @@ fn build_lease_monitor_info(
             pnl: None,
             close_policy: None,
             in_progress: None,
+            reason: None,
+        },
+        LeaseStatusResponse::OpenFailed(failed) => LeaseMonitorInfo {
+            address: lease_address.to_string(),
+            protocol: protocol.to_string(),
+            status: "open_failed".to_string(),
+            amount: None,
+            debt: None,
+            interest: None,
+            liquidation_price: None,
+            pnl: None,
+            close_policy: None,
+            in_progress: None,
+            reason: Some(failed.open_failed.reason.clone()),
         },
     };
 
@@ -1841,6 +1922,138 @@ mod tests {
         let sp = LeaseInProgress::SlippageProtection {};
         let json = serde_json::to_value(&sp).unwrap();
         assert_eq!(json, serde_json::json!({"slippage_protection": {}}));
+    }
+
+    // ── v10 lease states (issue #288) ────────────────────────────────
+
+    // B3: parse_opening_stage is a generic passthrough. These pins lock in that
+    // the upstream RENAME (open_ica_account → open_lease) and inner FIELD RENAME
+    // (ica_account → remote_lease) do NOT change the stage string it returns —
+    // both new and legacy shapes must keep working during the chain migration.
+
+    #[test]
+    fn parse_opening_stage_returns_open_lease_for_bare_string() {
+        let in_progress = Some(serde_json::json!("open_lease"));
+        assert_eq!(
+            parse_opening_stage(&in_progress),
+            Some("open_lease".to_string())
+        );
+    }
+
+    #[test]
+    fn parse_opening_stage_returns_open_ica_account_for_legacy_bare_string() {
+        let in_progress = Some(serde_json::json!("open_ica_account"));
+        assert_eq!(
+            parse_opening_stage(&in_progress),
+            Some("open_ica_account".to_string())
+        );
+    }
+
+    #[test]
+    fn parse_opening_stage_returns_transfer_out_for_remote_lease_object() {
+        let in_progress =
+            Some(serde_json::json!({ "transfer_out": { "remote_lease": "nolus1remote" } }));
+        assert_eq!(
+            parse_opening_stage(&in_progress),
+            Some("transfer_out".to_string())
+        );
+    }
+
+    #[test]
+    fn parse_opening_stage_returns_buy_asset_for_remote_lease_object() {
+        let in_progress =
+            Some(serde_json::json!({ "buy_asset": { "remote_lease": "nolus1remote" } }));
+        assert_eq!(
+            parse_opening_stage(&in_progress),
+            Some("buy_asset".to_string())
+        );
+    }
+
+    #[test]
+    fn parse_opening_stage_returns_transfer_out_for_legacy_ica_account_object() {
+        let in_progress =
+            Some(serde_json::json!({ "transfer_out": { "ica_account": "nolus1remote" } }));
+        assert_eq!(
+            parse_opening_stage(&in_progress),
+            Some("transfer_out".to_string())
+        );
+    }
+
+    // B4: the REST OpenFailed arm builds a terminal-shaped LeaseInfo that threads
+    // the chain reason and zeroes the asset (mirrors Closed/Liquidated). A non-"0"
+    // amount or a live ticker here would perturb portfolio totals downstream.
+
+    #[test]
+    fn build_open_failed_lease_info_sets_open_failed_status() {
+        let info = build_open_failed_lease_info("lease1", "TEST-PROTOCOL", "timeout", None, None);
+        assert!(
+            matches!(info.status, LeaseStatusType::OpenFailed),
+            "OpenFailed arm must set LeaseStatusType::OpenFailed"
+        );
+    }
+
+    #[test]
+    fn build_open_failed_lease_info_threads_reason() {
+        let info = build_open_failed_lease_info("lease1", "TEST-PROTOCOL", "timeout", None, None);
+        assert_eq!(
+            info.reason.as_deref(),
+            Some("timeout"),
+            "OpenFailed LeaseInfo must carry the chain-reported reason"
+        );
+    }
+
+    #[test]
+    fn build_open_failed_lease_info_zeroes_amount_with_benign_ticker() {
+        let info = build_open_failed_lease_info("lease1", "TEST-PROTOCOL", "timeout", None, None);
+        assert_eq!(
+            info.amount.amount, "0",
+            "OpenFailed asset amount must be zero so portfolio totals are not perturbed"
+        );
+        assert!(
+            info.amount.ticker.is_empty(),
+            "OpenFailed asset ticker must be empty/benign like other terminal states"
+        );
+    }
+
+    // B5: the WS monitor OpenFailed arm surfaces status + reason in its payload.
+    #[test]
+    fn monitor_open_failed_emits_status_and_reason() {
+        let status = LeaseStatusResponse::OpenFailed(crate::external::chain::LeaseOpenFailed {
+            open_failed: crate::external::chain::OpenFailedInfo {
+                reason: "unexpected operation response".to_string(),
+            },
+        });
+
+        let info = build_lease_monitor_info(&status, "lease1", "TEST-PROTOCOL")
+            .expect("open_failed monitor info builds");
+
+        assert_eq!(info.status, "open_failed");
+        assert_eq!(
+            info.reason.as_deref(),
+            Some("unexpected operation response")
+        );
+    }
+
+    // B8: adding an optional `reason` field must not pollute existing payloads —
+    // a non-failed LeaseInfo serializes with NO `reason` key (skip_serializing_if).
+    #[test]
+    fn non_failed_lease_info_serializes_without_reason_key() {
+        let info = build_terminal_lease_info(
+            "lease1",
+            "TEST-PROTOCOL",
+            LeaseStatusType::Closed,
+            None,
+            None,
+            None,
+        );
+        let json = serde_json::to_value(&info).expect("lease info serializes");
+        let obj = json
+            .as_object()
+            .expect("lease info serializes to a JSON object");
+        assert!(
+            !obj.contains_key("reason"),
+            "a non-failed LeaseInfo must omit the `reason` key (needs skip_serializing_if)"
+        );
     }
 
     // ── PnL calculation tests ────────────────────────────────────

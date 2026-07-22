@@ -1347,15 +1347,7 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
             let change_type = if is_new {
                 "new"
             } else {
-                match lease.status.as_str() {
-                    "opening" => "opening",
-                    "opened" => "updated",
-                    "closing" => "closing",
-                    "closed" => "closed",
-                    "paid_off" => "paid_off",
-                    "liquidated" => "liquidated",
-                    _ => "updated",
-                }
+                lease_change_type(lease.status.as_str())
             };
 
             // Build full lease object matching frontend LeaseInfo shape
@@ -1370,6 +1362,7 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
                 "pnl": lease.pnl,
                 "close_policy": lease.close_policy,
                 "in_progress": lease.in_progress,
+                "reason": lease.reason,
             });
 
             // Send update to subscribers
@@ -1380,8 +1373,8 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
                 lease_address, owner, change_type
             );
 
-            // Clean up cache and reverse index for closed/liquidated leases
-            if matches!(lease.status.as_str(), "closed" | "liquidated" | "paid_off") {
+            // Clean up cache and reverse index for terminal leases
+            if is_terminal_lease_status(lease.status.as_str()) {
                 state
                     .ws_manager
                     .remove_lease_from_cache(owner, lease_address);
@@ -1696,6 +1689,27 @@ fn lag_recheck_allowed(last_full_recheck: Option<Instant>, now: Instant) -> bool
     }
 }
 
+/// Map a lease status to the change-type label sent to subscribers. Anything
+/// unrecognised falls back to "updated".
+fn lease_change_type(status: &str) -> &'static str {
+    match status {
+        "opening" => "opening",
+        "opened" => "updated",
+        "closing" => "closing",
+        "closed" => "closed",
+        "paid_off" => "paid_off",
+        "liquidated" => "liquidated",
+        "open_failed" => "open_failed",
+        _ => "updated",
+    }
+}
+
+/// Whether a lease status can never change again, so its cache and reverse-index
+/// entries may be dropped.
+fn is_terminal_lease_status(status: &str) -> bool {
+    matches!(status, "closed" | "liquidated" | "paid_off" | "open_failed")
+}
+
 /// Outcome of evaluating one address in a balance-monitor flush.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum BalanceFlushOutcome {
@@ -1968,6 +1982,49 @@ mod tests {
             Some(now),
             now + LAG_RECHECK_MIN_INTERVAL
         ));
+    }
+
+    // ── v10 lease states (issue #288) ────────────────────────────────
+    // The WS state-change label match and the terminal cleanup match must both
+    // recognise "open_failed". Both are extracted to pure helpers so the mapping
+    // is unit-testable through a stable seam (mirrors `lag_recheck_allowed`).
+
+    #[test]
+    fn lease_change_type_returns_open_failed_for_open_failed_status() {
+        assert_eq!(
+            lease_change_type("open_failed"),
+            "open_failed",
+            "open_failed must get its own change label, not the `updated` catch-all"
+        );
+    }
+
+    #[test]
+    fn lease_change_type_preserves_existing_status_labels() {
+        assert_eq!(lease_change_type("opening"), "opening");
+        assert_eq!(lease_change_type("opened"), "updated");
+        assert_eq!(lease_change_type("closing"), "closing");
+        assert_eq!(lease_change_type("closed"), "closed");
+        assert_eq!(lease_change_type("paid_off"), "paid_off");
+        assert_eq!(lease_change_type("liquidated"), "liquidated");
+        assert_eq!(lease_change_type("something_unknown"), "updated");
+    }
+
+    #[test]
+    fn is_terminal_lease_status_true_for_terminal_states() {
+        assert!(is_terminal_lease_status("closed"));
+        assert!(is_terminal_lease_status("liquidated"));
+        assert!(is_terminal_lease_status("paid_off"));
+        assert!(
+            is_terminal_lease_status("open_failed"),
+            "open_failed can never change again — it must trigger cache cleanup"
+        );
+    }
+
+    #[test]
+    fn is_terminal_lease_status_false_for_active_states() {
+        assert!(!is_terminal_lease_status("opening"));
+        assert!(!is_terminal_lease_status("opened"));
+        assert!(!is_terminal_lease_status("closing"));
     }
 
     #[test]
