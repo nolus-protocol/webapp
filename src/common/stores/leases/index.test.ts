@@ -578,7 +578,7 @@ describe("useLeasesStore", () => {
     BackendApi.getLeases.mockResolvedValueOnce([mkLease({ address: "l1", status: "opened" })]);
     await store.setOwner("nolus1x");
 
-    // WS delivers the terminal open_failed for l1 (monitor OpenFailed arm, B5).
+    // WS delivers the terminal open_failed for l1.
     emitLeases(mkLease({ address: "l1", status: "open_failed", reason: "timeout" }));
     expect(store.leases.find((l) => l.address === "l1")?.status).toBe("open_failed");
 
