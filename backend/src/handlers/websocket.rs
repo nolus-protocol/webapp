@@ -1350,20 +1350,7 @@ async fn check_owner_leases(state: &AppState, owner: &str) -> Result<(), String>
                 lease_change_type(lease.status.as_str())
             };
 
-            // Build full lease object matching frontend LeaseInfo shape
-            let lease_data = serde_json::json!({
-                "address": lease.address,
-                "protocol": lease.protocol,
-                "status": lease.status,
-                "amount": lease.amount,
-                "debt": lease.debt,
-                "interest": lease.interest,
-                "liquidation_price": lease.liquidation_price,
-                "pnl": lease.pnl,
-                "close_policy": lease.close_policy,
-                "in_progress": lease.in_progress,
-                "reason": lease.reason,
-            });
+            let lease_data = build_lease_update_payload(&lease);
 
             // Send update to subscribers
             state.ws_manager.send_lease_update(owner, lease_data);
@@ -1710,6 +1697,28 @@ fn is_terminal_lease_status(status: &str) -> bool {
     matches!(status, "closed" | "liquidated" | "paid_off" | "open_failed")
 }
 
+/// Build the WS lease-update payload in the frontend's LeaseInfo shape. `reason`
+/// is inserted only when present, mirroring the REST serializer's
+/// `skip_serializing_if` so non-failed leases carry no `reason` key.
+fn build_lease_update_payload(lease: &super::leases::LeaseMonitorInfo) -> serde_json::Value {
+    let mut payload = serde_json::json!({
+        "address": lease.address,
+        "protocol": lease.protocol,
+        "status": lease.status,
+        "amount": lease.amount,
+        "debt": lease.debt,
+        "interest": lease.interest,
+        "liquidation_price": lease.liquidation_price,
+        "pnl": lease.pnl,
+        "close_policy": lease.close_policy,
+        "in_progress": lease.in_progress,
+    });
+    if let Some(reason) = &lease.reason {
+        payload["reason"] = serde_json::Value::String(reason.clone());
+    }
+    payload
+}
+
 /// Outcome of evaluating one address in a balance-monitor flush.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum BalanceFlushOutcome {
@@ -1984,7 +1993,6 @@ mod tests {
         ));
     }
 
-    // ── v10 lease states (issue #288) ────────────────────────────────
     // The WS state-change label match and the terminal cleanup match must both
     // recognise "open_failed". Both are extracted to pure helpers so the mapping
     // is unit-testable through a stable seam (mirrors `lag_recheck_allowed`).
@@ -2025,6 +2033,31 @@ mod tests {
         assert!(!is_terminal_lease_status("opening"));
         assert!(!is_terminal_lease_status("opened"));
         assert!(!is_terminal_lease_status("closing"));
+    }
+
+    #[test]
+    fn lease_update_payload_omits_reason_key_for_non_failed_lease() {
+        let lease = crate::handlers::leases::LeaseMonitorInfo {
+            address: "lease1".to_string(),
+            protocol: "TEST-PROTOCOL".to_string(),
+            status: "opened".to_string(),
+            amount: None,
+            debt: None,
+            interest: None,
+            liquidation_price: None,
+            pnl: None,
+            close_policy: None,
+            in_progress: None,
+            reason: None,
+        };
+        let payload = build_lease_update_payload(&lease);
+        let obj = payload
+            .as_object()
+            .expect("lease update payload is a JSON object");
+        assert!(
+            !obj.contains_key("reason"),
+            "a non-failed WS lease payload must omit the `reason` key (mirrors REST skip_serializing_if)"
+        );
     }
 
     #[test]
