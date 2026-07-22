@@ -283,6 +283,8 @@
     "learn-new-leases": "Margin leverage hakkında daha fazla bilgi edinin",
     "opening-title": "Pozisyon Şu Anda Açılıyor",
     "opening-description": "Bu genellikle bir dakikadan kısa sürer. Lütfen biraz bekleyin veya daha sonra tekrar kontrol edin",
+    "open-failed-title": "Pozisyon Açma Başarısız",
+    "open-failed-refund-description": "Bu pozisyon açılamadı. Protokol, fonlarınızı cüzdanınıza iade etti.",
     "currently-opening": "Pozisyon Şu Anda Açılıyor",
     "toast-repaid": "Pozisyon Geri Ödendi",
     "toast-closed": "Pozisyon Şu Anda Kapanıyor",

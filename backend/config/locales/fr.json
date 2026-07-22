@@ -283,6 +283,8 @@
     "learn-new-leases": "En savoir plus sur l’effet de levier sur marge",
     "opening-title": "Ouverture de la position en cours",
     "opening-description": "Cela prend généralement moins d’une minute. Veuillez patienter un instant ou réessayer plus tard",
+    "open-failed-title": "Échec de l’ouverture de la position",
+    "open-failed-refund-description": "Cette position n’a pas pu être ouverte. Le protocole a remboursé vos fonds sur votre wallet.",
     "currently-opening": "Ouverture de la position en cours",
     "toast-repaid": "Position remboursée",
     "toast-closed": "Fermeture de la position en cours",

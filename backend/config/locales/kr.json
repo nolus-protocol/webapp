@@ -283,6 +283,8 @@
     "learn-new-leases": "마진 레버리지 자세히 알아보기",
     "opening-title": "포지션을 여는 중",
     "opening-description": "보통 1분 이내로 완료됩니다. 잠시만 기다리거나 나중에 다시 확인해 주세요",
+    "open-failed-title": "포지션 열기 실패",
+    "open-failed-refund-description": "이 포지션을 열 수 없습니다. 프로토콜이 자금을 지갑으로 환불했습니다.",
     "currently-opening": "포지션을 여는 중",
     "toast-repaid": "포지션 상환 완료",
     "toast-closed": "포지션을 닫는 중",

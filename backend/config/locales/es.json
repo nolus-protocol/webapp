@@ -283,6 +283,8 @@
     "learn-new-leases": "Más información sobre apalancamiento de margen",
     "opening-title": "La posición se está abriendo",
     "opening-description": "Normalmente tarda menos de un minuto. Espera un momento o vuelve a comprobarlo más tarde",
+    "open-failed-title": "Error al abrir la posición",
+    "open-failed-refund-description": "No se pudo abrir esta posición. El protocolo ha reembolsado tus fondos a tu wallet.",
     "currently-opening": "La posición se está abriendo",
     "toast-repaid": "Posición reembolsada",
     "toast-closed": "La posición se está cerrando",

@@ -283,6 +283,8 @@
     "learn-new-leases": "マージンレバレッジについて詳しく見る",
     "opening-title": "ポジションをオープン中",
     "opening-description": "通常は1分以内に完了します。しばらくお待ちいただくか、後ほど再度ご確認ください",
+    "open-failed-title": "ポジションのオープンに失敗しました",
+    "open-failed-refund-description": "このポジションをオープンできませんでした。プロトコルにより資金がウォレットに返金されました。",
     "currently-opening": "ポジションをオープン中",
     "toast-repaid": "ポジションを返済しました",
     "toast-closed": "ポジションをクローズ中",
