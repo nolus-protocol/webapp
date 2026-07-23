@@ -20,6 +20,7 @@ pub mod spa;
 pub mod staking;
 pub mod swap;
 pub mod transactions;
+pub mod transfer;
 pub mod translations;
 pub mod websocket;
 pub mod zero_interest;

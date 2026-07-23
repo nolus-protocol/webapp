@@ -194,6 +194,11 @@ mod tests {
     }
 
     #[test]
+    fn test_cache_duration_no_cache_transfer_status() {
+        assert_eq!(determine_cache_duration("/api/transfer/status/abc123"), 0);
+    }
+
+    #[test]
     fn test_cache_duration_no_cache_zero_interest_user_data() {
         assert_eq!(
             determine_cache_duration("/api/zero-interest/eligibility"),

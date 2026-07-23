@@ -9,6 +9,7 @@
 //! semaphore/env var rather than sharing the chain client's. No raw RPC proxy
 //! is exposed to the frontend.
 
+use std::collections::BTreeSet;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -487,6 +488,44 @@ impl SolanaClient {
     }
 }
 
+/// The deployed Solray program id. Every packet PDA fetched from Solana must be
+/// owned by this program before its bytes are decoded — the decoders operate on
+/// raw bytes and cannot tell a packet PDA from any other account whose data
+/// happens to decode as the same B-tree.
+pub const SOLRAY_PROGRAM_ID: &str = "JEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFF";
+
+/// A decoded packet PDA, indexed by sequence. An `Absent` account (the
+/// `getAccountInfo` value was null) is distinct from a `Present` but empty PDA:
+/// the first means the channel has no such PDA, the second means the PDA exists
+/// and currently holds no entries.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PacketPdaSnapshot {
+    Absent,
+    Present(BTreeSet<u64>),
+}
+
+/// Decode a fetched packet-commitment PDA into the set of sequences that still
+/// hold an outstanding commitment. Owner-checked against [`SOLRAY_PROGRAM_ID`];
+/// `None` maps to [`PacketPdaSnapshot::Absent`]. Pure over the fetched
+/// `account` — no RPC — so a poll cycle decodes once and indexes by sequence.
+pub fn decode_commitment_pda(
+    account: Option<&SolanaAccount>,
+) -> Result<PacketPdaSnapshot, AppError> {
+    let _ = account;
+    todo!("Absent for None; else owner-check then ibc_solray::api::query::decode_packet_commitments")
+}
+
+/// Decode a fetched packet-acknowledgement PDA into the set of acknowledged
+/// sequences. Presence proves an ack exists; the success-vs-error polarity is
+/// NOT decodable here (the PDA stores only a commitment hash). Owner-checked;
+/// `None` maps to [`PacketPdaSnapshot::Absent`].
+pub fn decode_acknowledgement_pda(
+    account: Option<&SolanaAccount>,
+) -> Result<PacketPdaSnapshot, AppError> {
+    let _ = account;
+    todo!("Absent for None; else owner-check then decode+index the ack PDA")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -930,5 +969,80 @@ mod sdk_pin_tests {
         let derived = id.derive_address();
         assert_eq!(derived.to_string(), EXPECTED_VAULT_AUTHORITY);
         assert!(id.point_to(&derived));
+    }
+}
+
+/// Wrapper behavior for the packet-PDA decoders: owner verification, the
+/// absent-vs-empty distinction, and malformed-bytes error surfacing. The
+/// happy-path B-tree decode itself is covered by ibc-solray's own crate tests;
+/// these pin the webapp-side wrapper contract, which needs no live RPC.
+#[cfg(test)]
+mod packet_pda_tests {
+    use super::*;
+    use std::collections::BTreeSet;
+
+    const OTHER_OWNER: &str = "11111111111111111111111111111111";
+    /// base64 of a 3-byte buffer — too short to be a valid B-tree header.
+    const TRUNCATED_BASE64: &str = "AAAA";
+
+    fn account(owner: &str, data_base64: &str) -> SolanaAccount {
+        SolanaAccount {
+            lamports: 10,
+            owner: owner.to_string(),
+            executable: false,
+            data: vec![data_base64.to_string(), "base64".to_string()],
+        }
+    }
+
+    #[test]
+    fn absent_commitment_account_is_absent_not_empty() {
+        assert_eq!(
+            decode_commitment_pda(None).expect("absent decodes"),
+            PacketPdaSnapshot::Absent
+        );
+    }
+
+    #[test]
+    fn present_empty_commitment_pda_is_present_with_no_sequences() {
+        let empty = account(SOLRAY_PROGRAM_ID, "");
+        assert_eq!(
+            decode_commitment_pda(Some(&empty)).expect("empty PDA decodes"),
+            PacketPdaSnapshot::Present(BTreeSet::new())
+        );
+    }
+
+    #[test]
+    fn wrong_owner_commitment_account_is_rejected_before_decode() {
+        let foreign = account(OTHER_OWNER, "");
+        assert!(
+            decode_commitment_pda(Some(&foreign)).is_err(),
+            "an account not owned by the solray program must be rejected"
+        );
+    }
+
+    #[test]
+    fn truncated_commitment_bytes_surface_as_error() {
+        let malformed = account(SOLRAY_PROGRAM_ID, TRUNCATED_BASE64);
+        assert!(
+            decode_commitment_pda(Some(&malformed)).is_err(),
+            "a sub-header byte buffer must surface a decode error"
+        );
+    }
+
+    #[test]
+    fn absent_acknowledgement_account_is_absent_not_empty() {
+        assert_eq!(
+            decode_acknowledgement_pda(None).expect("absent decodes"),
+            PacketPdaSnapshot::Absent
+        );
+    }
+
+    #[test]
+    fn wrong_owner_acknowledgement_account_is_rejected_before_decode() {
+        let foreign = account(OTHER_OWNER, "");
+        assert!(
+            decode_acknowledgement_pda(Some(&foreign)).is_err(),
+            "an account not owned by the solray program must be rejected"
+        );
     }
 }
