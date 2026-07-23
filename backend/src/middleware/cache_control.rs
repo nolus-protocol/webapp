@@ -73,6 +73,7 @@ fn determine_cache_duration(path: &str) -> u32 {
         || path.contains("/referral/")
         || path.contains("/swap/status")
         || path.contains("/swap/history")
+        || path.contains("/transfer/status")
         || path.contains("/zero-interest/eligibility")
         || path.contains("/zero-interest/payments")
         || path.contains("/campaigns/eligibility")

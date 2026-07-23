@@ -504,6 +504,32 @@ pub enum PacketPdaSnapshot {
     Present(BTreeSet<u64>),
 }
 
+/// Owner-check a fetched packet PDA and return its raw account bytes. `None`
+/// account -> `Ok(None)` (the PDA is absent). A non-solray owner is rejected
+/// *before* any decode, since the decoders operate on raw bytes and cannot tell
+/// a packet PDA from a foreign account whose data happens to decode.
+fn checked_pda_bytes(account: Option<&SolanaAccount>) -> Result<Option<Vec<u8>>, AppError> {
+    let Some(account) = account else {
+        return Ok(None);
+    };
+    if account.owner != SOLRAY_PROGRAM_ID {
+        return Err(AppError::ChainRpc {
+            chain: CHAIN.to_string(),
+            message: format!(
+                "packet PDA owned by {}, not the solray program",
+                account.owner
+            ),
+        });
+    }
+    let encoded = account.data.first().map_or("", String::as_str);
+    let bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, encoded)
+        .map_err(|e| AppError::ChainRpc {
+            chain: CHAIN.to_string(),
+            message: format!("decoding packet PDA account data: {e}"),
+        })?;
+    Ok(Some(bytes))
+}
+
 /// Decode a fetched packet-commitment PDA into the set of sequences that still
 /// hold an outstanding commitment. Owner-checked against [`SOLRAY_PROGRAM_ID`];
 /// `None` maps to [`PacketPdaSnapshot::Absent`]. Pure over the fetched
@@ -511,8 +537,24 @@ pub enum PacketPdaSnapshot {
 pub fn decode_commitment_pda(
     account: Option<&SolanaAccount>,
 ) -> Result<PacketPdaSnapshot, AppError> {
-    let _ = account;
-    todo!("Absent for None; else owner-check then ibc_solray::api::query::decode_packet_commitments")
+    let Some(bytes) = checked_pda_bytes(account)? else {
+        return Ok(PacketPdaSnapshot::Absent);
+    };
+    let entries = ibc_solray::api::query::decode_packet_commitments(&bytes).map_err(|e| {
+        AppError::ChainRpc {
+            chain: CHAIN.to_string(),
+            message: format!("decoding packet commitment PDA: {e}"),
+        }
+    })?;
+    let mut sequences = BTreeSet::new();
+    for entry in entries {
+        let (sequence, _commitment) = entry.map_err(|e| AppError::ChainRpc {
+            chain: CHAIN.to_string(),
+            message: format!("decoding packet commitment entry: {e}"),
+        })?;
+        sequences.insert(u64::from(sequence));
+    }
+    Ok(PacketPdaSnapshot::Present(sequences))
 }
 
 /// Decode a fetched packet-acknowledgement PDA into the set of acknowledged
@@ -522,8 +564,24 @@ pub fn decode_commitment_pda(
 pub fn decode_acknowledgement_pda(
     account: Option<&SolanaAccount>,
 ) -> Result<PacketPdaSnapshot, AppError> {
-    let _ = account;
-    todo!("Absent for None; else owner-check then decode+index the ack PDA")
+    let Some(bytes) = checked_pda_bytes(account)? else {
+        return Ok(PacketPdaSnapshot::Absent);
+    };
+    let entries = ibc_solray::api::query::decode_packet_acknowledgements(&bytes).map_err(|e| {
+        AppError::ChainRpc {
+            chain: CHAIN.to_string(),
+            message: format!("decoding packet acknowledgement PDA: {e}"),
+        }
+    })?;
+    let mut sequences = BTreeSet::new();
+    for entry in entries {
+        let (sequence, _stored_ack) = entry.map_err(|e| AppError::ChainRpc {
+            chain: CHAIN.to_string(),
+            message: format!("decoding packet acknowledgement entry: {e}"),
+        })?;
+        sequences.insert(u64::from(sequence));
+    }
+    Ok(PacketPdaSnapshot::Present(sequences))
 }
 
 #[cfg(test)]

@@ -65,6 +65,8 @@ pub struct AppState {
     pub translation_storage: TranslationStorage,
     /// LLM client for AI-powered translations (via OpenRouter)
     pub llm_client: LlmClient,
+    /// Durable tracking set for in-flight Nolus<->Solana transfers.
+    pub transfer_store: transfer_tracker::TransferStore,
     /// Server startup time for uptime tracking
     pub startup_time: Instant,
 }
@@ -178,6 +180,34 @@ async fn main() -> anyhow::Result<()> {
         base_url: None,
     });
 
+    // Initialize the durable transfer tracking set. An existing image is loaded
+    // (a corrupt image fails loud rather than silently starting empty); a fresh
+    // deployment starts an empty set.
+    let transfer_store_path = std::path::PathBuf::from(
+        std::env::var("TRANSFER_STORE_PATH")
+            .unwrap_or_else(|_err| "./data/transfers.json".to_string()),
+    );
+    if let Some(parent) = transfer_store_path.parent() {
+        if !parent.as_os_str().is_empty() {
+            tokio::fs::create_dir_all(parent).await?;
+        }
+    }
+    let transfer_retention = chrono::Duration::hours(24);
+    let transfer_store = if transfer_store_path.exists() {
+        transfer_tracker::TransferStore::load(
+            transfer_store_path,
+            transfer_tracker::DEFAULT_ACTIVE_SET_CAP,
+            transfer_retention,
+        )
+        .await?
+    } else {
+        transfer_tracker::TransferStore::create(
+            transfer_store_path,
+            transfer_tracker::DEFAULT_ACTIVE_SET_CAP,
+            transfer_retention,
+        )
+    };
+
     // Create shared application state
     let state = Arc::new(AppState {
         config,
@@ -192,6 +222,7 @@ async fn main() -> anyhow::Result<()> {
         config_store,
         translation_storage,
         llm_client,
+        transfer_store,
         startup_time: Instant::now(),
     });
 
@@ -432,6 +463,11 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/swap/config", get(handlers::swap::get_swap_config))
         .route("/swap/status/{tx_hash}", get(handlers::swap::get_status))
         .route("/swap/chains", get(handlers::swap::get_chains))
+        // Transfer tracker (read) — status of a tracked Nolus<->Solana route
+        .route(
+            "/transfer/status/{id}",
+            get(handlers::transfer::get_transfer_status),
+        )
         // Referral (read)
         .route(
             "/referral/validate/{code}",
@@ -585,6 +621,8 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/swap/track", post(handlers::swap::track_transaction))
         .route("/swap/route", post(handlers::swap::get_route))
         .route("/swap/messages", post(handlers::swap::get_messages))
+        // Transfer tracker (write) — register an in-flight route for tracking
+        .route("/transfer/track", post(handlers::transfer::track_transfer))
         // Referral (write)
         .route("/referral/register", post(handlers::referral::register))
         .route("/referral/assign", post(handlers::referral::assign))

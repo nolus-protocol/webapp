@@ -147,6 +147,7 @@ pub async fn test_app_state_with_config_and_client(
         config_store,
         translation_storage,
         llm_client,
+        transfer_store: crate::transfer_tracker::TransferStore::ephemeral(),
         startup_time: Instant::now(),
     })
 }

@@ -6,66 +6,191 @@
 //! corrupt image on load is a loud failure with a `.bak` fallback — never a
 //! silent empty start. Terminal routes are retained for a window, then pruned.
 
-use std::path::PathBuf;
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, PoisonError};
 
 use chrono::{DateTime, Duration, Utc};
+use tokio::io::AsyncWriteExt as _;
 
 use crate::error::AppError;
 
 use super::TrackedTransfer;
 
+/// Monotonic suffix source for temp-file uniqueness within a persist directory.
+static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
+
 /// The durable, capped, self-pruning tracking set.
+///
+/// The canonical map is guarded by a single [`Mutex`]. The guard is never held
+/// across an `.await`: async methods snapshot or mutate under the lock, drop
+/// it, then do file I/O.
 pub struct TransferStore {
     path: PathBuf,
     capacity: usize,
     retention: Duration,
+    entries: Mutex<HashMap<String, TrackedTransfer>>,
 }
 
 impl TransferStore {
     /// Bind a store to `path` with an empty in-memory set — the create path
     /// when no prior image exists.
     pub fn create(path: PathBuf, capacity: usize, retention: Duration) -> Self {
-        let _ = (path, capacity, retention);
-        todo!("initialise an empty locked map bound to `path`")
+        Self {
+            path,
+            capacity,
+            retention,
+            entries: Mutex::new(HashMap::new()),
+        }
     }
 
     /// Load an existing image from `path`. A corrupt primary image falls back
     /// to `<path>.bak`; if neither loads, this returns `Err` — it must never
     /// silently yield an empty set.
-    pub async fn load(path: PathBuf, capacity: usize, retention: Duration) -> Result<Self, AppError> {
-        let _ = (path, capacity, retention);
-        todo!("load primary; on corruption try .bak; else Err (never empty-start)")
+    pub async fn load(
+        path: PathBuf,
+        capacity: usize,
+        retention: Duration,
+    ) -> Result<Self, AppError> {
+        let primary = Self::read_image(&path).await;
+        let entries = match primary {
+            Ok(map) => map,
+            Err(primary_err) => {
+                let backup = Self::backup_path(&path);
+                Self::read_image(&backup).await.map_err(|_backup_err| {
+                    AppError::Internal(format!(
+                        "transfer store image at {} is unreadable and no valid backup exists: {primary_err}",
+                        path.display()
+                    ))
+                })?
+            }
+        };
+        Ok(Self {
+            path,
+            capacity,
+            retention,
+            entries: Mutex::new(entries),
+        })
     }
 
     /// Persist the whole map: unique temp file -> `sync_all` -> atomic rename
     /// -> parent-dir fsync.
     pub async fn persist(&self) -> Result<(), AppError> {
-        todo!("whole-map write via unique temp + sync_all + parent fsync")
+        let snapshot = self.snapshot();
+        let bytes = serde_json::to_vec_pretty(&snapshot)
+            .map_err(|e| AppError::Internal(format!("serialising transfer store: {e}")))?;
+
+        let dir = self.path.parent().filter(|p| !p.as_os_str().is_empty());
+        let temp = self.temp_path();
+
+        {
+            let mut file = tokio::fs::File::create(&temp).await.map_err(|e| {
+                AppError::Internal(format!("creating transfer store temp file: {e}"))
+            })?;
+            file.write_all(&bytes).await.map_err(|e| {
+                AppError::Internal(format!("writing transfer store temp file: {e}"))
+            })?;
+            file.sync_all().await.map_err(|e| {
+                AppError::Internal(format!("syncing transfer store temp file: {e}"))
+            })?;
+        }
+
+        tokio::fs::rename(&temp, &self.path)
+            .await
+            .map_err(|e| AppError::Internal(format!("committing transfer store image: {e}")))?;
+
+        if let Some(dir) = dir {
+            if let Ok(handle) = tokio::fs::File::open(dir).await {
+                let _ = handle.sync_all().await;
+            }
+        }
+        Ok(())
     }
 
     /// Insert a new tracked route. Rejects with `Err` once the active set is at
     /// capacity.
     pub async fn insert(&self, record: TrackedTransfer) -> Result<(), AppError> {
-        let _ = record;
-        todo!("reject at capacity; otherwise insert and persist")
+        {
+            let mut entries = self.lock();
+            if entries.len() >= self.capacity {
+                return Err(AppError::RateLimited { retry_after: None });
+            }
+            entries.insert(record.id.clone(), record);
+        }
+        self.persist().await
     }
 
     /// Fetch a tracked route by id.
     pub fn get(&self, id: &str) -> Option<TrackedTransfer> {
-        let _ = id;
-        todo!("clone the record out of the locked map")
+        self.lock().get(id).cloned()
     }
 
     /// Number of routes currently held.
     pub fn active_count(&self) -> usize {
-        todo!("map length under the lock")
+        self.lock().len()
+    }
+
+    /// The active-set cap this store enforces on new insertions.
+    pub const fn capacity(&self) -> usize {
+        self.capacity
     }
 
     /// Drop terminal routes whose `terminal_at` is older than the retention
     /// window relative to `now`.
     pub fn prune(&self, now: DateTime<Utc>) {
-        let _ = now;
-        todo!("evict terminal routes past the retention window")
+        let mut entries = self.lock();
+        entries.retain(|_id, record| match record.terminal_at {
+            Some(terminal_at) => terminal_at + self.retention >= now,
+            None => true,
+        });
+    }
+
+    /// Lock the canonical map, recovering the inner guard on poisoning rather
+    /// than panicking (a poisoned lock still holds a usable map).
+    fn lock(&self) -> std::sync::MutexGuard<'_, HashMap<String, TrackedTransfer>> {
+        self.entries.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// Snapshot the canonical map for a whole-image write.
+    fn snapshot(&self) -> HashMap<String, TrackedTransfer> {
+        self.lock().clone()
+    }
+
+    /// The `<path>.bak` fallback image path.
+    fn backup_path(path: &Path) -> PathBuf {
+        let mut name = path.file_name().unwrap_or_default().to_os_string();
+        name.push(".bak");
+        path.with_file_name(name)
+    }
+
+    /// A unique temp path in the image's directory for an atomic write.
+    fn temp_path(&self) -> PathBuf {
+        let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
+        let mut name = self.path.file_name().unwrap_or_default().to_os_string();
+        name.push(format!(".tmp-{}-{counter}", std::process::id()));
+        self.path.with_file_name(name)
+    }
+
+    /// Read and deserialise a whole-map image. Any I/O or parse failure is an
+    /// `Err` — a missing or corrupt image never yields an empty map here.
+    async fn read_image(path: &Path) -> Result<HashMap<String, TrackedTransfer>, AppError> {
+        let bytes = tokio::fs::read(path)
+            .await
+            .map_err(|e| AppError::Internal(format!("reading transfer store image: {e}")))?;
+        serde_json::from_slice(&bytes)
+            .map_err(|e| AppError::Internal(format!("parsing transfer store image: {e}")))
+    }
+
+    /// Ephemeral store bound to a unique temp file, for tests only.
+    #[cfg(test)]
+    pub fn ephemeral() -> Self {
+        let path = std::env::temp_dir().join(format!(
+            "transfers-test-{}-{}.json",
+            std::process::id(),
+            TEMP_COUNTER.fetch_add(1, Ordering::Relaxed)
+        ));
+        Self::create(path, super::DEFAULT_ACTIVE_SET_CAP, Duration::hours(1))
     }
 }
 
@@ -137,7 +262,10 @@ mod tests {
         let path = dir.path().join("transfers.json");
         let store = TransferStore::create(path, 1, retention());
 
-        store.insert(record("t1", None)).await.expect("first insert fits");
+        store
+            .insert(record("t1", None))
+            .await
+            .expect("first insert fits");
         assert!(
             store.insert(record("t2", None)).await.is_err(),
             "insert past the active-set cap must be rejected"

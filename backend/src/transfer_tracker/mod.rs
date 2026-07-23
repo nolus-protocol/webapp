@@ -8,6 +8,7 @@
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 mod store;
 
@@ -29,16 +30,27 @@ pub const STATE_COMPLETED_ERROR: &str = "STATE_COMPLETED_ERROR";
 pub const STATE_ABANDONED: &str = "STATE_ABANDONED";
 
 /// The two chains a transfer leg can touch.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum Chain {
     Nolus,
     Solana,
 }
 
+impl Chain {
+    /// Lowercase wire label, matching this enum's `serde` representation. Used
+    /// where the response carries the chain as a plain `String`.
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Nolus => "nolus",
+            Self::Solana => "solana",
+        }
+    }
+}
+
 /// Direction of the overall route, fixing which chain holds the commitment
 /// truth and which supplies terminal events.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum Direction {
     NolusToSolana,
@@ -81,7 +93,7 @@ pub enum LegPhase {
 
 /// An IBC height is a `(revision_number, revision_height)` tuple. Timeout
 /// eligibility compares the whole tuple, never the slot alone.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 pub struct IbcHeight {
     pub revision_number: u64,
     pub revision_height: u64,
@@ -128,14 +140,14 @@ pub struct TrackedTransfer {
 }
 
 /// Where the asset currently rests, mirroring Skip's `transfer_asset_release`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 pub struct AssetRelease {
     pub chain: String,
     pub released: bool,
 }
 
 /// Typed per-route error, mirroring Skip's error envelope.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 pub struct TransferError {
     pub code: String,
     pub message: String,
@@ -143,7 +155,7 @@ pub struct TransferError {
 
 /// One entry of the modern `transfers[]` shape: a per-leg state plus the
 /// chains it bridges.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 pub struct TransferLeg {
     pub state: String,
     pub from_chain: String,
@@ -152,7 +164,7 @@ pub struct TransferLeg {
 
 /// The status response served by `GET /api/transfer/status/{id}`. This is the
 /// tracker's own type, NOT a re-use of `SkipStatusResponse`.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
 pub struct TransferStatusResponse {
     pub state: String,
     pub transfers: Vec<TransferLeg>,
@@ -164,39 +176,82 @@ pub struct TransferStatusResponse {
 /// True when `current` is at or past `timeout`, comparing the full IBC height
 /// tuple (revision number first, then revision height).
 pub fn timeout_reached(current: IbcHeight, timeout: IbcHeight) -> bool {
-    let _ = (current, timeout);
-    todo!("compare (revision_number, revision_height) tuple, never slot alone")
+    (current.revision_number, current.revision_height)
+        >= (timeout.revision_number, timeout.revision_height)
 }
 
 /// Terminal phase derived from a Nolus `acknowledge_packet` event's ack
 /// payload polarity — the only source of success-vs-error truth.
-pub fn phase_from_ack_event(outcome: AckOutcome) -> LegPhase {
-    let _ = outcome;
-    todo!("Success -> CompletedSuccess, Error -> CompletedError")
+pub const fn phase_from_ack_event(outcome: AckOutcome) -> LegPhase {
+    match outcome {
+        AckOutcome::Success => LegPhase::CompletedSuccess,
+        AckOutcome::Error => LegPhase::CompletedError,
+    }
 }
 
 /// Phase implied by an acknowledgement PDA snapshot alone. The 32-byte hash
 /// carries no polarity, so this never yields a success/error terminal.
-pub fn phase_from_ack_pda(snapshot: &AckPdaSnapshot) -> LegPhase {
+pub const fn phase_from_ack_pda(snapshot: &AckPdaSnapshot) -> LegPhase {
     let _ = snapshot;
-    todo!("ack PDA proves acknowledgement exists; polarity unknown -> Acked")
+    LegPhase::Acked
 }
 
 /// The chain whose commitment PDA the tracker may query for this direction.
 /// Nolus->Solana observes the commitment through Nolus CometBFT events, so it
 /// has no commitment PDA to query (`None`); Solana->Nolus reads the commitment
 /// PDA on Solana. Never Nolus — Nolus is Cosmos and holds no packet PDAs.
-pub fn commitment_pda_chain(direction: Direction) -> Option<Chain> {
-    let _ = direction;
-    todo!("SolanaToNolus -> Some(Solana); NolusToSolana -> None; never Nolus")
+pub const fn commitment_pda_chain(direction: Direction) -> Option<Chain> {
+    match direction {
+        Direction::SolanaToNolus => Some(Chain::Solana),
+        Direction::NolusToSolana => None,
+    }
 }
 
 /// Fold one poll observation into the next leg phase. Applies the timeout
 /// tuple rule, the Solana->Nolus timeout-refund inference, and the
 /// commitment-gone-across-a-gap -> `Indeterminate` rule.
 pub fn reconcile(prior: LegPhase, direction: Direction, obs: &PollObservation) -> LegPhase {
-    let _ = (prior, direction, obs);
-    todo!("event-sourced terminals first; gap => Indeterminate; present+past-timeout => AwaitingTimeout")
+    // 1. A captured acknowledgement event is authoritative: it is the only
+    //    source of success-vs-error polarity and wins over any inference.
+    if let Some(outcome) = obs.ack_event {
+        return phase_from_ack_event(outcome);
+    }
+
+    // 2. A captured timeout event refunds the leg, in either direction.
+    if obs.timeout_event {
+        return LegPhase::TimedOutRefunded;
+    }
+
+    // 3. The commitment vanished from the source channel.
+    if matches!(obs.commitment, CommitmentObservation::Gone) {
+        // A gap in observation with no captured terminal cannot be told apart
+        // from a missed ack/timeout: the outcome is genuinely unknown.
+        if obs.event_gap {
+            return LegPhase::Indeterminate;
+        }
+        // Under continuous observation, only Solana->Nolus can infer a
+        // timeout-refund from a vanished commitment with no receive; Nolus->Solana
+        // has no queryable commitment and must wait for an event.
+        if direction == Direction::SolanaToNolus && !obs.recv_observed {
+            return LegPhase::TimedOutRefunded;
+        }
+    }
+
+    // 4. Delivered to the destination, ack not yet returned.
+    if obs.recv_observed {
+        return LegPhase::Delivered;
+    }
+
+    // 5. Commitment still present past its timeout height: eligible for a
+    //    timeout the relayer has not yet driven, not itself a refund.
+    if matches!(obs.commitment, CommitmentObservation::Present)
+        && timeout_reached(obs.current_height, obs.timeout_height)
+    {
+        return LegPhase::AwaitingTimeout;
+    }
+
+    // 6. Nothing new observed: hold the prior phase.
+    prior
 }
 
 /// Apply a poll result. A failed poll (RPC / decode error) is unknown, not
@@ -206,20 +261,120 @@ pub fn apply_poll(
     direction: Direction,
     poll: Result<PollObservation, crate::error::AppError>,
 ) -> LegPhase {
-    let _ = (prior, direction, poll);
-    todo!("Err(_) => prior unchanged; Ok(obs) => reconcile(prior, direction, &obs)")
+    match poll {
+        Ok(obs) => reconcile(prior, direction, &obs),
+        Err(_) => prior,
+    }
+}
+
+/// Whether a per-leg phase is still in flight (blocking the route from
+/// resolving). Terminal phases — the two successes, the two failures, and the
+/// indeterminate terminal — are not blocking.
+const fn is_in_flight(phase: LegPhase) -> bool {
+    matches!(
+        phase,
+        LegPhase::Committed | LegPhase::Relayed | LegPhase::Acked | LegPhase::AwaitingTimeout
+    )
 }
 
 /// Top-level route state from the per-leg phases, mirroring the Skip enum.
 pub fn top_level_state(legs: &[LegPhase]) -> &'static str {
-    let _ = legs;
-    todo!("all-success => COMPLETED_SUCCESS; any error/refund => COMPLETED_ERROR; any indeterminate => ABANDONED; else PENDING")
+    let mut any_error = false;
+    let mut any_indeterminate = false;
+    let mut any_in_flight = false;
+    for &phase in legs {
+        match phase {
+            LegPhase::CompletedError | LegPhase::TimedOutRefunded => any_error = true,
+            LegPhase::Indeterminate => any_indeterminate = true,
+            LegPhase::Committed
+            | LegPhase::Relayed
+            | LegPhase::Acked
+            | LegPhase::AwaitingTimeout => any_in_flight = true,
+            LegPhase::CompletedSuccess | LegPhase::Delivered => {}
+        }
+    }
+    if any_error {
+        STATE_COMPLETED_ERROR
+    } else if any_indeterminate {
+        STATE_ABANDONED
+    } else if any_in_flight {
+        STATE_PENDING
+    } else {
+        STATE_COMPLETED_SUCCESS
+    }
 }
 
 /// Build the status response for a tracked route.
 pub fn status_response(record: &TrackedTransfer) -> TransferStatusResponse {
-    let _ = record;
-    todo!("derive top-level state + per-leg transfers[] + asset release")
+    let phases: Vec<LegPhase> = record.legs.iter().map(|leg| leg.phase).collect();
+    let state = top_level_state(&phases);
+
+    let transfers = record
+        .legs
+        .iter()
+        .map(|leg| TransferLeg {
+            state: top_level_state(&[leg.phase]).to_string(),
+            from_chain: leg.from_chain.label().to_string(),
+            to_chain: leg.to_chain.label().to_string(),
+        })
+        .collect();
+
+    let next_blocking_transfer = record.legs.iter().position(|leg| is_in_flight(leg.phase));
+
+    let transfer_asset_release = asset_release(record, state);
+    let error = route_error(&record.legs, state);
+
+    TransferStatusResponse {
+        state: state.to_string(),
+        transfers,
+        next_blocking_transfer,
+        transfer_asset_release,
+        error,
+    }
+}
+
+/// Where the asset rests once the route reaches a terminal: released at the
+/// final destination on success, refunded to the source on failure, and
+/// unknown (in transit) while the route is still pending or abandoned.
+fn asset_release(record: &TrackedTransfer, state: &str) -> Option<AssetRelease> {
+    match state {
+        STATE_COMPLETED_SUCCESS => record.legs.last().map(|leg| AssetRelease {
+            chain: leg.to_chain.label().to_string(),
+            released: true,
+        }),
+        STATE_COMPLETED_ERROR => record.legs.first().map(|leg| AssetRelease {
+            chain: leg.from_chain.label().to_string(),
+            released: true,
+        }),
+        _ => None,
+    }
+}
+
+/// Operational error envelope for a failed route. Worded as an operational
+/// outcome (the relayer is a permissioned single operator), never as a
+/// cryptographic guarantee.
+fn route_error(legs: &[TrackedLeg], state: &str) -> Option<TransferError> {
+    if state != STATE_COMPLETED_ERROR {
+        return None;
+    }
+    let failing = legs.iter().find_map(|leg| match leg.phase {
+        LegPhase::CompletedError => Some(TransferError {
+            code: "ERROR_ACKNOWLEDGED".to_string(),
+            message:
+                "The transfer was rejected on the destination chain and refunded to the source."
+                    .to_string(),
+        }),
+        LegPhase::TimedOutRefunded => Some(TransferError {
+            code: "TIMED_OUT_REFUNDED".to_string(),
+            message: "The transfer timed out before delivery and was refunded to the source."
+                .to_string(),
+        }),
+        _ => None,
+    });
+    failing.or(Some(TransferError {
+        code: "TRANSFER_FAILED".to_string(),
+        message: "The transfer did not complete and was refunded to the source.".to_string(),
+    }))
 }
 
 #[cfg(test)]
@@ -269,12 +424,18 @@ mod tests {
 
     #[test]
     fn ack_event_success_payload_yields_success_terminal() {
-        assert_eq!(phase_from_ack_event(AckOutcome::Success), LegPhase::CompletedSuccess);
+        assert_eq!(
+            phase_from_ack_event(AckOutcome::Success),
+            LegPhase::CompletedSuccess
+        );
     }
 
     #[test]
     fn ack_event_error_payload_yields_error_terminal() {
-        assert_eq!(phase_from_ack_event(AckOutcome::Error), LegPhase::CompletedError);
+        assert_eq!(
+            phase_from_ack_event(AckOutcome::Error),
+            LegPhase::CompletedError
+        );
     }
 
     // Rule 2 — never query a commitment PDA on the wrong side for a direction.
@@ -511,10 +672,7 @@ mod tests {
 
     #[test]
     fn in_flight_leg_maps_to_pending() {
-        assert_eq!(
-            top_level_state(&[LegPhase::Relayed]),
-            STATE_PENDING
-        );
+        assert_eq!(top_level_state(&[LegPhase::Relayed]), STATE_PENDING);
     }
 
     #[test]
