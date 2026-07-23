@@ -162,6 +162,27 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
+      # ibc-solray is private; cargo shells out to git (fetch-with-cli) so the
+      # deploy key + URL rewrite below apply to every later step. The rewrite
+      # prefix-matches the ibc-solray repo URL. Fork PRs don't receive the
+      # secret — their backend job fails fast here until ibc-solray goes
+      # public. (The runner context is unavailable in job-level env, hence
+      # GITHUB_ENV.)
+      - name: Stage the ibc-solray deploy key
+        env:
+          IBC_SOLRAY_DEPLOY_KEY: ${{ secrets.IBC_SOLRAY_DEPLOY_KEY }}
+        run: |
+          [ -n "$IBC_SOLRAY_DEPLOY_KEY" ] || { echo "IBC_SOLRAY_DEPLOY_KEY is empty (fork PRs do not receive secrets)"; exit 1; }
+          (umask 077; printf '%s\n' "$IBC_SOLRAY_DEPLOY_KEY" > "$RUNNER_TEMP/ibc-solray-deploy-key")
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > "$RUNNER_TEMP/ibc-solray-known-hosts"
+          {
+            echo "CARGO_NET_GIT_FETCH_WITH_CLI=true"
+            echo "GIT_SSH_COMMAND=ssh -i \"$RUNNER_TEMP/ibc-solray-deploy-key\" -o IdentitiesOnly=yes -o BatchMode=yes -o UserKnownHostsFile=\"$RUNNER_TEMP/ibc-solray-known-hosts\" -o StrictHostKeyChecking=yes"
+            echo "GIT_CONFIG_COUNT=1"
+            echo "GIT_CONFIG_KEY_0=url.ssh://git@github.com/nolus-protocol/ibc-solray.insteadOf"
+            echo "GIT_CONFIG_VALUE_0=https://github.com/nolus-protocol/ibc-solray"
+          } >> "$GITHUB_ENV"
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable branch @ 2026-06-30
         with:
@@ -210,6 +231,10 @@ jobs:
           name: backend-coverage
           path: backend/target/tarpaulin/
           retention-days: 7
+
+      - name: Remove the staged deploy key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/ibc-solray-deploy-key" "$RUNNER_TEMP/ibc-solray-known-hosts"
 
   e2e-static:
     name: E2E — fixture schemas, gate, coverage matrix

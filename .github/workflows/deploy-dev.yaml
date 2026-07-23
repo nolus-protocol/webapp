@@ -17,3 +17,5 @@ jobs:
       service: webapp-dev
       health_port: 5050
       base_domain: app-dev.nolus.io
+    secrets:
+      IBC_SOLRAY_DEPLOY_KEY: ${{ secrets.IBC_SOLRAY_DEPLOY_KEY }}
