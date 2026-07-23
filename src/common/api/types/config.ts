@@ -141,7 +141,8 @@ export interface NetworkInfo {
   rest_url: string;
   native_denom: string;
   gas_price: string;
-  explorer: string;
+  /** cosmos explorer base URL; omitted for svm networks (which serve explorer_url_pattern) */
+  explorer?: string;
   symbol: string;
   value: string;
   native: boolean;
@@ -157,6 +158,10 @@ export interface NetworkInfo {
   native_currency_symbol?: string;
   native_currency_decimals?: number;
   primary_protocol?: string;
+  /** svm-only display metadata, served when chain_type === "svm" */
+  explorer_url_pattern?: string;
+  program_id?: string;
+  transfer_channel_id?: string;
 }
 
 export interface NativeAssetInfo {

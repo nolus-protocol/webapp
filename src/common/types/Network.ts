@@ -32,5 +32,6 @@ export interface NetworkData {
 
 export enum ChainType {
   cosmos = "cosmos",
-  evm = "evm"
+  evm = "evm",
+  svm = "svm"
 }
