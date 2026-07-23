@@ -39,9 +39,9 @@ jobs:
       HEALTH_PORT: ${{ inputs.health_port }}
       # ibc-solray is private; cargo shells out to git (fetch-with-cli) and the
       # env-scoped rewrite + key keep the persistent runner's global git config
-      # untouched. The rewrite matches only the ibc-solray URL.
+      # untouched. The rewrite prefix-matches the ibc-solray repo URL.
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
-      GIT_SSH_COMMAND: ssh -i ${{ runner.temp }}/ibc-solray-deploy-key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new
+      GIT_SSH_COMMAND: ssh -i "${{ runner.temp }}/ibc-solray-deploy-key" -o IdentitiesOnly=yes -o BatchMode=yes -o UserKnownHostsFile="${{ runner.temp }}/ibc-solray-known-hosts" -o StrictHostKeyChecking=yes
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: url.ssh://git@github.com/nolus-protocol/ibc-solray.insteadOf
       GIT_CONFIG_VALUE_0: https://github.com/nolus-protocol/ibc-solray
@@ -77,8 +77,9 @@ jobs:
         env:
           IBC_SOLRAY_DEPLOY_KEY: ${{ secrets.IBC_SOLRAY_DEPLOY_KEY }}
         run: |
-          printf '%s\n' "$IBC_SOLRAY_DEPLOY_KEY" > "$RUNNER_TEMP/ibc-solray-deploy-key"
-          chmod 600 "$RUNNER_TEMP/ibc-solray-deploy-key"
+          [ -n "$IBC_SOLRAY_DEPLOY_KEY" ] || { echo "IBC_SOLRAY_DEPLOY_KEY is empty"; exit 1; }
+          (umask 077; printf '%s\n' "$IBC_SOLRAY_DEPLOY_KEY" > "$RUNNER_TEMP/ibc-solray-deploy-key")
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > "$RUNNER_TEMP/ibc-solray-known-hosts"
 
       - name: Build Rust backend
         # The [self-hosted, frontend-deploy] runner keeps its workspace and the

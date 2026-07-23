@@ -161,11 +161,11 @@ jobs:
 
     env:
       # ibc-solray is private; cargo shells out to git (fetch-with-cli) so the
-      # deploy key + URL rewrite below apply. The rewrite matches only the
-      # ibc-solray URL. Fork PRs don't receive the secret — their backend job
-      # cannot build until ibc-solray goes public.
+      # deploy key + URL rewrite below apply. The rewrite prefix-matches the
+      # ibc-solray repo URL. Fork PRs don't receive the secret — their backend
+      # job fails fast at the key-staging step until ibc-solray goes public.
       CARGO_NET_GIT_FETCH_WITH_CLI: "true"
-      GIT_SSH_COMMAND: ssh -i ${{ runner.temp }}/ibc-solray-deploy-key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new
+      GIT_SSH_COMMAND: ssh -i "${{ runner.temp }}/ibc-solray-deploy-key" -o IdentitiesOnly=yes -o BatchMode=yes -o UserKnownHostsFile="${{ runner.temp }}/ibc-solray-known-hosts" -o StrictHostKeyChecking=yes
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: url.ssh://git@github.com/nolus-protocol/ibc-solray.insteadOf
       GIT_CONFIG_VALUE_0: https://github.com/nolus-protocol/ibc-solray
@@ -177,8 +177,9 @@ jobs:
         env:
           IBC_SOLRAY_DEPLOY_KEY: ${{ secrets.IBC_SOLRAY_DEPLOY_KEY }}
         run: |
-          printf '%s\n' "$IBC_SOLRAY_DEPLOY_KEY" > "$RUNNER_TEMP/ibc-solray-deploy-key"
-          chmod 600 "$RUNNER_TEMP/ibc-solray-deploy-key"
+          [ -n "$IBC_SOLRAY_DEPLOY_KEY" ] || { echo "IBC_SOLRAY_DEPLOY_KEY is empty (fork PRs do not receive secrets)"; exit 1; }
+          (umask 077; printf '%s\n' "$IBC_SOLRAY_DEPLOY_KEY" > "$RUNNER_TEMP/ibc-solray-deploy-key")
+          echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > "$RUNNER_TEMP/ibc-solray-known-hosts"
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable branch @ 2026-06-30
@@ -228,6 +229,10 @@ jobs:
           name: backend-coverage
           path: backend/target/tarpaulin/
           retention-days: 7
+
+      - name: Remove the staged deploy key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/ibc-solray-deploy-key"
 
   e2e-static:
     name: E2E — fixture schemas, gate, coverage matrix
