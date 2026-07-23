@@ -85,6 +85,11 @@ pub struct ExternalApiConfig {
     pub nolus_rpc_url: String,
     pub nolus_rest_url: String,
 
+    // Solana RPC (optional): the operator's Solana JSON-RPC endpoint. Unset ->
+    // Solana endpoints (balances, transfer-params) fail visibly with 503; no
+    // silent fallback URL.
+    pub solana_rpc_url: Option<String>,
+
     // Authenticated APIs - Referral
     pub referral_api_url: String,
     pub referral_api_token: String,
@@ -225,6 +230,13 @@ impl AppConfig {
                 .push("Skip API key not configured - swap routing may be rate limited".to_string());
         }
 
+        if self.external.solana_rpc_url.is_none() {
+            warnings.push(
+                "Solana RPC not configured - Solana balance/transfer-params endpoints will return 503"
+                    .to_string(),
+            );
+        }
+
         ValidationResult { errors, warnings }
     }
 
@@ -264,6 +276,9 @@ impl AppConfig {
             // Chain RPCs & REST (only Nolus required)
             nolus_rpc_url,
             nolus_rest_url,
+
+            // Solana RPC (optional — no default; absent means Solana disabled)
+            solana_rpc_url: env::var("SOLANA_RPC_URL").ok().filter(|v| !v.is_empty()),
 
             // Authenticated - Referral
             referral_api_url: env::var("REFERRAL_API_URL").unwrap_or_else(|_err| String::new()),
@@ -331,6 +346,7 @@ mod tests {
                 skip_api_key: None,
                 nolus_rpc_url: "https://rpc.nolus.network".to_string(),
                 nolus_rest_url: "https://lcd.nolus.network".to_string(),
+                solana_rpc_url: Some("https://solana-rpc.example.com".to_string()),
                 referral_api_url: String::new(),
                 referral_api_token: String::new(),
                 zero_interest_api_url: String::new(),

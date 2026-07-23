@@ -39,6 +39,7 @@ pub fn test_config() -> AppConfig {
             skip_api_key: None,
             nolus_rpc_url: "http://127.0.0.1:1/".to_string(),
             nolus_rest_url: "http://127.0.0.1:1/".to_string(),
+            solana_rpc_url: Some("http://127.0.0.1:1/".to_string()),
             referral_api_url: "http://127.0.0.1:1/".to_string(),
             referral_api_token: "stub".to_string(),
             zero_interest_api_url: "http://127.0.0.1:1/".to_string(),
@@ -79,7 +80,16 @@ pub async fn test_app_state_with_config(config: AppConfig) -> Arc<AppState> {
         .timeout(std::time::Duration::from_millis(1))
         .build()
         .expect("reqwest client builder cannot fail with only a timeout set");
+    test_app_state_with_config_and_client(config, http_client).await
+}
 
+/// Build an AppState with the given config and a caller-supplied HTTP client.
+/// Handler tests that must hit a mock server pass a real-timeout client here;
+/// the default factory passes the 1ms stub client.
+pub async fn test_app_state_with_config_and_client(
+    config: AppConfig,
+    http_client: reqwest::Client,
+) -> Arc<AppState> {
     let etl_client =
         external::etl::EtlClient::new(config.external.etl_api_url.clone(), http_client.clone());
     let skip_client = external::skip::SkipClient::new(
@@ -89,6 +99,10 @@ pub async fn test_app_state_with_config(config: AppConfig) -> Arc<AppState> {
     );
     let chain_client = external::chain::ChainClient::new(
         config.external.nolus_rest_url.clone(),
+        http_client.clone(),
+    );
+    let solana_client = external::solana::SolanaClient::new(
+        config.external.solana_rpc_url.clone(),
         http_client.clone(),
     );
     let referral_client = external::referral::ReferralClient::new(&config, http_client.clone());
@@ -125,6 +139,7 @@ pub async fn test_app_state_with_config(config: AppConfig) -> Arc<AppState> {
         etl_client,
         skip_client,
         chain_client,
+        solana_client,
         referral_client,
         zero_interest_client,
         data_cache: AppDataCache::new(),

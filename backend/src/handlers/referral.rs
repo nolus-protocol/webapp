@@ -651,6 +651,7 @@ mod tests {
                 skip_api_key: None,
                 nolus_rpc_url: "http://127.0.0.1:1/".to_string(),
                 nolus_rest_url: "http://127.0.0.1:1/".to_string(),
+                solana_rpc_url: Some("http://127.0.0.1:1/".to_string()),
                 referral_api_url: "http://127.0.0.1:1/".to_string(),
                 referral_api_token: "".to_string(),
                 zero_interest_api_url: "http://127.0.0.1:1/".to_string(),

@@ -15,6 +15,7 @@ pub mod locales;
 pub mod openapi;
 pub mod protocols;
 pub mod referral;
+pub mod solana;
 pub mod spa;
 pub mod staking;
 pub mod swap;
