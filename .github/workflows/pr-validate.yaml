@@ -232,7 +232,7 @@ jobs:
 
       - name: Remove the staged deploy key
         if: always()
-        run: rm -f "$RUNNER_TEMP/ibc-solray-deploy-key"
+        run: rm -f "$RUNNER_TEMP/ibc-solray-deploy-key" "$RUNNER_TEMP/ibc-solray-known-hosts"
 
   e2e-static:
     name: E2E — fixture schemas, gate, coverage matrix

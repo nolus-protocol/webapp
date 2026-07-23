@@ -92,6 +92,10 @@ jobs:
           cd backend
           cargo build --release
 
+      - name: Remove the staged deploy key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/ibc-solray-deploy-key" "$RUNNER_TEMP/ibc-solray-known-hosts"
+
       - name: Prepare deployment bundle
         run: |
           mkdir -p deploy-bundle
