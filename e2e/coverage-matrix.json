@@ -1,6 +1,6 @@
 {
   "routes": ["/", "/assets", "/earn", "/positions", "/stake", "/activities", "/vote", "/stats"],
-  "components": ["shell", "primary-figure", "secondary-figure", "visual", "ws", "cross-field"],
+  "components": ["shell", "primary-figure", "secondary-figure", "visual", "ws", "cross-field", "wallet-menu"],
   "states": ["loading", "empty", "error", "populated"],
   "cells": [
     {
@@ -711,6 +711,16 @@
         "type": "gap",
         "category": "schemaless-unvalidated",
         "reason": "history date ordering is unenforced client-side (documented app gap); observation only on funded data"
+      }
+    },
+    {
+      "route": "/",
+      "component": "wallet-menu",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "the wallet-menu Solana address row renders only for a connected svm (Phantom/Solflare) session, which the walletless fixture suite cannot produce; the row render + copy idiom are unit-covered (WalletInfo.vue suite), so e2e is wallet-gated"
       }
     }
   ]

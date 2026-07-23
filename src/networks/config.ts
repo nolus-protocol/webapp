@@ -11,6 +11,7 @@ import { embedChainInfo as neutronChainInfo } from "./list/neutron/constants";
 
 import { useConfigStore } from "@/common/stores/config";
 import type { ExternalCurrencies, NetworkData } from "@/common/types";
+import { ChainType } from "@/common/types/Network";
 import type { ChainInfo } from "@keplr-wallet/types";
 
 type ChainInfoEmbedder = (chainId: string, tendermintRpc: string, rest: string) => ChainInfo;
@@ -33,6 +34,10 @@ const CHAIN_INFO_EMBEDDERS: { [key: string]: (...args: unknown[]) => unknown } =
   NEUTRON: withUnknownArgs(neutronChainInfo)
 };
 
+function toChainType(value: string): ChainType | undefined {
+  return (Object.values(ChainType) as string[]).includes(value) ? (value as ChainType) : undefined;
+}
+
 /**
  * Get network data dynamically from config store
  */
@@ -40,32 +45,51 @@ export function getNetworkData() {
   const configStore = useConfigStore();
   const networks = configStore.networks;
 
-  // Build list from backend networks - filter based on current environment
-  const list = networks.map((n) => ({
-    prefix: n.prefix,
-    value: n.value,
-    label: n.name,
-    native: n.native,
-    estimation:
-      n.estimation ??
-      (n.estimation_duration ? { duration: n.estimation_duration, type: n.estimation_type || "min" } : 20),
-    key: n.key,
-    symbol: n.symbol,
-    chain_type: n.chain_type,
-    icon: n.icon,
-    forward: n.forward
-  }));
-
-  // Build supportedNetworks map
+  const list = [];
   const supportedNetworks: { [key: string]: NetworkData } = {};
+
   for (const network of networks) {
-    if (network.chain_type === "cosmos") {
+    const chainType = toChainType(network.chain_type);
+
+    // A network whose chain_type is not a recognized ChainType is dropped from
+    // both the picker list and the supportedNetworks map: an unknown tag must
+    // never silently fall through to the cosmos machinery.
+    if (chainType === undefined) {
+      continue;
+    }
+
+    // svm networks carry no Keplr chain-info embedder and are not yet routable
+    // by the send/receive picker, so they are omitted from both the picker list
+    // and the supportedNetworks map. Skipping here also keeps the embedder
+    // lookup below off the svm path, where it would otherwise throw.
+    if (chainType === ChainType.svm) {
+      continue;
+    }
+
+    list.push({
+      prefix: network.prefix,
+      value: network.value,
+      label: network.name,
+      native: network.native,
+      estimation:
+        network.estimation ??
+        (network.estimation_duration
+          ? { duration: network.estimation_duration, type: network.estimation_type || "min" }
+          : 20),
+      key: network.key,
+      symbol: network.symbol,
+      chain_type: chainType,
+      icon: network.icon,
+      forward: network.forward
+    });
+
+    if (chainType === ChainType.cosmos) {
       supportedNetworks[network.key] = {
         prefix: network.prefix,
         key: network.key,
         name: network.name,
         gasPrice: network.gas_price,
-        explorer: network.explorer,
+        explorer: network.explorer ?? "",
         gasMultiplier: network.gas_multiplier,
         bip44Path: "44'/118'/0'/0/0",
         ibcTransferTimeout: 60,

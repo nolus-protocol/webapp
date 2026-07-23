@@ -10,7 +10,7 @@ import { applyNolusWalletOverrides } from "@/networks/cosm/NolusWalletOverride";
 
 export async function connectPhantom(this: Store) {
   const sol = new SolanaWallet("phantom");
-  const { pubkeyAny } = await sol.connect();
+  const { pubkeyAny, solAddress } = await sol.connect();
   const signer = sol.makeWCOfflineSigner();
 
   const nolusWalletOfflineSigner = await NolusWalletFactory.nolusOfflineSigner(signer);
@@ -26,6 +26,7 @@ export async function connectPhantom(this: Store) {
   applyWalletProtocolFilter(WalletConnectMechanism.SOL_PHANTOM);
 
   this.wallet = nolusWalletOfflineSigner;
+  this.solAddress = solAddress;
   applyNolusWalletOverrides(this.wallet);
 
   void IntercomService.load(address, "phantom");

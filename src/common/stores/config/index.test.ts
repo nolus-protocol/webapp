@@ -161,6 +161,30 @@ function makeCurrencies(overrides: Record<string, unknown> = {}) {
   };
 }
 
+// same config as makeConfig() but with a real svm SOLANA network
+// entry present in networks[]. Used to prove the protocolFilter watcher's
+// five-rule contract holds identically when the svm network model is live.
+function makeConfigWithSvm(overrides: Record<string, unknown> = {}) {
+  const base = makeConfig();
+  return {
+    ...base,
+    networks: [
+      ...(base.networks as Record<string, unknown>[]),
+      {
+        key: "SOLANA",
+        chain_id: "solana",
+        name: "Solana",
+        prefix: "",
+        value: "solana",
+        icon: "/icons/solana.svg",
+        chain_type: "svm",
+        native: false
+      }
+    ],
+    ...overrides
+  };
+}
+
 describe("ConfigStore", () => {
   // -------------------------------------------------------------------------
   // Initial state & localStorage persistence
@@ -736,6 +760,141 @@ describe("ConfigStore", () => {
       await flushPromises();
 
       expect(store.assetsResponse).not.toBeNull();
+      expect(store.assets.map((a) => a.ticker)).toEqual(["OSMO"]);
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+});
+
+// the protocolFilter watcher's five-rule contract must hold
+// IDENTICALLY when the live config already contains an svm SOLANA network. The
+// watcher does not branch on chain_type, so these are green regression pins
+// guarding that the svm network model does not perturb the contract.
+describe("ConfigStore — protocolFilter watcher with an svm SOLANA network present", () => {
+  async function primeWithSvm() {
+    api.getConfig.mockResolvedValueOnce(makeConfigWithSvm());
+    api.getCurrencies.mockResolvedValueOnce(makeCurrencies());
+    api.getNetworkAssets.mockResolvedValueOnce({ assets: [] });
+    api.getGatedProtocols.mockResolvedValueOnce({ protocols: [] });
+    api.getGasFeeConfig.mockResolvedValueOnce({ gas_prices: {}, gas_multiplier: 1 });
+    const store = useConfigStore();
+    await store.initialize();
+    api.getNetworkAssets.mockClear();
+    return store;
+  }
+
+  it("rule 1: rejects an invalid filter before fetching", async () => {
+    const store = await primeWithSvm();
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      store.setProtocolFilter("DEFINITELY_NOT_A_NETWORK");
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(api.getNetworkAssets).not.toHaveBeenCalled();
+      expect(consoleErr.mock.calls.length + consoleWarn.mock.calls.length).toBeGreaterThan(0);
+    } finally {
+      consoleErr.mockRestore();
+      consoleWarn.mockRestore();
+    }
+  });
+
+  it("rule 2: records a failed fetch so it does not retry-storm", async () => {
+    const store = await primeWithSvm();
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      api.getNetworkAssets.mockRejectedValue(new Error("solana down"));
+      store.setProtocolFilter("SOLANA");
+      await flushPromises();
+      await flushPromises();
+      await flushPromises();
+      expect(api.getNetworkAssets.mock.calls.filter((c) => c[0] === "SOLANA").length).toBe(1);
+
+      store.setProtocolFilter("OSMOSIS");
+      await flushPromises();
+      store.setProtocolFilter("SOLANA");
+      await flushPromises();
+      await flushPromises();
+      expect(api.getNetworkAssets.mock.calls.filter((c) => c[0] === "SOLANA").length).toBe(1);
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+
+  it("rule 3: logs a failed fetch at error level with the network key + error", async () => {
+    const store = await primeWithSvm();
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      api.getNetworkAssets.mockRejectedValueOnce(new Error("solana down"));
+      store.setProtocolFilter("SOLANA");
+      await flushPromises();
+      await flushPromises();
+      await flushPromises();
+      const matching = consoleErr.mock.calls.find((args) =>
+        args.some((a) => typeof a === "string" && a.includes("SOLANA"))
+      );
+      expect(matching).toBeDefined();
+      expect(matching?.some((a) => a instanceof Error)).toBe(true);
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+
+  it("rule 4: clears stale assets when a switch fails", async () => {
+    api.getConfig.mockResolvedValueOnce(makeConfigWithSvm());
+    api.getCurrencies.mockResolvedValueOnce(makeCurrencies());
+    api.getNetworkAssets.mockResolvedValueOnce({
+      assets: [{ ticker: "OSMO", networks: ["OSMOSIS"], protocols: ["OSMOSIS"], icon: "" }]
+    });
+    api.getGatedProtocols.mockResolvedValueOnce({ protocols: [] });
+    api.getGasFeeConfig.mockResolvedValueOnce({ gas_prices: {}, gas_multiplier: 1 });
+
+    const store = useConfigStore();
+    await store.initialize();
+    expect(store.assets.length).toBe(1);
+
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      api.getNetworkAssets.mockRejectedValueOnce(new Error("solana down"));
+      store.setProtocolFilter("SOLANA");
+      await flushPromises();
+      await flushPromises();
+      await flushPromises();
+      expect(store.assetsResponse).toBeNull();
+    } finally {
+      consoleErr.mockRestore();
+    }
+  });
+
+  it("rule 5: a superseded in-flight response never commits", async () => {
+    api.getConfig.mockResolvedValueOnce(makeConfigWithSvm());
+    api.getCurrencies.mockResolvedValueOnce(makeCurrencies());
+    api.getNetworkAssets.mockResolvedValueOnce({
+      assets: [{ ticker: "OSMO", networks: ["OSMOSIS"], protocols: ["OSMOSIS"], icon: "" }]
+    });
+    api.getGatedProtocols.mockResolvedValueOnce({ protocols: [] });
+    api.getGasFeeConfig.mockResolvedValueOnce({ gas_prices: {}, gas_multiplier: 1 });
+
+    const store = useConfigStore();
+    await store.initialize();
+    expect(store.assets.map((a) => a.ticker)).toEqual(["OSMO"]);
+
+    let resolveSolana!: (v: { assets: unknown[] }) => void;
+    const solanaPending = new Promise<{ assets: unknown[] }>((res) => {
+      resolveSolana = res;
+    });
+    api.getNetworkAssets.mockReturnValueOnce(solanaPending);
+
+    const consoleErr = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      store.setProtocolFilter("SOLANA");
+      await flushPromises();
+      store.setProtocolFilter("OSMOSIS");
+      await flushPromises();
+      resolveSolana({ assets: [{ ticker: "SOL", networks: ["SOLANA"], protocols: ["SOLANA"], icon: "" }] });
+      await flushPromises();
+      await flushPromises();
       expect(store.assets.map((a) => a.ticker)).toEqual(["OSMO"]);
     } finally {
       consoleErr.mockRestore();

@@ -65,6 +65,40 @@
             </div>
           </div>
         </div>
+        <div
+          v-if="isSolanaWallet && wallet?.solAddress"
+          class="flex w-full items-center justify-between rounded-md border-t border-border-color bg-neutral-bg-1 px-4 py-2"
+        >
+          <div class="flex w-full gap-2">
+            <component
+              :is="connection?.icon"
+              class="h-8 w-8"
+            />
+            <div class="flex flex-col text-typography-secondary">
+              <span
+                class="text-14 font-semibold"
+                data-test="sol-address"
+              >
+                {{
+                  isMobile()
+                    ? TextFormat.truncateString(wallet?.solAddress ?? "", 8, 8)
+                    : TextFormat.truncateString(wallet?.solAddress ?? "", 16, 16)
+                }}
+              </span>
+              <span class="text-12 font-normal">{{ connection?.label }}</span>
+            </div>
+            <div class="flex flex-1 items-center justify-end">
+              <Button
+                severity="tertiary"
+                icon="copy"
+                size="small"
+                class="!p-2.5 text-icon-default"
+                data-test="copy-sol-address"
+                @click="onCopySol"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </template>
   </Popover>
@@ -125,6 +159,7 @@ const connections: Record<
   }
 };
 const connection = type === null ? undefined : connections[type];
+const isSolanaWallet = type === WalletConnectMechanism.SOL_PHANTOM || type === WalletConnectMechanism.SOL_SOLFLARE;
 
 function onClickDisconnect() {
   emitter("onDisconnect");
@@ -132,6 +167,14 @@ function onClickDisconnect() {
 
 async function onCopy() {
   void TextFormat.copyToClipboard(wallet?.wallet?.address ?? "");
+  onShowToast({
+    type: ToastType.success,
+    message: i18n.t("message.address-coppied")
+  });
+}
+
+async function onCopySol() {
+  void TextFormat.copyToClipboard(wallet?.solAddress ?? "");
   onShowToast({
     type: ToastType.success,
     message: i18n.t("message.address-coppied")
