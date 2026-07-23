@@ -19,8 +19,8 @@ use crate::error::{ErrorBody, ErrorResponse};
 use crate::external;
 use crate::handlers::{
     admin, common_types, config, currencies, earn, etl_proxy, fees, gated_assets, gated_networks,
-    gated_protocols, governance, leases, locales, protocols, referral, staking, swap, transactions,
-    zero_interest,
+    gated_protocols, governance, leases, locales, protocols, referral, solana, staking, swap,
+    transactions, zero_interest,
 };
 
 #[derive(OpenApi)]
@@ -51,6 +51,9 @@ use crate::handlers::{
         currencies::get_currency,
         currencies::get_prices,
         currencies::get_balances,
+        // Solana (balances + transfer-timeout params)
+        solana::get_solana_balances,
+        solana::get_solana_transfer_params,
         // Protocols
         protocols::get_protocols,
         protocols::get_active_protocols,
@@ -160,6 +163,10 @@ use crate::handlers::{
         currencies::PriceInfo,
         currencies::BalancesResponse,
         currencies::BalanceInfo,
+        // Solana
+        solana::SolanaBalancesResponse,
+        solana::SolanaBalanceInfo,
+        solana::SolanaTransferParamsResponse,
         // Protocols
         protocols::Protocol,
         protocols::ProtocolsResponse,
@@ -314,6 +321,7 @@ use crate::handlers::{
         (name = "currencies", description = "Supported currencies catalog"),
         (name = "prices", description = "Oracle price feeds"),
         (name = "balances", description = "Wallet balances"),
+        (name = "solana", description = "Solana balances and transfer-timeout parameters"),
         (name = "protocols", description = "Nolus DeFi sub-protocol registry"),
         (name = "locales", description = "Translation blobs for the frontend"),
         (name = "fees", description = "Gas fee configuration"),

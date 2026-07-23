@@ -54,6 +54,7 @@ pub struct AppState {
     pub etl_client: external::etl::EtlClient,
     pub skip_client: external::skip::SkipClient,
     pub chain_client: external::chain::ChainClient,
+    pub solana_client: external::solana::SolanaClient,
     pub referral_client: external::referral::ReferralClient,
     pub zero_interest_client: external::zero_interest::ZeroInterestClient,
     pub data_cache: data_cache::AppDataCache,
@@ -133,6 +134,13 @@ async fn main() -> anyhow::Result<()> {
         http_client.clone(),
     );
 
+    // Initialize Solana JSON-RPC client (unconfigured when SOLANA_RPC_URL unset —
+    // Solana endpoints then return 503 rather than falling back silently)
+    let solana_client = external::solana::SolanaClient::new(
+        config.external.solana_rpc_url.clone(),
+        http_client.clone(),
+    );
+
     // Initialize data cache (empty — populated by background refresh tasks)
     let data_cache = data_cache::AppDataCache::new();
 
@@ -175,6 +183,7 @@ async fn main() -> anyhow::Result<()> {
         etl_client,
         skip_client,
         chain_client,
+        solana_client,
         referral_client,
         zero_interest_client,
         data_cache,
@@ -379,6 +388,15 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/currencies/{key}", get(handlers::currencies::get_currency))
         .route("/prices", get(handlers::currencies::get_prices))
         .route("/balances", get(handlers::currencies::get_balances))
+        // Solana (read) — balances + fresh transfer-timeout parameters
+        .route(
+            "/solana/balances/{address}",
+            get(handlers::solana::get_solana_balances),
+        )
+        .route(
+            "/solana/transfer-params",
+            get(handlers::solana::get_solana_transfer_params),
+        )
         // Leases (read)
         .route("/leases", get(handlers::leases::get_leases))
         .route(

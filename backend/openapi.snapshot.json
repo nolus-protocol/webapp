@@ -3030,6 +3030,111 @@
         }
       }
     },
+    "/api/solana/balances/{address}": {
+      "get": {
+        "tags": [
+          "solana"
+        ],
+        "summary": "Get Solana wallet balances",
+        "description": "Returns the native SOL balance plus SPL balances for the SOLANA protocol's\ncurrency set (mints resolved from each currency's `dex_symbol`), keyed by a\nbase58 wallet address. A funded wallet returns its holdings; an unfunded\nwallet returns a zero SOL balance and an empty token list. Only a malformed\naddress returns a typed error.",
+        "operationId": "get_solana_balances",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "description": "Base58 Solana wallet address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solana wallet balances",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolanaBalancesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid address",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Solana RPC error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Solana RPC unconfigured or cache cold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solana/transfer-params": {
+      "get": {
+        "tags": [
+          "solana"
+        ],
+        "summary": "Get Solana transfer-timeout parameters",
+        "description": "Serves the fresh current slot and epoch a client needs to build a height-\nbased `MsgTransfer` timeout, plus the program's lifetime bound. The Solana\nprogram rejects timestamp-only timeouts, so a client must set a\n`timeout_height` with `revision_number = revision_number` and\n`revision_height` in `(slot, max_timeout_height]`. Never cached.",
+        "operationId": "get_solana_transfer_params",
+        "responses": {
+          "200": {
+            "description": "Fresh Solana transfer-timeout parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolanaTransferParamsResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Solana RPC error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Solana RPC unconfigured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/staking/claim-rewards": {
       "post": {
         "tags": [
@@ -7497,6 +7602,107 @@
         ],
         "description": "One transaction in a Skip messages response. A cosmos transaction is typed;\nother transaction kinds (e.g. `evm_tx`) and extra fields ride in `additional`."
       },
+      "SolanaBalanceInfo": {
+        "type": "object",
+        "description": "A single Solana balance entry.",
+        "required": [
+          "symbol",
+          "amount",
+          "decimal_digits"
+        ],
+        "properties": {
+          "key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Currency key (`TICKER@PROTOCOL`) when the balance maps to a provisioned\nSOLANA-protocol currency; `None` for native SOL."
+          },
+          "symbol": {
+            "type": "string",
+            "description": "Human ticker/symbol (e.g. `SOL`, `USDC`)."
+          },
+          "mint": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SPL mint address; `None` for native SOL."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Raw on-chain amount in base units (lamports for SOL), as a string."
+          },
+          "decimal_digits": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Decimal places for the base-unit amount.",
+            "minimum": 0
+          }
+        }
+      },
+      "SolanaBalancesResponse": {
+        "type": "object",
+        "description": "SOL + SPL balances for a Solana wallet.",
+        "required": [
+          "address",
+          "sol",
+          "tokens"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "The queried base58 wallet address, echoed back."
+          },
+          "sol": {
+            "$ref": "#/components/schemas/SolanaBalanceInfo",
+            "description": "Native SOL balance (lamports; 9 decimals)."
+          },
+          "tokens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SolanaBalanceInfo"
+            },
+            "description": "SPL balances for the SOLANA-protocol currency set. Empty when the wallet\nholds none of the provisioned mints — a legitimate result, not an error."
+          }
+        }
+      },
+      "SolanaTransferParamsResponse": {
+        "type": "object",
+        "description": "Fresh Solana height data for building an IBC `MsgTransfer` timeout height.",
+        "required": [
+          "slot",
+          "revision_number",
+          "max_lifetime_slots",
+          "max_timeout_height"
+        ],
+        "properties": {
+          "slot": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Current absolute Solana slot — the `revision_height` reference a client\nbases its `timeout_height` on. Fetched fresh per request (never cached);\na stale slot would silently shorten the usable timeout window.",
+            "minimum": 0
+          },
+          "revision_number": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Current Solana epoch — the `revision_number` the program's host height\ncarries. A packet `timeout_height` must use this revision number.",
+            "minimum": 0
+          },
+          "max_lifetime_slots": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum slots past the current slot a packet `timeout_height` may extend\nbefore the recv chokepoint rejects it (~24h at 2 slots/s).",
+            "minimum": 0
+          },
+          "max_timeout_height": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Convenience upper bound: `slot + max_lifetime_slots`. A client may set its\ntimeout height's `revision_height` up to this value (inclusive).",
+            "minimum": 0
+          }
+        }
+      },
       "StakingParams": {
         "type": "object",
         "required": [
@@ -8332,6 +8538,10 @@
     {
       "name": "balances",
       "description": "Wallet balances"
+    },
+    {
+      "name": "solana",
+      "description": "Solana balances and transfer-timeout parameters"
     },
     {
       "name": "protocols",

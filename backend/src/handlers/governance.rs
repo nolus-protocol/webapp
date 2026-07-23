@@ -691,6 +691,7 @@ mod tests {
             etl_client,
             skip_client,
             chain_client,
+            solana_client: crate::external::solana::SolanaClient::new(None, http_client.clone()),
             referral_client,
             zero_interest_client,
             data_cache: crate::data_cache::AppDataCache::new(),
