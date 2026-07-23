@@ -158,7 +158,7 @@ pub async fn get_pools(
             if let Some(ref gated) = gated {
                 if let Some(network_key) = pool.protocol.split('-').next() {
                     if let Some(network_settings) = gated.network_config.networks.get(network_key) {
-                        if let Some(pool_config) = network_settings.pools.get(&pool.protocol) {
+                        if let Some(pool_config) = network_settings.pools().get(&pool.protocol) {
                             pool.icon = Some(pool_config.icon.clone());
                         }
                     }

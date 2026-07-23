@@ -184,7 +184,9 @@ impl UserDataFilterContext {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config_store::gated_types::{AssetRestrictions, CurrencyDisplay, NetworkSettings};
+    use crate::config_store::gated_types::{
+        AssetRestrictions, CosmosNetworkSettings, CurrencyDisplay, NetworkSettings,
+    };
     use crate::external::etl::{EtlProtocol, EtlProtocolContracts};
 
     fn mock_etl_protocols() -> EtlProtocolsResponse {
@@ -265,7 +267,7 @@ mod tests {
         GatedNetworkConfig {
             networks: HashMap::from([(
                 "OSMOSIS".to_string(),
-                NetworkSettings {
+                NetworkSettings::Cosmos(CosmosNetworkSettings {
                     name: "Osmosis".to_string(),
                     chain_id: "osmosis-1".to_string(),
                     prefix: "osmo".to_string(),
@@ -282,7 +284,7 @@ mod tests {
                     gas_multiplier: 3.5,
                     swap_venue: None,
                     pools: HashMap::new(),
-                },
+                }),
             )]),
         }
     }

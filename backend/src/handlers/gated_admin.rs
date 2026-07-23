@@ -204,15 +204,9 @@ pub async fn list_networks(
             AdminNetworkResponse {
                 network: network.clone(),
                 source: "etl".to_string(),
-                config: NetworkConfigStatus {
-                    name: config.map(|c| c.name.clone()),
-                    chain_id: config.map(|c| c.chain_id.clone()),
-                    rpc: config.map(|c| c.rpc.clone()),
-                    lcd: config.map(|c| c.lcd.clone()),
-                    gas_price: config.map(|c| c.gas_price.clone()),
-                    primary_protocol: config.and_then(|c| c.primary_protocol.clone()),
-                    configured: config.map(|c| c.is_configured()).unwrap_or(false),
-                },
+                config: config
+                    .map(NetworkConfigStatus::from_settings)
+                    .unwrap_or_default(),
             }
         })
         .collect();
@@ -451,15 +445,7 @@ pub async fn upsert_network_config(
     Ok(Json(AdminNetworkResponse {
         network: network.clone(),
         source: "config".to_string(),
-        config: NetworkConfigStatus {
-            name: Some(net_config.name.clone()),
-            chain_id: Some(net_config.chain_id.clone()),
-            rpc: Some(net_config.rpc.clone()),
-            lcd: Some(net_config.lcd.clone()),
-            gas_price: Some(net_config.gas_price.clone()),
-            primary_protocol: net_config.primary_protocol.clone(),
-            configured: net_config.is_configured(),
-        },
+        config: NetworkConfigStatus::from_settings(net_config),
     }))
 }
 

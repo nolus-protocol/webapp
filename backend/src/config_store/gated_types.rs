@@ -16,8 +16,9 @@
 //! - **Admin never re-enters ETL data**: Only enrichment fields are editable
 //! - **Protocol status is derived**: Based on network + currency configuration
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
 // ============================================================================
 // Currency Display Configuration
@@ -79,10 +80,28 @@ pub struct PoolConfig {
     pub icon: String,
 }
 
-/// Settings for a single network
-/// A network is "configured" when it has RPC + LCD + gas_price
+/// The kind of chain a network runs on. Serialized as the `chain_type` tag.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ChainType {
+    Cosmos,
+    Svm,
+}
+
+impl ChainType {
+    /// Lowercase tag string as it appears on the wire.
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Cosmos => "cosmos",
+            Self::Svm => "svm",
+        }
+    }
+}
+
+/// Cosmos-SDK network settings.
+/// A cosmos network is "configured" when it has RPC + LCD + gas_price.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkSettings {
+pub struct CosmosNetworkSettings {
     /// Display name (e.g., "Osmosis", "Neutron")
     pub name: String,
     /// Chain ID (e.g., "osmosis-1", "neutron-1")
@@ -127,6 +146,71 @@ pub struct NetworkSettings {
     pub pools: HashMap<String, PoolConfig>,
 }
 
+/// SVM (Solana) network settings.
+/// An svm network is "configured" when it has RPC + program_id + transfer_channel_id.
+/// The RPC is backend-internal and must never reach a public surface.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SvmNetworkSettings {
+    /// Display name (e.g., "Solana")
+    pub name: String,
+    /// Chain ID (e.g., "solana")
+    pub chain_id: String,
+    /// Backend-internal RPC endpoint (required). Never serialized to public surfaces.
+    pub rpc: String,
+    /// On-chain program id (required)
+    pub program_id: String,
+    /// IBC transfer channel id (required)
+    pub transfer_channel_id: String,
+    /// Explorer URL pattern with a `{txHash}` placeholder
+    pub explorer_url_pattern: String,
+    /// Network ticker symbol (e.g., "SOL")
+    pub symbol: String,
+    /// Gas multiplier for fee estimation
+    pub gas_multiplier: f64,
+    /// Network icon path
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
+    /// Estimated transaction time in seconds
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub estimation: Option<u32>,
+}
+
+/// Settings for a single network, tagged by `chain_type`.
+///
+/// Serialization writes an explicit `chain_type` for every variant. A missing
+/// `chain_type` on deserialization defaults to `cosmos` (back-compat with the
+/// shipped tag-less `network-config.json`).
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "chain_type", rename_all = "lowercase")]
+pub enum NetworkSettings {
+    Cosmos(CosmosNetworkSettings),
+    Svm(SvmNetworkSettings),
+}
+
+/// Read the optional `chain_type` tag from a JSON object, defaulting to cosmos.
+fn chain_type_from_value(value: &serde_json::Value) -> Result<ChainType, serde_json::Error> {
+    value
+        .get("chain_type")
+        .map_or(Ok(ChainType::Cosmos), ChainType::deserialize)
+}
+
+// serde has no default-variant support for internally-tagged enums, so the
+// tag-defaulting deserialization is hand-written.
+impl<'de> Deserialize<'de> for NetworkSettings {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        chain_type_from_value(&value)
+            .and_then(|chain_type| match chain_type {
+                ChainType::Cosmos => CosmosNetworkSettings::deserialize(&value).map(Self::Cosmos),
+                ChainType::Svm => SvmNetworkSettings::deserialize(&value).map(Self::Svm),
+            })
+            .map_err(serde::de::Error::custom)
+    }
+}
+
 /// Swap venue (DEX) configuration within a network
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkSwapVenue {
@@ -137,10 +221,80 @@ pub struct NetworkSwapVenue {
     pub address: Option<String>,
 }
 
+/// Shared empty pool map returned by `NetworkSettings::pools` for svm variants,
+/// so cosmos-only consumers iterate a mixed map without special-casing.
+static EMPTY_POOLS: LazyLock<HashMap<String, PoolConfig>> = LazyLock::new(HashMap::new);
+
 impl NetworkSettings {
-    /// Check if this network has minimum required fields to be "configured"
+    /// The chain kind of this network.
+    pub fn chain_type(&self) -> ChainType {
+        match self {
+            Self::Cosmos(_) => ChainType::Cosmos,
+            Self::Svm(_) => ChainType::Svm,
+        }
+    }
+
+    /// Whether this network has the minimum required fields to be "configured",
+    /// evaluated per variant.
     pub fn is_configured(&self) -> bool {
-        !self.rpc.is_empty() && !self.lcd.is_empty() && !self.gas_price.is_empty()
+        match self {
+            Self::Cosmos(cosmos) => {
+                !cosmos.rpc.is_empty() && !cosmos.lcd.is_empty() && !cosmos.gas_price.is_empty()
+            }
+            Self::Svm(svm) => {
+                !svm.rpc.is_empty()
+                    && !svm.program_id.is_empty()
+                    && !svm.transfer_channel_id.is_empty()
+            }
+        }
+    }
+
+    /// Display name.
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Cosmos(cosmos) => &cosmos.name,
+            Self::Svm(svm) => &svm.name,
+        }
+    }
+
+    /// Chain ID.
+    pub fn chain_id(&self) -> &str {
+        match self {
+            Self::Cosmos(cosmos) => &cosmos.chain_id,
+            Self::Svm(svm) => &svm.chain_id,
+        }
+    }
+
+    /// Gas multiplier for fee estimation.
+    pub fn gas_multiplier(&self) -> f64 {
+        match self {
+            Self::Cosmos(cosmos) => cosmos.gas_multiplier,
+            Self::Svm(svm) => svm.gas_multiplier,
+        }
+    }
+
+    /// Primary protocol for price deduplication; svm networks have none.
+    pub fn primary_protocol(&self) -> Option<&str> {
+        match self {
+            Self::Cosmos(cosmos) => cosmos.primary_protocol.as_deref(),
+            Self::Svm(_) => None,
+        }
+    }
+
+    /// Swap venue (DEX) for this network; svm networks have none.
+    pub fn swap_venue(&self) -> Option<&NetworkSwapVenue> {
+        match self {
+            Self::Cosmos(cosmos) => cosmos.swap_venue.as_ref(),
+            Self::Svm(_) => None,
+        }
+    }
+
+    /// Pool-specific configurations; svm networks have none.
+    pub fn pools(&self) -> &HashMap<String, PoolConfig> {
+        match self {
+            Self::Cosmos(cosmos) => &cosmos.pools,
+            Self::Svm(_) => LazyLock::force(&EMPTY_POOLS),
+        }
     }
 }
 
@@ -421,7 +575,7 @@ pub struct AdminNetworkResponse {
 }
 
 /// Configuration status for a network
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct NetworkConfigStatus {
     /// Display name
     pub name: Option<String>,
@@ -429,15 +583,42 @@ pub struct NetworkConfigStatus {
     pub chain_id: Option<String>,
     /// RPC endpoint
     pub rpc: Option<String>,
-    /// LCD endpoint
+    /// LCD endpoint (cosmos only)
     pub lcd: Option<String>,
-    /// Gas price
+    /// Gas price (cosmos only)
     pub gas_price: Option<String>,
-    /// Primary protocol for price deduplication
+    /// Primary protocol for price deduplication (cosmos only)
     pub primary_protocol: Option<String>,
     /// Whether this network is fully configured
     #[serde(rename = "_configured")]
     pub configured: bool,
+}
+
+impl NetworkConfigStatus {
+    /// Build a status view from a configured network's settings, variant-aware:
+    /// svm networks have no lcd / gas_price / primary_protocol, so those stay `None`.
+    pub fn from_settings(settings: &NetworkSettings) -> Self {
+        match settings {
+            NetworkSettings::Cosmos(cosmos) => Self {
+                name: Some(cosmos.name.clone()),
+                chain_id: Some(cosmos.chain_id.clone()),
+                rpc: Some(cosmos.rpc.clone()),
+                lcd: Some(cosmos.lcd.clone()),
+                gas_price: Some(cosmos.gas_price.clone()),
+                primary_protocol: cosmos.primary_protocol.clone(),
+                configured: settings.is_configured(),
+            },
+            NetworkSettings::Svm(svm) => Self {
+                name: Some(svm.name.clone()),
+                chain_id: Some(svm.chain_id.clone()),
+                rpc: Some(svm.rpc.clone()),
+                lcd: None,
+                gas_price: None,
+                primary_protocol: None,
+                configured: settings.is_configured(),
+            },
+        }
+    }
 }
 
 /// Summary of unconfigured items
@@ -486,9 +667,9 @@ impl From<CurrencyDisplayInput> for CurrencyDisplay {
     }
 }
 
-/// Input for upserting a network config
+/// Cosmos-SDK network admin input.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NetworkSettingsInput {
+pub struct CosmosNetworkInput {
     /// Display name
     pub name: String,
     /// Chain ID
@@ -526,25 +707,89 @@ pub struct NetworkSettingsInput {
     pub gas_multiplier: f64,
 }
 
+/// SVM (Solana) network admin input.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SvmNetworkInput {
+    /// Display name
+    pub name: String,
+    /// Chain ID
+    pub chain_id: String,
+    /// Backend-internal RPC endpoint
+    pub rpc: String,
+    /// On-chain program id
+    pub program_id: String,
+    /// IBC transfer channel id
+    pub transfer_channel_id: String,
+    /// Explorer URL pattern with a `{txHash}` placeholder
+    pub explorer_url_pattern: String,
+    /// Network ticker symbol
+    pub symbol: String,
+    /// Gas multiplier for fee estimation
+    pub gas_multiplier: f64,
+    /// Network icon path
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
+    /// Estimated transaction time in seconds
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub estimation: Option<u32>,
+}
+
+/// Input for upserting a network config, tagged by `chain_type` (default cosmos).
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "chain_type", rename_all = "lowercase")]
+pub enum NetworkSettingsInput {
+    Cosmos(CosmosNetworkInput),
+    Svm(SvmNetworkInput),
+}
+
+impl<'de> Deserialize<'de> for NetworkSettingsInput {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        chain_type_from_value(&value)
+            .and_then(|chain_type| match chain_type {
+                ChainType::Cosmos => CosmosNetworkInput::deserialize(&value).map(Self::Cosmos),
+                ChainType::Svm => SvmNetworkInput::deserialize(&value).map(Self::Svm),
+            })
+            .map_err(serde::de::Error::custom)
+    }
+}
+
 impl From<NetworkSettingsInput> for NetworkSettings {
     fn from(input: NetworkSettingsInput) -> Self {
-        NetworkSettings {
-            name: input.name,
-            chain_id: input.chain_id,
-            prefix: input.prefix,
-            rpc: input.rpc,
-            lcd: input.lcd,
-            fallback_rpc: input.fallback_rpc,
-            fallback_lcd: input.fallback_lcd,
-            gas_price: input.gas_price,
-            explorer: input.explorer,
-            icon: input.icon,
-            primary_protocol: input.primary_protocol,
-            estimation: input.estimation,
-            forward: input.forward,
-            gas_multiplier: input.gas_multiplier,
-            swap_venue: None,
-            pools: HashMap::new(),
+        match input {
+            NetworkSettingsInput::Cosmos(cosmos) => Self::Cosmos(CosmosNetworkSettings {
+                name: cosmos.name,
+                chain_id: cosmos.chain_id,
+                prefix: cosmos.prefix,
+                rpc: cosmos.rpc,
+                lcd: cosmos.lcd,
+                fallback_rpc: cosmos.fallback_rpc,
+                fallback_lcd: cosmos.fallback_lcd,
+                gas_price: cosmos.gas_price,
+                explorer: cosmos.explorer,
+                icon: cosmos.icon,
+                primary_protocol: cosmos.primary_protocol,
+                estimation: cosmos.estimation,
+                forward: cosmos.forward,
+                swap_venue: None,
+                gas_multiplier: cosmos.gas_multiplier,
+                pools: HashMap::new(),
+            }),
+            NetworkSettingsInput::Svm(svm) => Self::Svm(SvmNetworkSettings {
+                name: svm.name,
+                chain_id: svm.chain_id,
+                rpc: svm.rpc,
+                program_id: svm.program_id,
+                transfer_channel_id: svm.transfer_channel_id,
+                explorer_url_pattern: svm.explorer_url_pattern,
+                symbol: svm.symbol,
+                gas_multiplier: svm.gas_multiplier,
+                icon: svm.icon,
+                estimation: svm.estimation,
+            }),
         }
     }
 }
@@ -593,7 +838,7 @@ mod tests {
 
     #[test]
     fn test_network_settings_is_configured() {
-        let configured = NetworkSettings {
+        let configured = NetworkSettings::Cosmos(CosmosNetworkSettings {
             name: "Osmosis".to_string(),
             chain_id: "osmosis-1".to_string(),
             prefix: "osmo".to_string(),
@@ -610,10 +855,10 @@ mod tests {
             gas_multiplier: 3.5,
             swap_venue: None,
             pools: HashMap::new(),
-        };
+        });
         assert!(configured.is_configured());
 
-        let unconfigured_no_rpc = NetworkSettings {
+        let unconfigured_no_rpc = NetworkSettings::Cosmos(CosmosNetworkSettings {
             name: "Osmosis".to_string(),
             chain_id: "osmosis-1".to_string(),
             prefix: "osmo".to_string(),
@@ -630,7 +875,7 @@ mod tests {
             gas_multiplier: 3.5,
             swap_venue: None,
             pools: HashMap::new(),
-        };
+        });
         assert!(!unconfigured_no_rpc.is_configured());
     }
 
@@ -693,5 +938,211 @@ mod tests {
         let json = r#"{"downpayment_ranges": {}, "asset_restrictions": {}}"#;
         let config: LeaseRulesConfig = serde_json::from_str(json).unwrap();
         assert_eq!(config.due_projection_secs, 400);
+    }
+
+    // Contract these tests pin for the svm ChainType + SOLANA network model.
+    // `NetworkSettings` becomes
+    // a tagged enum with a custom `Deserialize` that defaults a *missing*
+    // `chain_type` to cosmos (back-compat), plus:
+    //   * `enum ChainType { Cosmos, Svm }` — derives Debug + PartialEq (serde
+    //     `rename_all = "lowercase"` so it maps to "cosmos" / "svm").
+    //   * `NetworkSettings::chain_type(&self) -> ChainType`.
+    //   * `NetworkSettings::is_configured(&self)` — per-variant completeness rule
+    //     (cosmos: non-empty rpc + lcd + gas_price, byte-identical to today;
+    //     svm: non-empty rpc + program_id + transfer_channel_id).
+    //   * `NetworkSettings::swap_venue(&self) -> Option<&NetworkSwapVenue>` and
+    //     `NetworkSettings::pools(&self) -> &HashMap<String, PoolConfig>` — svm
+    //     returns None / empty so the cosmos-only consumers (swap.rs, earn.rs)
+    //     iterate them without special-casing.
+    //   * `Serialize` writes `chain_type` explicitly for every variant.
+    //   * `NetworkSettingsInput` mirrors the same variants; `From` preserves them.
+    //
+    // Every construction goes through the serde seam (JSON) so the tests pin
+    // OBSERVABLE behaviour, never the enum's internal field layout.
+
+    const COSMOS_ENTRY_JSON: &str = r#"{
+        "name": "Osmosis", "chain_id": "osmosis-1", "prefix": "osmo",
+        "rpc": "https://rpc-osmosis.internal", "lcd": "https://lcd-osmosis.internal",
+        "gas_price": "0.025uosmo", "gas_multiplier": 3.5,
+        "swap_venue": { "name": "osmosis-poolmanager", "address": "osmo1venue" },
+        "pools": { "OSMOSIS-OSMOSIS-USDC_NOBLE": { "icon": "/pools/usdc.svg" } }
+    }"#;
+
+    const SVM_ENTRY_JSON: &str = r#"{
+        "chain_type": "svm",
+        "name": "Solana", "chain_id": "solana",
+        "rpc": "https://solana-rpc.internal-do-not-leak",
+        "program_id": "NoLuSpRoGrAm1111111111111111111111111111111",
+        "transfer_channel_id": "channel-0",
+        "explorer_url_pattern": "https://solscan.io/tx/{txHash}",
+        "symbol": "SOL", "icon": "/networks/solana.svg",
+        "gas_multiplier": 1.0, "estimation": 5
+    }"#;
+
+    // back-compat deserialization of the shipped config file
+    const REPO_NETWORK_CONFIG: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/config/gated/network-config.json"
+    ));
+
+    #[test]
+    fn verbatim_network_config_loads_all_shipped_entries() {
+        let config: GatedNetworkConfig = serde_json::from_str(REPO_NETWORK_CONFIG)
+            .expect("shipped network-config.json (no chain_type) deserializes verbatim");
+        let mut keys: Vec<&str> = config.networks.keys().map(String::as_str).collect();
+        keys.sort_unstable();
+        assert_eq!(keys, ["NEUTRON", "NOLUS", "OSMOSIS"]);
+    }
+
+    #[test]
+    fn verbatim_network_config_entries_default_to_cosmos() {
+        let config: GatedNetworkConfig = serde_json::from_str(REPO_NETWORK_CONFIG)
+            .expect("shipped network-config.json deserializes verbatim");
+        let all_cosmos = config
+            .networks
+            .values()
+            .all(|s| s.chain_type() == ChainType::Cosmos);
+        assert!(
+            all_cosmos,
+            "every entry in the chain_type-less shipped file must load as cosmos"
+        );
+    }
+
+    // svm variant round-trip + required-field enforcement
+    #[test]
+    fn svm_entry_deserializes_as_svm_chain_type() {
+        let settings: NetworkSettings = serde_json::from_str(SVM_ENTRY_JSON)
+            .expect("svm entry with all required fields deserializes");
+        assert_eq!(settings.chain_type(), ChainType::Svm);
+    }
+
+    #[test]
+    fn svm_entry_missing_program_id_is_rejected() {
+        let json = SVM_ENTRY_JSON.replace(
+            "\"program_id\": \"NoLuSpRoGrAm1111111111111111111111111111111\",",
+            "",
+        );
+        assert!(
+            serde_json::from_str::<NetworkSettings>(&json).is_err(),
+            "an svm entry without program_id must be rejected, not silently accepted"
+        );
+    }
+
+    #[test]
+    fn svm_entry_missing_transfer_channel_id_is_rejected() {
+        let json = SVM_ENTRY_JSON.replace("\"transfer_channel_id\": \"channel-0\",", "");
+        assert!(
+            serde_json::from_str::<NetworkSettings>(&json).is_err(),
+            "an svm entry without transfer_channel_id must be rejected"
+        );
+    }
+
+    #[test]
+    fn svm_entry_serialization_writes_chain_type_svm() {
+        let settings: NetworkSettings =
+            serde_json::from_str(SVM_ENTRY_JSON).expect("svm entry deserializes");
+        let value = serde_json::to_value(&settings).expect("svm settings serialize");
+        assert_eq!(
+            value.get("chain_type"),
+            Some(&serde_json::Value::from("svm"))
+        );
+    }
+
+    #[test]
+    fn cosmos_entry_serialization_writes_chain_type_cosmos() {
+        let settings: NetworkSettings =
+            serde_json::from_str(COSMOS_ENTRY_JSON).expect("cosmos entry deserializes");
+        let value = serde_json::to_value(&settings).expect("cosmos settings serialize");
+        assert_eq!(
+            value.get("chain_type"),
+            Some(&serde_json::Value::from("cosmos"))
+        );
+    }
+
+    // is_configured() is per-variant
+    #[test]
+    fn cosmos_entry_with_endpoints_is_configured() {
+        let settings: NetworkSettings =
+            serde_json::from_str(COSMOS_ENTRY_JSON).expect("cosmos entry deserializes");
+        assert!(settings.is_configured());
+    }
+
+    #[test]
+    fn cosmos_entry_with_empty_rpc_is_not_configured() {
+        let json = COSMOS_ENTRY_JSON.replace("https://rpc-osmosis.internal", "");
+        let settings: NetworkSettings =
+            serde_json::from_str(&json).expect("cosmos entry with empty rpc still deserializes");
+        assert!(!settings.is_configured());
+    }
+
+    #[test]
+    fn svm_entry_with_required_fields_is_configured() {
+        let settings: NetworkSettings =
+            serde_json::from_str(SVM_ENTRY_JSON).expect("svm entry deserializes");
+        assert!(settings.is_configured());
+    }
+
+    #[test]
+    fn svm_entry_with_empty_rpc_is_not_configured() {
+        let json = SVM_ENTRY_JSON.replace("https://solana-rpc.internal-do-not-leak", "");
+        let settings: NetworkSettings =
+            serde_json::from_str(&json).expect("svm entry with empty rpc still deserializes");
+        assert!(!settings.is_configured());
+    }
+
+    // svm entries expose no cosmos-only swap venue / pools
+    #[test]
+    fn svm_entry_exposes_no_swap_venue() {
+        let settings: NetworkSettings =
+            serde_json::from_str(SVM_ENTRY_JSON).expect("svm entry deserializes");
+        assert!(settings.swap_venue().is_none());
+    }
+
+    #[test]
+    fn svm_entry_exposes_no_pools() {
+        let settings: NetworkSettings =
+            serde_json::from_str(SVM_ENTRY_JSON).expect("svm entry deserializes");
+        assert!(settings.pools().is_empty());
+    }
+
+    #[test]
+    fn cosmos_entry_still_exposes_its_swap_venue() {
+        let settings: NetworkSettings =
+            serde_json::from_str(COSMOS_ENTRY_JSON).expect("cosmos entry deserializes");
+        assert_eq!(
+            settings.swap_venue().map(|v| v.name.as_str()),
+            Some("osmosis-poolmanager")
+        );
+    }
+
+    // admin NetworkSettingsInput round-trips both variants
+    const COSMOS_INPUT_JSON: &str = r#"{
+        "name": "Neutron", "chain_id": "neutron-1", "prefix": "neutron",
+        "rpc": "https://rpc-neutron.internal", "lcd": "https://lcd-neutron.internal",
+        "gas_price": "0.025untrn", "gas_multiplier": 2.5
+    }"#;
+
+    const SVM_INPUT_JSON: &str = r#"{
+        "chain_type": "svm",
+        "name": "Solana", "chain_id": "solana",
+        "rpc": "https://solana-rpc.internal-do-not-leak",
+        "program_id": "NoLuSpRoGrAm1111111111111111111111111111111",
+        "transfer_channel_id": "channel-0",
+        "explorer_url_pattern": "https://solscan.io/tx/{txHash}",
+        "symbol": "SOL", "gas_multiplier": 1.0
+    }"#;
+
+    #[test]
+    fn cosmos_network_input_converts_to_cosmos_settings() {
+        let input: NetworkSettingsInput =
+            serde_json::from_str(COSMOS_INPUT_JSON).expect("cosmos admin input deserializes");
+        assert_eq!(NetworkSettings::from(input).chain_type(), ChainType::Cosmos);
+    }
+
+    #[test]
+    fn svm_network_input_converts_to_svm_settings() {
+        let input: NetworkSettingsInput =
+            serde_json::from_str(SVM_INPUT_JSON).expect("svm admin input deserializes");
+        assert_eq!(NetworkSettings::from(input).chain_type(), ChainType::Svm);
     }
 }

@@ -80,6 +80,15 @@ pub struct NetworkInfo {
     pub forward: Option<bool>,
     /// Gas multiplier for fee estimation
     pub gas_multiplier: f64,
+    /// SVM program id (svm networks only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub program_id: Option<String>,
+    /// IBC transfer channel id (svm networks only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transfer_channel_id: Option<String>,
+    /// Explorer URL pattern with a `{txHash}` placeholder (svm networks only)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub explorer_url_pattern: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
@@ -194,6 +203,9 @@ mod tests {
                 primary_protocol: None,
                 forward: None,
                 gas_multiplier: 1.5,
+                program_id: None,
+                transfer_channel_id: None,
+                explorer_url_pattern: None,
             }],
             native_asset: NativeAssetInfo {
                 ticker: "NLS".to_string(),

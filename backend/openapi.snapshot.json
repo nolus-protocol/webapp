@@ -5888,6 +5888,27 @@
             "type": "number",
             "format": "double",
             "description": "Gas multiplier for fee estimation"
+          },
+          "program_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "SVM program id (svm networks only)"
+          },
+          "transfer_channel_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "IBC transfer channel id (svm networks only)"
+          },
+          "explorer_url_pattern": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Explorer URL pattern with a `{txHash}` placeholder (svm networks only)"
           }
         }
       },

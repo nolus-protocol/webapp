@@ -28,6 +28,10 @@ export type State = {
   // method, so the nominal type stays accurate.
   wallet?: Raw<NolusWallet> | undefined;
 
+  // Base58 Solana address of the connected wallet, surfaced from the SolanaWallet
+  // at connect time. Undefined for cosmos-native mechanisms (Keplr, Ledger).
+  solAddress?: string | undefined;
+
   // Vesting tokens
   vest: {
     start: Date;

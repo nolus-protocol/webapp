@@ -3,17 +3,25 @@ import type { StdFee } from "@cosmjs/amino";
 import { i18n } from "@/i18n";
 import { Dec } from "@keplr-wallet/unit";
 import { fromBech32 } from "@cosmjs/encoding";
+import bs58 from "bs58";
 import { CurrencyUtils } from "@nolus/nolusjs";
 import { useWalletStore, WalletActions } from "@/common/stores/wallet";
 import { WalletStorage } from ".";
 import { getCurrencyByDenom } from "./CurrencyLookup";
 import { type NetworkData, WalletConnectMechanism } from "@/common/types";
+import { ChainType } from "@/common/types/Network";
 import { authenticateKeplr, authenticateLedger, type BaseWallet, type Wallet } from "@/networks";
 import { authenticatePhantom, authenticateSolFlare } from "@/networks/cosm/WalletFactory";
 
-export const validateAddress = (address: string) => {
+const SOLANA_PUBKEY_BYTES = 32;
+
+export const validateAddress = (address: string, chainType?: ChainType) => {
   if (!address || address.trim() === "") {
     return i18n.global.t("message.invalid-address");
+  }
+
+  if (chainType === ChainType.svm) {
+    return validateSvmAddress(address);
   }
 
   try {
@@ -23,6 +31,17 @@ export const validateAddress = (address: string) => {
     return i18n.global.t("message.invalid-address");
   }
 };
+
+function validateSvmAddress(address: string): string {
+  try {
+    if (bs58.decode(address).length === SOLANA_PUBKEY_BYTES) {
+      return "";
+    }
+  } catch {
+    // falls through to the invalid-address result below
+  }
+  return i18n.global.t("message.invalid-address");
+}
 
 export const validateAmountV2 = (amount: string, amount2: string) => {
   amount = removeSpace(removeComma(amount?.toString() ?? ""));

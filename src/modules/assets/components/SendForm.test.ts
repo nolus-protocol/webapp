@@ -28,7 +28,11 @@ const hoisted = vi.hoisted(() => {
   const externalWalletMock = vi.fn(async () => ({ address: "osmo1recipient" }));
   const getWalletMock = vi.fn();
   const transferCurrencyMock = vi.fn();
-  const validateAddressMock = vi.fn(() => "");
+  // validateAddress now takes the destination network's chain type
+  // as a 2nd arg (the receiver-address watcher passes it; onSubmitNative stays
+  // cosmos by passing the native cosmos chain type / omitting it). The stub
+  // ignores args, so this documents the new call shape without asserting it.
+  const validateAddressMock = vi.fn((_address: string, _chainType?: unknown) => "");
 
   const clientMock = {
     getChainId: vi.fn(async () => "osmosis-1"),

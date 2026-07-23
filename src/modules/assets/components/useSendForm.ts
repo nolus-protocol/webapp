@@ -282,7 +282,7 @@ export function useSendForm() {
   watch(
     () => receiverAddress.value,
     () => {
-      amountErrorMsg.value = validateAddress(receiverAddress.value);
+      amountErrorMsg.value = validateAddress(receiverAddress.value, network.value?.chain_type);
     }
   );
 

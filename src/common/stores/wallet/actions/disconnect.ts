@@ -4,6 +4,7 @@ import type { Store } from "../types";
 
 export function disconnect(this: Store) {
   this.wallet = undefined;
+  this.solAddress = undefined;
   void IntercomService.disconnect();
   // Clear the wallet-driven network filter so the next connect's first
   // watcher tick sees a fresh slate.
