@@ -35,6 +35,7 @@ where
 }
 
 use crate::chain_events::EventChannels;
+use crate::config_store::gated_types::NetworkSettings;
 use crate::data_cache::{GatedConfigBundle, ProposalsWithTally};
 use crate::external::chain::{ProtocolContractsInfo, TallyResult};
 use crate::handlers::config::{
@@ -360,30 +361,60 @@ pub async fn refresh_app_config(state: &Arc<AppState>) {
         .iter()
         .filter(|(_, settings)| settings.is_configured())
         .map(|(key, settings)| {
-            let symbol = settings
-                .gas_price
-                .trim_start_matches(|c: char| c.is_ascii_digit() || c == '.')
-                .trim_start_matches('u')
-                .to_uppercase();
+            let chain_type = settings.chain_type().as_str().to_string();
+            match settings {
+                NetworkSettings::Cosmos(cosmos) => {
+                    let symbol = cosmos
+                        .gas_price
+                        .trim_start_matches(|c: char| c.is_ascii_digit() || c == '.')
+                        .trim_start_matches('u')
+                        .to_uppercase();
 
-            NetworkInfo {
-                key: key.clone(),
-                name: settings.name.clone(),
-                chain_id: settings.chain_id.clone(),
-                prefix: settings.prefix.clone(),
-                rpc_url: settings.rpc.clone(),
-                rest_url: settings.lcd.clone(),
-                gas_price: settings.gas_price.clone(),
-                chain_type: "cosmos".to_string(),
-                native: key == "NOLUS",
-                value: key.to_lowercase(),
-                symbol,
-                explorer: settings.explorer.clone(),
-                icon: settings.icon.clone(),
-                estimation: settings.estimation,
-                primary_protocol: settings.primary_protocol.clone(),
-                forward: settings.forward,
-                gas_multiplier: settings.gas_multiplier,
+                    NetworkInfo {
+                        key: key.clone(),
+                        name: cosmos.name.clone(),
+                        chain_id: cosmos.chain_id.clone(),
+                        prefix: cosmos.prefix.clone(),
+                        rpc_url: cosmos.rpc.clone(),
+                        rest_url: cosmos.lcd.clone(),
+                        gas_price: cosmos.gas_price.clone(),
+                        chain_type,
+                        native: key == "NOLUS",
+                        value: key.to_lowercase(),
+                        symbol,
+                        explorer: cosmos.explorer.clone(),
+                        icon: cosmos.icon.clone(),
+                        estimation: cosmos.estimation,
+                        primary_protocol: cosmos.primary_protocol.clone(),
+                        forward: cosmos.forward,
+                        gas_multiplier: cosmos.gas_multiplier,
+                        program_id: None,
+                        transfer_channel_id: None,
+                        explorer_url_pattern: None,
+                    }
+                }
+                NetworkSettings::Svm(svm) => NetworkInfo {
+                    key: key.clone(),
+                    name: svm.name.clone(),
+                    chain_id: svm.chain_id.clone(),
+                    prefix: String::new(),
+                    rpc_url: String::new(),
+                    rest_url: String::new(),
+                    gas_price: String::new(),
+                    chain_type,
+                    native: false,
+                    value: key.to_lowercase(),
+                    symbol: svm.symbol.clone(),
+                    explorer: None,
+                    icon: svm.icon.clone(),
+                    estimation: svm.estimation,
+                    primary_protocol: None,
+                    forward: None,
+                    gas_multiplier: svm.gas_multiplier,
+                    program_id: Some(svm.program_id.clone()),
+                    transfer_channel_id: Some(svm.transfer_channel_id.clone()),
+                    explorer_url_pattern: Some(svm.explorer_url_pattern.clone()),
+                },
             }
         })
         .collect();
@@ -1344,8 +1375,9 @@ pub async fn refresh_gas_fee_config(state: &Arc<AppState>) {
         }
     }
 
-    // Always include unls with gas price from network config (single source of truth)
-    if let Some(nolus) = gated.network_config.networks.get("NOLUS") {
+    // Always include unls with gas price from network config (single source of truth).
+    // NOLUS is a cosmos network — gas_price is a cosmos-only field.
+    if let Some(NetworkSettings::Cosmos(nolus)) = gated.network_config.networks.get("NOLUS") {
         let nls_price = nolus
             .gas_price
             .trim_end_matches(|c: char| c.is_alphabetic() || c == '_')
@@ -1358,7 +1390,7 @@ pub async fn refresh_gas_fee_config(state: &Arc<AppState>) {
         .network_config
         .networks
         .get("NOLUS")
-        .map(|n| n.gas_multiplier)
+        .map(|n| n.gas_multiplier())
     {
         Some(m) => m,
         None => {
@@ -1407,8 +1439,9 @@ mod tests {
 
     use crate::config::AppConfig;
     use crate::config_store::gated_types::{
-        AssetRestrictions, CurrencyDisplay, CurrencyDisplayConfig, GatedNetworkConfig,
-        LeaseRulesConfig, NetworkSettings, SmartSwapOptions, SwapSettingsConfig, UiSettingsConfig,
+        AssetRestrictions, CosmosNetworkSettings, CurrencyDisplay, CurrencyDisplayConfig,
+        GatedNetworkConfig, LeaseRulesConfig, NetworkSettings, SmartSwapOptions,
+        SwapSettingsConfig, UiSettingsConfig,
     };
     use crate::config_store::ConfigStore;
     use crate::data_cache::{AppDataCache, ProtocolContractsMap};
@@ -1539,7 +1572,7 @@ mod tests {
         let mut networks: HashMap<String, NetworkSettings> = HashMap::new();
         networks.insert(
             "NOLUS".to_string(),
-            NetworkSettings {
+            NetworkSettings::Cosmos(CosmosNetworkSettings {
                 name: "Nolus".to_string(),
                 chain_id: "pirin-1".to_string(),
                 prefix: "nolus".to_string(),
@@ -1556,11 +1589,11 @@ mod tests {
                 swap_venue: None,
                 gas_multiplier: 3.5,
                 pools: HashMap::new(),
-            },
+            }),
         );
         networks.insert(
             "OSMOSIS".to_string(),
-            NetworkSettings {
+            NetworkSettings::Cosmos(CosmosNetworkSettings {
                 name: "Osmosis".to_string(),
                 chain_id: "osmosis-1".to_string(),
                 prefix: "osmo".to_string(),
@@ -1577,7 +1610,7 @@ mod tests {
                 swap_venue: None,
                 gas_multiplier: 2.0,
                 pools: HashMap::new(),
-            },
+            }),
         );
 
         GatedConfigBundle {
@@ -1801,6 +1834,105 @@ mod tests {
         refresh_app_config(&state).await;
 
         assert!(!state.data_cache.app_config.is_populated());
+    }
+
+    // refresh_app_config maps NetworkInfo.chain_type from the
+    // settings variant (killing the refresh.rs hardcoded "cosmos"), and an svm
+    // network's internal endpoints are never emitted into the app config.
+
+    /// A gated bundle whose only network is an svm SOLANA entry, built through
+    /// the serde seam so the test is agnostic to the enum's field layout.
+    fn svm_only_gated_bundle() -> GatedConfigBundle {
+        let mut bundle = sample_gated_bundle();
+        bundle.network_config = serde_json::from_str(
+            r#"{ "SOLANA": { "chain_type":"svm","name":"Solana","chain_id":"solana",
+                "rpc":"https://solana-rpc.internal-do-not-leak",
+                "program_id":"NoLuSpRoGrAm1111111111111111111111111111111",
+                "transfer_channel_id":"channel-0",
+                "explorer_url_pattern":"https://solscan.io/tx/{txHash}",
+                "symbol":"SOL","icon":"/networks/solana.svg",
+                "gas_multiplier":1.0,"estimation":5 } }"#,
+        )
+        .expect("svm network_config deserializes");
+        bundle
+    }
+
+    #[tokio::test]
+    async fn refresh_app_config_svm_network_serves_svm_chain_type() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(svm_only_gated_bundle());
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+
+        refresh_app_config(&state).await;
+
+        let loaded = state
+            .data_cache
+            .app_config
+            .load()
+            .expect("app_config populated");
+        let solana = loaded
+            .networks
+            .iter()
+            .find(|n| n.key == "SOLANA")
+            .expect("svm SOLANA network reaches the app config");
+        assert_eq!(solana.chain_type, "svm");
+    }
+
+    #[tokio::test]
+    async fn refresh_app_config_svm_network_serves_empty_rpc_and_rest() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(svm_only_gated_bundle());
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+
+        refresh_app_config(&state).await;
+
+        let loaded = state
+            .data_cache
+            .app_config
+            .load()
+            .expect("app_config populated");
+        let solana = loaded
+            .networks
+            .iter()
+            .find(|n| n.key == "SOLANA")
+            .expect("svm SOLANA network reaches the app config");
+        assert_eq!(
+            (solana.rpc_url.as_str(), solana.rest_url.as_str()),
+            ("", "")
+        );
+    }
+
+    #[tokio::test]
+    async fn refresh_app_config_cosmos_network_still_serves_cosmos_chain_type() {
+        let (state, etl, _chain) = state_with_wiremock_etl_and_chain().await;
+        state.data_cache.gated_config.store(sample_gated_bundle());
+        Mock::given(method("GET"))
+            .and(path("/api/protocols"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(etl_protocols_json()))
+            .mount(&etl)
+            .await;
+
+        refresh_app_config(&state).await;
+
+        let loaded = state
+            .data_cache
+            .app_config
+            .load()
+            .expect("app_config populated");
+        let osmosis = loaded
+            .networks
+            .iter()
+            .find(|n| n.key == "OSMOSIS")
+            .expect("cosmos OSMOSIS network reaches the app config");
+        assert_eq!(osmosis.chain_type, "cosmos");
     }
 
     // =======================================================================

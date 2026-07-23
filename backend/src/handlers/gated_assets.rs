@@ -122,7 +122,7 @@ pub fn get_price_for_asset(
     // Try to find price from primary protocol of any network
     for network in networks {
         if let Some(settings) = network_config.networks.get(network) {
-            if let Some(primary_protocol) = &settings.primary_protocol {
+            if let Some(primary_protocol) = settings.primary_protocol() {
                 let price_key = format!("{}@{}", ticker, primary_protocol);
                 if let Some(price_info) = prices.get(&price_key) {
                     return Some(price_info.price_usd.clone());
@@ -327,7 +327,7 @@ pub async fn get_network_assets(
     .collect();
 
     // Get primary protocol for this network
-    let primary_protocol = network_settings.primary_protocol.as_deref();
+    let primary_protocol = network_settings.primary_protocol();
 
     // Build response
     let assets: Vec<AssetResponse> = filtered_currencies

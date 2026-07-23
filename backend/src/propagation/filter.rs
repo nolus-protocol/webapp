@@ -160,7 +160,9 @@ impl PropagationFilter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config_store::gated_types::{CurrencyDisplay, NetworkSettings};
+    use crate::config_store::gated_types::{
+        CosmosNetworkSettings, CurrencyDisplay, NetworkSettings,
+    };
     use crate::external::etl::{EtlCurrencyProtocol, EtlProtocolContracts};
     use std::collections::HashMap;
 
@@ -195,7 +197,7 @@ mod tests {
         GatedNetworkConfig {
             networks: HashMap::from([(
                 "OSMOSIS".to_string(),
-                NetworkSettings {
+                NetworkSettings::Cosmos(CosmosNetworkSettings {
                     name: "Osmosis".to_string(),
                     chain_id: "osmosis-1".to_string(),
                     prefix: "osmo".to_string(),
@@ -212,7 +214,7 @@ mod tests {
                     gas_multiplier: 3.5,
                     swap_venue: None,
                     pools: HashMap::new(),
-                },
+                }),
             )]),
         }
     }

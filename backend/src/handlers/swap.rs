@@ -82,15 +82,15 @@ pub async fn get_route(
         .networks
         .values()
         .filter_map(|ns| {
-            let venue = ns.swap_venue.as_ref()?;
+            let venue = ns.swap_venue()?;
             if let Some(ref hint) = request.network {
-                if !ns.chain_id.starts_with(hint) {
+                if !ns.chain_id().starts_with(hint) {
                     return None;
                 }
             }
             Some(serde_json::json!({
                 "name": venue.name,
-                "chain_id": ns.chain_id,
+                "chain_id": ns.chain_id(),
             }))
         })
         .collect();
@@ -201,11 +201,11 @@ pub async fn get_messages(
 
         if let Some(name) = venue_name {
             for ns in network_config.networks.values() {
-                if let Some(ref venue) = ns.swap_venue {
+                if let Some(venue) = ns.swap_venue() {
                     if venue.name == name {
                         if let Some(ref address) = venue.address {
                             chain_ids_to_affiliates.insert(
-                                ns.chain_id.clone(),
+                                ns.chain_id().to_string(),
                                 serde_json::json!({
                                     "affiliates": [{
                                         "address": address,

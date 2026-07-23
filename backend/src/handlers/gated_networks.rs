@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use utoipa::ToSchema;
 
+use crate::config_store::gated_types::NetworkSettings;
 use crate::error::AppError;
 use crate::handlers::common_types::CurrencyDisplayInfo;
 use crate::AppState;
@@ -163,22 +164,44 @@ pub async fn get_network(
             resource: format!("Network {}", network),
         })?;
 
-    Ok(Json(NetworkResponse {
-        network,
-        name: settings.name.clone(),
-        chain_id: settings.chain_id.clone(),
-        prefix: settings.prefix.clone(),
-        rpc: settings.rpc.clone(),
-        lcd: settings.lcd.clone(),
-        fallback_rpc: settings.fallback_rpc.clone(),
-        fallback_lcd: settings.fallback_lcd.clone(),
-        gas_price: settings.gas_price.clone(),
-        explorer: settings.explorer.clone(),
-        icon: settings.icon.clone(),
-        primary_protocol: settings.primary_protocol.clone(),
-        estimation: settings.estimation,
-        gas_multiplier: settings.gas_multiplier,
-    }))
+    // svm networks carry a backend-internal RPC that must never reach this
+    // public endpoint, so their endpoint fields are redacted to empty.
+    let response = match settings {
+        NetworkSettings::Cosmos(cosmos) => NetworkResponse {
+            network,
+            name: cosmos.name.clone(),
+            chain_id: cosmos.chain_id.clone(),
+            prefix: cosmos.prefix.clone(),
+            rpc: cosmos.rpc.clone(),
+            lcd: cosmos.lcd.clone(),
+            fallback_rpc: cosmos.fallback_rpc.clone(),
+            fallback_lcd: cosmos.fallback_lcd.clone(),
+            gas_price: cosmos.gas_price.clone(),
+            explorer: cosmos.explorer.clone(),
+            icon: cosmos.icon.clone(),
+            primary_protocol: cosmos.primary_protocol.clone(),
+            estimation: cosmos.estimation,
+            gas_multiplier: cosmos.gas_multiplier,
+        },
+        NetworkSettings::Svm(svm) => NetworkResponse {
+            network,
+            name: svm.name.clone(),
+            chain_id: svm.chain_id.clone(),
+            prefix: String::new(),
+            rpc: String::new(),
+            lcd: String::new(),
+            fallback_rpc: Vec::new(),
+            fallback_lcd: Vec::new(),
+            gas_price: String::new(),
+            explorer: None,
+            icon: svm.icon.clone(),
+            primary_protocol: None,
+            estimation: svm.estimation,
+            gas_multiplier: svm.gas_multiplier,
+        },
+    };
+
+    Ok(Json(response))
 }
 
 /// List LPP pools on a network
@@ -245,7 +268,7 @@ pub async fn get_network_pools(
             let lpn_display_config = currency_config.currencies.get(&p.lpn_symbol)?;
             let pool_data = pool_map.get(p.name.as_str());
             let pool_icon = network_settings
-                .pools
+                .pools()
                 .get(&p.name)
                 .map(|pc| pc.icon.clone());
 
@@ -342,5 +365,64 @@ mod tests {
         assert!(body.contains("\"networks\""), "body: {body}");
         assert!(body.contains("\"count\":1"), "body: {body}");
         assert!(body.contains("OSMOSIS"), "body: {body}");
+    }
+
+    // GET /api/networks/{network}/info must not
+    // serve an svm entry's internal rpc/lcd to the public. Built through the
+    // serde seam; agnostic to redact-vs-drop.
+    #[tokio::test]
+    async fn get_network_svm_entry_does_not_leak_internal_endpoints() {
+        use crate::config_store::gated_types::{
+            CurrencyDisplayConfig, GatedNetworkConfig, LeaseRulesConfig, SwapSettingsConfig,
+            UiSettingsConfig,
+        };
+        use crate::data_cache::GatedConfigBundle;
+
+        let network_config: GatedNetworkConfig = serde_json::from_str(
+            r#"{ "SOLANA": { "chain_type":"svm","name":"Solana","chain_id":"solana",
+                "rpc":"https://solana-rpc.internal-do-not-leak",
+                "program_id":"NoLuSpRoGrAm1111111111111111111111111111111",
+                "transfer_channel_id":"channel-0",
+                "explorer_url_pattern":"https://solscan.io/tx/{txHash}",
+                "symbol":"SOL","gas_multiplier":1.0 } }"#,
+        )
+        .expect("svm network_config deserializes");
+
+        let bundle = GatedConfigBundle {
+            currency_display: serde_json::from_str::<CurrencyDisplayConfig>("{}")
+                .expect("empty currency display"),
+            network_config,
+            lease_rules: serde_json::from_str::<LeaseRulesConfig>("{}")
+                .expect("default lease rules"),
+            swap_settings: serde_json::from_str::<SwapSettingsConfig>(
+                r#"{"api_url":"http://127.0.0.1:1/"}"#,
+            )
+            .expect("swap settings"),
+            ui_settings: serde_json::from_str::<UiSettingsConfig>("{}").expect("ui settings"),
+        };
+
+        let state = test_app_state().await;
+        state.data_cache.gated_config.store(bundle);
+
+        let app = Router::new()
+            .route("/api/networks/{network}/info", get(get_network))
+            .with_state(state);
+
+        let resp = app
+            .oneshot(
+                Request::builder()
+                    .uri("/api/networks/SOLANA/info")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(resp.status(), StatusCode::OK);
+        let body = collect_body_str(resp).await;
+        assert!(
+            !body.contains("internal-do-not-leak"),
+            "svm network info must not serve internal rpc/lcd endpoints: {body}"
+        );
     }
 }
