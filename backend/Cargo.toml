@@ -64,6 +64,18 @@ cosmrs = { version = "0.16", features = ["cosmwasm"] }
 base64 = "0.22"
 prost = "0.12"
 
+# Solana IBC SDK: PDA/ATA derivation, instruction builders, packet-PDA
+# decoders. Pinned by commit rev (upstream cuts no semver tags); `sdk` feature
+# only — `engine-jupiter` would pull `remote_lease_wire`, whose rustc >= 1.94
+# floor conflicts with Solana's bundled BPF toolchain and which the webapp
+# never touches (relayer-gated path).
+ibc-solray = { git = "https://github.com/nolus-protocol/ibc-solray", rev = "0462fb326b9b2b4d51b831c729893cc86192518f", default-features = false, features = ["sdk"] }
+
+# Solana public-key type: base58/ed25519-pubkey validation and PDA derivation.
+# Version pinned to match the one `ibc-solray` resolves so their `Pubkey` types
+# unify.
+solana-pubkey = "4"
+
 # Regex for placeholder validation (translations)
 regex = "1"
 lazy_static = "1"
