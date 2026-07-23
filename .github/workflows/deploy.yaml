@@ -19,6 +19,10 @@ on:
         description: Public host the SPA talks to; the three VITE_* URLs derive from it.
         required: true
         type: string
+    secrets:
+      IBC_SOLRAY_DEPLOY_KEY:
+        description: Read-only deploy key for the private ibc-solray cargo git dependency.
+        required: true
 
 jobs:
   build-and-deploy:
@@ -33,6 +37,14 @@ jobs:
       DEPLOY_DIR: ${{ inputs.deploy_dir }}
       SERVICE: ${{ inputs.service }}
       HEALTH_PORT: ${{ inputs.health_port }}
+      # ibc-solray is private; cargo shells out to git (fetch-with-cli) and the
+      # env-scoped rewrite + key keep the persistent runner's global git config
+      # untouched. The rewrite matches only the ibc-solray URL.
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
+      GIT_SSH_COMMAND: ssh -i ${{ runner.temp }}/ibc-solray-deploy-key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: url.ssh://git@github.com/nolus-protocol/ibc-solray.insteadOf
+      GIT_CONFIG_VALUE_0: https://github.com/nolus-protocol/ibc-solray
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -60,6 +72,13 @@ jobs:
         run: |
           npm ci
           npm run build
+
+      - name: Stage the ibc-solray deploy key
+        env:
+          IBC_SOLRAY_DEPLOY_KEY: ${{ secrets.IBC_SOLRAY_DEPLOY_KEY }}
+        run: |
+          printf '%s\n' "$IBC_SOLRAY_DEPLOY_KEY" > "$RUNNER_TEMP/ibc-solray-deploy-key"
+          chmod 600 "$RUNNER_TEMP/ibc-solray-deploy-key"
 
       - name: Build Rust backend
         # The [self-hosted, frontend-deploy] runner keeps its workspace and the
