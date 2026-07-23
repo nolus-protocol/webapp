@@ -31,6 +31,9 @@ import type { MsgDelegate, MsgUndelegate, MsgBeginRedelegate } from "cosmjs-type
 import type { MsgWithdrawDelegatorReward } from "cosmjs-types/cosmos/distribution/v1beta1/tx";
 import type { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { SignMode } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing";
+import { VersionedTransaction } from "@solana/web3.js";
+import type { SendOptions } from "@solana/web3.js";
+import { Buffer } from "buffer";
 
 interface SolanaProviderPublicKey {
   toBytes(): Uint8Array;
@@ -40,7 +43,43 @@ interface SolanaProviderPublicKey {
 interface SolanaProvider {
   connect(): Promise<unknown>;
   signMessage(message: Uint8Array): Promise<{ signature: Uint8Array }>;
+  signAndSendTransaction(transaction: VersionedTransaction, options?: SendOptions): Promise<{ signature: string }>;
   publicKey: SolanaProviderPublicKey | null | undefined;
+}
+
+type SolanaWalletErrorKind = "rejected" | "dialog-open" | "disconnected" | "unknown";
+
+export class SolanaWalletError extends Error {
+  readonly kind: SolanaWalletErrorKind;
+
+  constructor(kind: SolanaWalletErrorKind, message: string, cause: unknown) {
+    super(message, { cause });
+    this.name = "SolanaWalletError";
+    this.kind = kind;
+  }
+}
+
+// Standard injected-wallet JSON-RPC error codes (EIP-1193 style), surfaced by
+// both Phantom and Solflare.
+const USER_REJECTED_REQUEST_CODE = 4001;
+const REQUEST_ALREADY_PENDING_CODE = -32002;
+
+function providerErrorCode(error: unknown): number | undefined {
+  if (typeof error === "object" && error !== null && "code" in error && typeof error.code === "number") {
+    return error.code;
+  }
+  return undefined;
+}
+
+function toSolanaWalletError(cause: unknown): SolanaWalletError {
+  const code = providerErrorCode(cause);
+  if (code === USER_REJECTED_REQUEST_CODE) {
+    return new SolanaWalletError("rejected", "The wallet rejected the transaction.", cause);
+  }
+  if (code === REQUEST_ALREADY_PENDING_CODE) {
+    return new SolanaWalletError("dialog-open", "A wallet approval request is already pending.", cause);
+  }
+  return new SolanaWalletError("unknown", "The wallet could not sign and send the transaction.", cause);
 }
 
 function isSolanaProvider(value: unknown): value is SolanaProvider {
@@ -170,6 +209,40 @@ export class SolanaWallet implements Wallet {
     this.address = data.bech32Addr;
     this.chainId = chainId;
     return data;
+  }
+
+  async signAndSendTransaction(transactionBase64: string): Promise<string> {
+    let provider: SolanaProvider;
+    try {
+      provider = this.getProvider();
+    } catch (error) {
+      throw new SolanaWalletError("disconnected", "No Solana wallet provider is available.", error);
+    }
+
+    if (typeof provider.signAndSendTransaction !== "function") {
+      throw new SolanaWalletError(
+        "unknown",
+        "The connected wallet version does not support sending Solana transactions.",
+        undefined
+      );
+    }
+
+    let signature: string;
+    try {
+      const transaction = VersionedTransaction.deserialize(Buffer.from(transactionBase64, "base64"));
+      ({ signature } = await provider.signAndSendTransaction(transaction));
+    } catch (error) {
+      throw toSolanaWalletError(error);
+    }
+
+    if (typeof signature !== "string" || signature.length === 0) {
+      throw new SolanaWalletError(
+        "unknown",
+        "The wallet returned no transaction signature, violating the signAndSendTransaction contract.",
+        undefined
+      );
+    }
+    return signature;
   }
 
   private async getWallet(chainInfo: unknown) {

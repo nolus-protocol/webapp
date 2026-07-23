@@ -1,4 +1,16 @@
+// @vitest-environment node
+//
+// This suite runs in the node environment (not the project-default jsdom):
+// @solana/web3.js encode/serialize does strict `instanceof Uint8Array` checks,
+// and under jsdom the Node builtin Buffer is not an instance of the realm's
+// Uint8Array, so tx (de)serialization throws. Node's Buffer/Uint8Array share
+// one realm, so web3.js works natively — matching how the production bundle
+// polyfills Buffer. The window slots the shim below provides are all these
+// tests touch of the DOM.
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+const globalWindow = globalThis as unknown as { window?: unknown };
+globalWindow.window ??= globalThis;
 
 const stargateConnectMock = vi.fn();
 vi.mock("@cosmjs/stargate", () => ({
@@ -31,9 +43,17 @@ vi.mock("@/config/global", () => ({
   }))
 }));
 
-import { SolanaWallet } from "./wallet";
+import { SolanaWallet, SolanaWalletError } from "./wallet";
 import type { NetworkData } from "@/common/types";
 import { AuthInfo, SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { Buffer } from "buffer";
+import {
+  AddressLookupTableAccount,
+  Keypair,
+  SystemProgram,
+  TransactionMessage,
+  VersionedTransaction
+} from "@solana/web3.js";
 
 const ED_PUBKEY_BYTES = new Uint8Array(32);
 for (let i = 0; i < 32; i++) ED_PUBKEY_BYTES[i] = i + 1;
@@ -49,6 +69,7 @@ function makeProvider(overrides: Partial<Record<string, unknown>> = {}) {
     connect: vi.fn().mockResolvedValue(true),
     publicKey,
     signMessage: vi.fn().mockResolvedValue({ signature: new Uint8Array(64) }),
+    signAndSendTransaction: vi.fn().mockResolvedValue({ signature: "SIG_SOLFLARE" }),
     ...overrides
   };
 }
@@ -64,6 +85,7 @@ function makePhantomProvider(overrides: Partial<Record<string, unknown>> = {}) {
     connect: vi.fn().mockResolvedValue(true),
     publicKey,
     signMessage: vi.fn().mockResolvedValue({ signature: new Uint8Array(64) }),
+    signAndSendTransaction: vi.fn().mockResolvedValue({ signature: "SIG_PHANTOM" }),
     ...overrides
   };
 }
@@ -92,6 +114,49 @@ function networkStub(): NetworkData {
   return {
     embedChainInfo: () => ({ bech32Config: { bech32PrefixAccAddr: "nolus" } })
   } as unknown as NetworkData;
+}
+
+// Builds a backend-shaped, unsigned v0 VersionedTransaction that genuinely
+// references an address lookup table, returning both its base64 form (the wire
+// input the shim receives) and its raw bytes (for a byte-exact round-trip
+// assertion against what reaches the provider).
+function buildV0TransactionFixture(): { base64: string; bytes: Uint8Array } {
+  const payer = Keypair.generate();
+  const recipient = Keypair.generate().publicKey;
+  const lookupTable = new AddressLookupTableAccount({
+    key: Keypair.generate().publicKey,
+    state: {
+      deactivationSlot: 2n ** 64n - 1n,
+      lastExtendedSlot: 0,
+      lastExtendedSlotStartIndex: 0,
+      authority: payer.publicKey,
+      addresses: [recipient]
+    }
+  });
+  const instruction = SystemProgram.transfer({
+    fromPubkey: payer.publicKey,
+    toPubkey: recipient,
+    lamports: 1000
+  });
+  const message = new TransactionMessage({
+    payerKey: payer.publicKey,
+    recentBlockhash: Keypair.generate().publicKey.toBase58(),
+    instructions: [instruction]
+  }).compileToV0Message([lookupTable]);
+  if (message.addressTableLookups.length === 0) {
+    throw new Error("fixture did not reference the address lookup table");
+  }
+  const bytes = new VersionedTransaction(message).serialize();
+  return { base64: Buffer.from(bytes).toString("base64"), bytes };
+}
+
+async function captureRejection(promise: Promise<unknown>): Promise<unknown> {
+  try {
+    await promise;
+  } catch (error) {
+    return error;
+  }
+  throw new Error("expected the promise to reject");
 }
 
 describe("SolanaWallet (Solflare provider)", () => {
@@ -562,5 +627,133 @@ describe("SolanaWallet strict guards", () => {
     await expect(Promise.resolve(bound.simulateMultiTx?.([{ msg: {}, msgTypeUrl: "/x" }], ""))).rejects.toThrow(
       /usable fee/
     );
+  });
+});
+
+describe("SolanaWallet.signAndSendTransaction", () => {
+  afterEach(() => {
+    clearSolflare();
+    clearPhantom();
+    vi.restoreAllMocks();
+  });
+
+  it("Solflare: deserializes the base64 v0 tx byte-exactly and returns the provider signature", async () => {
+    const { base64, bytes } = buildV0TransactionFixture();
+    const provider = makeProvider();
+    stubSolflare(provider);
+
+    const sol = new SolanaWallet("solflare");
+    const signature = await sol.signAndSendTransaction(base64);
+
+    expect(signature).toBe("SIG_SOLFLARE");
+    expect(provider.signAndSendTransaction).toHaveBeenCalledTimes(1);
+
+    const call = provider.signAndSendTransaction.mock.calls[0];
+    if (call === undefined) throw new Error("expected signAndSendTransaction to have been called");
+    const received = call[0] as VersionedTransaction;
+    expect(received).toBeInstanceOf(VersionedTransaction);
+    // Confirms it is the v0 message the backend built; the byte-exact check
+    // below proves its lookup tables survived deserialization.
+    expect(received.message.version).toBe(0);
+    // Byte-exact: re-serializing what the provider received reproduces the input.
+    expect(received.serialize()).toEqual(bytes);
+  });
+
+  it("Phantom: deserializes the base64 v0 tx byte-exactly and returns the provider signature", async () => {
+    const { base64, bytes } = buildV0TransactionFixture();
+    const provider = makePhantomProvider();
+    stubPhantom(provider);
+
+    const sol = new SolanaWallet("phantom");
+    const signature = await sol.signAndSendTransaction(base64);
+
+    expect(signature).toBe("SIG_PHANTOM");
+    expect(provider.signAndSendTransaction).toHaveBeenCalledTimes(1);
+
+    const call = provider.signAndSendTransaction.mock.calls[0];
+    if (call === undefined) throw new Error("expected signAndSendTransaction to have been called");
+    const received = call[0] as VersionedTransaction;
+    expect(received.serialize()).toEqual(bytes);
+  });
+
+  it("classifies provider code 4001 as a 'rejected' error preserving the cause", async () => {
+    const cause = { code: 4001, message: "User rejected the request." };
+    const provider = makeProvider({ signAndSendTransaction: vi.fn().mockRejectedValue(cause) });
+    stubSolflare(provider);
+
+    const sol = new SolanaWallet("solflare");
+    const error = await captureRejection(sol.signAndSendTransaction(buildV0TransactionFixture().base64));
+
+    expect(error).toBeInstanceOf(SolanaWalletError);
+    if (!(error instanceof SolanaWalletError)) throw new Error("expected a SolanaWalletError");
+    expect(error.kind).toBe("rejected");
+    expect(error.cause).toBe(cause);
+  });
+
+  it("classifies provider code -32002 as a 'dialog-open' error (Phantom)", async () => {
+    const cause = { code: -32002, message: "Request already pending." };
+    const provider = makePhantomProvider({ signAndSendTransaction: vi.fn().mockRejectedValue(cause) });
+    stubPhantom(provider);
+
+    const sol = new SolanaWallet("phantom");
+    const error = await captureRejection(sol.signAndSendTransaction(buildV0TransactionFixture().base64));
+
+    expect(error).toBeInstanceOf(SolanaWalletError);
+    if (!(error instanceof SolanaWalletError)) throw new Error("expected a SolanaWalletError");
+    expect(error.kind).toBe("dialog-open");
+    expect(error.cause).toBe(cause);
+  });
+
+  it("classifies a missing provider as a 'disconnected' error", async () => {
+    clearSolflare();
+    clearPhantom();
+
+    const sol = new SolanaWallet("solflare");
+    const error = await captureRejection(sol.signAndSendTransaction(buildV0TransactionFixture().base64));
+
+    expect(error).toBeInstanceOf(SolanaWalletError);
+    if (!(error instanceof SolanaWalletError)) throw new Error("expected a SolanaWalletError");
+    expect(error.kind).toBe("disconnected");
+    expect(error.cause).toBeInstanceOf(Error);
+  });
+
+  it("classifies any other provider failure as 'unknown' preserving the original error as cause", async () => {
+    const cause = new Error("network unreachable");
+    const provider = makeProvider({ signAndSendTransaction: vi.fn().mockRejectedValue(cause) });
+    stubSolflare(provider);
+
+    const sol = new SolanaWallet("solflare");
+    const error = await captureRejection(sol.signAndSendTransaction(buildV0TransactionFixture().base64));
+
+    expect(error).toBeInstanceOf(SolanaWalletError);
+    if (!(error instanceof SolanaWalletError)) throw new Error("expected a SolanaWalletError");
+    expect(error.kind).toBe("unknown");
+    expect(error.cause).toBe(cause);
+  });
+
+  it("throws 'unknown' when the provider resolves without a signature string", async () => {
+    const provider = makeProvider({ signAndSendTransaction: vi.fn().mockResolvedValue({}) });
+    stubSolflare(provider);
+
+    const sol = new SolanaWallet("solflare");
+    const error = await captureRejection(sol.signAndSendTransaction(buildV0TransactionFixture().base64));
+
+    expect(error).toBeInstanceOf(SolanaWalletError);
+    if (!(error instanceof SolanaWalletError)) throw new Error("expected a SolanaWalletError");
+    expect(error.kind).toBe("unknown");
+    expect(error.message).toMatch(/signature/i);
+  });
+
+  it("throws 'unknown' when the connected wallet lacks signAndSendTransaction (older version)", async () => {
+    const provider = makeProvider({ signAndSendTransaction: undefined });
+    stubSolflare(provider);
+
+    const sol = new SolanaWallet("solflare");
+    const error = await captureRejection(sol.signAndSendTransaction(buildV0TransactionFixture().base64));
+
+    expect(error).toBeInstanceOf(SolanaWalletError);
+    if (!(error instanceof SolanaWalletError)) throw new Error("expected a SolanaWalletError");
+    expect(error.kind).toBe("unknown");
+    expect(error.message).toMatch(/does not support/i);
   });
 });
