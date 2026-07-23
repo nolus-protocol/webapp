@@ -386,10 +386,14 @@ describe("HistoryStore", () => {
     }
   });
 
-  it("addPendingTransfer_ignores_non_transfer_operations", () => {
+  it("addPendingTransfer_skips_swap_operation_with_unresolvable_chains", () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
       const store = useHistoryStore();
+      // A `swap` op is a recognized op kind handled on the same path as
+      // transfer/cctp_transfer. An empty swap body has no resolvable from/to
+      // chains, so the step is skipped with a logged error rather than falling
+      // through silently as an unknown op.
       store.addPendingTransfer(
         { ...baseReceivePayload(), skipRoute: { amount_out: "1000000", operations: [{ swap: {} }] } },
         i18nInstance
@@ -397,7 +401,7 @@ describe("HistoryStore", () => {
       const entry = store.pendingTransfers["1"];
       if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
       expect(entry.historyData.route).toMatchObject({ steps: [] });
-      expect(consoleSpy).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalled();
     } finally {
       consoleSpy.mockRestore();
     }
@@ -455,6 +459,135 @@ describe("HistoryStore", () => {
       // The send step (amount_in) is kept; only the malformed receive step is dropped.
       expect(route.steps).toHaveLength(1);
       expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Swap op-kind rendering. getRouteSteps recognizes a `swap` op alongside
+  // `transfer` / `cctp_transfer`. Real Skip swap ops carry `chain_id` +
+  // `from_chain_id` but no `to_chain_id` (see the captured osmosis-swap
+  // baseline), so chain resolution falls back to `chain_id` and a single-chain
+  // swap renders as an on-chain step.
+  // ---------------------------------------------------------------------------
+  it("addPendingTransfer_renders_a_step_for_a_swap_operation", () => {
+    seedConfigCurrencies();
+    const store = useHistoryStore();
+    store.addPendingTransfer(
+      {
+        ...baseReceivePayload(),
+        skipRoute: {
+          amount_out: "8156769821",
+          operations: [
+            {
+              amount_in: "10000000",
+              amount_out: "8156769821",
+              swap: { chain_id: "osmosis-1", from_chain_id: "osmosis-1" }
+            }
+          ]
+        },
+        chains: { "osmosis-1": { icon: "osmosis.svg", label: "Osmosis" } }
+      },
+      i18nInstance
+    );
+
+    const entry = store.pendingTransfers["1"];
+    if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+    const routeDetails = entry.historyData.routeDetails;
+    if (routeDetails === undefined) throw new Error("expected route stepper to be assembled");
+    expect(routeDetails.steps.length).toBeGreaterThan(0);
+  });
+
+  it("addPendingTransfer_swap_leg_adds_a_step_to_a_transfer_swap_transfer_route", () => {
+    seedConfigCurrencies();
+    const store = useHistoryStore();
+
+    const chains = {
+      nolus: { icon: "nolus.svg", label: "Nolus" },
+      solana: { icon: "solana.svg", label: "Solana" }
+    };
+    const transferLeg = (from: string, to: string) => ({
+      amount_in: "100",
+      amount_out: "99",
+      transfer: { from_chain_id: from, to_chain_id: to }
+    });
+    // Real Skip swap-op shape: `chain_id` + `from_chain_id`, no `to_chain_id`.
+    const swapLeg = { amount_in: "99", amount_out: "200", swap: { chain_id: "solana", from_chain_id: "solana" } };
+
+    store.addPendingTransfer(
+      {
+        ...baseReceivePayload(),
+        id: 10,
+        skipRoute: {
+          amount_out: "1000000",
+          operations: [transferLeg("nolus", "solana"), transferLeg("solana", "nolus")]
+        },
+        chains
+      },
+      i18nInstance
+    );
+    store.addPendingTransfer(
+      {
+        ...baseReceivePayload(),
+        id: 11,
+        skipRoute: {
+          amount_out: "1000000",
+          operations: [transferLeg("nolus", "solana"), swapLeg, transferLeg("solana", "nolus")]
+        },
+        chains
+      },
+      i18nInstance
+    );
+
+    const withoutSwap = store.pendingTransfers["10"]?.historyData.routeDetails;
+    const withSwap = store.pendingTransfers["11"]?.historyData.routeDetails;
+    if (withoutSwap === undefined || withSwap === undefined) throw new Error("expected both route steppers");
+    expect(withSwap.steps.length).toBeGreaterThan(withoutSwap.steps.length);
+  });
+
+  it("addPendingTransfer_renders_swap_leg_from_captured_osmosis_payload", () => {
+    seedConfigCurrencies();
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const store = useHistoryStore();
+      // Operations lifted verbatim from the captured production quote
+      // (.claude/baselines/osmosis-swap-baseline): an on-chain swap leg
+      // (`chain_id`+`from_chain_id`, no `to_chain_id`) then an IBC transfer home.
+      store.addPendingTransfer(
+        {
+          ...baseReceivePayload(),
+          skipRoute: {
+            amount_out: "8156769821",
+            operations: [
+              {
+                amount_in: "10000000",
+                amount_out: "8156769821",
+                swap: { chain_id: "osmosis-1", from_chain_id: "osmosis-1" }
+              },
+              {
+                amount_in: "8156769821",
+                amount_out: "8156769821",
+                transfer: { chain_id: "osmosis-1", from_chain_id: "osmosis-1", to_chain_id: "pirin-1" }
+              }
+            ]
+          },
+          chains: {
+            "osmosis-1": { icon: "osmosis.svg", label: "Osmosis" },
+            "pirin-1": { icon: "nolus.svg", label: "Nolus" }
+          }
+        },
+        i18nInstance
+      );
+
+      const entry = store.pendingTransfers["1"];
+      if (entry === undefined) throw new Error("expected pending transfer 1 to be created");
+      const routeDetails = entry.historyData.routeDetails;
+      if (routeDetails === undefined) throw new Error("expected route stepper to be assembled");
+      // Swap leg + transfer leg + receive step = 3; the swap leg is rendered,
+      // not dropped, and nothing is skipped with an error.
+      expect(routeDetails.steps).toHaveLength(3);
+      expect(consoleSpy).not.toHaveBeenCalled();
     } finally {
       consoleSpy.mockRestore();
     }

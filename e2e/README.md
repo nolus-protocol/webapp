@@ -490,6 +490,11 @@ test block — a goto-only test cannot satisfy a cell, and a removed/renamed lab
   cell, not asserted as a client guarantee.
 - **Schemaless endpoints** (all `/api/etl/*`, `/api/governance/*`, `/api/staking/positions`)
   have no Zod schema; their fixtures are shape-mirrored and marked unvalidated in the matrix.
+- **Swap-leg route stepper is funded-gated** — the pending-transfer stepper renders a `swap`
+  op-kind leg (real Skip swap ops carry `chain_id` + `from_chain_id`, no `to_chain_id`) only for a
+  send/receive route that includes a swap hop, which needs a funded wallet producing such a route.
+  Recorded as a funded-gated cell (`/activities` × `route-stepper`); the swap-leg step assembly is
+  unit-covered in the history-store `getRouteSteps` suite.
 
 ### CI (the `e2e-static` job)
 
