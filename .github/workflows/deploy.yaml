@@ -132,6 +132,8 @@ jobs:
             --filter "- .env" \
             --filter "- config/" \
             --filter "- config/**" \
+            --filter "- data/" \
+            --filter "- data/**" \
             --filter "- nolus-backend.bak" \
             --filter "- dist.bak/**" \
             --verbose
