@@ -2148,6 +2148,7 @@ dependencies = [
  "futures",
  "governor",
  "http-body-util",
+ "ibc-core-channel-types",
  "ibc-solray",
  "jsonwebtoken",
  "lazy_static",
@@ -2157,6 +2158,9 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "solana-hash 4.5.0",
+ "solana-instruction",
+ "solana-message",
  "solana-pubkey 4.2.0",
  "tempfile",
  "thiserror 1.0.69",
@@ -3435,6 +3439,7 @@ version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0448b1fd891c5f46491e5dc7d9986385ba3c852c340db2911dd29faa01d2b08d"
 dependencies = [
+ "bincode",
  "lazy_static",
  "serde",
  "serde_derive",

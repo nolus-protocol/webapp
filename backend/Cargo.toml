@@ -76,6 +76,19 @@ ibc-solray = { git = "https://github.com/nolus-protocol/ibc-solray", rev = "0462
 # unify.
 solana-pubkey = "4"
 
+# Solana transaction assembly for the unsigned-tx build endpoints: `Instruction`
+# / `AccountMeta` (compute-budget + ATA instructions), the v0 message compiler,
+# and the recent-blockhash type. Versions track the ones `ibc-solray` resolves so
+# the `Pubkey`/`Instruction` types unify with the SDK's instruction builders.
+solana-instruction = { version = "3", default-features = false, features = ["std"] }
+solana-message = { version = "3", default-features = false, features = ["bincode"] }
+solana-hash = { version = "4", default-features = false, features = ["decode", "std"] }
+
+# IBC timeout height/timestamp enums for composing a send's `Timeout`. Pinned to
+# the same `nolus-protocol/ibc-rs` fork rev `ibc-solray` resolves so the `Height`
+# / `Timestamp` types unify with the SDK.
+ibc-core-channel-types = { git = "https://github.com/nolus-protocol/ibc-rs.git", rev = "0178f6e9e039000fd040781f03bff67c13d5c040", default-features = false }
+
 # Regex for placeholder validation (translations)
 regex = "1"
 lazy_static = "1"
