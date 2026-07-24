@@ -363,3 +363,492 @@ pub async fn build_send_sink(
 ) -> Result<Json<BuildTransactionResponse>, AppError> {
     build_send(&state, &request, TransferKind::Sink).await
 }
+
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
+    use std::str::FromStr as _;
+    use std::sync::Arc;
+
+    use serde_json::json;
+    use solana_pubkey::Pubkey;
+    use wiremock::matchers::{body_partial_json, method};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    use super::*;
+    use crate::handlers::currencies::CurrenciesResponse;
+
+    // ── Canonical fixtures ──────────────────────────────────────────────
+    const SENDER: &str = "So11111111111111111111111111111111111111112";
+    const RECIPIENT: &str = "nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5";
+    const MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
+    const VOUCHER_MINT: &str = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
+    const BLOCKHASH: &str = "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM";
+    const SOLANA_PROTOCOL: &str = "SOLANA-JUPITER-USDC";
+    /// The Solana ComputeBudget program id; its 32 bytes appear in any composed
+    /// transaction that injects compute-budget instructions.
+    const COMPUTE_BUDGET_PROGRAM_ID: &str = "ComputeBudget111111111111111111111111111111";
+
+    /// A Solana-native currency in the SOLANA protocol set (dispatches Source).
+    ///
+    /// INTERPRETATION: `native == true` is used here as the Solana-origin
+    /// discriminator. If WS1.4 keys origin off the IBC trace of `bank_symbol`
+    /// instead, adjust this one builder (see report — interpretation call #1).
+    fn native_currency() -> CurrencyInfo {
+        CurrencyInfo {
+            key: "USDC@SOLANA-JUPITER-USDC".to_string(),
+            ticker: "USDC".to_string(),
+            symbol: "USDC".to_string(),
+            name: "USD Coin".to_string(),
+            short_name: "USDC".to_string(),
+            decimal_digits: 6,
+            bank_symbol: "ibc/USDCONSOLANA".to_string(),
+            dex_symbol: MINT.to_string(),
+            icon: String::new(),
+            native: true,
+            coingecko_id: None,
+            protocol: SOLANA_PROTOCOL.to_string(),
+            group: "lease".to_string(),
+            is_active: true,
+        }
+    }
+
+    /// A Nolus-origin voucher in the SOLANA protocol set (dispatches Sink).
+    fn voucher_currency() -> CurrencyInfo {
+        CurrencyInfo {
+            key: "NLS@SOLANA-JUPITER-USDC".to_string(),
+            ticker: "NLS".to_string(),
+            symbol: "NLS".to_string(),
+            name: "Nolus".to_string(),
+            short_name: "NLS".to_string(),
+            decimal_digits: 6,
+            bank_symbol: "unls".to_string(),
+            dex_symbol: VOUCHER_MINT.to_string(),
+            icon: String::new(),
+            native: false,
+            coingecko_id: None,
+            protocol: SOLANA_PROTOCOL.to_string(),
+            group: "payment_only".to_string(),
+            is_active: true,
+        }
+    }
+
+    fn osmosis_currency() -> CurrencyInfo {
+        CurrencyInfo {
+            protocol: "OSMOSIS-OSMOSIS-USDC_NOBLE".to_string(),
+            key: "USDC@OSMOSIS-OSMOSIS-USDC_NOBLE".to_string(),
+            ..native_currency()
+        }
+    }
+
+    fn timeout_height() -> TimeoutSpec {
+        TimeoutSpec {
+            height: Some(IbcHeight {
+                revision_number: 1,
+                revision_height: 250_000_000,
+            }),
+            timestamp: None,
+        }
+    }
+
+    fn validated_source_send() -> ValidatedSend {
+        ValidatedSend {
+            kind: TransferKind::Source,
+            sender: SENDER.to_string(),
+            recipient: RECIPIENT.to_string(),
+            mint: MINT.to_string(),
+            ticker: "USDC".to_string(),
+            amount: 5_000_000,
+            decimals: 6,
+            timeout: timeout_height(),
+        }
+    }
+
+    fn currencies_with(entries: &[CurrencyInfo]) -> CurrenciesResponse {
+        let mut currencies = HashMap::new();
+        for c in entries {
+            currencies.insert(c.key.clone(), c.clone());
+        }
+        CurrenciesResponse {
+            currencies,
+            lpn: Vec::new(),
+            lease_currencies: Vec::new(),
+            map: HashMap::new(),
+        }
+    }
+
+    fn expected_fees() -> FeeSummary {
+        FeeSummary {
+            compute_unit_limit: COMPUTE_UNIT_LIMIT,
+            compute_unit_price_micro_lamports: COMPUTE_UNIT_PRICE_MICRO_LAMPORTS,
+        }
+    }
+
+    async fn state_with_solana(url: &str) -> Arc<AppState> {
+        let mut config = crate::test_utils::test_config();
+        config.external.solana_rpc_url = Some(url.to_string());
+        let state = crate::test_utils::test_app_state_with_config_and_client(
+            config,
+            reqwest::Client::new(),
+        )
+        .await;
+        state
+            .data_cache
+            .currencies
+            .store(currencies_with(&[native_currency(), voucher_currency()]));
+        state
+    }
+
+    async fn mount_blockhash(server: &MockServer) {
+        Mock::given(method("POST"))
+            .and(body_partial_json(json!({ "method": "getLatestBlockhash" })))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "jsonrpc": "2.0", "id": 1,
+                "result": { "context": { "slot": 1 },
+                    "value": { "blockhash": BLOCKHASH, "lastValidBlockHeight": 321 } },
+            })))
+            .mount(server)
+            .await;
+    }
+
+    async fn mount_simulate(server: &MockServer, err: serde_json::Value) {
+        Mock::given(method("POST"))
+            .and(body_partial_json(
+                json!({ "method": "simulateTransaction" }),
+            ))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "jsonrpc": "2.0", "id": 1,
+                "result": { "context": { "slot": 1 },
+                    "value": { "err": err, "logs": [], "unitsConsumed": 1000 } },
+            })))
+            .mount(server)
+            .await;
+    }
+
+    fn send_request(currency_key: &str) -> BuildSendRequest {
+        BuildSendRequest {
+            sender: SENDER.to_string(),
+            recipient: RECIPIENT.to_string(),
+            currency: currency_key.to_string(),
+            amount: "5000000".to_string(),
+            timeout: timeout_height(),
+        }
+    }
+
+    // ── Dispatch: backend derives kind, caller cannot override (constraint 1) ──
+
+    #[test]
+    fn resolve_transfer_kind_native_asset_dispatches_source() {
+        assert_eq!(
+            resolve_transfer_kind(&native_currency()).expect("native resolves"),
+            TransferKind::Source
+        );
+    }
+
+    #[test]
+    fn resolve_transfer_kind_nolus_voucher_dispatches_sink() {
+        assert_eq!(
+            resolve_transfer_kind(&voucher_currency()).expect("voucher resolves"),
+            TransferKind::Sink
+        );
+    }
+
+    #[tokio::test]
+    async fn build_send_source_rejects_a_voucher_currency() {
+        // Caller-cannot-override: hitting the source route with a Nolus-origin
+        // voucher must be rejected, not silently composed as a sink.
+        let state = crate::test_utils::test_app_state().await;
+        state
+            .data_cache
+            .currencies
+            .store(currencies_with(&[voucher_currency()]));
+        let err = build_send_source(State(state), Json(send_request("NLS@SOLANA-JUPITER-USDC")))
+            .await
+            .expect_err("source route must reject a voucher asset");
+        assert!(matches!(err, AppError::Validation { .. }));
+    }
+
+    #[tokio::test]
+    async fn build_send_sink_rejects_a_native_currency() {
+        let state = crate::test_utils::test_app_state().await;
+        state
+            .data_cache
+            .currencies
+            .store(currencies_with(&[native_currency()]));
+        let err = build_send_sink(State(state), Json(send_request("USDC@SOLANA-JUPITER-USDC")))
+            .await
+            .expect_err("sink route must reject a native asset");
+        assert!(matches!(err, AppError::Validation { .. }));
+    }
+
+    // ── Validation matrix (AC#2) ────────────────────────────────────────
+
+    #[test]
+    fn validate_amount_rejects_zero() {
+        assert!(matches!(
+            validate_amount("0"),
+            Err(AppError::Validation { .. })
+        ));
+    }
+
+    #[test]
+    fn validate_amount_rejects_negative() {
+        assert!(matches!(
+            validate_amount("-1"),
+            Err(AppError::Validation { .. })
+        ));
+    }
+
+    #[test]
+    fn validate_amount_rejects_overflow() {
+        // 2^128 — one past u128::MAX, must not parse.
+        assert!(matches!(
+            validate_amount("340282366920938463463374607431768211456"),
+            Err(AppError::Validation { .. })
+        ));
+    }
+
+    #[test]
+    fn validate_amount_accepts_a_positive_value() {
+        assert_eq!(
+            validate_amount("5000000").expect("positive amount"),
+            5_000_000
+        );
+    }
+
+    #[test]
+    fn lookup_solana_currency_rejects_an_unknown_key() {
+        let set = currencies_with(&[native_currency()]);
+        assert!(matches!(
+            lookup_solana_currency(&set, "MISSING@SOLANA-JUPITER-USDC"),
+            Err(AppError::Validation { .. })
+        ));
+    }
+
+    #[test]
+    fn lookup_solana_currency_rejects_a_non_solana_protocol_currency() {
+        let set = currencies_with(&[osmosis_currency()]);
+        assert!(matches!(
+            lookup_solana_currency(&set, "USDC@OSMOSIS-OSMOSIS-USDC_NOBLE"),
+            Err(AppError::Validation { .. })
+        ));
+    }
+
+    #[test]
+    fn validate_timeout_rejects_neither_height_nor_timestamp() {
+        let spec = TimeoutSpec {
+            height: None,
+            timestamp: None,
+        };
+        assert!(matches!(
+            validate_timeout(&spec),
+            Err(AppError::Validation { .. })
+        ));
+    }
+
+    #[test]
+    fn validate_timeout_accepts_height_only() {
+        assert!(validate_timeout(&timeout_height()).is_ok());
+    }
+
+    #[test]
+    fn validate_timeout_accepts_timestamp_only() {
+        let spec = TimeoutSpec {
+            height: None,
+            timestamp: Some(1_900_000_000),
+        };
+        assert!(validate_timeout(&spec).is_ok());
+    }
+
+    #[tokio::test]
+    async fn build_send_source_rejects_a_malformed_sender_address() {
+        let state = state_with_solana("http://127.0.0.1:1/").await;
+        let mut req = send_request("USDC@SOLANA-JUPITER-USDC");
+        req.sender = "not-a-base58-address".to_string();
+        let err = build_send_source(State(state), Json(req))
+            .await
+            .expect_err("malformed sender must be rejected");
+        assert!(
+            matches!(err, AppError::Validation { field, .. } if field.as_deref() == Some("sender"))
+        );
+    }
+
+    #[tokio::test]
+    async fn build_send_source_rejects_a_malformed_recipient_address() {
+        let state = state_with_solana("http://127.0.0.1:1/").await;
+        let mut req = send_request("USDC@SOLANA-JUPITER-USDC");
+        req.recipient = "not-a-nolus-address".to_string();
+        let err = build_send_source(State(state), Json(req))
+            .await
+            .expect_err("malformed recipient must be rejected");
+        assert!(
+            matches!(err, AppError::Validation { field, .. } if field.as_deref() == Some("recipient"))
+        );
+    }
+
+    // ── Deterministic composition + compute budget (AC#3, constraint 4) ──
+
+    #[test]
+    fn compose_send_is_byte_stable_for_a_fixed_input() {
+        let v = validated_source_send();
+        let a = compose_send(&v, BLOCKHASH).expect("compose a");
+        let b = compose_send(&v, BLOCKHASH).expect("compose b");
+        assert_eq!(a.transaction, b.transaction);
+    }
+
+    #[test]
+    fn compose_create_ata_is_byte_stable_for_a_fixed_input() {
+        let a = compose_create_ata(SENDER, MINT, "USDC", BLOCKHASH).expect("compose a");
+        let b = compose_create_ata(SENDER, MINT, "USDC", BLOCKHASH).expect("compose b");
+        assert_eq!(a.transaction, b.transaction);
+    }
+
+    #[test]
+    fn compose_send_transaction_references_the_compute_budget_program() {
+        let resp = compose_send(&validated_source_send(), BLOCKHASH).expect("compose");
+        let raw = base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            &resp.transaction,
+        )
+        .expect("base64 decodes");
+        let id = Pubkey::from_str(COMPUTE_BUDGET_PROGRAM_ID)
+            .expect("compute budget id parses")
+            .to_bytes();
+        assert!(raw.windows(32).any(|w| w == id));
+    }
+
+    #[test]
+    fn compose_create_ata_transaction_references_the_compute_budget_program() {
+        let resp = compose_create_ata(SENDER, MINT, "USDC", BLOCKHASH).expect("compose");
+        let raw = base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            &resp.transaction,
+        )
+        .expect("base64 decodes");
+        let id = Pubkey::from_str(COMPUTE_BUDGET_PROGRAM_ID)
+            .expect("compute budget id parses")
+            .to_bytes();
+        assert!(raw.windows(32).any(|w| w == id));
+    }
+
+    // ── Summary snapshot (AC#6) ─────────────────────────────────────────
+
+    #[test]
+    fn compose_send_summary_matches_known_answer() {
+        let resp = compose_send(&validated_source_send(), BLOCKHASH).expect("compose");
+        assert_eq!(
+            resp.summary,
+            OperationSummary {
+                operation: OperationKind::SendSource,
+                asset: "USDC".to_string(),
+                amount: "5000000".to_string(),
+                destination: RECIPIENT.to_string(),
+                fees: expected_fees(),
+            }
+        );
+    }
+
+    #[test]
+    fn compose_create_ata_summary_matches_known_answer() {
+        let resp = compose_create_ata(SENDER, MINT, "USDC", BLOCKHASH).expect("compose");
+        assert_eq!(
+            resp.summary,
+            OperationSummary {
+                operation: OperationKind::CreateAta,
+                asset: "USDC".to_string(),
+                amount: "0".to_string(),
+                destination: SENDER.to_string(),
+                fees: expected_fees(),
+            }
+        );
+    }
+
+    // ── Simulation gate (AC#5, constraint 5) ────────────────────────────
+
+    #[tokio::test]
+    async fn build_send_source_failing_simulation_returns_error_not_transaction() {
+        let server = MockServer::start().await;
+        mount_blockhash(&server).await;
+        mount_simulate(&server, json!({ "InstructionError": [0, "Custom"] })).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        let result =
+            build_send_source(State(state), Json(send_request("USDC@SOLANA-JUPITER-USDC"))).await;
+        assert!(
+            matches!(result, Err(AppError::ChainRpc { .. })),
+            "a failing simulation must return a typed error, never a transaction"
+        );
+    }
+
+    #[tokio::test]
+    async fn build_create_ata_failing_simulation_returns_error_not_transaction() {
+        let server = MockServer::start().await;
+        mount_blockhash(&server).await;
+        mount_simulate(&server, json!({ "InstructionError": [0, "Custom"] })).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        let req = BuildCreateAtaRequest {
+            owner: SENDER.to_string(),
+            currency: "USDC@SOLANA-JUPITER-USDC".to_string(),
+        };
+        let result = build_create_ata(State(state), Json(req)).await;
+        assert!(matches!(result, Err(AppError::ChainRpc { .. })));
+    }
+
+    // ── Happy path through the handler (AC#3 end-to-end, dispatch) ───────
+
+    #[tokio::test]
+    async fn build_send_source_composes_a_source_operation_for_a_native_asset() {
+        let server = MockServer::start().await;
+        mount_blockhash(&server).await;
+        mount_simulate(&server, serde_json::Value::Null).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        let resp = build_send_source(State(state), Json(send_request("USDC@SOLANA-JUPITER-USDC")))
+            .await
+            .expect("source send composes")
+            .0;
+        assert_eq!(resp.summary.operation, OperationKind::SendSource);
+    }
+
+    #[tokio::test]
+    async fn build_send_sink_composes_a_sink_operation_for_a_voucher_asset() {
+        let server = MockServer::start().await;
+        mount_blockhash(&server).await;
+        mount_simulate(&server, serde_json::Value::Null).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        let resp = build_send_sink(State(state), Json(send_request("NLS@SOLANA-JUPITER-USDC")))
+            .await
+            .expect("sink send composes")
+            .0;
+        assert_eq!(resp.summary.operation, OperationKind::SendSink);
+    }
+
+    #[tokio::test]
+    async fn build_create_ata_composes_a_create_ata_operation() {
+        let server = MockServer::start().await;
+        mount_blockhash(&server).await;
+        mount_simulate(&server, serde_json::Value::Null).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        let req = BuildCreateAtaRequest {
+            owner: SENDER.to_string(),
+            currency: "USDC@SOLANA-JUPITER-USDC".to_string(),
+        };
+        let resp = build_create_ata(State(state), Json(req))
+            .await
+            .expect("create-ata composes")
+            .0;
+        assert_eq!(resp.summary.operation, OperationKind::CreateAta);
+    }
+
+    // ── OpenAPI registration (AC#4) ─────────────────────────────────────
+    //
+    // The three build paths are registered in `handlers::openapi::ApiDoc` and
+    // wired strict-class in `main.rs`; the pre-existing
+    // `openapi::tests::openapi_spec_matches_snapshot` guards their presence and
+    // full shape via the committed `openapi.snapshot.json` (regenerated to
+    // include them). No duplicate assertion here — a lone path-presence check
+    // would be green scaffolding, not a red behavioral test.
+}
