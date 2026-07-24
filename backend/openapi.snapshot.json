@@ -3135,6 +3135,189 @@
         }
       }
     },
+    "/api/solana/tx/create-ata": {
+      "post": {
+        "tags": [
+          "solana"
+        ],
+        "summary": "Build an unsigned create-ATA transaction",
+        "operationId": "build_create_ata",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildCreateAtaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned v0 transaction + summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildTransactionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid address or unknown currency",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Solana RPC / simulation failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Solana RPC unconfigured or cache cold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solana/tx/send-sink": {
+      "post": {
+        "tags": [
+          "solana"
+        ],
+        "summary": "Build an unsigned sink-burn send transaction",
+        "operationId": "build_send_sink",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildSendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned v0 transaction + summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildTransactionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, unknown currency, or non-sink asset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Solana RPC / simulation failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Solana RPC unconfigured or cache cold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solana/tx/send-source": {
+      "post": {
+        "tags": [
+          "solana"
+        ],
+        "summary": "Build an unsigned source-escrow send transaction",
+        "operationId": "build_send_source",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildSendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned v0 transaction + summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuildTransactionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input, unknown currency, or non-source asset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Solana RPC / simulation failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Solana RPC unconfigured or cache cold",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/staking/claim-rewards": {
       "post": {
         "tags": [
@@ -4486,6 +4669,73 @@
           }
         }
       },
+      "BuildCreateAtaRequest": {
+        "type": "object",
+        "description": "`POST /api/solana/tx/create-ata` request body.",
+        "required": [
+          "owner",
+          "currency"
+        ],
+        "properties": {
+          "owner": {
+            "type": "string",
+            "description": "Base58 wallet whose associated token account is created."
+          },
+          "currency": {
+            "type": "string",
+            "description": "SOLANA-protocol currency key whose mint the ATA holds."
+          }
+        }
+      },
+      "BuildSendRequest": {
+        "type": "object",
+        "description": "`POST /api/solana/tx/{send-source|send-sink}` request body. Carries no\nsource/sink selector: the backend derives the kind from the currency origin.",
+        "required": [
+          "sender",
+          "recipient",
+          "currency",
+          "amount",
+          "timeout"
+        ],
+        "properties": {
+          "sender": {
+            "type": "string",
+            "description": "Base58 Solana wallet paying and signing (slot-0 PAYER)."
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Nolus bech32 address credited on arrival."
+          },
+          "currency": {
+            "type": "string",
+            "description": "SOLANA-protocol currency key being sent."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Base-unit amount as a decimal string."
+          },
+          "timeout": {
+            "$ref": "#/components/schemas/TimeoutSpec"
+          }
+        }
+      },
+      "BuildTransactionResponse": {
+        "type": "object",
+        "description": "Build-endpoint success body: a base64 unsigned v0 transaction plus its\npre-sign summary.",
+        "required": [
+          "transaction",
+          "summary"
+        ],
+        "properties": {
+          "transaction": {
+            "type": "string",
+            "description": "Base64-encoded unsigned Solana v0 (`VersionedTransaction`) payload."
+          },
+          "summary": {
+            "$ref": "#/components/schemas/OperationSummary"
+          }
+        }
+      },
       "CacheHealth": {
         "type": "object",
         "description": "Cache health information",
@@ -5216,6 +5466,26 @@
         "properties": {
           "error": {
             "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "FeeSummary": {
+        "type": "object",
+        "description": "Compute-budget settings the composed transaction carries, surfaced so the UI\ncan show the priority fee before the user signs.",
+        "required": [
+          "compute_unit_limit",
+          "compute_unit_price_micro_lamports"
+        ],
+        "properties": {
+          "compute_unit_limit": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "compute_unit_price_micro_lamports": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
           }
         }
       },
@@ -6398,6 +6668,46 @@
             ],
             "format": "int32",
             "minimum": 0
+          }
+        }
+      },
+      "OperationKind": {
+        "type": "string",
+        "description": "The operation a composed transaction performs, surfaced in the summary.",
+        "enum": [
+          "CreateAta",
+          "SendSource",
+          "SendSink"
+        ]
+      },
+      "OperationSummary": {
+        "type": "object",
+        "description": "Human-readable pre-sign summary rendered by the UI (asset, amount,\ndestination, fees). Deterministic per input and snapshot-tested.",
+        "required": [
+          "operation",
+          "asset",
+          "amount",
+          "destination",
+          "fees"
+        ],
+        "properties": {
+          "operation": {
+            "$ref": "#/components/schemas/OperationKind"
+          },
+          "asset": {
+            "type": "string",
+            "description": "Asset ticker (e.g. `USDC`)."
+          },
+          "amount": {
+            "type": "string",
+            "description": "Base-unit amount as a decimal string (`\"0\"` for account creation)."
+          },
+          "destination": {
+            "type": "string",
+            "description": "Destination the operation credits (Nolus recipient for a send, the owner\nwallet for a create-ATA)."
+          },
+          "fees": {
+            "$ref": "#/components/schemas/FeeSummary"
           }
         }
       },
@@ -8214,6 +8524,30 @@
           }
         }
       },
+      "TimeoutSpec": {
+        "type": "object",
+        "description": "At least one of `height` / `timestamp` must be present — the solray program\nrejects a send that carries no timeout at all.",
+        "properties": {
+          "height": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IbcHeight"
+              }
+            ]
+          },
+          "timestamp": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
       "TrackAccepted": {
         "type": "object",
         "description": "`POST /api/transfer/track` success body.",
@@ -8317,6 +8651,14 @@
             "type": "string"
           }
         }
+      },
+      "TransferKind": {
+        "type": "string",
+        "description": "Which solray transfer instruction the composition uses. Derived from the\nasset's origin, never supplied by the caller.",
+        "enum": [
+          "Source",
+          "Sink"
+        ]
       },
       "TransferLeg": {
         "type": "object",

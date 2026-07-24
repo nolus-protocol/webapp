@@ -630,6 +630,19 @@ fn create_router(state: Arc<AppState>) -> Router {
         .route("/swap/messages", post(handlers::swap::get_messages))
         // Transfer tracker (write) — register an in-flight route for tracking
         .route("/transfer/track", post(handlers::transfer::track_transfer))
+        // Solana unsigned-tx build (write) — compose + simulate, return base64 v0 tx
+        .route(
+            "/solana/tx/create-ata",
+            post(handlers::solana_tx::build_create_ata),
+        )
+        .route(
+            "/solana/tx/send-source",
+            post(handlers::solana_tx::build_send_source),
+        )
+        .route(
+            "/solana/tx/send-sink",
+            post(handlers::solana_tx::build_send_sink),
+        )
         // Referral (write)
         .route("/referral/register", post(handlers::referral::register))
         .route("/referral/assign", post(handlers::referral::assign))

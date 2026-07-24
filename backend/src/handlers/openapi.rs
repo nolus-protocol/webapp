@@ -19,8 +19,8 @@ use crate::error::{ErrorBody, ErrorResponse};
 use crate::external;
 use crate::handlers::{
     admin, common_types, config, currencies, earn, etl_proxy, fees, gated_assets, gated_networks,
-    gated_protocols, governance, leases, locales, protocols, referral, solana, staking, swap,
-    transactions, transfer, zero_interest,
+    gated_protocols, governance, leases, locales, protocols, referral, solana, solana_tx, staking,
+    swap, transactions, transfer, zero_interest,
 };
 use crate::transfer_tracker;
 
@@ -55,6 +55,10 @@ use crate::transfer_tracker;
         // Solana (balances + transfer-timeout params)
         solana::get_solana_balances,
         solana::get_solana_transfer_params,
+        // Solana unsigned-tx build endpoints
+        solana_tx::build_create_ata,
+        solana_tx::build_send_source,
+        solana_tx::build_send_sink,
         // Protocols
         protocols::get_protocols,
         protocols::get_active_protocols,
@@ -171,6 +175,15 @@ use crate::transfer_tracker;
         solana::SolanaBalancesResponse,
         solana::SolanaBalanceInfo,
         solana::SolanaTransferParamsResponse,
+        // Solana unsigned-tx build
+        solana_tx::BuildCreateAtaRequest,
+        solana_tx::BuildSendRequest,
+        solana_tx::BuildTransactionResponse,
+        solana_tx::OperationSummary,
+        solana_tx::FeeSummary,
+        solana_tx::OperationKind,
+        solana_tx::TransferKind,
+        solana_tx::TimeoutSpec,
         // Protocols
         protocols::Protocol,
         protocols::ProtocolsResponse,
