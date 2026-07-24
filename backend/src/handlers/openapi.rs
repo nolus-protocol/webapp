@@ -182,7 +182,6 @@ use crate::transfer_tracker;
         solana_tx::OperationSummary,
         solana_tx::FeeSummary,
         solana_tx::OperationKind,
-        solana_tx::TransferKind,
         solana_tx::TimeoutSpec,
         // Protocols
         protocols::Protocol,

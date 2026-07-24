@@ -32,7 +32,7 @@ use solana_pubkey::Pubkey;
 use utoipa::ToSchema;
 
 use crate::error::AppError;
-use crate::external::solana::solray_program_id;
+use crate::external::solana;
 use crate::handlers::currencies::{CurrenciesResponse, CurrencyInfo};
 use crate::transfer_tracker::IbcHeight;
 use crate::AppState;
@@ -106,19 +106,34 @@ static IBC_CONNECTION_NAME: LazyLock<String> = LazyLock::new(|| {
         .unwrap_or_else(|| DEFAULT_IBC_CONNECTION_NAME.to_string())
 });
 
-/// Solana transfer channel ordinal in effect for composition (see
-/// [`IBC_CLIENT_NAME`]).
-static TRANSFER_CHANNEL_ORDINAL: LazyLock<u16> = LazyLock::new(|| {
-    std::env::var("SOLANA_TRANSFER_CHANNEL_ORDINAL")
-        .ok()
-        .and_then(|value| value.parse().ok())
-        .unwrap_or(DEFAULT_TRANSFER_CHANNEL_ORDINAL)
-});
+/// Solana transfer channel ordinal in effect for composition: `SOLANA_TRANSFER_CHANNEL_ORDINAL`
+/// or the default. Unset/empty falls back; a set-but-unparseable value fails
+/// loudly (a silent channel-0 fallback would compose against the wrong corridor).
+fn transfer_channel_ordinal() -> Result<u16, AppError> {
+    parse_channel_ordinal(
+        std::env::var("SOLANA_TRANSFER_CHANNEL_ORDINAL")
+            .ok()
+            .as_deref(),
+    )
+}
+
+/// Parse the channel-ordinal env value: unset/empty → default; present but not a
+/// `u16` → an internal misconfiguration error, never a silent fallback.
+fn parse_channel_ordinal(raw: Option<&str>) -> Result<u16, AppError> {
+    match raw {
+        Some(value) if !value.is_empty() => value.parse().map_err(|_err| {
+            AppError::Internal(format!(
+                "SOLANA_TRANSFER_CHANNEL_ORDINAL is set but not a valid u16 channel ordinal: {value}"
+            ))
+        }),
+        _ => Ok(DEFAULT_TRANSFER_CHANNEL_ORDINAL),
+    }
+}
 
 /// Which solray transfer instruction the composition uses. Derived from the
 /// asset's origin, never supplied by the caller.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, ToSchema)]
-pub enum TransferKind {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum TransferKind {
     /// Solana-native asset leaving Solana: `SendSourceTokens` escrow.
     Source,
     /// Nolus-origin voucher returning to Nolus: `SendSinkTokens` burn.
@@ -200,24 +215,24 @@ pub struct BuildSendRequest {
 /// A send request that has passed validation and kind resolution, ready to
 /// compose. The composition seam consumes this plus an injected blockhash.
 #[derive(Debug, Clone)]
-pub struct ValidatedSend {
-    pub kind: TransferKind,
-    pub sender: String,
-    pub recipient: String,
-    pub mint: String,
+struct ValidatedSend {
+    kind: TransferKind,
+    sender: String,
+    recipient: String,
+    mint: String,
     /// Nolus-side IBC denom (`CurrencyInfo::bank_symbol`) — the remote-token
     /// denom a sink burn wraps. Unused by a source escrow.
-    pub bank_symbol: String,
-    pub ticker: String,
-    pub amount: u128,
-    pub timeout: TimeoutSpec,
+    bank_symbol: String,
+    ticker: String,
+    amount: u128,
+    timeout: TimeoutSpec,
 }
 
 /// Resolve the transfer kind from the asset's origin in the SOLANA protocol
 /// currency set: a Solana-native asset escrows out (`Source`); a Nolus-origin
 /// voucher burns back (`Sink`). Pure over the currency — the caller never picks.
 /// Errors if the currency is not a transferable SOLANA-protocol asset.
-pub fn resolve_transfer_kind(currency: &CurrencyInfo) -> Result<TransferKind, AppError> {
+fn resolve_transfer_kind(currency: &CurrencyInfo) -> Result<TransferKind, AppError> {
     // A Solana-native asset appears on Nolus as an IBC voucher (its `bank_symbol`
     // carries the `ibc/` trace), so it escrows out of Solana (Source). A
     // Nolus-origin asset keeps its native Nolus denom (e.g. `unls`), so on Solana
@@ -234,7 +249,7 @@ pub fn resolve_transfer_kind(currency: &CurrencyInfo) -> Result<TransferKind, Ap
 
 /// Resolve a currency key to its SOLANA-protocol [`CurrencyInfo`]. Errors when
 /// the key is absent from the currency set or belongs to a non-SOLANA protocol.
-pub fn lookup_solana_currency<'set>(
+fn lookup_solana_currency<'set>(
     currencies: &'set CurrenciesResponse,
     key: &str,
 ) -> Result<&'set CurrencyInfo, AppError> {
@@ -251,7 +266,7 @@ pub fn lookup_solana_currency<'set>(
 
 /// Parse and bound-check a base-unit amount string: rejects zero, negatives (the
 /// leading `-` fails `u128` parsing), and values overflowing `u128`.
-pub fn validate_amount(amount: &str) -> Result<u128, AppError> {
+fn validate_amount(amount: &str) -> Result<u128, AppError> {
     match amount.parse::<u128>() {
         Ok(value) if value > 0 => Ok(value),
         _ => Err(AppError::Validation {
@@ -263,7 +278,7 @@ pub fn validate_amount(amount: &str) -> Result<u128, AppError> {
 }
 
 /// Enforce the send timeout policy: at least one of height / timestamp present.
-pub fn validate_timeout(timeout: &TimeoutSpec) -> Result<(), AppError> {
+fn validate_timeout(timeout: &TimeoutSpec) -> Result<(), AppError> {
     if timeout.height.is_none() && timeout.timestamp.is_none() {
         return Err(AppError::Validation {
             message: "a send timeout must carry a height, a timestamp, or both".to_string(),
@@ -278,7 +293,7 @@ pub fn validate_timeout(timeout: &TimeoutSpec) -> Result<(), AppError> {
 /// deriving the transfer kind from the asset origin (never from the caller).
 /// The currency lookup runs first so an unknown/non-SOLANA currency is rejected
 /// before per-field checks.
-pub fn validate_send_request(
+fn validate_send_request(
     request: &BuildSendRequest,
     currencies: &CurrenciesResponse,
 ) -> Result<ValidatedSend, AppError> {
@@ -301,7 +316,7 @@ pub fn validate_send_request(
 }
 
 /// Validate a create-ATA request and resolve its SOLANA-protocol currency.
-pub fn validate_create_ata_request<'set>(
+fn validate_create_ata_request<'set>(
     request: &BuildCreateAtaRequest,
     currencies: &'set CurrenciesResponse,
 ) -> Result<&'set CurrencyInfo, AppError> {
@@ -324,13 +339,11 @@ fn simulation_error(err: &serde_json::Value) -> AppError {
 /// instruction for `v.kind`, assembles a v0 message pinned to `blockhash`, and
 /// returns the base64 transaction plus its summary. No RPC — the caller fetches
 /// the blockhash and simulates separately.
-pub fn compose_send(
-    v: &ValidatedSend,
-    blockhash: &str,
-) -> Result<BuildTransactionResponse, AppError> {
+fn compose_send(v: &ValidatedSend, blockhash: &str) -> Result<BuildTransactionResponse, AppError> {
     let payer = parse_pubkey(&v.sender, "sender")?;
     let amount = amount_to_u64(v.amount)?;
-    let program = parse_program_id(solray_program_id())?;
+    let program = parse_program_id(solana::solray_program_id())?;
+    let channel = transfer_channel_ordinal()?;
     let timeout = build_timeout(&v.timeout)?;
     let ibc_id = IBCIdentifiers {
         client_name: IBC_CLIENT_NAME.clone(),
@@ -341,7 +354,7 @@ pub fn compose_send(
         TransferKind::Source => {
             let mint_key = parse_pubkey(&v.mint, "currency")?;
             let details = SendSourceDetails {
-                at_channel: *TRANSFER_CHANNEL_ORDINAL,
+                at_channel: channel,
                 recipient: v.recipient.clone(),
                 mint_key,
                 amount,
@@ -355,7 +368,7 @@ pub fn compose_send(
         }
         TransferKind::Sink => {
             let details = SendSinkDetails {
-                at_channel: *TRANSFER_CHANNEL_ORDINAL,
+                at_channel: channel,
                 recipient: v.recipient.clone(),
                 remote_token_denom: v.bank_symbol.clone(),
                 amount,
@@ -384,7 +397,7 @@ pub fn compose_send(
 /// Compose the unsigned v0 create-ATA transaction. Deterministic given
 /// `blockhash`; injects compute-budget instructions and the idempotent
 /// create-ATA instruction for `mint` owned by `owner`.
-pub fn compose_create_ata(
+fn compose_create_ata(
     owner: &str,
     mint: &str,
     ticker: &str,
@@ -690,7 +703,6 @@ mod tests {
     use super::*;
     use crate::handlers::currencies::CurrenciesResponse;
 
-    // ── Canonical fixtures ──────────────────────────────────────────────
     const SENDER: &str = "So11111111111111111111111111111111111111112";
     const RECIPIENT: &str = "nolus1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sqaa3c5";
     const MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
@@ -849,8 +861,6 @@ mod tests {
         }
     }
 
-    // ── Dispatch: backend derives kind, caller cannot override (constraint 1) ──
-
     #[test]
     fn resolve_transfer_kind_native_asset_dispatches_source() {
         assert_eq!(
@@ -894,8 +904,6 @@ mod tests {
             .expect_err("sink route must reject a native asset");
         assert!(matches!(err, AppError::Validation { .. }));
     }
-
-    // ── Validation matrix (AC#2) ────────────────────────────────────────
 
     #[test]
     fn validate_amount_rejects_zero() {
@@ -974,6 +982,29 @@ mod tests {
         assert!(validate_timeout(&spec).is_ok());
     }
 
+    #[test]
+    fn parse_channel_ordinal_defaults_when_unset_or_empty_and_parses_a_value() {
+        assert_eq!(
+            parse_channel_ordinal(None).expect("unset defaults"),
+            DEFAULT_TRANSFER_CHANNEL_ORDINAL
+        );
+        assert_eq!(
+            parse_channel_ordinal(Some("")).expect("empty defaults"),
+            DEFAULT_TRANSFER_CHANNEL_ORDINAL
+        );
+        assert_eq!(parse_channel_ordinal(Some("7")).expect("valid parses"), 7);
+    }
+
+    #[test]
+    fn parse_channel_ordinal_fails_loudly_on_a_malformed_value() {
+        // A set-but-unparseable ordinal must surface, never silently compose
+        // against the channel-0 default.
+        assert!(matches!(
+            parse_channel_ordinal(Some("not-a-number")),
+            Err(AppError::Internal(_))
+        ));
+    }
+
     #[tokio::test]
     async fn build_send_source_rejects_a_malformed_sender_address() {
         let state = state_with_solana("http://127.0.0.1:1/").await;
@@ -1015,8 +1046,6 @@ mod tests {
             matches!(err, AppError::Validation { field, .. } if field.as_deref() == Some("recipient"))
         );
     }
-
-    // ── Deterministic composition + compute budget (AC#3, constraint 4) ──
 
     #[test]
     fn compose_send_is_byte_stable_for_a_fixed_input() {
@@ -1061,8 +1090,6 @@ mod tests {
         assert!(raw.windows(32).any(|w| w == id));
     }
 
-    // ── Summary snapshot (AC#6) ─────────────────────────────────────────
-
     #[test]
     fn compose_send_summary_matches_known_answer() {
         let resp = compose_send(&validated_source_send(), BLOCKHASH).expect("compose");
@@ -1093,8 +1120,6 @@ mod tests {
         );
     }
 
-    // ── Simulation gate (AC#5, constraint 5) ────────────────────────────
-
     #[tokio::test]
     async fn build_send_source_failing_simulation_returns_error_not_transaction() {
         let server = MockServer::start().await;
@@ -1124,8 +1149,6 @@ mod tests {
         let result = build_create_ata(State(state), Json(req)).await;
         assert!(matches!(result, Err(AppError::ChainRpc { .. })));
     }
-
-    // ── Happy path through the handler (AC#3 end-to-end, dispatch) ───────
 
     #[tokio::test]
     async fn build_send_source_composes_a_source_operation_for_a_native_asset() {
@@ -1173,8 +1196,6 @@ mod tests {
         assert_eq!(resp.summary.operation, OperationKind::CreateAta);
     }
 
-    // ── OpenAPI registration (AC#4) ─────────────────────────────────────
-    //
     // The three build paths are registered in `handlers::openapi::ApiDoc` and
     // wired strict-class in `main.rs`; the pre-existing
     // `openapi::tests::openapi_spec_matches_snapshot` guards their presence and

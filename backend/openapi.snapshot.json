@@ -8652,14 +8652,6 @@
           }
         }
       },
-      "TransferKind": {
-        "type": "string",
-        "description": "Which solray transfer instruction the composition uses. Derived from the\nasset's origin, never supplied by the caller.",
-        "enum": [
-          "Source",
-          "Sink"
-        ]
-      },
       "TransferLeg": {
         "type": "object",
         "description": "One entry of the modern `transfers[]` shape: a per-leg state plus the\nchains it bridges.",
