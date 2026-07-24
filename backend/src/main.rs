@@ -49,6 +49,13 @@ use crate::translations::{
     TranslationStorage,
 };
 
+/// Default filesystem path for the durable transfer tracking-set image.
+/// Override with the `TRANSFER_STORE_PATH` environment variable.
+const DEFAULT_TRANSFER_STORE_PATH: &str = "./data/transfers.json";
+
+/// Retention window (hours) a terminal transfer record is kept before pruning.
+const TRANSFER_RETENTION_HOURS: i64 = 24;
+
 /// Application state shared across all handlers
 pub struct AppState {
     pub config: AppConfig,
@@ -185,14 +192,14 @@ async fn main() -> anyhow::Result<()> {
     // deployment starts an empty set.
     let transfer_store_path = std::path::PathBuf::from(
         std::env::var("TRANSFER_STORE_PATH")
-            .unwrap_or_else(|_err| "./data/transfers.json".to_string()),
+            .unwrap_or_else(|_err| DEFAULT_TRANSFER_STORE_PATH.to_string()),
     );
     if let Some(parent) = transfer_store_path.parent() {
         if !parent.as_os_str().is_empty() {
             tokio::fs::create_dir_all(parent).await?;
         }
     }
-    let transfer_retention = chrono::Duration::hours(24);
+    let transfer_retention = chrono::Duration::hours(TRANSFER_RETENTION_HOURS);
     let transfer_store = if transfer_store_path.exists() {
         transfer_tracker::TransferStore::load(
             transfer_store_path,

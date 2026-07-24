@@ -90,6 +90,21 @@ pub async fn test_app_state_with_config_and_client(
     config: AppConfig,
     http_client: reqwest::Client,
 ) -> Arc<AppState> {
+    test_app_state_with_config_client_and_store(
+        config,
+        http_client,
+        crate::transfer_tracker::TransferStore::ephemeral(),
+    )
+    .await
+}
+
+/// Like [`test_app_state_with_config_and_client`] but with a caller-supplied
+/// transfer store (e.g. a small-capacity store for the registration cap path).
+pub async fn test_app_state_with_config_client_and_store(
+    config: AppConfig,
+    http_client: reqwest::Client,
+    transfer_store: crate::transfer_tracker::TransferStore,
+) -> Arc<AppState> {
     let etl_client =
         external::etl::EtlClient::new(config.external.etl_api_url.clone(), http_client.clone());
     let skip_client = external::skip::SkipClient::new(
@@ -147,7 +162,7 @@ pub async fn test_app_state_with_config_and_client(
         config_store,
         translation_storage,
         llm_client,
-        transfer_store: crate::transfer_tracker::TransferStore::ephemeral(),
+        transfer_store,
         startup_time: Instant::now(),
     })
 }

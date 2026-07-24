@@ -215,12 +215,6 @@ impl SolanaClient {
                 message: "Solana RPC not configured (set SOLANA_RPC_URL)".to_string(),
             })?;
 
-        let _permit = self
-            .query_semaphore
-            .acquire()
-            .await
-            .map_err(|e| AppError::Internal(format!("Semaphore closed: {e}")))?;
-
         let body = json!({
             "jsonrpc": "2.0",
             "id": 1,
@@ -231,6 +225,15 @@ impl SolanaClient {
         let mut backoff_ms = INITIAL_BACKOFF_MS;
 
         for attempt in 0..=MAX_RETRIES {
+            // Acquire the concurrency permit per attempt and hold it only across
+            // the request itself, never across the backoff sleep below, so a
+            // backing-off request does not occupy a slot other callers need.
+            let permit = self
+                .query_semaphore
+                .acquire()
+                .await
+                .map_err(|e| AppError::Internal(format!("Semaphore closed: {e}")))?;
+
             let response = self
                 .client
                 .post(url)
@@ -278,6 +281,9 @@ impl SolanaClient {
                 actual_wait
             );
 
+            // Release the concurrency slot before backing off so waiting does
+            // not starve other callers.
+            drop(permit);
             tokio::time::sleep(Duration::from_millis(actual_wait)).await;
             backoff_ms *= 2;
         }

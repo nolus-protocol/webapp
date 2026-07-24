@@ -13,6 +13,7 @@ use std::sync::{Mutex, PoisonError};
 
 use chrono::{DateTime, Duration, Utc};
 use tokio::io::AsyncWriteExt as _;
+use tracing::warn;
 
 use crate::error::AppError;
 
@@ -100,21 +101,58 @@ impl TransferStore {
             .await
             .map_err(|e| AppError::Internal(format!("committing transfer store image: {e}")))?;
 
+        // The parent-dir fsync durably records the rename; a failure here does
+        // not lose the written image (already fsync'd), so it is non-fatal, but
+        // it must be surfaced rather than swallowed.
         if let Some(dir) = dir {
-            if let Ok(handle) = tokio::fs::File::open(dir).await {
-                let _ = handle.sync_all().await;
+            match tokio::fs::File::open(dir).await {
+                Ok(handle) => {
+                    if let Err(e) = handle.sync_all().await {
+                        warn!(
+                            "transfer store parent-dir fsync failed ({}): {e}",
+                            dir.display()
+                        );
+                    }
+                }
+                Err(e) => {
+                    warn!(
+                        "transfer store parent-dir open failed ({}): {e}",
+                        dir.display()
+                    );
+                }
             }
         }
         Ok(())
     }
 
     /// Insert a new tracked route. Rejects with `Err` once the active set is at
-    /// capacity.
+    /// capacity. A persist failure rolls the in-memory insert back.
     pub async fn insert(&self, record: TrackedTransfer) -> Result<(), AppError> {
+        let id = record.id.clone();
         {
             let mut entries = self.lock();
             if entries.len() >= self.capacity {
                 return Err(AppError::RateLimited { retry_after: None });
+            }
+            entries.insert(id.clone(), record);
+        }
+        if let Err(e) = self.persist().await {
+            // Roll back so a persist failure never leaves an orphan record that
+            // permanently consumes a capacity slot until restart.
+            self.lock().remove(&id);
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    /// Replace an already-tracked route's state and persist. Not capacity-gated
+    /// (the id is already counted); a route absent from the set (pruned or
+    /// removed) is a no-op, so a status re-poll never resurrects it.
+    pub async fn update(&self, record: TrackedTransfer) -> Result<(), AppError> {
+        {
+            let mut entries = self.lock();
+            if !entries.contains_key(&record.id) {
+                return Ok(());
             }
             entries.insert(record.id.clone(), record);
         }
@@ -185,12 +223,19 @@ impl TransferStore {
     /// Ephemeral store bound to a unique temp file, for tests only.
     #[cfg(test)]
     pub fn ephemeral() -> Self {
+        Self::ephemeral_with_capacity(super::DEFAULT_ACTIVE_SET_CAP)
+    }
+
+    /// Ephemeral store with an explicit capacity, bound to a unique temp file,
+    /// for tests only.
+    #[cfg(test)]
+    pub fn ephemeral_with_capacity(capacity: usize) -> Self {
         let path = std::env::temp_dir().join(format!(
             "transfers-test-{}-{}.json",
             std::process::id(),
             TEMP_COUNTER.fetch_add(1, Ordering::Relaxed)
         ));
-        Self::create(path, super::DEFAULT_ACTIVE_SET_CAP, Duration::hours(1))
+        Self::create(path, capacity, Duration::hours(1))
     }
 }
 
@@ -294,5 +339,35 @@ mod tests {
             store.get("t1").is_none(),
             "terminal record must be pruned past the retention window"
         );
+    }
+
+    #[tokio::test]
+    async fn failed_persist_rolls_back_the_insert() {
+        // Bind the store under a directory that does not exist yet: the atomic
+        // temp write fails, so persist() (and thus insert) must fail — and the
+        // in-memory insert must roll back so the capacity slot is not leaked.
+        let dir = TempDir::new().expect("tempdir");
+        let missing = dir.path().join("not-created-yet");
+        let path = missing.join("transfers.json");
+        let store = TransferStore::create(path, 512, retention());
+
+        assert!(
+            store.insert(record("t1", None)).await.is_err(),
+            "insert into a non-existent directory must fail to persist"
+        );
+        assert_eq!(
+            store.active_count(),
+            0,
+            "a failed persist must not leak an orphan in-memory record"
+        );
+
+        // Create the directory so persist can now succeed: the previously
+        // rolled-back slot is available and a fresh insert lands.
+        std::fs::create_dir_all(&missing).expect("create parent dir");
+        store
+            .insert(record("t2", None))
+            .await
+            .expect("insert succeeds once the directory exists");
+        assert_eq!(store.active_count(), 1);
     }
 }

@@ -17,6 +17,7 @@ use ibc_solray::api::{
 };
 use serde::{Deserialize, Serialize};
 use solana_pubkey::Pubkey;
+use tracing::warn;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -26,9 +27,9 @@ use crate::external::solana::{
     SOLRAY_PROGRAM_ID,
 };
 use crate::transfer_tracker::{
-    apply_poll, commitment_pda_chain, phase_from_ack_pda, status_response, AckPdaSnapshot, Chain,
-    CommitmentObservation, Direction, IbcHeight, LegPhase, PollObservation, TrackedLeg,
-    TrackedTransfer, TransferStatusResponse, MAX_TRACKED_LEGS,
+    apply_poll, commitment_pda_chain, phase_from_ack_pda, status_response, top_level_state,
+    AckPdaSnapshot, Chain, CommitmentObservation, Direction, IbcHeight, LegPhase, PollObservation,
+    TrackedLeg, TrackedTransfer, TransferStatusResponse, MAX_TRACKED_LEGS, STATE_PENDING,
 };
 use crate::AppState;
 
@@ -131,36 +132,37 @@ pub async fn track_transfer(
     let solana_configured = state.solana_client.is_configured();
     let channel_known = channel_id_from_name(&request.channel).is_ok();
 
-    // Only reach out to chain once the cheap gates can pass; validate_track
-    // still makes the final decision and maps each failure to its typed error.
-    let poll = if solana_configured && channel_known {
-        Some(poll_route(&state.solana_client, request.direction, &request.channel).await?)
-    } else {
-        None
-    };
-    let commitment_evidence = poll.as_ref().is_some_and(|poll| {
-        matches!(poll.commitment, CommitmentObservation::Present) || poll.ack_snapshot.is_some()
-    });
-
-    let pre = TrackPreconditions {
+    // Cheap gates first — reject a saturated set, an unconfigured client, an
+    // unknown channel, or a malformed leg list BEFORE spending any RPC. The
+    // endpoint is unauthenticated, so an early reject also denies RPC
+    // amplification. Commitment evidence is assumed here and verified against
+    // chain immediately after, once the cheap gates pass.
+    let base = TrackPreconditions {
         channel_known,
         solana_configured,
-        commitment_evidence,
+        commitment_evidence: true,
         active_count: state.transfer_store.active_count(),
         capacity: state.transfer_store.capacity(),
     };
-    validate_track(&request, &pre)?;
+    validate_track(&request, &base)?;
 
-    let poll = poll.ok_or_else(|| {
-        AppError::Internal("registration poll missing after passing validation".to_string())
-    })?;
+    // Cheap gates passed: one RPC verifies the route has a live on-chain
+    // commitment before it is admitted to the tracking set.
+    let observation = poll_route(&state.solana_client, request.direction, &request.channel).await?;
+    let verified = TrackPreconditions {
+        commitment_evidence: matches!(observation.commitment, CommitmentObservation::Present),
+        ..base
+    };
+    validate_track(&request, &verified)?;
 
     let id = Uuid::new_v4().to_string();
+    // Legs start at `Committed`; each GET /status re-polls and folds fresh
+    // observations forward (REST poll v1), so registration does not seed phases.
     let legs = request
         .legs
         .iter()
         .map(|spec| TrackedLeg {
-            phase: initial_leg_phase(request.direction, spec, &poll),
+            phase: LegPhase::Committed,
             from_chain: spec.from_chain,
             to_chain: spec.to_chain,
             timeout_height: spec.timeout_height,
@@ -195,21 +197,40 @@ pub async fn get_transfer_status(
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,
 ) -> Result<Json<TransferStatusResponse>, AppError> {
-    let record = state
+    let mut record = state
         .transfer_store
         .get(&id)
         .ok_or_else(|| AppError::NotFound {
             resource: format!("transfer {id}"),
         })?;
+
+    // REST poll v1 (matches the swap UI's polling model): fold a fresh on-chain
+    // observation into per-leg state on every read, persisting when it advances.
+    if refresh_record(&state.solana_client, &mut record).await {
+        if let Err(e) = state.transfer_store.update(record.clone()).await {
+            // The fresh status is already computed; a persist failure only means
+            // the next GET re-derives it. Surface, do not fail the read.
+            warn!("failed to persist transfer {id} status update: {e}");
+        }
+    }
     Ok(Json(status_response(&record)))
 }
 
-/// A one-shot read of a route's Solana packet PDAs plus the current Solana
-/// height, used to seed a freshly registered route's per-leg phases.
-struct RoutePoll {
+/// A single fresh read of a route's Solana packet PDAs plus the current Solana
+/// height. Only the packet-commitment PDA drives phase transitions.
+///
+/// The acknowledgement PDA is per *channel* — a BTree of every acknowledged
+/// sequence on the channel — and the tracked record carries no packet sequence
+/// to pick out THIS transfer's ack. Ack-PDA presence is therefore *uncorrelated*
+/// evidence: it may only ever keep a leg in an in-flight phase (`Acked` at
+/// most), never advance it to `Delivered` or a terminal, so a still-in-flight
+/// transfer on a channel that has ever carried an acked packet is never falsely
+/// reported as completed. Receive events and success/error polarity are
+/// event-sourced (Nolus CometBFT) and land in a later PR.
+struct RouteObservation {
     current_height: IbcHeight,
     commitment: CommitmentObservation,
-    ack_snapshot: Option<AckPdaSnapshot>,
+    ack_present: bool,
 }
 
 /// Which per-channel packet PDA to address.
@@ -218,13 +239,70 @@ enum PacketPdaKind {
     Acknowledgement,
 }
 
-/// Poll a route's Solana packet PDAs once, deriving the current commitment
-/// observation and (presence-only) acknowledgement snapshot.
+/// Fold one fresh on-chain observation into a record's per-leg phases, stamping
+/// `terminal_at` when the route first reaches a terminal top-level state.
+/// Returns whether anything changed. A poll failure leaves every leg untouched
+/// (see [`apply_poll`]).
+async fn refresh_record(client: &SolanaClient, record: &mut TrackedTransfer) -> bool {
+    let observation = poll_route(client, record.direction, &record.channel).await;
+    let mut changed = false;
+    for leg in &mut record.legs {
+        let next = match &observation {
+            Ok(obs) => fold_leg(leg.phase, record.direction, leg.timeout_height, obs),
+            Err(_) => leg.phase,
+        };
+        if next != leg.phase {
+            leg.phase = next;
+            changed = true;
+        }
+    }
+    if changed && record.terminal_at.is_none() {
+        let phases: Vec<LegPhase> = record.legs.iter().map(|leg| leg.phase).collect();
+        if top_level_state(&phases) != STATE_PENDING {
+            record.terminal_at = Some(Utc::now());
+        }
+    }
+    changed
+}
+
+/// Fold a fresh observation into a leg's next phase. Commitment-PDA evidence
+/// drives the sanctioned transitions through [`reconcile`]; uncorrelated ack-PDA
+/// presence may only lift a still-pre-ack leg to the in-flight `Acked` phase,
+/// never to `Delivered` or a terminal (see [`RouteObservation`]).
+fn fold_leg(
+    prior: LegPhase,
+    direction: Direction,
+    timeout_height: IbcHeight,
+    obs: &RouteObservation,
+) -> LegPhase {
+    let observation = PollObservation {
+        commitment: obs.commitment,
+        ack_event: None, // success/error polarity is event-sourced, never PDA-sourced
+        timeout_event: false, // timeout events are event-sourced, not observable from PDAs
+        recv_observed: false, // never inferred from the uncorrelated ack PDA
+        event_gap: false,
+        current_height: obs.current_height,
+        timeout_height,
+    };
+    let reconciled = apply_poll(prior, direction, Ok(observation));
+    if obs.ack_present && matches!(reconciled, LegPhase::Committed | LegPhase::Relayed) {
+        // Uncorrelated ack presence caps at the in-flight `Acked` phase; the
+        // snapshot hash is ignored by `phase_from_ack_pda` (polarity unknowable).
+        phase_from_ack_pda(&AckPdaSnapshot {
+            commitment_hash: [0u8; 32],
+        })
+    } else {
+        reconciled
+    }
+}
+
+/// Poll a route's Solana packet PDAs once. See [`RouteObservation`] for why the
+/// acknowledgement observation is presence-only and never terminal.
 async fn poll_route(
     client: &SolanaClient,
     direction: Direction,
     channel: &str,
-) -> Result<RoutePoll, AppError> {
+) -> Result<RouteObservation, AppError> {
     let epoch = client.get_epoch_info().await?;
     let current_height = IbcHeight {
         revision_number: epoch.epoch,
@@ -253,39 +331,12 @@ async fn poll_route(
         decode_acknowledgement_pda(ack_account.as_ref())?,
         PacketPdaSnapshot::Present(sequences) if !sequences.is_empty()
     );
-    // The ack PDA proves an acknowledgement exists; its success-vs-error
-    // polarity is unknowable off-chain, so the (ignored) hash is a presence
-    // marker only. Event-sourced polarity arrives via the CometBFT path.
-    let ack_snapshot = ack_present.then_some(AckPdaSnapshot {
-        commitment_hash: [0u8; 32],
-    });
 
-    Ok(RoutePoll {
+    Ok(RouteObservation {
         current_height,
         commitment,
-        ack_snapshot,
+        ack_present,
     })
-}
-
-/// Seed a leg's initial phase from a registration-time poll. A poll error keeps
-/// the leg at `Committed` (unknown, not terminal) via [`apply_poll`].
-fn initial_leg_phase(direction: Direction, spec: &TrackLegSpec, poll: &RoutePoll) -> LegPhase {
-    let observation = PollObservation {
-        commitment: poll.commitment,
-        ack_event: None, // polarity is event-sourced, never PDA-sourced
-        timeout_event: false,
-        recv_observed: poll.ack_snapshot.is_some(),
-        event_gap: false,
-        current_height: poll.current_height,
-        timeout_height: spec.timeout_height,
-    };
-    let reconciled = apply_poll(LegPhase::Committed, direction, Ok(observation));
-    match (&poll.ack_snapshot, reconciled) {
-        // An observed ack PDA proves the leg is at least acknowledged; do not
-        // report it as still committed/relayed while that evidence stands.
-        (Some(snapshot), LegPhase::Committed | LegPhase::Relayed) => phase_from_ack_pda(snapshot),
-        _ => reconciled,
-    }
 }
 
 /// Derive the base58 address of a per-channel packet PDA on Solana via the
@@ -406,5 +457,233 @@ mod tests {
             validate_track(&request_with_legs(1), &pre),
             Err(AppError::ServiceUnavailable { .. })
         ));
+    }
+}
+
+#[cfg(test)]
+mod handler_tests {
+    use super::*;
+    use crate::transfer_tracker::{TransferStore, STATE_PENDING};
+    use axum::extract::{Path, State};
+    use axum::Json;
+    use serde_json::json;
+    use std::sync::Arc;
+    use wiremock::matchers::{body_partial_json, method};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    fn height(rev: u64, h: u64) -> IbcHeight {
+        IbcHeight {
+            revision_number: rev,
+            revision_height: h,
+        }
+    }
+
+    /// A one-leg Nolus->Solana request. This direction has no queryable Solana
+    /// commitment PDA, so a poll only needs `getEpochInfo` + a null ack account.
+    fn nolus_to_solana(timeout: IbcHeight) -> TrackRequest {
+        TrackRequest {
+            direction: Direction::NolusToSolana,
+            channel: "channel-0".to_string(),
+            legs: vec![TrackLegSpec {
+                from_chain: Chain::Nolus,
+                to_chain: Chain::Solana,
+                timeout_height: timeout,
+            }],
+        }
+    }
+
+    async fn mount_epoch(server: &MockServer, slot: u64, epoch: u64) {
+        Mock::given(method("POST"))
+            .and(body_partial_json(json!({ "method": "getEpochInfo" })))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "jsonrpc": "2.0", "id": 1,
+                "result": { "absoluteSlot": slot, "epoch": epoch },
+            })))
+            .mount(server)
+            .await;
+    }
+
+    async fn mount_account_null(server: &MockServer) {
+        Mock::given(method("POST"))
+            .and(body_partial_json(json!({ "method": "getAccountInfo" })))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "jsonrpc": "2.0", "id": 1,
+                "result": { "context": { "slot": 1 }, "value": null },
+            })))
+            .mount(server)
+            .await;
+    }
+
+    async fn state_with_solana(url: &str) -> Arc<crate::AppState> {
+        let mut config = crate::test_utils::test_config();
+        config.external.solana_rpc_url = Some(url.to_string());
+        crate::test_utils::test_app_state_with_config_and_client(config, reqwest::Client::new())
+            .await
+    }
+
+    #[tokio::test]
+    async fn track_transfer_registers_a_route_and_persists_it() {
+        let server = MockServer::start().await;
+        mount_epoch(&server, 100, 5).await;
+        mount_account_null(&server).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        let accepted = track_transfer(State(state.clone()), Json(nolus_to_solana(height(5, 1000))))
+            .await
+            .expect("registration succeeds")
+            .0;
+
+        assert_eq!(state.transfer_store.active_count(), 1);
+        let record = state
+            .transfer_store
+            .get(&accepted.id)
+            .expect("record persisted");
+        assert_eq!(record.legs[0].phase, LegPhase::Committed);
+    }
+
+    #[tokio::test]
+    async fn get_transfer_status_repolls_advances_and_persists() {
+        // Current height (6, 2000) is already past the leg's timeout (5, 100): a
+        // status GET must fold Committed -> AwaitingTimeout and persist it.
+        let server = MockServer::start().await;
+        mount_epoch(&server, 2000, 6).await;
+        mount_account_null(&server).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        let accepted = track_transfer(State(state.clone()), Json(nolus_to_solana(height(5, 100))))
+            .await
+            .expect("registration")
+            .0;
+        assert_eq!(
+            state.transfer_store.get(&accepted.id).unwrap().legs[0].phase,
+            LegPhase::Committed
+        );
+
+        let response = get_transfer_status(State(state.clone()), Path(accepted.id.clone()))
+            .await
+            .expect("status")
+            .0;
+        assert_eq!(response.state, STATE_PENDING);
+        assert_eq!(
+            state.transfer_store.get(&accepted.id).unwrap().legs[0].phase,
+            LegPhase::AwaitingTimeout,
+            "the re-poll must advance and persist the leg phase"
+        );
+    }
+
+    #[tokio::test]
+    async fn get_transfer_status_unknown_id_is_404() {
+        let state = state_with_solana("http://127.0.0.1:1/").await;
+        let err = get_transfer_status(State(state), Path("missing".to_string()))
+            .await
+            .expect_err("unknown id must 404 before any poll");
+        assert!(matches!(err, AppError::NotFound { .. }));
+    }
+
+    #[tokio::test]
+    async fn track_transfer_rejects_at_capacity_before_any_rpc() {
+        // A saturated set must reject BEFORE poll_route: the Solana client points
+        // at an unroutable stub, so a RateLimited (rather than a ChainRpc/timeout)
+        // proves the capacity check runs before any RPC is spent.
+        let mut config = crate::test_utils::test_config();
+        config.external.solana_rpc_url = Some("http://127.0.0.1:1/".to_string());
+        let store = TransferStore::ephemeral_with_capacity(1);
+        store
+            .insert(TrackedTransfer {
+                id: "existing".to_string(),
+                direction: Direction::NolusToSolana,
+                channel: "channel-0".to_string(),
+                legs: Vec::new(),
+                created_at: Utc::now(),
+                terminal_at: None,
+            })
+            .await
+            .expect("seed insert fills the single slot");
+        let http = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_millis(1))
+            .build()
+            .expect("client builds");
+        let state =
+            crate::test_utils::test_app_state_with_config_client_and_store(config, http, store)
+                .await;
+
+        let err = track_transfer(State(state), Json(nolus_to_solana(height(5, 100))))
+            .await
+            .expect_err("a full set must reject");
+        assert!(
+            matches!(err, AppError::RateLimited { .. }),
+            "capacity must reject before spending an RPC, got {err:?}"
+        );
+    }
+
+    #[tokio::test]
+    async fn refresh_record_keeps_prior_phase_on_poll_error() {
+        let client = SolanaClient::new(
+            Some("http://127.0.0.1:1/".to_string()),
+            reqwest::Client::builder()
+                .timeout(std::time::Duration::from_millis(1))
+                .build()
+                .expect("client builds"),
+        );
+        let mut record = TrackedTransfer {
+            id: "t".to_string(),
+            direction: Direction::NolusToSolana,
+            channel: "channel-0".to_string(),
+            legs: vec![TrackedLeg {
+                phase: LegPhase::Relayed,
+                from_chain: Chain::Nolus,
+                to_chain: Chain::Solana,
+                timeout_height: height(5, 100),
+            }],
+            created_at: Utc::now(),
+            terminal_at: None,
+        };
+        let changed = refresh_record(&client, &mut record).await;
+        assert!(!changed, "a failed poll must change nothing");
+        assert_eq!(record.legs[0].phase, LegPhase::Relayed);
+    }
+
+    #[test]
+    fn fold_leg_uncorrelated_ack_never_reaches_terminal_or_delivered() {
+        let obs = RouteObservation {
+            current_height: height(5, 10),
+            commitment: CommitmentObservation::Present,
+            ack_present: true,
+        };
+        let phase = fold_leg(
+            LegPhase::Relayed,
+            Direction::SolanaToNolus,
+            height(5, 1000),
+            &obs,
+        );
+        assert_eq!(
+            phase,
+            LegPhase::Acked,
+            "uncorrelated ack presence caps at the in-flight Acked phase"
+        );
+        assert_eq!(top_level_state(&[phase]), STATE_PENDING);
+        assert!(!matches!(
+            phase,
+            LegPhase::Delivered | LegPhase::CompletedSuccess | LegPhase::CompletedError
+        ));
+    }
+
+    #[test]
+    fn fold_leg_refund_comes_from_commitment_not_uncorrelated_ack() {
+        // Commitment gone on Solana->Nolus with an ack present on the channel: the
+        // sanctioned commitment inference still refunds; ack presence must never
+        // upgrade it to a success.
+        let obs = RouteObservation {
+            current_height: height(5, 10),
+            commitment: CommitmentObservation::Gone,
+            ack_present: true,
+        };
+        let phase = fold_leg(
+            LegPhase::Relayed,
+            Direction::SolanaToNolus,
+            height(5, 1000),
+            &obs,
+        );
+        assert_eq!(phase, LegPhase::TimedOutRefunded);
     }
 }
