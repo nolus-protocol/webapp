@@ -1,6 +1,15 @@
 {
   "routes": ["/", "/assets", "/earn", "/positions", "/stake", "/activities", "/vote", "/stats"],
-  "components": ["shell", "primary-figure", "secondary-figure", "visual", "ws", "cross-field", "wallet-menu"],
+  "components": [
+    "shell",
+    "primary-figure",
+    "secondary-figure",
+    "visual",
+    "ws",
+    "cross-field",
+    "wallet-menu",
+    "route-stepper"
+  ],
   "states": ["loading", "empty", "error", "populated"],
   "cells": [
     {
@@ -721,6 +730,16 @@
         "type": "gap",
         "category": "funded-gated",
         "reason": "the wallet-menu Solana address row renders only for a connected svm (Phantom/Solflare) session, which the walletless fixture suite cannot produce; the row render + copy idiom are unit-covered (WalletInfo.vue suite), so e2e is wallet-gated"
+      }
+    },
+    {
+      "route": "/activities",
+      "component": "route-stepper",
+      "state": "populated",
+      "mapping": {
+        "type": "gap",
+        "category": "funded-gated",
+        "reason": "the pending-transfer route stepper renders a swap leg — a `swap` op (carrying `chain_id` + `from_chain_id` but no `to_chain_id`) alongside `transfer`/`cctp_transfer` — only when a send/receive route includes a swap hop, which needs a connected + funded wallet producing such a route; the swap-leg step assembly is unit-covered (history-store getRouteSteps suite: addPendingTransfer_renders_swap_leg_from_captured_osmosis_payload + the swap-op tests), so e2e is funded-gated"
       }
     }
   ]

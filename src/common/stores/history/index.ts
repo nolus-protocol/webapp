@@ -555,12 +555,16 @@ export const useHistoryStore = defineStore("history", () => {
         ? operation.transfer
         : isRecord(operation.cctp_transfer)
           ? operation.cctp_transfer
-          : undefined;
+          : isRecord(operation.swap)
+            ? operation.swap
+            : undefined;
       if (op === undefined) {
         continue;
       }
-      const from = getChainDisplay(chains, op.from_chain_id);
-      const to = getChainDisplay(chains, op.to_chain_id);
+      // Skip swap ops carry `chain_id` (+ `from_chain_id`) but no `to_chain_id`;
+      // fall back to chain_id so a single-chain swap resolves to an on-chain step.
+      const from = getChainDisplay(chains, op.from_chain_id ?? op.chain_id);
+      const to = getChainDisplay(chains, op.to_chain_id ?? op.chain_id);
       if (from === undefined || to === undefined) {
         console.error("[HistoryStore] Skipping route step with unknown chain:", op.from_chain_id, op.to_chain_id);
         continue;
