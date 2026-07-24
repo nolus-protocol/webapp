@@ -24,14 +24,16 @@ static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 /// The durable, capped, self-pruning tracking set.
 ///
-/// The canonical map is guarded by a single [`Mutex`]. The guard is never held
-/// across an `.await`: async methods snapshot or mutate under the lock, drop
-/// it, then do file I/O.
+/// The canonical map is guarded by a single std [`Mutex`], never held across an
+/// `.await`: async methods snapshot or mutate under it, drop it, then do file
+/// I/O. A separate async `write_gate` serializes persist calls so that the
+/// image written to disk is always the newest snapshot (see [`persist`]).
 pub struct TransferStore {
     path: PathBuf,
     capacity: usize,
     retention: Duration,
     entries: Mutex<HashMap<String, TrackedTransfer>>,
+    write_gate: tokio::sync::Mutex<()>,
 }
 
 impl TransferStore {
@@ -43,6 +45,7 @@ impl TransferStore {
             capacity,
             retention,
             entries: Mutex::new(HashMap::new()),
+            write_gate: tokio::sync::Mutex::new(()),
         }
     }
 
@@ -67,17 +70,27 @@ impl TransferStore {
                 })?
             }
         };
-        Ok(Self {
+        let store = Self {
             path,
             capacity,
             retention,
             entries: Mutex::new(entries),
-        })
+            write_gate: tokio::sync::Mutex::new(()),
+        };
+        // Drop terminals whose retention window elapsed while the process was
+        // down, so they neither reload nor count toward the cap.
+        store.prune(Utc::now());
+        Ok(store)
     }
 
-    /// Persist the whole map: unique temp file -> `sync_all` -> atomic rename
-    /// -> parent-dir fsync.
+    /// Durably write the current tracking set to the store's path. Concurrent
+    /// callers are safe: the newest state always lands last, and a crash never
+    /// leaves a partial image behind.
     pub async fn persist(&self) -> Result<(), AppError> {
+        // Snapshot INSIDE the write gate so snapshot order equals rename
+        // order — a slower writer must never rename a staler image over a
+        // newer one (silent record loss across a restart).
+        let _write = self.write_gate.lock().await;
         let snapshot = self.snapshot();
         let bytes = serde_json::to_vec_pretty(&snapshot)
             .map_err(|e| AppError::Internal(format!("serialising transfer store: {e}")))?;
@@ -129,6 +142,9 @@ impl TransferStore {
     /// capacity. A persist failure rolls the in-memory insert back.
     pub async fn insert(&self, record: TrackedTransfer) -> Result<(), AppError> {
         let id = record.id.clone();
+        // Prune expired terminals first so they stop counting toward the cap:
+        // the capacity gate must reflect live, still-in-flight routes only.
+        self.prune(Utc::now());
         {
             let mut entries = self.lock();
             if entries.len() >= self.capacity {
@@ -149,6 +165,10 @@ impl TransferStore {
     /// (the id is already counted); a route absent from the set (pruned or
     /// removed) is a no-op, so a status re-poll never resurrects it.
     pub async fn update(&self, record: TrackedTransfer) -> Result<(), AppError> {
+        // Opportunistically evict expired terminals on the write path (cheap for
+        // a <=cap map); the just-updated record carries a fresh terminal_at when
+        // it goes terminal, so it is never within the pruned set itself.
+        self.prune(Utc::now());
         {
             let mut entries = self.lock();
             if !entries.contains_key(&record.id) {
@@ -176,7 +196,7 @@ impl TransferStore {
 
     /// Drop terminal routes whose `terminal_at` is older than the retention
     /// window relative to `now`.
-    pub fn prune(&self, now: DateTime<Utc>) {
+    fn prune(&self, now: DateTime<Utc>) {
         let mut entries = self.lock();
         entries.retain(|_id, record| match record.terminal_at {
             Some(terminal_at) => terminal_at + self.retention >= now,
@@ -369,5 +389,69 @@ mod tests {
             .await
             .expect("insert succeeds once the directory exists");
         assert_eq!(store.active_count(), 1);
+    }
+
+    #[tokio::test]
+    async fn expired_terminals_free_capacity_for_new_inserts() {
+        let dir = TempDir::new().expect("tempdir");
+        let path = dir.path().join("transfers.json");
+        let store = TransferStore::create(path, 512, retention());
+
+        // Fill the set to capacity with terminal records long past retention.
+        let expired = at(1_700_000_000);
+        {
+            let mut entries = store.entries.lock().expect("lock");
+            for i in 0..512 {
+                let id = format!("old-{i}");
+                entries.insert(id.clone(), record(&id, Some(expired)));
+            }
+        }
+        assert_eq!(store.active_count(), 512);
+
+        // A fresh registration: insert prunes the expired terminals first, so the
+        // cap no longer 429s forever after 512 lifetime transfers.
+        store
+            .insert(record("new", None))
+            .await
+            .expect("insert must succeed once expired terminals are pruned");
+        assert!(store.get("new").is_some());
+        assert!(
+            store.get("old-0").is_none(),
+            "expired terminals were pruned"
+        );
+    }
+
+    #[tokio::test]
+    async fn load_drops_expired_terminal_records() {
+        let dir = TempDir::new().expect("tempdir");
+        let path = dir.path().join("transfers.json");
+
+        // Persist a set holding one within-retention terminal and one expired.
+        let fresh = TransferStore::create(path.clone(), 512, retention());
+        fresh
+            .insert(record("fresh", Some(Utc::now())))
+            .await
+            .expect("insert fresh terminal");
+        {
+            let mut entries = fresh.entries.lock().expect("lock");
+            entries.insert(
+                "expired".to_string(),
+                record("expired", Some(at(1_700_000_000))),
+            );
+        }
+        fresh.persist().await.expect("persist");
+
+        // Reload: the expired terminal is dropped, the fresh one survives.
+        let reloaded = TransferStore::load(path, 512, retention())
+            .await
+            .expect("reload");
+        assert!(
+            reloaded.get("fresh").is_some(),
+            "a within-retention terminal survives reload"
+        );
+        assert!(
+            reloaded.get("expired").is_none(),
+            "an expired terminal is dropped on load"
+        );
     }
 }

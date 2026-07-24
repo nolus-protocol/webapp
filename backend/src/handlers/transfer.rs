@@ -23,8 +23,8 @@ use uuid::Uuid;
 
 use crate::error::AppError;
 use crate::external::solana::{
-    decode_acknowledgement_pda, decode_commitment_pda, PacketPdaSnapshot, SolanaClient,
-    SOLRAY_PROGRAM_ID,
+    decode_acknowledgement_pda, decode_commitment_pda, solray_program_id, PacketPdaSnapshot,
+    SolanaClient,
 };
 use crate::transfer_tracker::{
     apply_poll, commitment_pda_chain, phase_from_ack_pda, status_response, top_level_state,
@@ -206,7 +206,10 @@ pub async fn get_transfer_status(
 
     // REST poll v1 (matches the swap UI's polling model): fold a fresh on-chain
     // observation into per-leg state on every read, persisting when it advances.
-    if refresh_record(&state.solana_client, &mut record).await {
+    // A terminal route is immutable, so it is served straight from the store
+    // with zero RPC — this unauthenticated endpoint cannot be used to amplify
+    // Solana reads by polling already-settled transfers.
+    if record.terminal_at.is_none() && refresh_record(&state.solana_client, &mut record).await {
         if let Err(e) = state.transfer_store.update(record.clone()).await {
             // The fresh status is already computed; a persist failure only means
             // the next GET re-derives it. Surface, do not fail the read.
@@ -347,7 +350,7 @@ fn packet_pda_address(channel: &str, kind: &PacketPdaKind) -> Result<String, App
         field: Some("channel".to_string()),
         details: None,
     })?;
-    let program = Pubkey::from_str(SOLRAY_PROGRAM_ID)
+    let program = Pubkey::from_str(solray_program_id())
         .map_err(|e| AppError::Internal(format!("invalid solray program id: {e}")))?;
     let address = match kind {
         PacketPdaKind::Commitment => PacketCommitmentsReference::find(program, channel_id).addr(),
@@ -463,7 +466,7 @@ mod tests {
 #[cfg(test)]
 mod handler_tests {
     use super::*;
-    use crate::transfer_tracker::{TransferStore, STATE_PENDING};
+    use crate::transfer_tracker::{TransferStore, STATE_COMPLETED_SUCCESS, STATE_PENDING};
     use axum::extract::{Path, State};
     use axum::Json;
     use serde_json::json;
@@ -578,6 +581,47 @@ mod handler_tests {
             .await
             .expect_err("unknown id must 404 before any poll");
         assert!(matches!(err, AppError::NotFound { .. }));
+    }
+
+    #[tokio::test]
+    async fn get_transfer_status_terminal_record_performs_no_poll() {
+        let server = MockServer::start().await;
+        mount_epoch(&server, 1, 1).await;
+        mount_account_null(&server).await;
+        let state = state_with_solana(&server.uri()).await;
+
+        // A settled (terminal) route: terminal_at set, leg completed.
+        state
+            .transfer_store
+            .insert(TrackedTransfer {
+                id: "done".to_string(),
+                direction: Direction::SolanaToNolus,
+                channel: "channel-0".to_string(),
+                legs: vec![TrackedLeg {
+                    phase: LegPhase::CompletedSuccess,
+                    from_chain: Chain::Solana,
+                    to_chain: Chain::Nolus,
+                    timeout_height: height(5, 100),
+                }],
+                created_at: Utc::now(),
+                terminal_at: Some(Utc::now()),
+            })
+            .await
+            .expect("seed terminal record");
+
+        let response = get_transfer_status(State(state), Path("done".to_string()))
+            .await
+            .expect("status")
+            .0;
+        assert_eq!(response.state, STATE_COMPLETED_SUCCESS);
+        assert!(
+            server
+                .received_requests()
+                .await
+                .unwrap_or_default()
+                .is_empty(),
+            "a terminal route must be served with zero RPC"
+        );
     }
 
     #[tokio::test]

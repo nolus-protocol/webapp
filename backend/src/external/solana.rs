@@ -10,7 +10,7 @@
 //! is exposed to the frontend.
 
 use std::collections::BTreeSet;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
 use reqwest::Client;
@@ -199,10 +199,11 @@ impl SolanaClient {
 
     /// Execute a JSON-RPC call and return the raw `result`.
     ///
-    /// Acquires a semaphore permit held across the full retry chain; retries
-    /// 429/503 with exponential backoff + jitter (honoring `Retry-After`); maps
-    /// transport failures, non-2xx responses, and JSON-RPC `error` objects to
-    /// typed [`AppError::ChainRpc`].
+    /// Acquires a fresh semaphore permit for each attempt, held across that
+    /// attempt's request but released before the backoff sleep; retries 429/503
+    /// with exponential backoff + jitter (honoring `Retry-After`); maps transport
+    /// failures, non-2xx responses, and JSON-RPC `error` objects to typed
+    /// [`AppError::ChainRpc`].
     async fn request<R: DeserializeOwned>(
         &self,
         method: &str,
@@ -494,11 +495,28 @@ impl SolanaClient {
     }
 }
 
-/// The deployed Solray program id. Every packet PDA fetched from Solana must be
-/// owned by this program before its bytes are decoded — the decoders operate on
-/// raw bytes and cannot tell a packet PDA from any other account whose data
-/// happens to decode as the same B-tree.
+/// The deployed Solray program id on Solana mainnet — the default when
+/// `SOLANA_SOLRAY_PROGRAM_ID` is unset. Every packet PDA fetched from Solana
+/// must be owned by the configured program before its bytes are decoded, since
+/// the decoders operate on raw bytes and cannot tell a packet PDA from any
+/// other account whose data happens to decode as the same B-tree.
 pub const SOLRAY_PROGRAM_ID: &str = "JEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFF";
+
+/// The solray program id in effect for owner checks and PDA derivation. The
+/// program id differs per cluster (devnet/testnet/mainnet), so it is overridable
+/// via `SOLANA_SOLRAY_PROGRAM_ID`; unset (or empty) falls back to the mainnet
+/// [`SOLRAY_PROGRAM_ID`]. Read once at first use.
+static CONFIGURED_SOLRAY_PROGRAM_ID: LazyLock<String> = LazyLock::new(|| {
+    std::env::var("SOLANA_SOLRAY_PROGRAM_ID")
+        .ok()
+        .filter(|id| !id.is_empty())
+        .unwrap_or_else(|| SOLRAY_PROGRAM_ID.to_string())
+});
+
+/// The configured solray program id (see [`CONFIGURED_SOLRAY_PROGRAM_ID`]).
+pub fn solray_program_id() -> &'static str {
+    CONFIGURED_SOLRAY_PROGRAM_ID.as_str()
+}
 
 /// A decoded packet PDA, indexed by sequence. An `Absent` account (the
 /// `getAccountInfo` value was null) is distinct from a `Present` but empty PDA:
@@ -518,7 +536,7 @@ fn checked_pda_bytes(account: Option<&SolanaAccount>) -> Result<Option<Vec<u8>>,
     let Some(account) = account else {
         return Ok(None);
     };
-    if account.owner != SOLRAY_PROGRAM_ID {
+    if account.owner.as_str() != solray_program_id() {
         return Err(AppError::ChainRpc {
             chain: CHAIN.to_string(),
             message: format!(
