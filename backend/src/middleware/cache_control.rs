@@ -73,6 +73,7 @@ fn determine_cache_duration(path: &str) -> u32 {
         || path.contains("/referral/")
         || path.contains("/swap/status")
         || path.contains("/swap/history")
+        || path.contains("/transfer/status")
         || path.contains("/zero-interest/eligibility")
         || path.contains("/zero-interest/payments")
         || path.contains("/campaigns/eligibility")
@@ -191,6 +192,11 @@ mod tests {
     fn test_cache_duration_no_cache_swap_status() {
         assert_eq!(determine_cache_duration("/api/swap/status/ABC123"), 0);
         assert_eq!(determine_cache_duration("/api/swap/history"), 0);
+    }
+
+    #[test]
+    fn test_cache_duration_no_cache_transfer_status() {
+        assert_eq!(determine_cache_duration("/api/transfer/status/abc123"), 0);
     }
 
     #[test]

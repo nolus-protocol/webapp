@@ -498,6 +498,7 @@ mod tests {
             config_store,
             translation_storage,
             llm_client,
+            transfer_store: crate::transfer_tracker::TransferStore::ephemeral(),
             startup_time: std::time::Instant::now(),
         })
     }

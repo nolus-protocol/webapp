@@ -20,8 +20,9 @@ use crate::external;
 use crate::handlers::{
     admin, common_types, config, currencies, earn, etl_proxy, fees, gated_assets, gated_networks,
     gated_protocols, governance, leases, locales, protocols, referral, solana, staking, swap,
-    transactions, zero_interest,
+    transactions, transfer, zero_interest,
 };
+use crate::transfer_tracker;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -133,6 +134,9 @@ use crate::handlers::{
         swap::track_transaction,
         swap::get_route,
         swap::get_messages,
+        // Transfer tracker (Nolus<->Solana route status)
+        transfer::track_transfer,
+        transfer::get_transfer_status,
         // ETL proxy (opaque passthrough)
         etl_proxy::proxy_subscribe,
         etl_proxy::batch_stats_overview,
@@ -290,6 +294,17 @@ use crate::handlers::{
         swap::SwapConfigResponse,
         swap::NetworkTransfers,
         swap::TransferCurrency,
+        // Transfer tracker typed bodies
+        transfer::TrackRequest,
+        transfer::TrackLegSpec,
+        transfer::TrackAccepted,
+        transfer_tracker::TransferStatusResponse,
+        transfer_tracker::TransferLeg,
+        transfer_tracker::AssetRelease,
+        transfer_tracker::TransferError,
+        transfer_tracker::Chain,
+        transfer_tracker::Direction,
+        transfer_tracker::IbcHeight,
         // Skip ingress responses validated at the boundary
         external::skip::SkipRouteResponse,
         external::skip::SkipMessagesResponse,
@@ -336,6 +351,7 @@ use crate::handlers::{
         (name = "assets", description = "Gated assets catalog (deduplicated view)"),
         (name = "networks", description = "Gated networks catalog"),
         (name = "swap", description = "Cross-chain swap (Skip passthrough, opaque bodies)"),
+        (name = "transfer", description = "Nolus<->Solana transfer tracking and status"),
         (name = "etl", description = "ETL proxy endpoints (opaque passthrough)"),
         (name = "transactions", description = "Enriched transactions (opaque passthrough)"),
         (name = "intercom", description = "Intercom user-hash issuance"),

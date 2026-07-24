@@ -3701,6 +3701,119 @@
         }
       }
     },
+    "/api/transfer/status/{id}": {
+      "get": {
+        "tags": [
+          "transfer"
+        ],
+        "summary": "Return the current status of a tracked route.",
+        "operationId": "get_transfer_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Tracked route id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current route status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown route id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/transfer/track": {
+      "post": {
+        "tags": [
+          "transfer"
+        ],
+        "summary": "Register an in-flight route for tracking.",
+        "operationId": "track_transfer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferTrackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Route registered for tracking",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackAccepted"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Untrackable request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Active tracking set full",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Solana RPC error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Solana RPC unconfigured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/zero-interest/config": {
       "get": {
         "tags": [
@@ -4178,6 +4291,22 @@
           }
         }
       },
+      "AssetRelease": {
+        "type": "object",
+        "description": "Where the asset currently rests, mirroring Skip's `transfer_asset_release`.",
+        "required": [
+          "chain",
+          "released"
+        ],
+        "properties": {
+          "chain": {
+            "type": "string"
+          },
+          "released": {
+            "type": "boolean"
+          }
+        }
+      },
       "AssetResponse": {
         "type": "object",
         "description": "Single asset with display info and price",
@@ -4434,6 +4563,14 @@
             "type": "string"
           }
         }
+      },
+      "Chain": {
+        "type": "string",
+        "description": "The two chains a transfer leg can touch.",
+        "enum": [
+          "nolus",
+          "solana"
+        ]
       },
       "ClaimRewardsRequest": {
         "type": "object",
@@ -4789,6 +4926,14 @@
           }
         }
       },
+      "Direction": {
+        "type": "string",
+        "description": "Direction of the overall route, fixing which chain holds the commitment\ntruth and which supplies terminal events.",
+        "enum": [
+          "nolus_to_solana",
+          "solana_to_nolus"
+        ]
+      },
       "DownpaymentRange": {
         "type": "object",
         "description": "Downpayment range for an asset",
@@ -5133,6 +5278,26 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "IbcHeight": {
+        "type": "object",
+        "description": "An IBC height is a `(revision_number, revision_height)` tuple. Timeout\neligibility compares the whole tuple, never the slot alone.",
+        "required": [
+          "revision_number",
+          "revision_height"
+        ],
+        "properties": {
+          "revision_number": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "revision_height": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
           }
         }
       },
@@ -8049,6 +8214,38 @@
           }
         }
       },
+      "TrackAccepted": {
+        "type": "object",
+        "description": "`POST /api/transfer/track` success body.",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "TrackLegSpec": {
+        "type": "object",
+        "description": "One requested leg of a route to track.",
+        "required": [
+          "from_chain",
+          "to_chain",
+          "timeout_height"
+        ],
+        "properties": {
+          "from_chain": {
+            "$ref": "#/components/schemas/Chain"
+          },
+          "to_chain": {
+            "$ref": "#/components/schemas/Chain"
+          },
+          "timeout_height": {
+            "$ref": "#/components/schemas/IbcHeight"
+          }
+        }
+      },
       "TrackRequest": {
         "type": "object",
         "description": "Request to track a swap transaction on Skip.",
@@ -8102,6 +8299,111 @@
           },
           "native": {
             "type": "boolean"
+          }
+        }
+      },
+      "TransferError": {
+        "type": "object",
+        "description": "Typed per-route error, mirroring Skip's error envelope.",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TransferLeg": {
+        "type": "object",
+        "description": "One entry of the modern `transfers[]` shape: a per-leg state plus the\nchains it bridges.",
+        "required": [
+          "state",
+          "from_chain",
+          "to_chain"
+        ],
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "from_chain": {
+            "type": "string"
+          },
+          "to_chain": {
+            "type": "string"
+          }
+        }
+      },
+      "TransferStatusResponse": {
+        "type": "object",
+        "description": "The status response served by `GET /api/transfer/status/{id}`. This is the\ntracker's own type, NOT a re-use of `SkipStatusResponse`.",
+        "required": [
+          "state",
+          "transfers"
+        ],
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "transfers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransferLeg"
+            }
+          },
+          "next_blocking_transfer": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "transfer_asset_release": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/AssetRelease"
+              }
+            ]
+          },
+          "error": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TransferError"
+              }
+            ]
+          }
+        }
+      },
+      "TransferTrackRequest": {
+        "type": "object",
+        "description": "`POST /api/transfer/track` request body.",
+        "required": [
+          "direction",
+          "channel",
+          "legs"
+        ],
+        "properties": {
+          "direction": {
+            "$ref": "#/components/schemas/Direction"
+          },
+          "channel": {
+            "type": "string"
+          },
+          "legs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrackLegSpec"
+            }
           }
         }
       },
@@ -8598,6 +8900,10 @@
     {
       "name": "swap",
       "description": "Cross-chain swap (Skip passthrough, opaque bodies)"
+    },
+    {
+      "name": "transfer",
+      "description": "Nolus<->Solana transfer tracking and status"
     },
     {
       "name": "etl",
