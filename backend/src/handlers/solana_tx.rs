@@ -14,14 +14,25 @@
 //! is an injected parameter so a fixed input yields a byte-stable base64
 //! transaction (snapshot-tested).
 
-use std::sync::Arc;
+use std::str::FromStr as _;
+use std::sync::{Arc, LazyLock};
 
 use axum::extract::State;
 use axum::Json;
+use base64::Engine as _;
+use ibc_core_channel_types::timeout::{TimeoutHeight, TimeoutTimestamp};
+use ibc_solray::api::transfer::{IBCIdentifiers, SendSinkDetails, SendSourceDetails};
+use ibc_solray::api::{Height, Timeout, Timestamp};
 use serde::{Deserialize, Serialize};
+use solana_hash::Hash;
+use solana_instruction::{AccountMeta, Instruction};
+use solana_message::v0::Message as V0Message;
+use solana_message::VersionedMessage;
+use solana_pubkey::Pubkey;
 use utoipa::ToSchema;
 
 use crate::error::AppError;
+use crate::external::solana::solray_program_id;
 use crate::handlers::currencies::{CurrenciesResponse, CurrencyInfo};
 use crate::transfer_tracker::IbcHeight;
 use crate::AppState;
@@ -31,6 +42,78 @@ use crate::AppState;
 pub const COMPUTE_UNIT_LIMIT: u32 = 200_000;
 /// Compute-unit price (micro-lamports) injected into every composed transaction.
 pub const COMPUTE_UNIT_PRICE_MICRO_LAMPORTS: u64 = 1_000;
+
+/// Solana ComputeBudget program id — the target of the injected budget
+/// instructions.
+const COMPUTE_BUDGET_PROGRAM_ID: &str = "ComputeBudget111111111111111111111111111111";
+/// `ComputeBudgetInstruction::SetComputeUnitLimit` discriminant.
+const SET_COMPUTE_UNIT_LIMIT_TAG: u8 = 2;
+/// `ComputeBudgetInstruction::SetComputeUnitPrice` discriminant.
+const SET_COMPUTE_UNIT_PRICE_TAG: u8 = 3;
+
+/// The Associated Token Account program id — the target of a create-ATA
+/// instruction.
+const ATA_PROGRAM_ID: &str = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+/// `AssociatedTokenAccountInstruction::CreateIdempotent` discriminant. Idempotent
+/// so a create-ATA the wallet re-submits after the account already exists is a
+/// no-op rather than a failure.
+const CREATE_ATA_IDEMPOTENT_TAG: u8 = 1;
+/// The System program id — an account of the create-ATA instruction.
+const SYSTEM_PROGRAM_ID: &str = "11111111111111111111111111111111";
+/// The classic SPL Token program id. The SOLANA-protocol mints this endpoint
+/// composes for are classic SPL mints; it is the create-ATA token program and
+/// the source send's mint owner.
+const SPL_TOKEN_PROGRAM_ID: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+
+/// Ed25519 signature length, in bytes — the width of each empty signature slot
+/// reserved in the unsigned transaction the wallet later fills.
+const SIGNATURE_LEN: usize = 64;
+
+/// A SOLANA-protocol currency's `protocol` starts with this segment. Nolus
+/// protocol keys are `<DEX_NETWORK>-<DEX>-<LPN>`, so the first segment names the
+/// DEX network; a `SOLANA-` prefix identifies the Solana network.
+const SOLANA_PROTOCOL_PREFIX: &str = "SOLANA-";
+
+/// A Solana-native asset is represented on Nolus as an IBC voucher whose
+/// `bank_symbol` carries this trace prefix; a Nolus-origin asset keeps its native
+/// Nolus denom (e.g. `unls`) instead. The presence of the trace is the
+/// source-vs-sink origin discriminator.
+const NOLUS_IBC_VOUCHER_PREFIX: &str = "ibc/";
+
+/// Default IBC client name for the Solana transfer channel, overridable via
+/// `SOLANA_IBC_CLIENT_NAME` (deploy-time wiring lands with the network config).
+const DEFAULT_IBC_CLIENT_NAME: &str = "client-0";
+/// Default IBC connection name, overridable via `SOLANA_IBC_CONNECTION_NAME`.
+const DEFAULT_IBC_CONNECTION_NAME: &str = "connection-0";
+/// Default Solana transfer channel ordinal, overridable via
+/// `SOLANA_TRANSFER_CHANNEL_ORDINAL`.
+const DEFAULT_TRANSFER_CHANNEL_ORDINAL: u16 = 0;
+
+/// IBC client name in effect for composition. Read once (`SOLANA_IBC_CLIENT_NAME`
+/// or the default) so a fixed input yields a byte-stable transaction.
+static IBC_CLIENT_NAME: LazyLock<String> = LazyLock::new(|| {
+    std::env::var("SOLANA_IBC_CLIENT_NAME")
+        .ok()
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| DEFAULT_IBC_CLIENT_NAME.to_string())
+});
+
+/// IBC connection name in effect for composition (see [`IBC_CLIENT_NAME`]).
+static IBC_CONNECTION_NAME: LazyLock<String> = LazyLock::new(|| {
+    std::env::var("SOLANA_IBC_CONNECTION_NAME")
+        .ok()
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| DEFAULT_IBC_CONNECTION_NAME.to_string())
+});
+
+/// Solana transfer channel ordinal in effect for composition (see
+/// [`IBC_CLIENT_NAME`]).
+static TRANSFER_CHANNEL_ORDINAL: LazyLock<u16> = LazyLock::new(|| {
+    std::env::var("SOLANA_TRANSFER_CHANNEL_ORDINAL")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(DEFAULT_TRANSFER_CHANNEL_ORDINAL)
+});
 
 /// Which solray transfer instruction the composition uses. Derived from the
 /// asset's origin, never supplied by the caller.
@@ -122,9 +205,11 @@ pub struct ValidatedSend {
     pub sender: String,
     pub recipient: String,
     pub mint: String,
+    /// Nolus-side IBC denom (`CurrencyInfo::bank_symbol`) — the remote-token
+    /// denom a sink burn wraps. Unused by a source escrow.
+    pub bank_symbol: String,
     pub ticker: String,
     pub amount: u128,
-    pub decimals: u8,
     pub timeout: TimeoutSpec,
 }
 
@@ -133,8 +218,18 @@ pub struct ValidatedSend {
 /// voucher burns back (`Sink`). Pure over the currency — the caller never picks.
 /// Errors if the currency is not a transferable SOLANA-protocol asset.
 pub fn resolve_transfer_kind(currency: &CurrencyInfo) -> Result<TransferKind, AppError> {
-    let _ = currency;
-    todo!("WS1.4: derive Source/Sink from the SOLANA-protocol currency origin")
+    // A Solana-native asset appears on Nolus as an IBC voucher (its `bank_symbol`
+    // carries the `ibc/` trace), so it escrows out of Solana (Source). A
+    // Nolus-origin asset keeps its native Nolus denom (e.g. `unls`), so on Solana
+    // it is a voucher that burns back to Nolus (Sink). The `CurrencyInfo::native`
+    // flag is Nolus-origin (set iff `bank_symbol == "unls"`), the inverse of
+    // Solana-native, so the origin is keyed off the Nolus-side denom trace, not
+    // that flag.
+    if currency.bank_symbol.starts_with(NOLUS_IBC_VOUCHER_PREFIX) {
+        Ok(TransferKind::Source)
+    } else {
+        Ok(TransferKind::Sink)
+    }
 }
 
 /// Resolve a currency key to its SOLANA-protocol [`CurrencyInfo`]. Errors when
@@ -143,21 +238,40 @@ pub fn lookup_solana_currency<'set>(
     currencies: &'set CurrenciesResponse,
     key: &str,
 ) -> Result<&'set CurrencyInfo, AppError> {
-    let _ = (currencies, key);
-    todo!("WS1.4: look up the key and confirm SOLANA-protocol membership")
+    currencies
+        .currencies
+        .get(key)
+        .filter(|currency| currency.protocol.starts_with(SOLANA_PROTOCOL_PREFIX))
+        .ok_or_else(|| AppError::Validation {
+            message: format!("unknown or non-SOLANA-protocol currency: {key}"),
+            field: Some("currency".to_string()),
+            details: None,
+        })
 }
 
 /// Parse and bound-check a base-unit amount string: rejects zero, negatives (the
 /// leading `-` fails `u128` parsing), and values overflowing `u128`.
 pub fn validate_amount(amount: &str) -> Result<u128, AppError> {
-    let _ = amount;
-    todo!("WS1.4: parse to u128 and reject zero/negative/overflow")
+    match amount.parse::<u128>() {
+        Ok(value) if value > 0 => Ok(value),
+        _ => Err(AppError::Validation {
+            message: "amount must be a positive base-unit integer".to_string(),
+            field: Some("amount".to_string()),
+            details: None,
+        }),
+    }
 }
 
 /// Enforce the send timeout policy: at least one of height / timestamp present.
 pub fn validate_timeout(timeout: &TimeoutSpec) -> Result<(), AppError> {
-    let _ = timeout;
-    todo!("WS1.4: reject a timeout carrying neither height nor timestamp")
+    if timeout.height.is_none() && timeout.timestamp.is_none() {
+        return Err(AppError::Validation {
+            message: "a send timeout must carry a height, a timestamp, or both".to_string(),
+            field: Some("timeout".to_string()),
+            details: None,
+        });
+    }
+    Ok(())
 }
 
 /// Fully validate a send request and resolve it against the currency set,
@@ -171,7 +285,7 @@ pub fn validate_send_request(
     let currency = lookup_solana_currency(currencies, &request.currency)?;
     let kind = resolve_transfer_kind(currency)?;
     crate::validation::validate_solana_address(&request.sender, "sender")?;
-    crate::validation::validate_bech32_address(&request.recipient, "recipient")?;
+    crate::validation::validate_nolus_address(&request.recipient, "recipient")?;
     let amount = validate_amount(&request.amount)?;
     validate_timeout(&request.timeout)?;
     Ok(ValidatedSend {
@@ -179,9 +293,9 @@ pub fn validate_send_request(
         sender: request.sender.clone(),
         recipient: request.recipient.clone(),
         mint: currency.dex_symbol.clone(),
+        bank_symbol: currency.bank_symbol.clone(),
         ticker: currency.ticker.clone(),
         amount,
-        decimals: currency.decimal_digits,
         timeout: request.timeout.clone(),
     })
 }
@@ -214,20 +328,57 @@ pub fn compose_send(
     v: &ValidatedSend,
     blockhash: &str,
 ) -> Result<BuildTransactionResponse, AppError> {
-    let _ = (
-        v.kind,
-        &v.sender,
-        &v.recipient,
-        &v.mint,
-        &v.ticker,
-        v.amount,
-        v.decimals,
-        &v.timeout,
-        blockhash,
-        COMPUTE_UNIT_LIMIT,
-        COMPUTE_UNIT_PRICE_MICRO_LAMPORTS,
-    );
-    todo!("WS1.4: compose the SendSource/SendSink v0 transaction with compute budget")
+    let payer = parse_pubkey(&v.sender, "sender")?;
+    let amount = amount_to_u64(v.amount)?;
+    let program = parse_program_id(solray_program_id())?;
+    let timeout = build_timeout(&v.timeout)?;
+    let ibc_id = IBCIdentifiers {
+        client_name: IBC_CLIENT_NAME.clone(),
+        connection_name: IBC_CONNECTION_NAME.clone(),
+    };
+
+    let (operation, transfer_ix) = match v.kind {
+        TransferKind::Source => {
+            let mint_key = parse_pubkey(&v.mint, "currency")?;
+            let details = SendSourceDetails {
+                at_channel: *TRANSFER_CHANNEL_ORDINAL,
+                recipient: v.recipient.clone(),
+                mint_key,
+                amount,
+                memo: String::new(),
+            };
+            let mint_owner = parse_program_id(SPL_TOKEN_PROGRAM_ID)?;
+            let instruction = ibc_solray::build::transfer(program)
+                .send_source_tokens(details, ibc_id, timeout, payer, mint_owner)
+                .map_err(builder_error)?;
+            (OperationKind::SendSource, instruction)
+        }
+        TransferKind::Sink => {
+            let details = SendSinkDetails {
+                at_channel: *TRANSFER_CHANNEL_ORDINAL,
+                recipient: v.recipient.clone(),
+                remote_token_denom: v.bank_symbol.clone(),
+                amount,
+                memo: String::new(),
+            };
+            let instruction = ibc_solray::build::transfer(program)
+                .send_sink_tokens(details, ibc_id, timeout, payer)
+                .map_err(builder_error)?;
+            (OperationKind::SendSink, instruction)
+        }
+    };
+
+    let transaction = finalize_transaction(&payer, with_compute_budget(transfer_ix)?, blockhash)?;
+    Ok(BuildTransactionResponse {
+        transaction,
+        summary: OperationSummary {
+            operation,
+            asset: v.ticker.clone(),
+            amount: v.amount.to_string(),
+            destination: v.recipient.clone(),
+            fees: fee_summary(),
+        },
+    })
 }
 
 /// Compose the unsigned v0 create-ATA transaction. Deterministic given
@@ -239,15 +390,176 @@ pub fn compose_create_ata(
     ticker: &str,
     blockhash: &str,
 ) -> Result<BuildTransactionResponse, AppError> {
-    let _ = (
-        owner,
-        mint,
-        ticker,
-        blockhash,
-        COMPUTE_UNIT_LIMIT,
-        COMPUTE_UNIT_PRICE_MICRO_LAMPORTS,
-    );
-    todo!("WS1.4: compose the create-ATA v0 transaction with compute budget")
+    let owner_key = parse_pubkey(owner, "owner")?;
+    let mint_key = parse_pubkey(mint, "currency")?;
+    let create_ata_ix = create_ata_instruction(owner_key, mint_key)?;
+
+    let transaction =
+        finalize_transaction(&owner_key, with_compute_budget(create_ata_ix)?, blockhash)?;
+    Ok(BuildTransactionResponse {
+        transaction,
+        summary: OperationSummary {
+            operation: OperationKind::CreateAta,
+            asset: ticker.to_string(),
+            amount: "0".to_string(),
+            destination: owner.to_string(),
+            fees: fee_summary(),
+        },
+    })
+}
+
+/// The compute-budget settings every composed transaction carries.
+fn fee_summary() -> FeeSummary {
+    FeeSummary {
+        compute_unit_limit: COMPUTE_UNIT_LIMIT,
+        compute_unit_price_micro_lamports: COMPUTE_UNIT_PRICE_MICRO_LAMPORTS,
+    }
+}
+
+/// Parse a base58 Solana address, mapping a malformed value to a 400 naming
+/// `field`. The addresses reaching here are pre-validated, so this is a
+/// defensive re-parse rather than the primary gate.
+fn parse_pubkey(value: &str, field: &str) -> Result<Pubkey, AppError> {
+    Pubkey::from_str(value).map_err(|_err| AppError::Validation {
+        message: format!("Invalid {field} format"),
+        field: Some(field.to_string()),
+        details: None,
+    })
+}
+
+/// Parse a program id (solray, token, ATA, …) that is operator-configured or a
+/// module constant, so a parse failure is an internal misconfiguration (500),
+/// not caller input.
+fn parse_program_id(value: &str) -> Result<Pubkey, AppError> {
+    Pubkey::from_str(value)
+        .map_err(|err| AppError::Internal(format!("invalid program id {value}: {err}")))
+}
+
+/// Narrow a validated `u128` base-unit amount to the `u64` Solana token amount,
+/// rejecting a value past the SPL base-unit ceiling.
+fn amount_to_u64(amount: u128) -> Result<u64, AppError> {
+    u64::try_from(amount).map_err(|_err| AppError::Validation {
+        message: "amount exceeds the u64 base-unit ceiling".to_string(),
+        field: Some("amount".to_string()),
+        details: None,
+    })
+}
+
+/// Map an SDK instruction-builder failure (bad channel/client/connection config)
+/// to an internal error — these inputs are module/operator config, not caller
+/// data.
+fn builder_error(err: ibc_solray::api::Error) -> AppError {
+    AppError::Internal(format!(
+        "failed to compose Solana transfer instruction: {err}"
+    ))
+}
+
+/// Convert the request's [`TimeoutSpec`] into the SDK [`Timeout`]. An absent half
+/// maps to `Never`; presence is already enforced by [`validate_timeout`].
+fn build_timeout(timeout: &TimeoutSpec) -> Result<Timeout, AppError> {
+    let height = match &timeout.height {
+        Some(h) => TimeoutHeight::At(Height::new(h.revision_number, h.revision_height).map_err(
+            |err| AppError::Validation {
+                message: format!("invalid timeout height: {err}"),
+                field: Some("timeout".to_string()),
+                details: None,
+            },
+        )?),
+        None => TimeoutHeight::Never,
+    };
+    let time = match timeout.timestamp {
+        Some(ts) => TimeoutTimestamp::At(Timestamp::from_nanoseconds(ts)),
+        None => TimeoutTimestamp::Never,
+    };
+    Ok(Timeout::new(height, time))
+}
+
+/// The two compute-budget instructions injected ahead of every operation: an
+/// explicit compute-unit limit and priority-fee price (wallets inject neither).
+fn compute_budget_instructions() -> Result<[Instruction; 2], AppError> {
+    let program = parse_program_id(COMPUTE_BUDGET_PROGRAM_ID)?;
+    let mut limit_data = Vec::with_capacity(5);
+    limit_data.push(SET_COMPUTE_UNIT_LIMIT_TAG);
+    limit_data.extend_from_slice(&COMPUTE_UNIT_LIMIT.to_le_bytes());
+    let mut price_data = Vec::with_capacity(9);
+    price_data.push(SET_COMPUTE_UNIT_PRICE_TAG);
+    price_data.extend_from_slice(&COMPUTE_UNIT_PRICE_MICRO_LAMPORTS.to_le_bytes());
+    Ok([
+        Instruction::new_with_bytes(program, &limit_data, Vec::new()),
+        Instruction::new_with_bytes(program, &price_data, Vec::new()),
+    ])
+}
+
+/// Prepend the compute-budget instructions to `operation`, yielding the full
+/// instruction list a transaction compiles from.
+fn with_compute_budget(operation: Instruction) -> Result<Vec<Instruction>, AppError> {
+    let mut instructions = compute_budget_instructions()?.to_vec();
+    instructions.push(operation);
+    Ok(instructions)
+}
+
+/// Build an idempotent create-ATA instruction: `owner`'s associated token account
+/// on `mint` under the classic SPL Token program, funded and signed by `owner`.
+fn create_ata_instruction(owner: Pubkey, mint: Pubkey) -> Result<Instruction, AppError> {
+    let ata_program = parse_program_id(ATA_PROGRAM_ID)?;
+    let token_program = parse_program_id(SPL_TOKEN_PROGRAM_ID)?;
+    let system_program = parse_program_id(SYSTEM_PROGRAM_ID)?;
+    let associated_account = Pubkey::find_program_address(
+        &[owner.as_ref(), token_program.as_ref(), mint.as_ref()],
+        &ata_program,
+    )
+    .0;
+    Ok(Instruction::new_with_bytes(
+        ata_program,
+        &[CREATE_ATA_IDEMPOTENT_TAG],
+        vec![
+            AccountMeta::new(owner, true),
+            AccountMeta::new(associated_account, false),
+            AccountMeta::new_readonly(owner, false),
+            AccountMeta::new_readonly(mint, false),
+            AccountMeta::new_readonly(system_program, false),
+            AccountMeta::new_readonly(token_program, false),
+        ],
+    ))
+}
+
+/// Compile `instructions` into an unsigned base64 v0 transaction pinned to
+/// `blockhash`, `payer` in slot 0. The signature array is zero-filled to the
+/// required width; the wallet fills it before broadcast. Deterministic per input.
+fn finalize_transaction(
+    payer: &Pubkey,
+    instructions: Vec<Instruction>,
+    blockhash: &str,
+) -> Result<String, AppError> {
+    let recent_blockhash = Hash::from_str(blockhash)
+        .map_err(|err| AppError::Internal(format!("invalid recent blockhash: {err}")))?;
+    let message = V0Message::try_compile(payer, &instructions, &[], recent_blockhash)
+        .map_err(|err| AppError::Internal(format!("failed to compile v0 message: {err}")))?;
+    let signature_count = message.header.num_required_signatures;
+    let message_bytes = VersionedMessage::V0(message).serialize();
+
+    let mut transaction = Vec::new();
+    encode_compact_u16(&mut transaction, u16::from(signature_count));
+    transaction.extend(std::iter::repeat_n(
+        0u8,
+        usize::from(signature_count) * SIGNATURE_LEN,
+    ));
+    transaction.extend_from_slice(&message_bytes);
+    Ok(base64::engine::general_purpose::STANDARD.encode(&transaction))
+}
+
+/// Encode `value` as a Solana `short_u16` (compact-u16) length prefix.
+fn encode_compact_u16(out: &mut Vec<u8>, mut value: u16) {
+    loop {
+        let low_seven = value & 0x7f;
+        let byte = low_seven.to_le_bytes()[0];
+        if value < 0x80 {
+            out.push(byte);
+            break;
+        }
+        out.push(byte | 0x80);
+        value >>= 7;
+    }
 }
 
 /// Build an unsigned create-ATA transaction
@@ -391,9 +703,10 @@ mod tests {
 
     /// A Solana-native currency in the SOLANA protocol set (dispatches Source).
     ///
-    /// INTERPRETATION: `native == true` is used here as the Solana-origin
-    /// discriminator. If WS1.4 keys origin off the IBC trace of `bank_symbol`
-    /// instead, adjust this one builder (see report — interpretation call #1).
+    /// Origin keys off the Nolus-side `bank_symbol` trace, not `native`: a
+    /// Solana-native asset is an IBC voucher on Nolus (`ibc/…`), and the real
+    /// model sets `native` iff `bank_symbol == "unls"` — so a Solana-native asset
+    /// is `native: false` (see report — origin-discriminator finding).
     fn native_currency() -> CurrencyInfo {
         CurrencyInfo {
             key: "USDC@SOLANA-JUPITER-USDC".to_string(),
@@ -405,7 +718,7 @@ mod tests {
             bank_symbol: "ibc/USDCONSOLANA".to_string(),
             dex_symbol: MINT.to_string(),
             icon: String::new(),
-            native: true,
+            native: false,
             coingecko_id: None,
             protocol: SOLANA_PROTOCOL.to_string(),
             group: "lease".to_string(),
@@ -413,7 +726,8 @@ mod tests {
         }
     }
 
-    /// A Nolus-origin voucher in the SOLANA protocol set (dispatches Sink).
+    /// A Nolus-origin voucher in the SOLANA protocol set (dispatches Sink). Its
+    /// native Nolus denom is `unls`, so the real model sets `native: true`.
     fn voucher_currency() -> CurrencyInfo {
         CurrencyInfo {
             key: "NLS@SOLANA-JUPITER-USDC".to_string(),
@@ -425,7 +739,7 @@ mod tests {
             bank_symbol: "unls".to_string(),
             dex_symbol: VOUCHER_MINT.to_string(),
             icon: String::new(),
-            native: false,
+            native: true,
             coingecko_id: None,
             protocol: SOLANA_PROTOCOL.to_string(),
             group: "payment_only".to_string(),
@@ -457,9 +771,9 @@ mod tests {
             sender: SENDER.to_string(),
             recipient: RECIPIENT.to_string(),
             mint: MINT.to_string(),
+            bank_symbol: "ibc/USDCONSOLANA".to_string(),
             ticker: "USDC".to_string(),
             amount: 5_000_000,
-            decimals: 6,
             timeout: timeout_height(),
         }
     }
@@ -681,6 +995,22 @@ mod tests {
         let err = build_send_source(State(state), Json(req))
             .await
             .expect_err("malformed recipient must be rejected");
+        assert!(
+            matches!(err, AppError::Validation { field, .. } if field.as_deref() == Some("recipient"))
+        );
+    }
+
+    #[tokio::test]
+    async fn build_send_source_rejects_a_wrong_hrp_recipient_address() {
+        // Recipient validation is Nolus-only: a well-formed bech32 address on a
+        // foreign HRP (a valid `osmo1…`) must be rejected, not just malformed
+        // input — a Solana send credits a Nolus recipient.
+        let state = state_with_solana("http://127.0.0.1:1/").await;
+        let mut req = send_request("USDC@SOLANA-JUPITER-USDC");
+        req.recipient = "osmo1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3aq6l09".to_string();
+        let err = build_send_source(State(state), Json(req))
+            .await
+            .expect_err("a valid osmo address must be rejected on the nolus HRP");
         assert!(
             matches!(err, AppError::Validation { field, .. } if field.as_deref() == Some("recipient"))
         );

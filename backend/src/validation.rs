@@ -33,6 +33,30 @@ pub fn is_valid_nolus_address(address: &str) -> bool {
     matches!(bech32::decode(address), Ok((hrp, _)) if hrp.as_str() == "nolus")
 }
 
+/// Validate that a string is a valid Nolus (`nolus` HRP) bech32 address.
+/// Returns `AppError::Validation` if empty, malformed, or on a foreign HRP.
+///
+/// Stricter than [`validate_bech32_address`]: a well-formed bech32 address on
+/// another chain's HRP (`osmo1…`, `cosmos1…`) is rejected — a Solana send credits
+/// a Nolus recipient, never a foreign-chain address.
+pub fn validate_nolus_address(address: &str, field_name: &str) -> Result<(), AppError> {
+    if address.is_empty() {
+        return Err(AppError::Validation {
+            message: format!("{} is required", field_name),
+            field: Some(field_name.to_string()),
+            details: None,
+        });
+    }
+    if !is_valid_nolus_address(address) {
+        return Err(AppError::Validation {
+            message: format!("Invalid {} format", field_name),
+            field: Some(field_name.to_string()),
+            details: None,
+        });
+    }
+    Ok(())
+}
+
 /// Validate that a string is a valid base58 Solana address (an ed25519 public
 /// key: exactly 32 bytes, base58-encoded). Returns `AppError::Validation` if
 /// empty or malformed.
